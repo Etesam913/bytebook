@@ -24,7 +24,7 @@ import {
 } from '../../hooks/search.tsx';
 import { useNoteExists } from '../../hooks/notes';
 import { createFilePath, type FilePath } from '../../utils/path.ts';
-import { isNoteMaximizedAtom } from '../../atoms.ts';
+import { isFileMaximizedAtom } from '../../atoms.ts';
 import { useAtomValue } from 'jotai';
 import { Tooltip } from '../../components/tooltip/index.tsx';
 import { ErrorText } from '../../components/error-text/index.tsx';
@@ -232,7 +232,7 @@ export function SavedSearchPage({
   const searchResultPaths = results.map((result) => result.filePath);
 
   const sidebarRef = useRef<HTMLElement>(null);
-  const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
+  const isFileMaximized = useAtomValue(isFileMaximizedAtom);
   const fallbackWidth = useMotionValue(0);
   const scaledSidebarWidth = useMotionTemplate`calc(${width ?? fallbackWidth}px * var(--ui-scale))`;
 
@@ -264,7 +264,7 @@ export function SavedSearchPage({
 
   return (
     <div className="flex h-full min-w-0">
-      {!isNoteMaximized && (
+      {!isFileMaximized && (
         <motion.aside
           ref={sidebarRef}
           style={width ? { width: scaledSidebarWidth } : undefined}

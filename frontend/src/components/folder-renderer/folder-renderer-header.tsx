@@ -2,7 +2,7 @@ import { useAtomValue } from 'jotai';
 import { navigate } from 'wouter/use-browser-location';
 import type { Key } from 'react-aria-components';
 import { Button } from 'react-aria-components';
-import { isNoteMaximizedAtom, projectSettingsAtom } from '../../atoms';
+import { isFileMaximizedAtom, projectSettingsAtom } from '../../atoms';
 import { MaximizeNoteButton } from '../buttons/maximize-note';
 import { AppMenu, AppMenuItem, AppMenuPopover, AppMenuTrigger } from '../menu';
 import { Tooltip } from '../tooltip';
@@ -31,7 +31,7 @@ export function FolderRendererHeader({
   folderTreeNode: Folder;
   animationControls: LegacyAnimationControls;
 }) {
-  const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
+  const isFileMaximized = useAtomValue(isFileMaximizedAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const { mutate: revealInFinder } = useRevealInFinderMutation();
   const { mutate: moveToTrash } = useMoveToTrashMutation();
@@ -106,7 +106,7 @@ export function FolderRendererHeader({
       <header
         className={cn(
           'flex w-full flex-col gap-1 pt-3',
-          isNoteMaximized && 'pl-32'
+          isFileMaximized && 'pl-32'
         )}
       >
         <div className="flex items-start gap-3">

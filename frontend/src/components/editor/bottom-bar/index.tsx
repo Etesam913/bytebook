@@ -11,7 +11,7 @@ import {
   useTagsForNotesQuery,
   useDeleteTagFromNoteMutation,
 } from '../../../hooks/tags';
-import { dialogDataAtom, isNoteMaximizedAtom } from '../../../atoms';
+import { dialogDataAtom, isFileMaximizedAtom } from '../../../atoms';
 import { EditTagDialogChildren } from '../../../routes/notes-sidebar/edit-tag-dialog-children';
 import { timeSince } from '../utils/bottom-bar';
 import { RenderNoteIcon } from '../../../icons/render-note-icon';
@@ -34,7 +34,7 @@ export function BottomBar({
   isNoteEditor?: boolean;
 }) {
   const [lastUpdatedText, setLastUpdatedText] = useState('');
-  const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
+  const isFileMaximized = useAtomValue(isFileMaximizedAtom);
 
   const { data: tagsMap, isLoading } = useTagsForNotesQuery([
     filePath.fullPath,
@@ -84,7 +84,7 @@ export function BottomBar({
     <footer
       className={cn(
         'text-xs ml-[-4.5px] border-t border-gray-200 dark:border-gray-600 py-1.5 pl-2 pr-5 flex items-center gap-4',
-        isNoteMaximized && 'px-5'
+        isFileMaximized && 'px-5'
       )}
     >
       <span className="flex items-center gap-1 text-zinc-500 dark:text-zinc-300">

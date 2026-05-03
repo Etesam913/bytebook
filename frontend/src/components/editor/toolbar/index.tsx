@@ -12,7 +12,7 @@ import {
 import { createPortal } from 'react-dom';
 import {
   isFullscreenAtom,
-  isNoteMaximizedAtom,
+  isFileMaximizedAtom,
   isToolbarDisabledAtom,
 } from '../../../atoms';
 import { noteSelectionAtom } from '../atoms';
@@ -90,7 +90,7 @@ export function Toolbar({
     TextFormatType[]
   >([]);
 
-  const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
+  const isFileMaximized = useAtomValue(isFileMaximizedAtom);
   // const [isNodeSelection, setIsNodeSelection] = useState(false);
   const [noteSelection, setNoteSelection] = useAtom(noteSelectionAtom);
   const [canRedo, setCanRedo] = useState(false);
@@ -177,7 +177,7 @@ export function Toolbar({
       <nav
         className={cn(
           'ml-[-4px] flex gap-1.5 border-b border-b-zinc-200 px-2 pb-2 pt-[12px] dark:border-b-zinc-700',
-          isNoteMaximized && !isFullscreen && 'pl-[100px]'
+          isFileMaximized && !isFullscreen && 'pl-[100px]'
         )}
       >
         <NoteFindPanel

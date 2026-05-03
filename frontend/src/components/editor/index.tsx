@@ -20,7 +20,7 @@ import {
   draggedGhostElementAtom,
   editorAtom,
 } from './atoms';
-import { isNoteMaximizedAtom } from '../../atoms';
+import { isFileMaximizedAtom } from '../../atoms';
 import { projectSettingsAtom } from '../../atoms';
 import type { FloatingDataType, Frontmatter } from '../../types.ts';
 import { handleEditorEscape } from '../../utils/selection.ts';
@@ -77,7 +77,7 @@ export function NotesEditor({
   const [editorAnchorElem, setEditorAnchorElem] = useState<HTMLElement | null>(
     null
   );
-  const [isNoteMaximized, setIsNoteMaximized] = useAtom(isNoteMaximizedAtom);
+  const [isFileMaximized, setIsFileMaximized] = useAtom(isFileMaximizedAtom);
   const [frontmatter, setFrontmatter] = useState<Frontmatter>({});
 
   const draggedGhostElement = useAtomValue(draggedGhostElementAtom);
@@ -184,8 +184,8 @@ export function NotesEditor({
                     onKeyDown={(e) => {
                       handleEditorEscape(
                         e,
-                        isNoteMaximized,
-                        setIsNoteMaximized
+                        isFileMaximized,
+                        setIsFileMaximized
                       );
                       setDraggableBlockElement(null);
                     }}

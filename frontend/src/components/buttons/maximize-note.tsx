@@ -2,7 +2,7 @@ import type { LegacyAnimationControls } from 'motion/react';
 import { useAtom } from 'jotai';
 import { MotionIconButton } from '.';
 import { easingFunctions, getDefaultButtonVariants } from '../../animations';
-import { isNoteMaximizedAtom } from '../../atoms';
+import { isFileMaximizedAtom } from '../../atoms';
 import { SidebarRightCollapse } from '../../icons/sidebar-right-collapse';
 import { Tooltip } from '../tooltip';
 
@@ -13,25 +13,25 @@ export function MaximizeNoteButton({
   animationControls: LegacyAnimationControls;
   disabled?: boolean;
 }) {
-  const [isNoteMaximized, setIsNoteMaximized] = useAtom(isNoteMaximizedAtom);
+  const [isFileMaximized, setIsFileMaximized] = useAtom(isFileMaximizedAtom);
 
   return (
     <Tooltip
-      content={(isNoteMaximized ? 'Minimize' : 'Maximize') + ' (⌘S)'}
+      content={(isFileMaximized ? 'Minimize' : 'Maximize') + ' (⌘S)'}
       placement="bottom"
     >
       <MotionIconButton
         onClick={() => {
-          setIsNoteMaximized((prev) => !prev);
+          setIsFileMaximized((prev) => !prev);
           void animationControls.start({
-            x: isNoteMaximized ? [-40, 0] : [50, 0],
+            x: isFileMaximized ? [-40, 0] : [50, 0],
             transition: { ease: easingFunctions['ease-out-quint'] },
           });
         }}
         {...getDefaultButtonVariants({ disabled })}
         type="button"
-        initial={{ rotate: isNoteMaximized ? 180 : 0 }}
-        animate={{ rotate: isNoteMaximized ? 180 : 0 }}
+        initial={{ rotate: isFileMaximized ? 180 : 0 }}
+        animate={{ rotate: isFileMaximized ? 180 : 0 }}
       >
         <SidebarRightCollapse
           strokeWidth={1.75}

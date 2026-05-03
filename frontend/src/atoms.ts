@@ -128,7 +128,7 @@ export const isDarkModeOnAtom = atom<boolean>(false);
 // Editor UI state atoms
 export const isToolbarDisabledAtom = atom<boolean>(false);
 
-export const isNoteMaximizedAtom = atom<boolean>(false);
+export const isFileMaximizedAtom = atom<boolean>(false);
 
 export const isFullscreenAtom = atom<boolean>(false);
 

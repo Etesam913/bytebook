@@ -182,17 +182,17 @@ export function handleKeyNavigation(e: KeyboardEvent) {
 /**
  * Handles escape key behavior in the editor, toggling maximized state and managing focus.
  * @param e - The keyboard event
- * @param isNoteMaximized - Boolean indicating if note is currently maximized
- * @param setIsNoteMaximized - State setter function for the maximized state
+ * @param isFileMaximized - Boolean indicating if file is currently maximized
+ * @param setIsFileMaximized - State setter function for the maximized state
  */
 export function handleEditorEscape(
   e: KeyboardEvent,
-  isNoteMaximized: boolean,
-  setIsNoteMaximized: Dispatch<SetStateAction<boolean>>
+  isFileMaximized: boolean,
+  setIsFileMaximized: Dispatch<SetStateAction<boolean>>
 ) {
   if (e.key === 'Escape') {
-    if (isNoteMaximized) {
-      setIsNoteMaximized(false);
+    if (isFileMaximized) {
+      setIsFileMaximized(false);
 
       setTimeout(() => {
         const selectedNoteButton = document.getElementById(

@@ -8,7 +8,7 @@ import {
 import { useWailsEvent } from '../../hooks/events';
 import { MotionIconButton } from '../buttons';
 import { getDefaultButtonVariants } from '../../animations';
-import { isNoteMaximizedAtom } from '../../atoms';
+import { isFileMaximizedAtom } from '../../atoms';
 import { Note } from '../../icons/page';
 import { Magnifier } from '../../icons/magnifier';
 import { Tooltip } from '../tooltip';
@@ -30,7 +30,7 @@ export function SidebarModeToggle({
   const [pathname] = useLocation();
   const browserSearch = useBrowserSearch();
   const isSearchSidebar = isSearchSidebarRoute(pathname);
-  const setIsNoteMaximized = useSetAtom(isNoteMaximizedAtom);
+  const setIsFileMaximized = useSetAtom(isFileMaximizedAtom);
 
   // Ensures that the lastFileRoute or the lastSearchRoute is kept up to date when route changes
   useEffect(() => {
@@ -47,7 +47,7 @@ export function SidebarModeToggle({
   useWailsEvent(SIDEBAR_FILES_OPEN, (data) => {
     void (async () => {
       if (!(await isEventInCurrentWindow(data))) return;
-      setIsNoteMaximized(false);
+      setIsFileMaximized(false);
       if (isSearchSidebar) {
         navigate(lastFilesRouteRef.current);
       }
@@ -57,7 +57,7 @@ export function SidebarModeToggle({
   useWailsEvent(SIDEBAR_SEARCH_OPEN, (data) => {
     void (async () => {
       if (!(await isEventInCurrentWindow(data))) return;
-      setIsNoteMaximized(false);
+      setIsFileMaximized(false);
       if (!isSearchSidebar) {
         navigate(lastSearchRouteRef.current);
       }

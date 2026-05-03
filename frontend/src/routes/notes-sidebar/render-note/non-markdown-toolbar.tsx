@@ -6,7 +6,7 @@ import { navigate } from 'wouter/use-browser-location';
 import {
   dialogDataAtom,
   isFullscreenAtom,
-  isNoteMaximizedAtom,
+  isFileMaximizedAtom,
   projectSettingsAtom,
 } from '../../../atoms';
 import { MaximizeNoteButton } from '../../../components/buttons/maximize-note';
@@ -45,7 +45,7 @@ export function NonMarkdownToolbar({
   filePath: FilePath;
 }) {
   const isFullscreen = useAtomValue(isFullscreenAtom);
-  const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
+  const isFileMaximized = useAtomValue(isFileMaximizedAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const setDialogData = useSetAtom(dialogDataAtom);
 
@@ -182,7 +182,7 @@ export function NonMarkdownToolbar({
     <header
       className={cn(
         'flex w-full min-w-0 items-center gap-3 border-b pr-2 pb-2 pt-3.75 h-12 border-zinc-200 dark:border-b-zinc-700 whitespace-nowrap text-xs',
-        isNoteMaximized && !isFullscreen && 'pl-23!'
+        isFileMaximized && !isFullscreen && 'pl-23!'
       )}
     >
       <MaximizeNoteButton animationControls={animationControls} />

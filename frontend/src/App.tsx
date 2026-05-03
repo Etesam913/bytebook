@@ -4,7 +4,7 @@ import { useMotionValue } from 'motion/react';
 import { useAtomValue, useSetAtom } from 'jotai/react';
 import { Toaster } from 'sonner';
 import { Route, Switch } from 'wouter';
-import { contextMenuDataAtom, isNoteMaximizedAtom } from './atoms';
+import { contextMenuDataAtom, isFileMaximizedAtom } from './atoms';
 import { ContextMenu } from './components/context-menu';
 import { Dialog } from './components/dialog';
 import { FileSidebar } from './components/file-sidebar';
@@ -54,7 +54,7 @@ disableBackspaceNavigation();
 function App() {
   const fileSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
   const notesSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
-  const isNoteMaximized = useAtomValue(isNoteMaximizedAtom);
+  const isFileMaximized = useAtomValue(isFileMaximizedAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
 
   useCreateEvents();
@@ -90,7 +90,7 @@ function App() {
       <LoadingModal />
       <Toaster richColors theme="system" />
       {!isE2ETestEnvironment() && <VirtualizedFileTreeDebugView />}
-      <Activity mode={isNoteMaximized ? 'hidden' : 'visible'}>
+      <Activity mode={isFileMaximized ? 'hidden' : 'visible'}>
         <FileSidebar width={fileSidebarWidth} />
       </Activity>
       <div id="main-content" className="flex-1 min-w-0 h-full">
