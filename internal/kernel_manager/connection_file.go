@@ -22,10 +22,10 @@ func connectionFilePath(projectPath, id string) string {
 	return filepath.Join(kernelsDir(projectPath), id+".json")
 }
 
-// EnsureKernelsDir creates the .kernels directory if it does not exist and
+// SetupKernelsDir creates the .kernels directory if it does not exist and
 // removes any leftover connection files from previous runs (which are stale
 // since the in-memory manager state is gone).
-func EnsureKernelsDir(projectPath string) error {
+func SetupKernelsDir(projectPath string) error {
 	dir := kernelsDir(projectPath)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return fmt.Errorf("failed to create kernels dir: %w", err)

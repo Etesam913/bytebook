@@ -481,6 +481,10 @@ textarea,
   content: '𝐩';
 }
 
+.cm-activeLine {
+  border-radius: 0.2rem;
+}
+
 .cm-tooltip-autocomplete .cm-completionIcon-statement::before {
   content: '𝑺';
 }

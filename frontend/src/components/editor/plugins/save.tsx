@@ -11,13 +11,14 @@ import {
 } from 'lexical';
 import { type Dispatch, type SetStateAction, useEffect } from 'react';
 import { useAtom } from 'jotai';
-import { SetNoteMarkdown } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
+import { SetNoteMarkdownWithCodeResults } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { CUSTOM_TRANSFORMERS } from '../transformers';
 import { replaceFrontMatter, parseFrontMatter } from '../utils/note-metadata';
 import { previousMarkdownAtom } from '../atoms';
 import { FilePath } from '../../../utils/path';
 import { Frontmatter } from '../../../types';
 import { $convertToMarkdownString } from '@lexical/markdown';
+import { collectCodeResultsSidecar } from '../utils/code-results';
 
 type SaveMarkdownContentPayload =
   | undefined
@@ -43,7 +44,13 @@ export function SavePlugin({
   async function saveMarkdownContent(markdownWithFrontmatter: string) {
     const decodedFolder = filePath.folder;
     const decodedNote = filePath.noteWithoutExtension;
-    await SetNoteMarkdown(decodedFolder, decodedNote, markdownWithFrontmatter);
+    const codeResults = collectCodeResultsSidecar();
+    await SetNoteMarkdownWithCodeResults(
+      decodedFolder,
+      decodedNote,
+      markdownWithFrontmatter,
+      codeResults
+    );
     await queryClient.invalidateQueries({
       queryKey: ['note-preview', decodedFolder, decodedNote],
     });

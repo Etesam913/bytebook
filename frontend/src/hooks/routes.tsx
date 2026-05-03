@@ -30,7 +30,7 @@ function normalizeWildcardPath(path: string | undefined): string | null {
  *
  * @returns The normalized path from the route, or null if not on `/notes/*`
  */
-function useDecodedNotesWildcardPath(): string | null {
+export function useDecodedNotesWildcardPath(): string | null {
   const [isNoteRoute, noteParams] = useRoute<NotesRouteParams>('/notes/*');
   if (!isNoteRoute) {
     return null;
@@ -82,16 +82,6 @@ function useDecodedSearchWildcardPath(): string | null {
 export function useFilePathFromRoute(): FilePath | null {
   const decodedPath = useDecodedNotesWildcardPath();
   return decodedPath ? createFilePath(decodedPath) : null;
-}
-
-/**
- * Hook to get the current note id used as the kernel scope key.
- * Returns the decoded `<folder>/<noteName>` path or empty string if not on a note route.
- *
- * The kernel manager uses this string as the scopeId for kernel instances.
- */
-export function useCurrentNoteId(): string {
-  return useDecodedNotesWildcardPath() ?? '';
 }
 
 /**

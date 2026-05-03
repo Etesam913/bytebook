@@ -35,6 +35,7 @@ export const EDITOR_CONTENT_DROP = 'editor:content-drop';
 export const SETTINGS_UPDATE = 'settings:update';
 export const TAGS_INDEX_UPDATE = 'tags:index_update';
 export const SAVED_SEARCH_UPDATE = 'saved-search:update';
+export const CODE_RESULTS_UPDATE = 'code-results:update';
 
 // Kernel instance events (per-instance, not per-language)
 export const KERNEL_INSTANCE_CREATED = 'kernel:instance:created';

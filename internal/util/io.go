@@ -226,9 +226,18 @@ func DedupeDescendantPaths(paths []string) []string {
 }
 
 type TrashRestoreInfo struct {
-	OriginalPath string `json:"originalPath"`
-	TrashedPath  string `json:"trashedPath"`
-	IsFolder     bool   `json:"isFolder"`
+	OriginalPath string             `json:"originalPath"`
+	TrashedPath  string             `json:"trashedPath"`
+	IsFolder     bool               `json:"isFolder"`
+	RelatedItems []TrashRestoreInfo `json:"relatedItems,omitempty"`
+}
+
+func codeResultsSidecarPathForNote(notePath string) string {
+	dir := filepath.Dir(notePath)
+	fileName := filepath.Base(notePath)
+	extension := filepath.Ext(fileName)
+	baseName := fileName[:len(fileName)-len(extension)]
+	return filepath.Join(dir, "."+baseName+".json")
 }
 
 func resolveTrashDir(homeDir string) string {
@@ -386,11 +395,31 @@ func MoveNotesToTrash(projectPath string, folderAndNotes []string) ([]TrashResto
 		_, fileName, _ := Pop(parts)
 		fullPath := filepath.Join(projectPath, "notes", relPath)
 
+		var relatedItems []TrashRestoreInfo
+		if strings.EqualFold(filepath.Ext(fullPath), ".md") {
+			sidecarPath := codeResultsSidecarPathForNote(fullPath)
+			if sidecarExists, err := FileOrFolderExists(sidecarPath); err != nil {
+				failed = append(failed, fileName)
+				continue
+			} else if sidecarExists {
+				sidecarRestoreInfo, err := MoveToTrash(sidecarPath)
+				if err != nil {
+					failed = append(failed, fileName)
+					continue
+				}
+				relatedItems = append(relatedItems, sidecarRestoreInfo)
+			}
+		}
+
 		restoreInfo, err := MoveToTrash(fullPath)
 		if err != nil {
+			for _, relatedItem := range relatedItems {
+				_ = os.Rename(relatedItem.TrashedPath, relatedItem.OriginalPath)
+			}
 			failed = append(failed, fileName)
 			continue
 		}
+		restoreInfo.RelatedItems = relatedItems
 		restoreItems = append(restoreItems, restoreInfo)
 	}
 
@@ -421,22 +450,37 @@ func RestoreNotesFromTrash(projectPath string, restoreItems []TrashRestoreInfo) 
 
 	notesPath := filepath.Join(projectPath, "notes")
 	for _, restoreItem := range restoreItems {
-		relativePath, err := filepath.Rel(notesPath, restoreItem.OriginalPath)
-		if err != nil {
-			return fmt.Errorf("could not validate restore path: %w", err)
-		}
-		if relativePath == ".." || strings.HasPrefix(relativePath, ".."+string(filepath.Separator)) {
-			return fmt.Errorf("restore path must stay inside the notes directory")
-		}
-		if filepath.IsAbs(relativePath) {
-			return fmt.Errorf("restore path must stay inside the notes directory")
+		if err := validatePathInsideNotes(notesPath, restoreItem.OriginalPath); err != nil {
+			return err
 		}
 
 		if err := restoreToTrashDarwin(restoreItem.TrashedPath, restoreItem.OriginalPath); err != nil {
 			return err
 		}
+		for _, relatedItem := range restoreItem.RelatedItems {
+			if err := validatePathInsideNotes(notesPath, relatedItem.OriginalPath); err != nil {
+				return err
+			}
+			if err := restoreToTrashDarwin(relatedItem.TrashedPath, relatedItem.OriginalPath); err != nil {
+				return err
+			}
+		}
 	}
 
+	return nil
+}
+
+func validatePathInsideNotes(notesPath, path string) error {
+	relativePath, err := filepath.Rel(notesPath, path)
+	if err != nil {
+		return fmt.Errorf("could not validate restore path: %w", err)
+	}
+	if relativePath == ".." || strings.HasPrefix(relativePath, ".."+string(filepath.Separator)) {
+		return fmt.Errorf("restore path must stay inside the notes directory")
+	}
+	if filepath.IsAbs(relativePath) {
+		return fmt.Errorf("restore path must stay inside the notes directory")
+	}
 	return nil
 }
 

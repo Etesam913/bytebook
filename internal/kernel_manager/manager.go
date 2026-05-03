@@ -57,7 +57,7 @@ type KernelManager struct {
 	byLangNote map[langNoteKey]*KernelInstance
 }
 
-// New constructs a KernelManager. The caller should also call EnsureKernelsDir(projectPath)
+// New constructs a KernelManager. The caller should also call SetupKernelsDir(projectPath)
 // once at startup to create the .kernels directory and wipe stale connection files.
 func New(projectPath string, allKernels config.AllKernels) *KernelManager {
 	return &KernelManager{

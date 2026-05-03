@@ -3,17 +3,12 @@ import type { RefObject } from 'react';
 import { useRoute } from 'wouter';
 import { VirtualizedListAccordion } from '../../virtualized/virtualized-list/accordion';
 import { AccordionButton } from '../../accordion/accordion-button';
-import {
-  isValidKernelLanguage,
-  KernelInstanceData,
-  languagesWithKernelsSet,
-} from '../../../types';
+import { isValidKernelLanguage, languagesWithKernelsSet } from '../../../types';
 import {
   routeUrls,
   type KernelWithFilesRouteParams,
 } from '../../../utils/routes';
 import { KernelAccordionButton } from './kernel-accordion-button';
-import { Tooltip } from '../../tooltip';
 import {
   fileSidebarOpenStateAtom,
   kernelInstancesByLanguageAtom,
@@ -54,36 +49,6 @@ export function getKernelIcon(kernel: Languages, size: string = '1.125rem') {
   }
 }
 
-function KernelTooltipContent({
-  byLanguage,
-}: {
-  byLanguage: Record<LanguagesWithKernels, KernelInstanceData[]>;
-}) {
-  const totalActive = Object.values(byLanguage).reduce(
-    (sum, arr) => sum + arr.length,
-    0
-  );
-  if (totalActive === 0) {
-    return <div className="text-sm">No active kernels</div>;
-  }
-  return (
-    <div className="space-y-1">
-      <div className="text-sm font-medium mb-2">Active Kernels</div>
-      {[...languagesWithKernelsSet].map((kernel) => {
-        const count = byLanguage[kernel].length;
-        if (count === 0) return null;
-        return (
-          <div key={kernel} className="flex items-center gap-2 text-sm">
-            {getKernelIcon(kernel, '1rem')}
-            <span className="capitalize">{kernel}</span>
-            <span className="text-zinc-500 dark:text-zinc-400">×{count}</span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 export function MyKernelsAccordion({
   containerRef,
   flexWeightMVs,
@@ -109,29 +74,24 @@ export function MyKernelsAccordion({
       flexWeightMVs={flexWeightMVs}
       storedWeightsRef={storedWeightsRef}
       trigger={
-        <Tooltip
-          content={<KernelTooltipContent byLanguage={byLanguage} />}
-          placement="right"
-        >
-          <AccordionButton
-            data-testid="kernels-accordion"
-            isOpen={isOpen}
-            onClick={() =>
-              setOpenState((prev) => ({
-                ...prev,
-                kernels: !prev.kernels,
-              }))
-            }
-            icon={
-              <SquareTerminal
-                width="1.25rem"
-                height="1.25rem"
-                className="will-change-transform"
-              />
-            }
-            title={'Kernels'}
-          />
-        </Tooltip>
+        <AccordionButton
+          data-testid="kernels-accordion"
+          isOpen={isOpen}
+          onClick={() =>
+            setOpenState((prev) => ({
+              ...prev,
+              kernels: !prev.kernels,
+            }))
+          }
+          icon={
+            <SquareTerminal
+              width="1.25rem"
+              height="1.25rem"
+              className="will-change-transform"
+            />
+          }
+          title={'Kernels'}
+        />
       }
     >
       <VirtualizedListAccordion<Languages>

@@ -21,9 +21,13 @@ import { projectSettingsAtom, type TrashRestoreInfo } from '../atoms';
 import { CUSTOM_TRANSFORMERS } from '../components/editor/transformers';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
-import { FilePath, type FileOrFolderPath } from '../utils/path';
+import {
+  createFilePath,
+  type FileOrFolderPath,
+  type FilePath,
+} from '../utils/path';
 import { useWailsEvent } from './events';
-import { FILE_WRITE } from '../utils/events';
+import { CODE_RESULTS_UPDATE, FILE_WRITE } from '../utils/events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
 import type { Frontmatter } from '../types';
 import { $convertFromMarkdownString } from '@lexical/markdown';
@@ -34,6 +38,7 @@ import {
 } from '../components/virtualized/virtualized-file-tree/utils/delete-node';
 import { fileTreeDataAtom } from '../atoms';
 import { useFilePathFromRoute, useFolderPathFromRoute } from './routes';
+import { applyCodeResultsSidecar } from '../components/editor/utils/code-results';
 
 const noteQueries = {
   doesNoteExist: (filePath: FilePath | null) =>
@@ -292,6 +297,29 @@ export function useNoteWriteEvent({
         }
       }
     })();
+  });
+
+  useWailsEvent(CODE_RESULTS_UPDATE, (e) => {
+    const data = e.data as {
+      filePath: string;
+      codeResults?: Parameters<typeof applyCodeResultsSidecar>[0];
+    };
+    const filePath = createFilePath(data.filePath);
+
+    if (
+      !filePath ||
+      filePath.folder !== folder ||
+      filePath.noteWithoutExtension !== note
+    ) {
+      return;
+    }
+
+    editor.update(
+      () => {
+        applyCodeResultsSidecar(data.codeResults);
+      },
+      { tag: 'note:write-from-external' }
+    );
   });
 }
 

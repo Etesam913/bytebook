@@ -139,8 +139,3 @@ func createPythonCommand(argv []string, venvPath string) (*exec.Cmd, *bytes.Buff
 	return cmd, &stderrBuf, nil
 }
 
-// KernelLaunchEvent retained for backwards-compatible event payload shape if needed.
-type KernelLaunchEvent struct {
-	Language string `json:"language"`
-	Data     string `json:"data"`
-}
