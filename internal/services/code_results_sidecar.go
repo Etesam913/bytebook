@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/etesam913/bytebook/internal/notes"
+	"github.com/etesam913/bytebook/internal/notes/sidecar"
 	"github.com/etesam913/bytebook/internal/util"
 )
 
@@ -22,5 +22,5 @@ func moveMarkdownNoteWithSidecar(srcPath, dstPath string) error {
 		return nil
 	}
 
-	return notes.MoveCodeResultsSidecar(srcPath, uniqueDstPath)
+	return sidecar.Move(srcPath, uniqueDstPath)
 }

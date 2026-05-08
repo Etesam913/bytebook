@@ -76,9 +76,7 @@ function parseLanguageAndProperties(startMatch: RegExpMatchArray | string[]): {
       : 'text';
 
   // Parse properties from the header (everything after the language)
-  const codeBlockId = startMatch[2]
-    ? parseOutCodeBlockId(startMatch[2])
-    : null;
+  const codeBlockId = startMatch[2] ? parseOutCodeBlockId(startMatch[2]) : null;
   const id = codeBlockId ?? crypto.randomUUID();
 
   return {

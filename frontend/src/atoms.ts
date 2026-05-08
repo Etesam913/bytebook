@@ -72,7 +72,7 @@ export const projectSettingsAtom = atom<ProjectSettings>({
   projectPath: '',
   appearance: {
     theme: 'light',
-    accentColor: '',
+    accentColor: 'rgb(96, 165, 250)',
     noteWidth: 'fullWidth',
     editorFontSize: DEFAULT_EDITOR_FONT_SIZE,
     editorFontFamily: '',
@@ -190,13 +190,10 @@ const EMPTY_KERNEL_INSTANCES_BY_LANGUAGE: Record<
 };
 
 export const kernelInstancesByLanguageAtom = atom((get) =>
-  Object.values(get(kernelInstancesAtom)).reduce(
-    (grouped, inst) => {
-      grouped[inst.language].push(inst);
-      return grouped;
-    },
-    structuredClone(EMPTY_KERNEL_INSTANCES_BY_LANGUAGE)
-  )
+  Object.values(get(kernelInstancesAtom)).reduce((grouped, inst) => {
+    grouped[inst.language].push(inst);
+    return grouped;
+  }, structuredClone(EMPTY_KERNEL_INSTANCES_BY_LANGUAGE))
 );
 
 /**

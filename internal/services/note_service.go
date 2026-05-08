@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/etesam913/bytebook/internal/config"
-	"github.com/etesam913/bytebook/internal/notes"
+	"github.com/etesam913/bytebook/internal/notes/sidecar"
 	"github.com/etesam913/bytebook/internal/util"
 )
 
@@ -85,8 +85,8 @@ func (n *NoteService) RenameFile(oldFolderNotePath string, newFolderNotePath str
 		}
 	}
 
-	if !isDir && filepath.Ext(oldPath) == ".md" {
-		oldSidecarPath := notes.ConstructCodeResultsSidecarPath(oldPath)
+	if !isDir {
+		oldSidecarPath := sidecar.PathFor(oldPath)
 		if sidecarExists, err := util.FileOrFolderExists(oldSidecarPath); err != nil {
 			return config.BackendResponseWithData[string]{
 				Success: false,
@@ -94,7 +94,7 @@ func (n *NoteService) RenameFile(oldFolderNotePath string, newFolderNotePath str
 				Data:    "",
 			}
 		} else if sidecarExists {
-			newSidecarPath := notes.ConstructCodeResultsSidecarPath(newPath)
+			newSidecarPath := sidecar.PathFor(newPath)
 			if newSidecarExists, err := util.FileOrFolderExists(newSidecarPath); err != nil {
 				return config.BackendResponseWithData[string]{
 					Success: false,
@@ -104,7 +104,7 @@ func (n *NoteService) RenameFile(oldFolderNotePath string, newFolderNotePath str
 			} else if newSidecarExists {
 				return config.BackendResponseWithData[string]{
 					Success: false,
-					Message: "Code results sidecar already exists at destination",
+					Message: "Sidecar already exists at destination",
 					Data:    "",
 				}
 			}
@@ -121,8 +121,8 @@ func (n *NoteService) RenameFile(oldFolderNotePath string, newFolderNotePath str
 		}
 	}
 
-	if !isDir && filepath.Ext(oldPath) == ".md" {
-		if err := notes.MoveCodeResultsSidecar(oldPath, newPath); err != nil {
+	if !isDir {
+		if err := sidecar.Move(oldPath, newPath); err != nil {
 			return config.BackendResponseWithData[string]{
 				Success: false,
 				Message: err.Error(),
@@ -166,32 +166,32 @@ func (n *NoteService) GetNoteMarkdown(path string) config.BackendResponseWithDat
 }
 
 // GetNoteMarkdownWithCodeResults reads markdown and its Bytebook code-result sidecar.
-func (n *NoteService) GetNoteMarkdownWithCodeResults(path string) config.BackendResponseWithData[notes.NoteMarkdownWithCodeResults] {
+func (n *NoteService) GetNoteMarkdownWithCodeResults(path string) config.BackendResponseWithData[sidecar.NoteWithCodeResults] {
 	noteFilePath, err := util.SafeJoin(n.ProjectPath, path)
 	if err != nil {
-		return config.BackendResponseWithData[notes.NoteMarkdownWithCodeResults]{Success: false, Message: err.Error()}
+		return config.BackendResponseWithData[sidecar.NoteWithCodeResults]{Success: false, Message: err.Error()}
 	}
 
 	noteContent, err := os.ReadFile(noteFilePath)
 	if err != nil {
-		return config.BackendResponseWithData[notes.NoteMarkdownWithCodeResults]{
+		return config.BackendResponseWithData[sidecar.NoteWithCodeResults]{
 			Success: false,
 			Message: err.Error(),
 		}
 	}
 
-	codeResults, err := notes.ReadCodeResultsSidecar(noteFilePath)
+	codeResults, err := sidecar.ReadCodeResults(noteFilePath)
 	if err != nil {
-		return config.BackendResponseWithData[notes.NoteMarkdownWithCodeResults]{
+		return config.BackendResponseWithData[sidecar.NoteWithCodeResults]{
 			Success: false,
 			Message: err.Error(),
 		}
 	}
 
-	return config.BackendResponseWithData[notes.NoteMarkdownWithCodeResults]{
+	return config.BackendResponseWithData[sidecar.NoteWithCodeResults]{
 		Success: true,
 		Message: "Successfully retrieved note markdown and code results",
-		Data: notes.NoteMarkdownWithCodeResults{
+		Data: sidecar.NoteWithCodeResults{
 			Markdown:    string(noteContent),
 			CodeResults: codeResults,
 		},
@@ -232,7 +232,7 @@ func (n *NoteService) SetNoteMarkdownWithCodeResults(
 	folderName string,
 	noteTitle string,
 	markdown string,
-	codeResults notes.CodeResultsSidecar,
+	codeResults sidecar.CodeResults,
 ) config.BackendResponseWithData[string] {
 	noteName := fmt.Sprintf("%s.md", noteTitle)
 	noteFilePath, err := util.SafeJoin(filepath.Join(n.ProjectPath, "notes"), filepath.Join(folderName, noteName))
@@ -251,7 +251,7 @@ func (n *NoteService) SetNoteMarkdownWithCodeResults(
 
 	// The file watcher can see the markdown write, but it cannot access the
 	// new in-memory code results payload, so the sidecar must be updated here.
-	if err := notes.WriteCodeResultsSidecar(noteFilePath, codeResults); err != nil {
+	if err := sidecar.WriteCodeResults(noteFilePath, codeResults); err != nil {
 		return config.BackendResponseWithData[string]{
 			Success: false,
 			Message: err.Error(),

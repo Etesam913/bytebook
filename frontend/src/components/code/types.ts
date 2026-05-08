@@ -29,6 +29,9 @@ export type CodeBlockShellProps = {
   setCodeMirrorInstance: Dispatch<SetStateAction<CodeMirrorRef>>;
   isExpanded: boolean;
   setIsExpanded: Dispatch<SetStateAction<boolean>>;
+  expandCodeBlock: () => void;
+  collapseCodeBlock: () => void;
+  restoreCodeMirrorViewState: (instance: CodeMirrorRef) => boolean;
   hideResults: boolean;
   setHideResults: Dispatch<SetStateAction<boolean>>;
   dialogRef?: RefObject<HTMLDialogElement | null>;

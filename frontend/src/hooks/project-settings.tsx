@@ -29,15 +29,14 @@ import { parseRGB } from '../utils/string-formatting';
 import { QueryError } from '../utils/query';
 import { ProjectSettingsJson } from '../../bindings/github.com/etesam913/bytebook/internal/config/models';
 
+const DEFAULT_ACCENT_COLOR = 'rgb(96, 165, 250)';
+
 function updateAccentColorVariable(accentColor: string) {
   let rgbValues = parseRGB(accentColor);
   if (!rgbValues) {
-    rgbValues = {
-      r: 96,
-      g: 165,
-      b: 250,
-    };
+    rgbValues = parseRGB(DEFAULT_ACCENT_COLOR);
   }
+  if (!rgbValues) return;
 
   document.documentElement.style.setProperty(
     '--accent-color-values',
@@ -64,8 +63,11 @@ function validateProjectSettingsWrapper(data: ProjectSettingsJson) {
     noteWidth: data.appearance.noteWidth,
   });
   const editorFontSize = validateEditorFontSize(data.appearance.editorFontSize);
+  const accentColor = parseRGB(data.appearance.accentColor)
+    ? data.appearance.accentColor
+    : DEFAULT_ACCENT_COLOR;
 
-  updateAccentColorVariable(data.appearance.accentColor);
+  updateAccentColorVariable(accentColor);
   updateEditorFontSizeVariable(editorFontSize);
 
   return {
@@ -73,7 +75,7 @@ function validateProjectSettingsWrapper(data: ProjectSettingsJson) {
     pinnedNotes: new Set(data.pinnedNotes),
     appearance: {
       ...data.appearance,
-      accentColor: data.appearance.accentColor,
+      accentColor,
       editorFontSize,
       theme,
       noteWidth,

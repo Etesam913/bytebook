@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/etesam913/bytebook/internal/notes"
+	"github.com/etesam913/bytebook/internal/notes/sidecar"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -18,8 +18,8 @@ func writeServiceTestNote(t *testing.T, projectPath, relativePath string) string
 }
 
 func writeServiceTestSidecar(t *testing.T, notePath string) {
-	require.NoError(t, notes.WriteCodeResultsSidecar(notePath, notes.CodeResultsSidecar{
-		CodeBlocks: []notes.CodeBlockResult{{
+	require.NoError(t, sidecar.WriteCodeResults(notePath, sidecar.CodeResults{
+		CodeBlocks: []sidecar.CodeBlock{{
 			CodeBlockID:      "block-1",
 			LastRan:          "2026-05-03T18:42:10Z",
 			AreResultsHidden: true,
@@ -34,8 +34,8 @@ func TestNoteServiceCodeResultsSidecar(t *testing.T) {
 		writeServiceTestNote(t, projectPath, "folder/note.md")
 		service := NoteService{ProjectPath: projectPath}
 
-		res := service.SetNoteMarkdownWithCodeResults("folder", "note", "# Updated", notes.CodeResultsSidecar{
-			CodeBlocks: []notes.CodeBlockResult{{
+		res := service.SetNoteMarkdownWithCodeResults("folder", "note", "# Updated", sidecar.CodeResults{
+			CodeBlocks: []sidecar.CodeBlock{{
 				CodeBlockID:      "block-1",
 				LastRan:          "2026-05-03T18:42:10Z",
 				AreResultsHidden: true,
@@ -50,9 +50,9 @@ func TestNoteServiceCodeResultsSidecar(t *testing.T) {
 		require.Len(t, getRes.Data.CodeResults.CodeBlocks, 1)
 		assert.Equal(t, "block-1", getRes.Data.CodeResults.CodeBlocks[0].CodeBlockID)
 
-		res = service.SetNoteMarkdownWithCodeResults("folder", "note", "# Updated", notes.CodeResultsSidecar{})
+		res = service.SetNoteMarkdownWithCodeResults("folder", "note", "# Updated", sidecar.CodeResults{})
 		require.True(t, res.Success, res.Message)
-		_, err := os.Stat(notes.ConstructCodeResultsSidecarPath(filepath.Join(projectPath, "notes", "folder", "note.md")))
+		_, err := os.Stat(sidecar.PathFor(filepath.Join(projectPath, "notes", "folder", "note.md")))
 		assert.ErrorIs(t, err, os.ErrNotExist)
 	})
 
@@ -65,10 +65,10 @@ func TestNoteServiceCodeResultsSidecar(t *testing.T) {
 		res := service.RenameFile("folder/old.md", "folder/new.md")
 		require.True(t, res.Success, res.Message)
 
-		_, err := os.Stat(notes.ConstructCodeResultsSidecarPath(oldNotePath))
+		_, err := os.Stat(sidecar.PathFor(oldNotePath))
 		assert.ErrorIs(t, err, os.ErrNotExist)
 		newNotePath := filepath.Join(projectPath, "notes", "folder", "new.md")
-		_, err = os.Stat(notes.ConstructCodeResultsSidecarPath(newNotePath))
+		_, err = os.Stat(sidecar.PathFor(newNotePath))
 		assert.NoError(t, err)
 	})
 }
@@ -83,9 +83,9 @@ func TestFileTreeServiceMovesCodeResultsSidecar(t *testing.T) {
 	res := service.MoveItemsToFolder([]string{"from/note.md"}, "to")
 	require.True(t, res.Success, res.Message)
 
-	_, err := os.Stat(notes.ConstructCodeResultsSidecarPath(oldNotePath))
+	_, err := os.Stat(sidecar.PathFor(oldNotePath))
 	assert.ErrorIs(t, err, os.ErrNotExist)
 	newNotePath := filepath.Join(projectPath, "notes", "to", "note.md")
-	_, err = os.Stat(notes.ConstructCodeResultsSidecarPath(newNotePath))
+	_, err = os.Stat(sidecar.PathFor(newNotePath))
 	assert.NoError(t, err)
 }

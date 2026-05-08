@@ -82,7 +82,7 @@ export function PlayButton({
         status === 'starting'
           ? 'Starting kernel...'
           : status === 'queueing'
-            ? 'Loading ...'
+            ? 'Loading'
             : 'Run code'
       }
       root={tooltipRoot}

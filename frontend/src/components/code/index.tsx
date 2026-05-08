@@ -8,6 +8,7 @@ import {
   type SetStateAction,
 } from 'react';
 import type { CodeMirrorRef } from './types';
+import { EditorSelection } from '@codemirror/state';
 import { Loader } from '../../icons/loader';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
@@ -33,6 +34,14 @@ export const focusEditor = (codeMirrorInstance: CodeMirrorRef) => {
 };
 
 const MAX_EXECUTION_COUNT = 999;
+
+type CodeMirrorViewState = {
+  ranges: Array<{ anchor: number; head: number }>;
+  mainIndex: number;
+  scrollTop: number;
+  scrollLeft: number;
+  shouldFocus: boolean;
+};
 
 export function Code({
   id,
@@ -80,6 +89,62 @@ export function Code({
   const [isSelected] = useLexicalNodeSelection(nodeKey);
   const isInNodeSelection = useNodeInNodeSelection(lexicalEditor, nodeKey);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const pendingCodeMirrorViewStateRef = useRef<CodeMirrorViewState | null>(
+    null
+  );
+
+  function captureCodeMirrorViewState({
+    shouldFocus,
+  }: {
+    shouldFocus: boolean;
+  }) {
+    const view = codeMirrorInstance?.view;
+    if (!view) return;
+
+    pendingCodeMirrorViewStateRef.current = {
+      ranges: view.state.selection.ranges.map((range) => ({
+        anchor: range.anchor,
+        head: range.head,
+      })),
+      mainIndex: view.state.selection.mainIndex,
+      scrollTop: view.scrollDOM.scrollTop,
+      scrollLeft: view.scrollDOM.scrollLeft,
+      shouldFocus,
+    };
+  }
+
+  function expandCodeBlock() {
+    captureCodeMirrorViewState({ shouldFocus: true });
+    setIsExpanded(true);
+  }
+
+  function collapseCodeBlock() {
+    captureCodeMirrorViewState({ shouldFocus: true });
+    setIsExpanded(false);
+  }
+
+  function restoreCodeMirrorViewState(instance: CodeMirrorRef): boolean {
+    const pendingViewState = pendingCodeMirrorViewStateRef.current;
+    const view = instance?.view;
+    if (!pendingViewState || !view) return false;
+
+    const docLength = view.state.doc.length;
+    const clampPosition = (position: number) =>
+      Math.min(Math.max(position, 0), docLength);
+    const ranges = pendingViewState.ranges.map(({ anchor, head }) =>
+      EditorSelection.range(clampPosition(anchor), clampPosition(head))
+    );
+
+    view.dispatch({
+      selection: EditorSelection.create(
+        ranges,
+        Math.min(pendingViewState.mainIndex, ranges.length - 1)
+      ),
+    });
+
+    pendingCodeMirrorViewStateRef.current = null;
+    return true;
+  }
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -98,6 +163,9 @@ export function Code({
     setCodeMirrorInstance,
     isExpanded,
     setIsExpanded,
+    expandCodeBlock,
+    collapseCodeBlock,
+    restoreCodeMirrorViewState,
     hideResults,
     setHideResults,
     dialogRef,
@@ -154,24 +222,27 @@ export function Code({
         id="code-dialog"
         className="backdrop:bg-zinc-500/65 dark:backdrop:bg-zinc-800/70 p-0 bg-transparent m-auto h-[calc(100vh-5rem)] w-[calc(100vw-5rem)] max-h-none max-w-none"
         onClose={() => {
-          setIsExpanded(false);
-          focusEditor(codeMirrorInstance);
+          if (isExpanded) {
+            collapseCodeBlock();
+          }
         }}
-        onCancel={() => {
-          setIsExpanded(false);
-          focusEditor(codeMirrorInstance);
+        onCancel={(event) => {
+          event.preventDefault();
+          collapseCodeBlock();
         }}
       >
-        <span
-          data-interactable="true"
-          data-node-key={nodeKey}
-          className={cn(
-            'relative w-full h-full rounded-md border-2 cm-background border-zinc-150 dark:border-zinc-750 flex flex-col',
-            isSelected && 'border-(--accent-color)!'
-          )}
-        >
-          {codeContent}
-        </span>
+        {isExpanded && (
+          <span
+            data-interactable="true"
+            data-node-key={nodeKey}
+            className={cn(
+              'relative w-full h-full rounded-md border-2 cm-background border-zinc-150 dark:border-zinc-750 flex flex-col',
+              isSelected && 'cm-background-selected border-(--accent-color)!'
+            )}
+          >
+            {codeContent}
+          </span>
+        )}
       </dialog>
       <div className="absolute -translate-x-10 font-mono text-xs text-zinc-400">
         <div>
@@ -199,7 +270,7 @@ export function Code({
           data-node-key={nodeKey}
           className={cn(
             'relative w-full rounded-md border-2 cm-background border-zinc-150 dark:border-zinc-750',
-            isSelected && 'border-(--accent-color)!'
+            isSelected && 'cm-background-selected border-(--accent-color)!'
           )}
         >
           {codeContent}

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/etesam913/bytebook/internal/config"
-	"github.com/etesam913/bytebook/internal/notes"
+	"github.com/etesam913/bytebook/internal/notes/sidecar"
 	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -122,8 +122,8 @@ func addCreatedNotesToIndex(params EventParams, data []map[string]string) {
 				} else {
 					// Handle attachment files
 					fileExtension := filepath.Ext(noteName)
-					if err := notes.EnsureAttachmentSidecar(params.ProjectPath, folder, noteName); err != nil {
-						log.Printf("Error ensuring attachment sidecar for %s: %v", noteName, err)
+					if err := sidecar.Ensure(params.ProjectPath, folder, noteName); err != nil {
+						log.Printf("Error ensuring sidecar for %s: %v", noteName, err)
 					}
 					_, err := search.AddAttachmentToBatch(
 						batch,
@@ -213,7 +213,12 @@ func renameFilesInIndex(params EventParams, data []map[string]string) {
 
 		batch.Delete(oldNotePath)
 
+		oldFilePath := filepath.Join(params.ProjectPath, "notes", oldNotePath)
 		newFilePath := filepath.Join(params.ProjectPath, "notes", newNotePath)
+		if err := sidecar.Move(oldFilePath, newFilePath); err != nil {
+			log.Printf("Error moving sidecar from %s to %s: %v", oldFilePath, newFilePath, err)
+		}
+
 		if filepath.Ext(newNoteName) == ".md" {
 			_, err := search.AddMarkdownNoteToBatch(
 				batch,
@@ -223,16 +228,11 @@ func renameFilesInIndex(params EventParams, data []map[string]string) {
 				newNoteName,
 				true,
 			)
-
 			if err != nil {
 				log.Println("Error adding renamed note to batch", err)
 			}
 		} else {
-			// Handle attachment files
 			fileExtension := filepath.Ext(newNoteName)
-			if err := notes.RenameAttachmentSidecar(params.ProjectPath, oldFolder, oldNoteName, newFolder, newNoteName); err != nil {
-				log.Println("Error renaming attachment sidecar", err)
-			}
 			_, err := search.AddAttachmentToBatch(
 				batch,
 				idx,
@@ -242,7 +242,6 @@ func renameFilesInIndex(params EventParams, data []map[string]string) {
 				fileExtension,
 				true,
 			)
-
 			if err != nil {
 				log.Println("Error adding renamed attachment to batch", err)
 			}
@@ -301,10 +300,8 @@ func deleteNotesFromIndex(params EventParams, data []map[string]string) {
 		notePath := filepath.Join(folder, noteName)
 		batch.Delete(notePath)
 
-		if filepath.Ext(noteName) != ".md" {
-			if err := notes.DeleteAttachmentSidecar(params.ProjectPath, folder, noteName); err != nil {
-				log.Println("Error deleting attachment sidecar", err)
-			}
+		if err := sidecar.Delete(params.ProjectPath, folder, noteName); err != nil {
+			log.Println("Error deleting sidecar", err)
 		}
 	}
 

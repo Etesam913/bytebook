@@ -18,6 +18,7 @@ import (
 	_ "github.com/blevesearch/bleve/v2/analysis/token/ngram"
 	"github.com/blevesearch/bleve/v2/mapping"
 	"github.com/etesam913/bytebook/internal/notes"
+	"github.com/etesam913/bytebook/internal/notes/sidecar"
 	"github.com/etesam913/bytebook/internal/util"
 )
 
@@ -125,7 +126,7 @@ func CreateMarkdownNoteBleveDocument(markdown, folder, fileName string) Markdown
 // createAttachmentBleveDocument constructs an AttachmentBleveDocument from file information.
 // It extracts the filename, file extension, and attachment tags for search indexing.
 func createAttachmentBleveDocument(projectPath, folder, fileName, fileExtension string) AttachmentBleveDocument {
-	tags, err := notes.ReadAttachmentTags(projectPath, folder, fileName)
+	tags, err := sidecar.ReadTags(projectPath, folder, fileName)
 	if err != nil {
 		tags = []string{}
 	}

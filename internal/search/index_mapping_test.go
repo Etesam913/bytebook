@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/blevesearch/bleve/v2"
-	"github.com/etesam913/bytebook/internal/notes"
+	"github.com/etesam913/bytebook/internal/notes/sidecar"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -182,7 +182,7 @@ func TestCreateAttachmentBleveDocument(t *testing.T) {
 	t.Run("should include tags from sidecar", func(t *testing.T) {
 		folderName := "test-folder-tags"
 		env.createAttachmentFile(env.createTestFolder(folderName), "image.jpg", "fake")
-		err := notes.WriteAttachmentTags(env.TmpDir, folderName, "image.jpg", []string{"foo", "bar"})
+		err := sidecar.WriteTags(env.TmpDir, folderName, "image.jpg", []string{"foo", "bar"})
 		require.NoError(t, err)
 
 		doc := createAttachmentBleveDocument(env.TmpDir, folderName, "image.jpg", ".jpg")
@@ -345,7 +345,7 @@ func TestAddAttachmentToBatch(t *testing.T) {
 		folderName := "tagged-folder"
 		folderPath := env.createTestFolder(folderName)
 		env.createAttachmentFile(folderPath, "tagged.pdf", "fake content")
-		require.NoError(t, notes.WriteAttachmentTags(env.TmpDir, folderName, "tagged.pdf", []string{"a", "b"}))
+		require.NoError(t, sidecar.WriteTags(env.TmpDir, folderName, "tagged.pdf", []string{"a", "b"}))
 
 		batch := env.Index.NewBatch()
 		fileId, err := AddAttachmentToBatch(batch, env.Index, env.TmpDir, folderName, "tagged.pdf", ".pdf", true)

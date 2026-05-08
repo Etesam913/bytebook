@@ -24,7 +24,6 @@ func TestShouldIgnoreFile(t *testing.T) {
 
 	t.Run("should not ignore json sidecars", func(t *testing.T) {
 		assert.False(t, shouldIgnoreFile(".note.json"))
-		assert.True(t, isFileSidecarName(".note.json"))
 	})
 
 	t.Run("should ignore hidden markdown files", func(t *testing.T) {
@@ -37,15 +36,6 @@ func TestShouldIgnoreFile(t *testing.T) {
 		assert.False(t, shouldIgnoreFile("document.txt"))
 		assert.False(t, shouldIgnoreFile("image.png"))
 	})
-}
-
-func TestNotePathFromFileSidecarPath(t *testing.T) {
-	assert.Equal(
-		t,
-		filepath.Join("folder", "note.md"),
-		notePathFromFileSidecarPath(filepath.Join("folder", ".note.json")),
-	)
-	assert.Empty(t, notePathFromFileSidecarPath(filepath.Join("folder", "note.json")))
 }
 
 // setupProjectFolders creates the basic project folder structure (settings, notes, search)

@@ -6,6 +6,7 @@ import (
 	"github.com/blevesearch/bleve/v2"
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/notes"
+	"github.com/etesam913/bytebook/internal/notes/sidecar"
 	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/labstack/gommon/log"
@@ -48,7 +49,7 @@ func (t *TagsService) SetTagsOnNotes(
 			}
 			eventData[folderAndNoteName] = tags
 		} else {
-			_, err := notes.AddTagsToAttachment(t.ProjectPath, folderAndNoteName, tagsToAdd)
+			_, err := sidecar.AddTags(t.ProjectPath, folderAndNoteName, tagsToAdd)
 			if err != nil {
 				return config.BackendResponseWithoutData{
 					Success: false,
@@ -56,7 +57,7 @@ func (t *TagsService) SetTagsOnNotes(
 				}
 			}
 
-			tags, err := notes.DeleteTagsFromAttachment(t.ProjectPath, folderAndNoteName, tagsToRemove)
+			tags, err := sidecar.DeleteTags(t.ProjectPath, folderAndNoteName, tagsToRemove)
 			if err != nil {
 				return config.BackendResponseWithoutData{
 					Success: false,
@@ -101,7 +102,7 @@ func (t *TagsService) GetTagsForNotes(
 			}
 			tagsMap[folderAndNoteName] = tags
 		} else {
-			tags, _, err := notes.GetTagsFromAttachment(t.ProjectPath, folderAndNoteName)
+			tags, err := sidecar.GetTags(t.ProjectPath, folderAndNoteName)
 			if err != nil {
 				return config.BackendResponseWithData[map[string][]string]{
 					Success: false,
@@ -214,7 +215,7 @@ func (t *TagsService) DeleteTags(tagsToDelete []string) config.BackendResponseWi
 			}
 			eventData[folderAndNoteName] = updatedTags
 		} else {
-			updatedTags, err := notes.DeleteTagsFromAttachment(t.ProjectPath, folderAndNoteName, tagsToDelete)
+			updatedTags, err := sidecar.DeleteTags(t.ProjectPath, folderAndNoteName, tagsToDelete)
 			if err != nil {
 				log.Error(err)
 				continue

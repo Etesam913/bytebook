@@ -24,7 +24,7 @@ import type {
 import { cn } from '../../utils/string-formatting';
 import type { Languages } from '../../types';
 import { useNodeInNodeSelection } from '../../hooks/lexical';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type WheelEvent } from 'react';
 import { java } from '@codemirror/lang-java';
 import { javascript } from '@codemirror/lang-javascript';
 import { python } from '@codemirror/lang-python';
@@ -94,6 +94,7 @@ export function CodeMirrorEditor({
     isExpanded,
     hideResults,
     isCreatedNow,
+    restoreCodeMirrorViewState,
   } = shell;
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
   const noteId = useDecodedNotesWildcardPath() ?? '';
@@ -126,27 +127,37 @@ export function CodeMirrorEditor({
   function handleEditorRef(instance: ReactCodeMirrorRef | null) {
     internalCodeMirrorRef.current = instance;
     setCodeMirrorInstance(instance);
-    if (instance?.view && isCreatedNow) {
+    const didRestoreViewState = restoreCodeMirrorViewState(instance);
+    if (instance?.view && isCreatedNow && !didRestoreViewState) {
       instance.view.focus();
     }
   }
-
-  // Re-sync codeMirrorInstance when isExpanded changes.
-  // This fixes an issue where, when not expanded, both the dialog and the main span
-  // render their own CodeMirrorEditor instances that share the same codeMirrorInstance state.
-  // When the span unmounts (on expand), it sets codeMirrorInstance to null, breaking the dialog's play button.
-  // This effect ensures the dialog's instance re-registers itself after the span unmounts.
-  useEffect(() => {
-    if (isExpanded && internalCodeMirrorRef.current) {
-      setCodeMirrorInstance(internalCodeMirrorRef.current);
-    }
-  }, [isExpanded, setCodeMirrorInstance]);
 
   useEffect(() => {
     if (codeMirrorInstance?.view && isInNodeSelection) {
       codeMirrorInstance.view.focus();
     }
   }, [codeMirrorInstance, isInNodeSelection]);
+
+  /**
+   * Previously, the codemirror scroller would be inconsistent and get stuck
+   * This fixes it
+   */
+  function handleEditorWheel(event: WheelEvent<HTMLDivElement>) {
+    const target = event.target as HTMLElement | null;
+    const scroller = target?.closest('.cm-scroller');
+    if (!(scroller instanceof HTMLElement)) return;
+
+    const canScrollUp = scroller.scrollTop > 0;
+    const canScrollDown =
+      scroller.scrollTop + scroller.clientHeight < scroller.scrollHeight;
+    const isScrollingWithinCode =
+      (event.deltaY < 0 && canScrollUp) || (event.deltaY > 0 && canScrollDown);
+
+    if (isScrollingWithinCode) {
+      event.stopPropagation();
+    }
+  }
 
   const runCodeKeymap = getCodemirrorKeymap({
     isExpanded,
@@ -174,9 +185,10 @@ export function CodeMirrorEditor({
         }
       }}
       className={cn(
-        'min-h-12 flex-1 overflow-auto h-full py-2',
-        !isExpanded && 'max-h-[500px]'
+        'flex-1 py-2',
+        isExpanded ? 'flex min-h-0 flex-col overflow-hidden' : 'min-h-12'
       )}
+      onWheelCapture={handleEditorWheel}
     >
       <CodeMirror
         ref={handleEditorRef}
@@ -184,7 +196,10 @@ export function CodeMirrorEditor({
         onChange={(newCode) => {
           debouncedSetCode(newCode);
         }}
-        className="cm-background"
+        className={cn(
+          'cm-background',
+          isExpanded ? 'cm-background-expanded' : 'cm-background-collapsed'
+        )}
         extensions={[
           tooltips({
             parent: document.body,

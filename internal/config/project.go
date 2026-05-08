@@ -13,6 +13,7 @@ import (
 )
 
 const PROJECT_NAME = "Bytebook"
+const DefaultAccentColor = "rgb(96, 165, 250)"
 const DefaultEditorFontSize = 14
 const MinEditorFontSize = 8
 const MaxEditorFontSize = 24
@@ -152,7 +153,7 @@ func GetProjectSettings(projectPath string) (ProjectSettingsJson, error) {
 		ProjectPath: projectPath,
 		Appearance: AppearanceProjectSettingsJson{
 			Theme:                    "light",
-			AccentColor:              "",
+			AccentColor:              DefaultAccentColor,
 			EditorFontFamily:         "",
 			EditorFontSize:           DefaultEditorFontSize,
 			ShowEmptyLinePlaceholder: true,
@@ -198,11 +199,15 @@ func ValidateProjectSettings(
 	projectSettings.PinnedNotes = GetValidPinned(projectPath, projectSettings)
 	app := application.Get()
 	if app != nil {
-		projectSettings.Appearance.AccentColor = app.Env.GetAccentColor()
+		if accentColor := strings.TrimSpace(app.Env.GetAccentColor()); accentColor != "" {
+			projectSettings.Appearance.AccentColor = accentColor
+		}
+	}
+	if strings.TrimSpace(projectSettings.Appearance.AccentColor) == "" {
+		projectSettings.Appearance.AccentColor = DefaultAccentColor
 	}
 	return projectSettings
 }
-
 
 /*
 GetValidPinned returns a list of valid pinned paths.

@@ -38,7 +38,8 @@ export function CodeActions({
     lexicalEditor,
     codeMirrorInstance,
     isExpanded,
-    setIsExpanded,
+    expandCodeBlock,
+    collapseCodeBlock,
     hideResults,
     setHideResults,
     dialogRef,
@@ -128,11 +129,11 @@ export function CodeActions({
         break;
       }
       case 'maximize': {
-        setIsExpanded(true);
+        expandCodeBlock();
         break;
       }
       case 'minimize': {
-        setIsExpanded(false);
+        collapseCodeBlock();
         break;
       }
       case 'delete': {
@@ -167,7 +168,7 @@ export function CodeActions({
       )}
       {isExpanded && (
         <Tooltip content="Minimize" placement="bottom" root={tooltipRoot}>
-          <MotionIconButton onClick={() => setIsExpanded(false)}>
+          <MotionIconButton onClick={collapseCodeBlock}>
             <Minimize
               className="will-change-transform"
               height="1.125rem"

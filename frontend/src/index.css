@@ -18,6 +18,7 @@
   --color-zinc-150: rgb(236 236 236);
   --color-zinc-650: rgb(73 73 83);
   --color-zinc-750: rgb(53, 53, 59);
+  --color-zinc-825: rgb(38, 38, 42);
   --color-zinc-850: rgb(30, 30, 36);
 }
 
@@ -68,6 +69,7 @@
   --app-font-size-base: 16px;
   --editor-font-size-base: 14px;
   --editor-font-size: calc(var(--editor-font-size-base) * var(--ui-scale));
+  --accent-color-values: 96, 165, 250;
 }
 
 * {
@@ -411,7 +413,43 @@ textarea,
 }
 
 .cm-background {
-  @apply bg-white dark:bg-[#1e1e1e];
+  @apply bg-zinc-50 dark:bg-zinc-825;
+}
+
+.cm-background .cm-editor,
+.cm-background .cm-scroller,
+.cm-background .cm-gutters {
+  @apply bg-zinc-50 dark:bg-zinc-825;
+}
+
+.cm-background-collapsed .cm-editor,
+.cm-background-collapsed .cm-scroller {
+  @apply max-h-[500px];
+}
+
+.cm-background-collapsed .cm-scroller {
+  @apply overflow-auto!;
+}
+
+.cm-background-expanded {
+  @apply flex flex-1 basis-0 min-h-0 flex-col overflow-hidden;
+}
+
+.cm-background-expanded .cm-editor {
+  @apply flex-1 basis-0 min-h-0 overflow-hidden;
+}
+
+.cm-background-expanded .cm-scroller {
+  @apply flex-1 basis-0 min-h-0 overflow-y-scroll! overflow-x-auto!;
+}
+
+/** The active line is hidden when the editor is not focused */
+.cm-background .cm-activeLine {
+  @apply bg-transparent;
+}
+
+.cm-background.cm-background-selected .cm-activeLine {
+  @apply bg-zinc-100/70 dark:bg-zinc-750/45;
 }
 
 .cm-lineNumbers {

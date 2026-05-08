@@ -81,7 +81,7 @@ func (h *heartbeatSocket) Listen(p CreateParams) {
 			}
 
 			h.socket.SetRcvtimeo(2 * time.Second)
-			pingResponse, err := h.socket.RecvBytes(0)
+			_, err = h.socket.RecvBytes(0)
 			if err != nil {
 				if !strings.Contains(err.Error(), "resource temporarily unavailable") {
 					log.Printf("Could not receive heartbeat response: %v", err)
@@ -96,7 +96,6 @@ func (h *heartbeatSocket) Listen(p CreateParams) {
 				continue
 			}
 
-			log.Printf("Received heartbeat response: %s\n", pingResponse)
 			h.consecutiveFailures = 0
 			h.heartbeatState.UpdateHeartbeatStatus(true)
 			if app != nil {

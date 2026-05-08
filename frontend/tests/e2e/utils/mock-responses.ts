@@ -95,7 +95,7 @@ export const MOCK_PROJECT_SETTINGS_RESPONSE = {
     projectPath: '',
     appearance: {
       theme: 'light',
-      accentColor: '',
+      accentColor: 'rgb(96, 165, 250)',
       noteWidth: 'fullWidth',
       editorFontSize: 14,
       editorFontFamily: '',
