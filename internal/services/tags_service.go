@@ -14,7 +14,7 @@ import (
 
 type TagsService struct {
 	ProjectPath string
-	SearchIndex *bleve.Index
+	Index       *search.IndexHolder
 }
 
 var TAGS_SEARCH_LIMIT = 1000
@@ -96,7 +96,7 @@ func (t *TagsService) GetTagsForNotes(
 				return config.BackendResponseWithData[map[string][]string]{
 					Success: false,
 					Message: "Failed to get tags for notes",
-					Data:    nil,
+					Data:    map[string][]string{},
 				}
 			}
 			tagsMap[folderAndNoteName] = tags
@@ -106,7 +106,7 @@ func (t *TagsService) GetTagsForNotes(
 				return config.BackendResponseWithData[map[string][]string]{
 					Success: false,
 					Message: "Failed to get tags for notes",
-					Data:    nil,
+					Data:    map[string][]string{},
 				}
 			}
 			tagsMap[folderAndNoteName] = tags
@@ -122,12 +122,14 @@ func (t *TagsService) GetTagsForNotes(
 
 // Calls search.GetTags() to get all tags from the search index.
 func (t *TagsService) GetTags() config.BackendResponseWithData[[]string] {
-	tags, err := search.GetTags(*t.SearchIndex)
+	idx := t.Index.RLock()
+	tags, err := search.GetTags(idx)
+	t.Index.RUnlock()
 	if err != nil {
 		return config.BackendResponseWithData[[]string]{
 			Success: false,
 			Message: "Failed to get tags",
-			Data:    nil,
+			Data:    []string{},
 		}
 	}
 
@@ -163,7 +165,9 @@ func (t *TagsService) DeleteTags(tagsToDelete []string) config.BackendResponseWi
 	searchRequest.Size = TAGS_SEARCH_LIMIT
 	searchRequest.Fields = []string{search.FieldFolder, search.FieldFileName}
 
-	searchResult, err := (*t.SearchIndex).Search(searchRequest)
+	idx := t.Index.RLock()
+	searchResult, err := idx.Search(searchRequest)
+	t.Index.RUnlock()
 	if err != nil {
 		return config.BackendResponseWithoutData{
 			Success: false,

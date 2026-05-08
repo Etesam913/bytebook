@@ -49,7 +49,7 @@ import {
   useCodeBlockIOPubError,
   useCodeBlockStatus,
   useCodeBlockStream,
-  useKernelLaunchEvents,
+  useKernelInstanceEvents,
 } from '../../../hooks/code';
 import { NoteFindPanel } from './note-find-panel/index';
 import { useToggleSidebarEvent } from '../../../routes/notes-sidebar/render-note/hooks';
@@ -131,7 +131,7 @@ export function Toolbar({
   });
 
   useNoteWriteEvent({ folder, note, editor, setFrontmatter });
-  useKernelLaunchEvents(editor);
+  useKernelInstanceEvents(editor);
   useCodeBlockStream(editor);
   useCodeBlockIOPubError(editor);
   useCodeBlockDisplayData(editor);

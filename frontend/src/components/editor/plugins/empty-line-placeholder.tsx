@@ -101,8 +101,7 @@ export function EmptyLinePlaceholderPlugin({
         fontSize: 'var(--editor-font-size)',
       }}
     >
-      Type &quot;/&quot; to insert an element or &quot;@&quot; to add a linked
-      note
+      Type &quot;/&quot; to insert an element or &quot;@&quot; to link a file
     </div>,
     noteContainerElement
   );

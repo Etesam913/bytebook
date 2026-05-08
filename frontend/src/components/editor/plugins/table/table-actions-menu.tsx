@@ -40,7 +40,7 @@ import {
   getDOMSelection,
   SELECTION_CHANGE_COMMAND,
 } from 'lexical';
-import { ReactPortal, useCallback, useEffect, useRef, useState } from 'react';
+import { ReactPortal, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Key } from 'react-aria-components';
 import { Button } from 'react-aria-components';
@@ -158,33 +158,32 @@ function TableCellActionMenuContainer({
     });
   }, [editor]);
 
-  const checkTableCellOverflow = useCallback(
-    (tableCellParentNodeDOM: HTMLElement): boolean => {
-      const scrollableContainer = tableCellParentNodeDOM.closest(
-        '.PlaygroundEditorTheme__tableScrollableWrapper'
-      );
-      if (scrollableContainer) {
-        const containerRect = (
-          scrollableContainer as HTMLElement
-        ).getBoundingClientRect();
-        const cellRect = tableCellParentNodeDOM.getBoundingClientRect();
+  const checkTableCellOverflow = (
+    tableCellParentNodeDOM: HTMLElement
+  ): boolean => {
+    const scrollableContainer = tableCellParentNodeDOM.closest(
+      '.PlaygroundEditorTheme__tableScrollableWrapper'
+    );
+    if (scrollableContainer) {
+      const containerRect = (
+        scrollableContainer as HTMLElement
+      ).getBoundingClientRect();
+      const cellRect = tableCellParentNodeDOM.getBoundingClientRect();
 
-        const actionButtonRight = cellRect.right - 5;
-        const actionButtonLeft = actionButtonRight - 28;
+      const actionButtonRight = cellRect.right - 5;
+      const actionButtonLeft = actionButtonRight - 28;
 
-        if (
-          actionButtonRight > containerRect.right ||
-          actionButtonLeft < containerRect.left
-        ) {
-          return true;
-        }
+      if (
+        actionButtonRight > containerRect.right ||
+        actionButtonLeft < containerRect.left
+      ) {
+        return true;
       }
-      return false;
-    },
-    []
-  );
+    }
+    return false;
+  };
 
-  const $moveMenu = useCallback(() => {
+  const $moveMenu = () => {
     const menu = menuButtonRef.current;
     const selection = $getSelection();
     const nativeSelection = getDOMSelection(editor._window);
@@ -299,7 +298,7 @@ function TableCellActionMenuContainer({
       const left = tableCellRect.right - anchorRect.left;
       menu.style.transform = `translate(${left}px, ${top}px)`;
     }
-  }, [editor, anchorElem, checkTableCellOverflow]);
+  };
 
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout> | undefined = undefined;

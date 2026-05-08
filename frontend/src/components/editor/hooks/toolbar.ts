@@ -35,7 +35,7 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { GetNoteMarkdown } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
+import { GetNoteMarkdownWithCodeResults } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { draggedGhostElementAtom, previousMarkdownAtom } from '../atoms';
 import type {
   EditorBlockTypes,
@@ -59,6 +59,8 @@ import { $convertFromMarkdownString } from '@lexical/markdown';
 import { showTableCellActionsButton } from '../utils/table';
 import type { PlaceholderLineData } from '../types';
 import { updatePlaceholderLineData } from '../utils/placeholder-line';
+import { applyCodeResultsSidecar } from '../utils/code-results';
+import { createFilePath } from '../../../utils/path';
 
 /** Gets note markdown from local system on mount */
 export function useNoteMarkdown({
@@ -84,18 +86,26 @@ export function useNoteMarkdown({
     queryFn: async () => {
       // Reset previous markdown when loading a new note
       setPreviousMarkdown('');
-      const folderAndNote = `${decodeURIComponent(folder)}/${decodeURIComponent(note)}.md`;
-      const res = await GetNoteMarkdown(`notes/${folderAndNote}`);
+      const filePath = createFilePath(
+        `${decodeURIComponent(folder)}/${decodeURIComponent(note)}.md`
+      );
+      if (!filePath) {
+        throw new QueryError(`Invalid note path for ${folder}/${note}`);
+      }
+      const res = await GetNoteMarkdownWithCodeResults(
+        `notes/${filePath.fullPath}`
+      );
       if (!res.success) {
         throw new QueryError(
-          `Failed to get note markdown for ${folderAndNote}`
+          `Failed to get note markdown for ${filePath.fullPath}`
         );
       }
 
       editor.setEditable(true);
       // You don't want a different note to access the same history when you switch notes
       editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
-      setPreviousMarkdown(res.data ?? '');
+      const markdownWithFrontmatter = res.data?.markdown ?? '';
+      setPreviousMarkdown(markdownWithFrontmatter);
 
       editor.update(
         () => {
@@ -105,7 +115,7 @@ export function useNoteMarkdown({
               editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
             return [];
           });
-          const markdown = res.data ?? '';
+          const markdown = markdownWithFrontmatter;
 
           const { frontMatter, content } = parseFrontMatter(markdown);
 
@@ -118,6 +128,7 @@ export function useNoteMarkdown({
             true,
             false
           );
+          applyCodeResultsSidecar(res.data?.codeResults);
 
           // Scroll to top of page after note markdown has loaded in
           overflowContainerRef.current?.scrollTo(0, 0);
@@ -126,7 +137,7 @@ export function useNoteMarkdown({
       );
 
       setHasFirstLoad(true);
-      return res.data;
+      return markdownWithFrontmatter;
     },
   });
   return { hasFirstLoad, getNoteMarkdownQuery };

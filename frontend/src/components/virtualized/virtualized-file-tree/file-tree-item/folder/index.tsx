@@ -16,17 +16,11 @@ import {
   type SidebarSelectionState,
 } from '../../../../../atoms';
 import { InlineTreeItemInput } from '../inline-tree-item-input';
-import { Finder } from '../../../../../icons/finder';
-import { PinTack2 } from '../../../../../icons/pin-tack-2';
-import { PinTackSlash } from '../../../../../icons/pin-tack-slash';
-import { Trash } from '../../../../../icons/trash';
-import { FilePen } from '../../../../../icons/file-pen';
 import { PaperclipPlus } from '../../../../../icons/paperclip-plus';
-import { useRevealInFinderMutation } from '../../../../../hooks/code';
 import {
-  useMoveToTrashMutation,
-  usePinPathMutation,
-} from '../../../../../hooks/notes';
+  MenuItemLabel,
+  useContextMenuItems,
+} from '../../../../context-menu/items';
 import { cn } from '../../../../../utils/string-formatting';
 import { fileTreeDataAtom } from '../../../../../atoms';
 import {
@@ -89,9 +83,7 @@ export function FileTreeFolderItem({
   const setDraggedGhostElement = useSetAtom(draggedGhostElementAtom);
   const folderPathFromRoute = useFolderPathFromRoute();
   const paddingLeft = getFileTreeItemIndent(dataItem.level);
-  const { mutate: revealInFinder } = useRevealInFinderMutation();
-  const { mutate: moveToTrash } = useMoveToTrashMutation();
-  const { mutate: pinPath } = usePinPathMutation();
+  const { revealInFinder, pin, rename, moveToTrash } = useContextMenuItems();
   const { mutate: addFolderAttachments } = useAddFolderAttachmentsMutation();
   const { mutateAsync: moveItemsToFolder } = useMoveTreeItemsMutation();
   const {
@@ -367,15 +359,19 @@ export function FileTreeFolderItem({
             (item) => !projectSettings.pinnedNotes.has(item.path)
           );
 
-          // Only show "Add Folder" and "Add Note" if not multiselect
+          const folderPathForReveal = !isMultiSelection
+            ? createFolderPath(dataItem.path)
+            : null;
+
           const addFolderOption = !isMultiSelection
             ? [
                 {
                   label: (
-                    <span className="flex items-center gap-1.5">
-                      <FolderPen width="1.0625rem" height="1.0625rem" />{' '}
-                      <span>Create Folder</span>
-                    </span>
+                    <MenuItemLabel
+                      icon={<FolderPen width="1.0625rem" height="1.0625rem" />}
+                    >
+                      Create Folder
+                    </MenuItemLabel>
                   ),
                   value: 'create-folder',
                   onChange: () => {
@@ -403,10 +399,11 @@ export function FileTreeFolderItem({
             ? [
                 {
                   label: (
-                    <span className="flex items-center gap-1.5">
-                      <Blog width="1.0625rem" height="1.0625rem" />{' '}
-                      <span>Create Note</span>
-                    </span>
+                    <MenuItemLabel
+                      icon={<Blog width="1.0625rem" height="1.0625rem" />}
+                    >
+                      Create Note
+                    </MenuItemLabel>
                   ),
                   value: 'create-note',
                   onChange: () => {
@@ -434,10 +431,13 @@ export function FileTreeFolderItem({
             ? [
                 {
                   label: (
-                    <span className="flex items-center gap-1.5">
-                      <PaperclipPlus width="1.0625rem" height="1.0625rem" />
-                      <span>Add attachments</span>
-                    </span>
+                    <MenuItemLabel
+                      icon={
+                        <PaperclipPlus width="1.0625rem" height="1.0625rem" />
+                      }
+                    >
+                      Add attachments
+                    </MenuItemLabel>
                   ),
                   value: 'add-attachments',
                   onChange: () => {
@@ -447,115 +447,41 @@ export function FileTreeFolderItem({
               ]
             : [];
 
-          const renameOption = !isMultiSelection
-            ? [
-                {
-                  label: (
-                    <span className="flex items-center gap-1.5">
-                      <FilePen height="1.0625rem" width="1.0625rem" />{' '}
-                      <span>Rename</span>
-                    </span>
-                  ),
-                  value: 'rename',
-                  onChange: () => {
-                    setAddingType(null);
-                    resetRenameTreeItem();
-                    setIsEditing(true);
-                  },
-                },
-              ]
-            : [];
-
-          const pinFolderOption =
-            selectedFolders.length > 0
-              ? [
-                  {
-                    label: (
-                      <span className="flex items-center gap-1.5">
-                        {shouldPinSelectedFolders ? (
-                          <PinTack2 height="1.0625rem" width="1.0625rem" />
-                        ) : (
-                          <PinTackSlash height="1.0625rem" width="1.0625rem" />
-                        )}
-                        <span>
-                          {shouldPinSelectedFolders
-                            ? selectedFolders.length > 1
-                              ? 'Pin Folders'
-                              : 'Pin Folder'
-                            : selectedFolders.length > 1
-                              ? 'Unpin Folders'
-                              : 'Unpin Folder'}
-                        </span>
-                      </span>
-                    ),
-                    value: shouldPinSelectedFolders
-                      ? 'pin-folder'
-                      : 'unpin-folder',
-                    onChange: () => {
-                      selectedFolders.forEach((item) => {
-                        pinPath({
-                          path: item.path,
-                          shouldPin: shouldPinSelectedFolders,
-                        });
-                      });
-                    },
-                  },
-                ]
-              : [];
-
           setContextMenuData({
             x: e.clientX,
             y: e.clientY,
             isShowing: true,
             targetId: dataItem.id,
             items: [
-              {
-                label: (
-                  <span className="flex items-center gap-1.5">
-                    <Finder height="1.0625rem" width="1.0625rem" />{' '}
-                    <span>Reveal In Finder</span>
-                  </span>
-                ),
-                value: 'reveal-in-finder',
-                onChange: () => {
-                  selectedItems.forEach((item, index) => {
-                    console.log(item, index);
-                    if (index === 0) {
-                      revealInFinder({
-                        path: `notes/${item.path}`,
-                        shouldPrefixWithProjectPath: true,
-                      });
-                    } else {
-                      // Put a delay to give the user time to see each item revealed
-                      setTimeout(() => {
-                        revealInFinder({
-                          path: `notes/${item.path}`,
-                          shouldPrefixWithProjectPath: true,
-                        });
-                      }, 300);
-                    }
-                  });
-                },
-              },
+              ...(folderPathForReveal
+                ? [revealInFinder({ path: folderPathForReveal })]
+                : []),
               ...addFolderOption,
               ...addNoteOption,
               ...addAttachmentsOption,
-              ...pinFolderOption,
-              ...renameOption,
-              {
-                value: 'move-to-trash',
-                label: (
-                  <span className="flex items-center gap-1.5">
-                    <Trash height="1.0625rem" width="1.0625rem" />{' '}
-                    <span>Move to Trash</span>
-                  </span>
-                ),
-                onChange: () => {
-                  moveToTrash({
-                    paths: selectedItems.map((item) => item.path),
-                  });
-                },
-              },
+              ...(selectedFolders.length > 0
+                ? [
+                    pin({
+                      paths: selectedFolders.map((item) => item.path),
+                      shouldPin: shouldPinSelectedFolders,
+                      kind: 'folder',
+                    }),
+                  ]
+                : []),
+              ...(!isMultiSelection
+                ? [
+                    rename({
+                      onRename: () => {
+                        setAddingType(null);
+                        resetRenameTreeItem();
+                        setIsEditing(true);
+                      },
+                    }),
+                  ]
+                : []),
+              moveToTrash({
+                paths: selectedItems.map((item) => item.path),
+              }),
             ],
           });
         }}

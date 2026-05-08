@@ -12,8 +12,11 @@ import { Magnifier } from '../../icons/magnifier';
 import { PinTack2 } from '../../icons/pin-tack-2';
 import { PinTackSlash } from '../../icons/pin-tack-slash';
 import { Trash } from '../../icons/trash';
-import { useRevealInFinderMutation } from '../../hooks/code';
-import { useMoveToTrashMutation, usePinPathMutation } from '../../hooks/notes';
+import {
+  useMoveToTrashMutation,
+  usePinPathMutation,
+  useRevealInFinderMutation,
+} from '../../hooks/notes';
 import type { FolderPath } from '../../utils/path';
 import { routeUrls } from '../../utils/routes';
 import { cn } from '../../utils/string-formatting';
@@ -80,10 +83,7 @@ export function FolderRendererHeader({
   function handleAction(key: Key) {
     switch (key) {
       case 'reveal-in-finder': {
-        revealInFinder({
-          path: `notes/${folderTreeNode.path}`,
-          shouldPrefixWithProjectPath: true,
-        });
+        revealInFinder({ path: folderPath });
         break;
       }
       case 'pin-folder':

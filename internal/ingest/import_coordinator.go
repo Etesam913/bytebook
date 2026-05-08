@@ -12,7 +12,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/blevesearch/bleve/v2"
 	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/util"
@@ -35,7 +34,7 @@ type importRequest struct {
 type BulkImportCoordinator struct {
 	projectPath string
 	notesPath   string
-	index       *bleve.Index
+	index       *search.IndexHolder
 	watcher     *fsnotify.Watcher
 	registry    *notes.DirectoryWatchRegistry
 
@@ -54,7 +53,7 @@ type BulkImportCoordinator struct {
 // stop IO errors with too many files open
 func NewBulkImportCoordinator(
 	projectPath string,
-	index *bleve.Index,
+	index *search.IndexHolder,
 	watcher *fsnotify.Watcher,
 	registry *notes.DirectoryWatchRegistry,
 ) *BulkImportCoordinator {
@@ -233,13 +232,16 @@ func (c *BulkImportCoordinator) processRequest(relativeFolderPath string) {
 		log.Printf("Error discovering subtree %s: %v", rootPath, err)
 	}
 
-	if c.index == nil || *c.index == nil {
+	if c.index == nil {
 		log.Printf("Error indexing subtree %s: index is nil", rootPath)
 		return
 	}
 
 	if len(filePaths) > 0 {
-		if err := search.IndexDiscoveredFiles(c.projectPath, filePaths, *c.index, bulkImportIndexWorkerCount); err != nil {
+		idx := c.index.RLock()
+		err := search.IndexDiscoveredFiles(c.projectPath, filePaths, idx, bulkImportIndexWorkerCount)
+		c.index.RUnlock()
+		if err != nil {
 			log.Printf("Error indexing subtree %s: %v", rootPath, err)
 		}
 	}

@@ -36,11 +36,11 @@ export function InlineTreeItemInput({
   return (
     <>
       {isEditing ? (
-        <div className="w-full">
-          <div className="flex items-center gap-1 justify-between w-full">
+        <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 items-center gap-1 justify-between w-full">
             <input
               ref={inputRef}
-              className="bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--accent-color) rounded-sm w-full truncate text-zinc-900 dark:text-zinc-100"
+              className="-mx-1 -my-0.5 min-w-0 flex-1 bg-transparent px-1 py-0.5 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--accent-color) rounded-sm truncate text-zinc-900 dark:text-zinc-100"
               autoCapitalize="off"
               autoComplete="off"
               autoCorrect="off"
@@ -64,7 +64,9 @@ export function InlineTreeItemInput({
               }}
             />
             {extension && (
-              <span className="text-xs text-zinc-500">.{extension}</span>
+              <span className="shrink-0 text-xs text-zinc-500">
+                .{extension}
+              </span>
             )}
           </div>
 

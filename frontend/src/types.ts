@@ -83,10 +83,14 @@ export type KernelHeartbeatStatus = 'success' | 'failure' | 'idle';
 export type Languages = 'python' | 'go' | 'javascript' | 'java' | 'text';
 export type LanguagesWithKernels = Exclude<Languages, 'text'>;
 
-type KernelData = {
+export type KernelInstanceData = {
+  id: string;
+  language: LanguagesWithKernels;
+  noteId: string;
   status: KernelStatus;
   heartbeat: KernelHeartbeatStatus;
   errorMessage: string | null;
+  lastActivityAt: number;
 };
 
 const allLanguages = ['python', 'go', 'javascript', 'java', 'text'] as const;
@@ -97,33 +101,9 @@ export const languagesWithKernelsSet = new Set<LanguagesWithKernels>(
   allLanguages.filter((language) => language !== 'text')
 );
 
-export type KernelsData = Record<LanguagesWithKernels, KernelData>;
-
-// Function to check if a string is a valid key
 export function isValidKernelLanguage(key: unknown): key is Languages {
   return typeof key === 'string' && allLanguagesSet.has(key as Languages);
 }
-
-export type RawCompletionData = Omit<CompletionData, 'matches'> & {
-  matches: string[];
-};
-
-export type CompletionData = {
-  status: string;
-  messageId: string;
-  matches: { label: string; info?: string; detail?: string; type?: string }[];
-  cursorStart: number;
-  cursorEnd: number;
-  metadata: Record<string, unknown>;
-};
-
-export type PythonCompletionMetadata = {
-  type: string;
-  text: string;
-  start: number;
-  end: number;
-  signature: string;
-}[];
 
 export type Frontmatter = {
   folder?: string;
@@ -143,15 +123,3 @@ export type SidebarContentType =
   | 'saved-search'
   | 'search-result'
   | 'kernel';
-
-export function isSidebarContentType(key: unknown): key is SidebarContentType {
-  return (
-    typeof key === 'string' &&
-    (key === 'note' ||
-      key === 'pinned-note' ||
-      key === 'tag' ||
-      key === 'saved-search' ||
-      key === 'kernel' ||
-      key === 'search-result')
-  );
-}

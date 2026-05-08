@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/notes"
@@ -81,7 +82,12 @@ func (f *FileTreeService) MoveItemsToFolder(itemPaths []string, newFolder string
 	for _, pathToItem := range normalizedItemPaths {
 		fullPathToItem := filepath.Join(f.ProjectPath, "notes", pathToItem)
 		fullPathWithNewFolder := filepath.Join(f.ProjectPath, "notes", newFolder, filepath.Base(pathToItem))
-		err := util.MoveFile(fullPathToItem, fullPathWithNewFolder)
+		var err error
+		if strings.EqualFold(filepath.Ext(pathToItem), ".md") {
+			err = moveMarkdownNoteWithSidecar(fullPathToItem, fullPathWithNewFolder)
+		} else {
+			err = util.MoveFile(fullPathToItem, fullPathWithNewFolder)
+		}
 
 		if err != nil {
 			failedItemNames = append(failedItemNames, pathToItem)

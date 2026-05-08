@@ -35,7 +35,7 @@ export function SidebarAccordionPanel({
   return (
     <motion.section
       className={cn(
-        'flex flex-col min-w-0 overflow-hidden',
+        'flex flex-col min-w-0 overflow-hidden text-sm',
         isOpen ? 'min-h-0' : ''
       )}
       style={{
@@ -50,9 +50,11 @@ export function SidebarAccordionPanel({
         flexWeightMVs={flexWeightMVs}
         storedWeightsRef={storedWeightsRef}
       />
-      {trigger}
+      <div className="[&>button]:gap-1.5 [&>button]:px-2.5 [&>button]:py-0.75 [&>button]:text-sm [&>button]:leading-snug">
+        {trigger}
+      </div>
       {children && (
-        <div className="flex flex-1 basis-0 min-h-0 min-w-0 flex-col overflow-hidden">
+        <div className="flex flex-1 basis-0 min-h-0 min-w-0 flex-col overflow-hidden text-sm">
           {children}
         </div>
       )}

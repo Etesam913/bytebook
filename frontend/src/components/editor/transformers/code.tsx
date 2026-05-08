@@ -1,12 +1,7 @@
 import type { MultilineElementTransformer } from '@lexical/markdown';
-import { $createNodeSelection, $setSelection, type LexicalNode } from 'lexical';
+import { type LexicalNode } from 'lexical';
 import { Languages, allLanguagesSet } from '../../../types';
-import {
-  escapeQuotes,
-  flattenHtml,
-  unescapeNewlines,
-  unescapeQuotes,
-} from '../../../utils/string-formatting';
+import { escapeQuotes } from '../../../utils/string-formatting';
 import { getDefaultCodeForLanguage } from '../../../utils/code';
 import { $createCodeNode, $isCodeNode, CodeNode } from '../nodes/code';
 
@@ -24,14 +19,8 @@ function isCharAtIndexEscaped(str: string, index: number): boolean {
   return escapeCount % 2 === 1;
 }
 
-function parseOutCodeBlockHeaderProperties(propertiesString: string) {
-  const propertyMap = new Map<string, string>();
-  const properties = [
-    'id',
-    'lastExecutedResult',
-    'executionCount',
-    'hideResults',
-  ];
+function parseOutCodeBlockId(propertiesString: string) {
+  let codeBlockId: string | null = null;
   for (let i = 0; i < propertiesString.length; i += 1) {
     // If a quote is found without a known property value, then loop until the end of the property value
     if (
@@ -50,45 +39,35 @@ function parseOutCodeBlockHeaderProperties(propertiesString: string) {
         i += 1;
       }
     }
-    // Look for occurences of the property
+    // Look for the code block id.
     // If found, then get the value in between the two quotes.
     // Any quotes inside the two quotes should be escaped
-    for (const property of properties) {
-      const indexToEndOfProperty = i + property.length - 1;
-      const indexToEquals = indexToEndOfProperty + 1;
-      const indexToQuote = indexToEquals + 1;
-      // +1 at the end to account for the = sign
-      const nextPropertyLengthCharacters = propertiesString.slice(
-        i,
-        indexToEquals + 1
-      );
-      if (nextPropertyLengthCharacters === property + '=') {
-        // Property found outside of a property value
-        let j = indexToQuote + 1;
-        // Getting to the end of the quote while skipping escaped quotes
-        while (
-          j < propertiesString.length &&
-          (propertiesString[j] !== '"' ||
-            (propertiesString[j] === '"' &&
-              isCharAtIndexEscaped(propertiesString, j)))
-        ) {
-          j += 1;
-        }
-        const propertyValue = propertiesString.slice(indexToQuote + 1, j);
-        propertyMap.set(property, propertyValue);
-        i = j;
-        break;
+    const indexToEquals = i + 'id'.length;
+    const indexToQuote = indexToEquals + 1;
+    if (
+      propertiesString.slice(i, indexToEquals + 1) === 'id=' &&
+      propertiesString[indexToQuote] === '"'
+    ) {
+      let j = indexToQuote + 1;
+      // Getting to the end of the quote while skipping escaped quotes
+      while (
+        j < propertiesString.length &&
+        (propertiesString[j] !== '"' ||
+          (propertiesString[j] === '"' &&
+            isCharAtIndexEscaped(propertiesString, j)))
+      ) {
+        j += 1;
       }
+      codeBlockId = propertiesString.slice(indexToQuote + 1, j);
+      i = j;
     }
   }
-  return propertyMap;
+  return codeBlockId;
 }
 
 function parseLanguageAndProperties(startMatch: RegExpMatchArray | string[]): {
   language: Languages;
   id: string;
-  lastExecutedResult: string | null;
-  hideResults: boolean;
 } {
   // If no language specified or not a valid language, default to 'text'
   const language =
@@ -97,30 +76,14 @@ function parseLanguageAndProperties(startMatch: RegExpMatchArray | string[]): {
       : 'text';
 
   // Parse properties from the header (everything after the language)
-  const headerProperties = startMatch[2]
-    ? parseOutCodeBlockHeaderProperties(startMatch[2])
-    : new Map<string, string>();
-
-  // Extract id and lastExecutedResult from properties
-  const id = headerProperties.has('id')
-    ? headerProperties.get('id')!
-    : crypto.randomUUID();
-
-  const lastExecutedResult = headerProperties.has('lastExecutedResult')
-    ? unescapeQuotes(
-        unescapeNewlines(headerProperties.get('lastExecutedResult')!)
-      )
+  const codeBlockId = startMatch[2]
+    ? parseOutCodeBlockId(startMatch[2])
     : null;
-
-  const hideResults = headerProperties.has('hideResults')
-    ? headerProperties.get('hideResults') === 'true'
-    : false;
+  const id = codeBlockId ?? crypto.randomUUID();
 
   return {
     language: language as Languages,
     id,
-    lastExecutedResult,
-    hideResults,
   };
 }
 
@@ -174,19 +137,10 @@ export const CODE_TRANSFORMER: MultilineElementTransformer = {
     const textContent = node.getCode();
     const codeLanguage = escapeQuotes(node.getLanguage());
     const id = escapeQuotes(node.getId());
-    const lastExecutedResult = node.getLastExecutedResult();
-    const hideResults = node.getHideResults();
-    const formattedLastExecutedResult = lastExecutedResult
-      ? escapeQuotes(flattenHtml(lastExecutedResult))
-      : null;
     return (
       '```' +
       codeLanguage +
       ` id="${id}"` +
-      (formattedLastExecutedResult
-        ? ` lastExecutedResult="${formattedLastExecutedResult}"`
-        : '') +
-      (hideResults ? ' hideResults="true"' : '') +
       (textContent ? '\n' + textContent : '') +
       '\n' +
       '```'
@@ -198,8 +152,7 @@ export const CODE_TRANSFORMER: MultilineElementTransformer = {
   },
   regExpStart: CODE_START_REGEX,
   replace: (rootNode, children, startMatch, endMatch, linesInBetween) => {
-    const { language, id, lastExecutedResult, hideResults } =
-      parseLanguageAndProperties(startMatch);
+    const { language, id } = parseLanguageAndProperties(startMatch);
 
     let code = extractCodeContent(
       startMatch,
@@ -216,14 +169,9 @@ export const CODE_TRANSFORMER: MultilineElementTransformer = {
       id,
       language,
       code,
-      lastExecutedResult,
-      hideResults,
     });
 
-    const nodeSelection = $createNodeSelection();
-    nodeSelection.add(newNode.getKey());
     rootNode.append(newNode);
-    $setSelection(nodeSelection);
   },
   type: 'multiline-element',
 };

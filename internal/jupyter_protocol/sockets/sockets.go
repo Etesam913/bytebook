@@ -10,119 +10,76 @@ import (
 	"github.com/pebbe/zmq4"
 )
 
-type JupyterSocket interface {
-	Get() *zmq4.Socket
-	Listen(
-		socketToListenTo *zmq4.Socket,
-		connectionInfo config.KernelConnectionInfo,
-		ctx context.Context,
-	)
-}
-
+// LanguageSockets is the per-instance bundle of ZMQ sockets used to talk to a kernel.
 type LanguageSockets struct {
 	ShellSocketDealer     *zmq4.Socket
 	IOPubSocketSubscriber *zmq4.Socket
 	ControlSocketDealer   *zmq4.Socket
 	HeartbeatSocketReq    *zmq4.Socket
 	StdinSocketDealer     *zmq4.Socket
-	HeartbeatState        jupyter_protocol.KernelHeartbeatState
-	Context               context.Context
-	Cancel                context.CancelFunc
 }
 
-type CodeServiceUpdater interface {
-	ResetCodeServiceProperties(language string) *LanguageSockets
+// CreateParams carries everything the socket goroutines need to identify the
+// instance they belong to and emit instance-scoped events.
+type CreateParams struct {
+	ConnectionInfo config.KernelConnectionInfo
+	Ctx            context.Context
+	Cancel         context.CancelFunc
+	HeartbeatState *jupyter_protocol.KernelHeartbeatState
+	InstanceID     string
+	NoteID         string
+
+	// OnExecuteStatus is called from the iopub goroutine whenever a kernel
+	// status event arrives whose parent_header.msg_type == "execute_request".
+	// Used by the manager to maintain per-instance activeExecutions and the
+	// derived IsIdle() flag for LRU eviction.
+	OnExecuteStatus func(status, parentMsgID string)
 }
 
-type SocketSet struct {
-	ShellSocketDealer     *zmq4.Socket
-	ControlSocketDealer   *zmq4.Socket
-	IOPubSocketSubscriber *zmq4.Socket
-	HeartbeatSocketReq    *zmq4.Socket
-	StdinSocketDealer     *zmq4.Socket
-}
+// CreateSockets initializes all 5 ZMQ sockets for a kernel instance and starts
+// listener goroutines for each. The goroutines exit when p.Ctx is cancelled.
+func CreateSockets(p CreateParams) (*LanguageSockets, error) {
+	out := &LanguageSockets{}
 
-// CreateSockets initializes the required ZMQ sockets for kernel communication if they don't already exist
-// and starts the appropriate listeners for each socket.
-func CreateSockets(
-	shellSocketDealer *zmq4.Socket,
-	ioPubSocketSubscriber *zmq4.Socket,
-	heartbeatSocketReq *zmq4.Socket,
-	controlSocketDealer *zmq4.Socket,
-	stdinSocketDealer *zmq4.Socket,
-	language string,
-	connectionInfo config.KernelConnectionInfo,
-	ctx context.Context,
-	cancelFunc context.CancelFunc,
-	codeServiceUpdater CodeServiceUpdater,
-	heartbeatState *jupyter_protocol.KernelHeartbeatState,
-) (*SocketSet, error) {
-	socketSet := &SocketSet{}
-
-	// Create shell socket if it doesn't exist
-	if shellSocketDealer == nil {
-		newlyCreatedShellSocket := CreateShellSocket(language, cancelFunc)
-		if newlyCreatedShellSocket.Get() == nil {
-			return nil, errors.New("failed to create shell socket dealer")
-		}
-		log.Println("🟩 created shell socket dealer")
-		go newlyCreatedShellSocket.Listen(newlyCreatedShellSocket.Get(), connectionInfo, ctx)
-		socketSet.ShellSocketDealer = newlyCreatedShellSocket.Get()
-	} else {
-		socketSet.ShellSocketDealer = shellSocketDealer
+	shell := createShellSocket(p)
+	if shell == nil {
+		return nil, errors.New("failed to create shell socket dealer")
 	}
+	go shell.Listen(p)
+	out.ShellSocketDealer = shell.socket
+	log.Println("🟩 created shell socket dealer")
 
-	// Create IOPub socket if it doesn't exist
-	if ioPubSocketSubscriber == nil {
-		newlyCreatedIoPubSocket := CreateIOPubSocket(language, cancelFunc)
-		if newlyCreatedIoPubSocket.Get() == nil {
-			return nil, errors.New("failed to create IOPub socket subscriber")
-		}
-		log.Println("🟩 created IOPub socket subscriber")
-		go newlyCreatedIoPubSocket.Listen(newlyCreatedIoPubSocket.Get(), connectionInfo, ctx)
-		socketSet.IOPubSocketSubscriber = newlyCreatedIoPubSocket.Get()
-	} else {
-		socketSet.IOPubSocketSubscriber = ioPubSocketSubscriber
+	iopub := createIOPubSocket(p)
+	if iopub == nil {
+		return nil, errors.New("failed to create IOPub socket subscriber")
 	}
+	go iopub.Listen(p)
+	out.IOPubSocketSubscriber = iopub.socket
+	log.Println("🟩 created IOPub socket subscriber")
 
-	// Create heartbeat socket if it doesn't exist
-	if heartbeatSocketReq == nil {
-		newlyCreatedHeartbeatSocket := CreateHeartbeatSocket(heartbeatState, cancelFunc)
-		if newlyCreatedHeartbeatSocket.Get() == nil {
-			return nil, errors.New("failed to create heartbeat socket request")
-		}
-		log.Println("🟩 created heartbeat socket request")
-		go newlyCreatedHeartbeatSocket.Listen(newlyCreatedHeartbeatSocket.Get(), connectionInfo, ctx)
-		socketSet.HeartbeatSocketReq = newlyCreatedHeartbeatSocket.Get()
-	} else {
-		socketSet.HeartbeatSocketReq = heartbeatSocketReq
+	hb := createHeartbeatSocket(p)
+	if hb == nil {
+		return nil, errors.New("failed to create heartbeat socket request")
 	}
+	go hb.Listen(p)
+	out.HeartbeatSocketReq = hb.socket
+	log.Println("🟩 created heartbeat socket request")
 
-	// Create control socket if it doesn't exist
-	if controlSocketDealer == nil {
-		newlyCreatedControlSocket := CreateControlSocket(codeServiceUpdater)
-		if newlyCreatedControlSocket.Get() == nil {
-			return nil, errors.New("failed to create control socket dealer")
-		}
-		log.Println("🟩 created control socket dealer")
-		go newlyCreatedControlSocket.Listen(newlyCreatedControlSocket.Get(), connectionInfo, ctx)
-		socketSet.ControlSocketDealer = newlyCreatedControlSocket.Get()
-	} else {
-		socketSet.ControlSocketDealer = controlSocketDealer
+	control := createControlSocket(p)
+	if control == nil {
+		return nil, errors.New("failed to create control socket dealer")
 	}
+	go control.Listen(p)
+	out.ControlSocketDealer = control.socket
+	log.Println("🟩 created control socket dealer")
 
-	// Create stdin socket if it doesn't exist
-	if stdinSocketDealer == nil {
-		newlyCreatedStdinSocket := CreateStdinSocket(language)
-		if newlyCreatedStdinSocket.Get() == nil {
-			return nil, errors.New("failed to create stdin socket dealer")
-		}
-		log.Println("🟩 created stdin socket dealer")
-		go newlyCreatedStdinSocket.Listen(newlyCreatedStdinSocket.Get(), connectionInfo, ctx)
-		socketSet.StdinSocketDealer = newlyCreatedStdinSocket.Get()
-	} else {
-		socketSet.StdinSocketDealer = stdinSocketDealer
+	stdin := createStdinSocket(p)
+	if stdin == nil {
+		return nil, errors.New("failed to create stdin socket dealer")
 	}
+	go stdin.Listen(p)
+	out.StdinSocketDealer = stdin.socket
+	log.Println("🟩 created stdin socket dealer")
 
-	return socketSet, nil
+	return out, nil
 }

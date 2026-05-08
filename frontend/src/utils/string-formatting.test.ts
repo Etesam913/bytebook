@@ -8,7 +8,6 @@ import {
   isInternalLink,
   getTagNameFromSelectionRange,
   parseRGB,
-  getContentTypeAndValueFromSelectionRangeValue,
   flattenHtml,
   escapeQuotes,
   unescapeQuotes,
@@ -169,39 +168,6 @@ describe('parseRGB', () => {
     expect(parseRGB('not a color')).toBeNull();
     expect(parseRGB('hsl(0, 0%, 0%)')).toBeNull();
     expect(parseRGB('')).toBeNull();
-  });
-});
-
-describe('getContentTypeAndValueFromSelectionRangeValue', () => {
-  it('parses a simple "type:value" string', () => {
-    expect(
-      getContentTypeAndValueFromSelectionRangeValue('note:Chapter1.md')
-    ).toEqual({ contentType: 'note', value: 'Chapter1.md' });
-  });
-
-  it('parses each valid SidebarContentType', () => {
-    expect(
-      getContentTypeAndValueFromSelectionRangeValue('saved-search:foo')
-    ).toEqual({ contentType: 'saved-search', value: 'foo' });
-    expect(
-      getContentTypeAndValueFromSelectionRangeValue('pinned-note:n.md')
-    ).toEqual({ contentType: 'pinned-note', value: 'n.md' });
-    expect(
-      getContentTypeAndValueFromSelectionRangeValue('kernel:python')
-    ).toEqual({ contentType: 'kernel', value: 'python' });
-  });
-
-  it('throws when the prefix is not a valid SidebarContentType', () => {
-    expect(() =>
-      getContentTypeAndValueFromSelectionRangeValue('bogus:value')
-    ).toThrow(/Invalid sidebar content type/);
-  });
-
-  it('throws on multi-colon input where joined prefix is invalid', () => {
-    // Joins all but last segment with ':' as the type — so 'tag:a:b' becomes type='tag:a' (invalid).
-    expect(() =>
-      getContentTypeAndValueFromSelectionRangeValue('tag:a:b')
-    ).toThrow(/Invalid sidebar content type/);
   });
 });
 

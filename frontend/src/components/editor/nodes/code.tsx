@@ -7,7 +7,7 @@ import type {
   Spread,
 } from 'lexical';
 import { $applyNodeReplacement, DecoratorNode } from 'lexical';
-import type { JSX } from 'react';
+import type { JSX, SetStateAction } from 'react';
 import { Code } from '../../code';
 import { CodeBlockStatus, Languages } from '../../../types';
 
@@ -18,9 +18,11 @@ export interface CodePayload {
   code: string;
   isCreatedNow?: boolean;
   lastExecutedResult?: string | null;
+  lastRan?: string;
   status?: CodeBlockStatus;
   executionId?: string;
   hideResults?: boolean;
+  kernelInstanceId?: string | null;
 }
 
 type SerializedCodeNode = Spread<
@@ -28,8 +30,6 @@ type SerializedCodeNode = Spread<
     id: string;
     language: Languages;
     code: string;
-    lastExecutedResult: string | null;
-    hideResults?: boolean;
   },
   SerializedLexicalNode
 >;
@@ -56,11 +56,13 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
   // If a user creates the new code block via ```{language} or /{language} then __isCreatedNow is set to true`
   __isCreatedNow: boolean;
   __lastExecutedResult: string | null;
+  __lastRan: string;
   __status: CodeBlockStatus;
   __hideResults: boolean;
   __isWaitingForInput: boolean;
   __executionCount: number;
   __duration: string;
+  __kernelInstanceId: string | null;
 
   static getType(): string {
     return 'code-block';
@@ -73,25 +75,24 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
       code: node.__code,
       isCreatedNow: node.__isCreatedNow,
       lastExecutedResult: node.__lastExecutedResult,
+      lastRan: node.__lastRan,
       status: node.__status,
       executionId: node.__executionId,
       executionCount: node.__executionCount,
       duration: node.__duration,
       hideResults: node.__hideResults,
       isWaitingForInput: node.__isWaitingForInput,
+      kernelInstanceId: node.__kernelInstanceId,
       key: node.__key,
     });
   }
 
   static importJSON(serializedNode: SerializedCodeNode): CodeNode {
-    const { id, language, code, lastExecutedResult, hideResults } =
-      serializedNode;
+    const { id, language, code } = serializedNode;
     const node = $createCodeNode({
       id,
       language,
       code,
-      lastExecutedResult,
-      hideResults,
       // Hardcoding status:idle ensures that that when cmd+z recreates a code block, it is not in the loading state
       status: 'idle',
     });
@@ -108,12 +109,14 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     code,
     isCreatedNow = false,
     lastExecutedResult = null,
+    lastRan = '',
     status = 'idle',
     executionId,
     executionCount = 0,
     duration = '',
     isWaitingForInput = false,
     hideResults = false,
+    kernelInstanceId = null,
     key,
   }: {
     id: string;
@@ -121,12 +124,14 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     code: string;
     isCreatedNow?: boolean;
     lastExecutedResult?: string | null;
+    lastRan?: string;
     status?: CodeBlockStatus;
     executionId?: string;
     executionCount?: number;
     duration?: string;
     isWaitingForInput?: boolean;
     hideResults?: boolean;
+    kernelInstanceId?: string | null;
     key?: NodeKey;
   }) {
     super(key);
@@ -137,11 +142,27 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     this.__executionId = executionId ?? crypto.randomUUID();
     this.__isCreatedNow = isCreatedNow;
     this.__lastExecutedResult = lastExecutedResult;
+    this.__lastRan = lastRan;
     this.__status = status;
     this.__isWaitingForInput = isWaitingForInput;
     this.__executionCount = executionCount;
     this.__duration = duration;
     this.__hideResults = hideResults;
+    this.__kernelInstanceId = kernelInstanceId;
+  }
+
+  getKernelInstanceId(): string | null {
+    return this.__kernelInstanceId;
+  }
+
+  setKernelInstanceId(
+    kernelInstanceId: string | null,
+    editor: LexicalEditor
+  ): void {
+    editor.update(() => {
+      const writable = this.getWritable();
+      writable.__kernelInstanceId = kernelInstanceId;
+    });
   }
 
   exportJSON(): SerializedCodeNode {
@@ -149,8 +170,6 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
       id: this.getId(),
       language: this.getLanguage(),
       code: this.getCode(),
-      lastExecutedResult: this.getLastExecutedResult(),
-      hideResults: this.getHideResults(),
       type: 'code-block',
       version: 1,
     };
@@ -191,6 +210,10 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     return this.__lastExecutedResult;
   }
 
+  getLastRan(): string {
+    return this.__lastRan;
+  }
+
   getHideResults(): boolean {
     return this.__hideResults;
   }
@@ -203,6 +226,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     editor.update(() => {
       const writable = this.getWritable();
       writable.__lastExecutedResult += tracebackHTML;
+      writable.__lastRan = new Date().toISOString();
     });
   }
 
@@ -215,6 +239,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
       // 1. If there's HTML, show that
       if (mimeTypeToData['text/html']) {
         writable.__lastExecutedResult = mimeTypeToData['text/html'];
+        writable.__lastRan = new Date().toISOString();
         return;
       }
       // 2. Otherwise, if there's an image, show that
@@ -224,16 +249,19 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
       if (imageEntry) {
         const [mt, data] = imageEntry;
         writable.__lastExecutedResult = `<img src="data:${mt};base64,${data}" alt="result"/>`;
+        writable.__lastRan = new Date().toISOString();
         return;
       }
       // 3. Fallback to plain text
       if (mimeTypeToData['text/plain']) {
         writable.__lastExecutedResult = `<pre>${mimeTypeToData['text/plain']}</pre>`;
+        writable.__lastRan = new Date().toISOString();
         return;
       }
       // 4. Anything else, just dump it
       Object.values(mimeTypeToData).forEach((data) => {
         writable.__lastExecutedResult = `<div>${data}</div>`;
+        writable.__lastRan = new Date().toISOString();
       });
     });
   }
@@ -254,6 +282,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
       } else {
         writable.__lastExecutedResult += `<div>${executionResult}</div>`;
       }
+      writable.__lastRan = new Date().toISOString();
     });
   }
 
@@ -278,6 +307,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
       writable.__lastExecutedResult += `<div class="prompt-block flex gap-2 items-center flex-wrap"><label>${inputPrompt.prompt}</label><span><input class="bg-zinc-100 dark:bg-zinc-800 px-1.5 py-1" type="${
         inputPrompt.isPassword ? 'password' : 'text'
       }"/><button type="submit" class="ml-2 px-2 py-1 bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600">Submit</button></span></div>`;
+      writable.__lastRan = new Date().toISOString();
     });
   }
 
@@ -288,13 +318,30 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     editor.update(() => {
       const writable = this.getWritable();
       writable.__lastExecutedResult = lastExecutedResult;
+      writable.__lastRan = lastExecutedResult ? new Date().toISOString() : '';
     });
+  }
+
+  applyPersistedCodeResult({
+    resultHtml,
+    lastRan,
+    areResultsHidden,
+  }: {
+    resultHtml: string;
+    lastRan: string;
+    areResultsHidden: boolean;
+  }): void {
+    const writable = this.getWritable();
+    writable.__lastExecutedResult = resultHtml || null;
+    writable.__lastRan = lastRan;
+    writable.__hideResults = areResultsHidden;
   }
 
   resetLastExecutedResult(editor: LexicalEditor): void {
     editor.update(() => {
       const writable = this.getWritable();
       writable.__lastExecutedResult = '';
+      writable.__lastRan = '';
     });
   }
 
@@ -346,27 +393,51 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
       <Code
         id={this.getId()}
         code={this.getCode()}
-        setCode={(code: string) => this.setCode(code, _editor)}
+        setCode={(value: SetStateAction<string>) =>
+          this.setCode(
+            typeof value === 'function' ? value(this.getCode()) : value,
+            _editor
+          )
+        }
         status={this.getStatus()}
-        setStatus={(status: CodeBlockStatus) => this.setStatus(status, _editor)}
+        setStatus={(value: SetStateAction<CodeBlockStatus>) =>
+          this.setStatus(
+            typeof value === 'function' ? value(this.getStatus()) : value,
+            _editor
+          )
+        }
         language={this.getLanguage()}
         nodeKey={this.getKey()}
         isCreatedNow={this.getIsCreatedNow()}
         lastExecutedResult={this.getLastExecutedResult()}
-        setLastExecutedResult={(lastExecutedResult: string) =>
-          this.setLastExecutedResult(lastExecutedResult, _editor)
+        setLastExecutedResult={(value: SetStateAction<string>) =>
+          this.setLastExecutedResult(
+            typeof value === 'function'
+              ? value(this.getLastExecutedResult() ?? '')
+              : value,
+            _editor
+          )
         }
         hideResults={this.getHideResults()}
-        setHideResults={(hideResults: boolean) =>
-          this.setHideResults(hideResults, _editor)
+        setHideResults={(value: SetStateAction<boolean>) =>
+          this.setHideResults(
+            typeof value === 'function' ? value(this.getHideResults()) : value,
+            _editor
+          )
         }
         isWaitingForInput={this.getIsWaitingForInput()}
-        setIsWaitingForInput={(isWaitingForInput: boolean) =>
-          this.setIsWaitingForInput(isWaitingForInput, _editor)
+        setIsWaitingForInput={(value: SetStateAction<boolean>) =>
+          this.setIsWaitingForInput(
+            typeof value === 'function'
+              ? value(this.getIsWaitingForInput())
+              : value,
+            _editor
+          )
         }
         executionCount={this.getExecutionCount()}
         durationText={this.getDuration()}
         executionId={this.getExecutionId()}
+        kernelInstanceId={this.getKernelInstanceId()}
       />
     );
   }
@@ -400,6 +471,7 @@ export function $createCodeNode({
   code,
   isCreatedNow,
   lastExecutedResult,
+  lastRan,
   status = 'idle',
   executionId = crypto.randomUUID(),
   hideResults = false,
@@ -411,6 +483,7 @@ export function $createCodeNode({
       code,
       isCreatedNow,
       lastExecutedResult,
+      lastRan,
       status,
       executionId,
       executionCount: 0,

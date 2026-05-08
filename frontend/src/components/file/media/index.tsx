@@ -23,8 +23,7 @@ import { Link } from '../../../icons/link';
 import { Trash } from '../../../icons/trash';
 import { Browser } from '@wailsio/runtime';
 import { navigate } from 'wouter/use-browser-location';
-import { Finder } from '../../../icons/finder';
-import { useRevealInFinderMutation } from '../../../hooks/code';
+import { MenuItemLabel, useContextMenuItems } from '../../context-menu/items';
 
 type MediaRenderProps = {
   mediaRef: RefObject<HTMLElement | null>;
@@ -62,7 +61,7 @@ export function MediaContainer({
   const setDraggedGhostElement = useSetAtom(draggedGhostElementAtom);
   const noteContainerRef = useAtomValue(noteContainerRefAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
-  const { mutate: revealInFinder } = useRevealInFinderMutation();
+  const { revealInFinder } = useContextMenuItems();
 
   // External files start with http
   const isALocalFile = src.startsWith('/notes/');
@@ -124,25 +123,9 @@ export function MediaContainer({
             className="inline-block relative cursor-auto mx-1 mr-2"
             onContextMenu={(e) => {
               e.preventDefault();
-              const revealInFinderOption = isALocalFile
-                ? [
-                    {
-                      value: 'reveal-in-finder',
-                      label: (
-                        <span className="flex items-center gap-1.5">
-                          <Finder height="1.0625rem" width="1.0625rem" />
-                          <span>Reveal in Finder</span>
-                        </span>
-                      ),
-                      onChange: () => {
-                        revealInFinder({
-                          path: src.replace(/^\//, ''),
-                          shouldPrefixWithProjectPath: true,
-                        });
-                      },
-                    },
-                  ]
-                : [];
+              const localFilePath = isALocalFile
+                ? createFilePath(src.replace(/^\/notes\//, ''))
+                : null;
 
               setContextMenuData({
                 x: e.clientX,
@@ -150,23 +133,21 @@ export function MediaContainer({
                 isShowing: true,
                 targetId: null,
                 items: [
-                  ...revealInFinderOption,
+                  ...(localFilePath
+                    ? [revealInFinder({ path: localFilePath })]
+                    : []),
                   {
                     value: 'go-to-file',
                     label: (
-                      <span className="flex items-center gap-1.5">
-                        <Link height="1.0625rem" width="1.0625rem" />
-                        <span>Go to file</span>
-                      </span>
+                      <MenuItemLabel
+                        icon={<Link height="1.0625rem" width="1.0625rem" />}
+                      >
+                        Go to file
+                      </MenuItemLabel>
                     ),
                     onChange: () => {
-                      if (isALocalFile) {
-                        const filePath = createFilePath(
-                          src.replace(/^\/notes\//, '')
-                        );
-                        if (filePath) {
-                          navigate(filePath.encodedFileUrl);
-                        }
+                      if (localFilePath) {
+                        navigate(localFilePath.encodedFileUrl);
                       } else {
                         void Browser.OpenURL(src);
                       }
@@ -175,10 +156,11 @@ export function MediaContainer({
                   {
                     value: 'delete',
                     label: (
-                      <span className="flex items-center gap-1.5">
-                        <Trash height="1.0625rem" width="1.0625rem" />
-                        <span>Delete</span>
-                      </span>
+                      <MenuItemLabel
+                        icon={<Trash height="1.0625rem" width="1.0625rem" />}
+                      >
+                        Delete
+                      </MenuItemLabel>
                     ),
                     onChange: () => {
                       editor.update(() => {

@@ -61,7 +61,7 @@ func TestGetLinkedMentions(t *testing.T) {
 	t.Run("finds mentions for nested note paths", func(t *testing.T) {
 		projectPath := t.TempDir()
 		index := createTestSearchIndex(t)
-		service := SearchService{ProjectPath: projectPath, SearchIndex: &index}
+		service := SearchService{ProjectPath: projectPath, Index: search.NewIndexHolder(index)}
 
 		writeTestNote(t, projectPath, "team/specs/doc.md", "# Target")
 		writeTestNote(t, projectPath, "refs/one.md", "[target](/notes/team/specs/doc.md)")
@@ -77,7 +77,7 @@ func TestGetLinkedMentions(t *testing.T) {
 	t.Run("finds mentions for notes in the root folder", func(t *testing.T) {
 		projectPath := t.TempDir()
 		index := createTestSearchIndex(t)
-		service := SearchService{ProjectPath: projectPath, SearchIndex: &index}
+		service := SearchService{ProjectPath: projectPath, Index: search.NewIndexHolder(index)}
 
 		writeTestNote(t, projectPath, "root.md", "# Root")
 		writeTestNote(t, projectPath, "refs/from-folder.md", "[root](/notes/root.md)")
@@ -93,7 +93,7 @@ func TestGetLinkedMentions(t *testing.T) {
 	t.Run("preserves top-level referrer notes in results", func(t *testing.T) {
 		projectPath := t.TempDir()
 		index := createTestSearchIndex(t)
-		service := SearchService{ProjectPath: projectPath, SearchIndex: &index}
+		service := SearchService{ProjectPath: projectPath, Index: search.NewIndexHolder(index)}
 
 		writeTestNote(t, projectPath, "folder/target.md", "# Target")
 		writeTestNote(t, projectPath, "root-ref.md", "[target](/notes/folder/target.md)")
