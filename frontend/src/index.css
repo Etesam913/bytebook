@@ -66,6 +66,9 @@
 
 :root {
   --ui-scale: 1;
+  --app-font-family: ui-sans-serif;
+  --editor-default-font-family: system-ui, sans-serif;
+  --code-block-font-family: monospace;
   --app-font-size-base: 16px;
   --editor-font-size-base: 14px;
   --editor-font-size: calc(var(--editor-font-size-base) * var(--ui-scale));
@@ -105,6 +108,7 @@ pre {
 
 html {
   font-size: calc(var(--app-font-size-base) * var(--ui-scale));
+  font-family: var(--app-font-family);
   @apply cursor-default leading-[1.7];
 }
 
@@ -409,7 +413,12 @@ textarea,
 }
 
 .cm-content {
-  @apply font-mono text-[13px] py-3 px-2!;
+  @apply font-mono text-[0.8125rem] py-3 px-2!;
+  font-family: var(--code-block-font-family);
+}
+
+.cm-editor {
+  font-family: var(--code-block-font-family);
 }
 
 .cm-background {
@@ -551,10 +560,11 @@ div[data-is-fullscreen='true'] .cm-scroller {
 }
 .sp-tab-button {
   @apply font-mono;
+  font-family: var(--code-block-font-family);
 }
 
 .dragging {
-  @apply bg-zinc-50 text-left dark:bg-zinc-700 text-zinc-950 dark:text-zinc-100 border-zinc-200 dark:border-zinc-600 border-2 absolute top-0 left-[-9999px] px-2 py-0.5 rounded-lg text-nowrap whitespace-nowrap overflow-hidden text-ellipsis;
+  @apply bg-zinc-50 text-left dark:bg-zinc-700 text-zinc-950 dark:text-zinc-100 border-zinc-200 dark:border-zinc-600 border-2 absolute top-0 left-[-9999px] px-1 py-0.5 rounded-lg text-nowrap whitespace-nowrap overflow-hidden text-ellipsis;
 }
 
 .drag-grid {

@@ -8,6 +8,7 @@ import { getDefaultButtonVariants } from '../../animations';
 import { PythonVenvDialog } from '../editor/python-venv-dialog';
 import { FolderOpen } from '../../icons/folder-open';
 import { usePythonVenvSubmitMutation } from '../../hooks/code';
+import { FontFamilyRow } from './appearance/font-family-row';
 
 export function CodeBlockPage() {
   const projectSettings = useAtomValue(projectSettingsAtom);
@@ -18,6 +19,7 @@ export function CodeBlockPage() {
 
   return (
     <>
+      <FontFamilyRow setting="code-block" isFirst />
       <SettingsRow
         title="Python Virtual Environment"
         description="The path to the virtual environment that is used by Python in code blocks."

@@ -7,15 +7,17 @@ import {
   CodeBlockStatus,
   isValidKernelLanguage,
   KernelHeartbeatStatus,
+  KernelInstanceData,
   KernelStatus,
   Languages,
   LanguagesWithKernels,
   ProjectSettings,
 } from '../types';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   EnsureKernel,
   IsPathAValidVirtualEnvironment,
+  ListKernels,
   SendExecuteRequest,
   SendInputReply,
   SendInterruptRequest,
@@ -42,7 +44,7 @@ import {
   KERNEL_INSTANCE_EXITED,
 } from '../utils/events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
-import { Dispatch, SetStateAction } from 'react';
+import { Dispatch, SetStateAction, useEffect } from 'react';
 
 type InstanceCreatedPayload = {
   id: string;
@@ -69,11 +71,67 @@ type InstanceLaunchErrorPayload = {
 };
 type InstanceExitedPayload = { id: string; exitCode: number };
 
+function isKernelHeartbeatStatus(
+  status: unknown
+): status is KernelHeartbeatStatus {
+  return status === 'success' || status === 'failure' || status === 'idle';
+}
+
 /**
- * Single hook that wires every kernel:instance:* event into kernelInstancesAtom
- * and resets affected code-block nodes when an instance dies / errors.
+ * Hydrates kernelInstancesAtom with kernels that were already alive before the
+ * current React tree subscribed to kernel:instance:* events.
  */
-export function useKernelInstanceEvents(editor: LexicalEditor) {
+export function useKernelInstancesQuery() {
+  const setInstances = useSetAtom(kernelInstancesAtom);
+
+  const { data: instances } = useQuery({
+    queryKey: ['kernel-instances'],
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+    queryFn: async () => {
+      const { success, message, data } = await ListKernels();
+      if (!success || !data) {
+        throw new QueryError(message);
+      }
+
+      return data.reduce<Record<string, KernelInstanceData>>(
+        (acc, snapshot) => {
+          if (
+            !isValidKernelLanguage(snapshot.language) ||
+            snapshot.language === 'text'
+          ) {
+            return acc;
+          }
+
+          acc[snapshot.id] = {
+            id: snapshot.id,
+            language: snapshot.language,
+            noteId: snapshot.noteId,
+            status: snapshot.activeExecutions > 0 ? 'busy' : 'idle',
+            heartbeat: isKernelHeartbeatStatus(snapshot.heartbeat)
+              ? snapshot.heartbeat
+              : 'idle',
+            errorMessage: null,
+            lastActivityAt: snapshot.lastActivityAt,
+          };
+          return acc;
+        },
+        {}
+      );
+    },
+  });
+
+  useEffect(() => {
+    if (!instances) return;
+    setInstances(instances);
+  }, [instances, setInstances]);
+}
+
+/**
+ * Wires every kernel:instance:* event into kernelInstancesAtom.
+ * This is app-level state, so it should be mounted once from App.
+ */
+export function useKernelInstanceEvents() {
   const setInstances = useSetAtom(kernelInstancesAtom);
 
   useWailsEvent(KERNEL_INSTANCE_CREATED, (body) => {
@@ -129,7 +187,6 @@ export function useKernelInstanceEvents(editor: LexicalEditor) {
       delete next[data.id];
       return next;
     });
-    resetCodeNodesForInstance(editor, data.id);
   });
 
   useWailsEvent(KERNEL_INSTANCE_EXITED, (body) => {
@@ -140,7 +197,6 @@ export function useKernelInstanceEvents(editor: LexicalEditor) {
       delete next[data.id];
       return next;
     });
-    resetCodeNodesForInstance(editor, data.id);
   });
 
   useWailsEvent(KERNEL_INSTANCE_LAUNCH_ERROR, (body) => {
@@ -155,6 +211,25 @@ export function useKernelInstanceEvents(editor: LexicalEditor) {
         [data.id]: { ...existing, errorMessage: data.errorMessage },
       };
     });
+  });
+}
+
+/**
+ * Editor-scoped cleanup for code blocks bound to a kernel that went away.
+ */
+export function useKernelCodeNodeCleanupEvents(editor: LexicalEditor) {
+  useWailsEvent(KERNEL_INSTANCE_SHUTDOWN, (body) => {
+    const data = body.data as InstanceShutdownPayload;
+    resetCodeNodesForInstance(editor, data.id);
+  });
+
+  useWailsEvent(KERNEL_INSTANCE_EXITED, (body) => {
+    const data = body.data as InstanceExitedPayload;
+    resetCodeNodesForInstance(editor, data.id);
+  });
+
+  useWailsEvent(KERNEL_INSTANCE_LAUNCH_ERROR, (body) => {
+    const data = body.data as InstanceLaunchErrorPayload;
     resetCodeNodesForInstance(editor, data.id);
   });
 }

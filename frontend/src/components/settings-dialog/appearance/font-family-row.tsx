@@ -8,33 +8,97 @@ import { useUpdateProjectSettingsMutation } from '../../../hooks/project-setting
 import { useAtomValue } from 'jotai/react';
 import { projectSettingsAtom } from '../../../atoms';
 
-export function FontFamilyRow() {
+type FontFamilySetting = 'ui' | 'editor' | 'code-block';
+
+const fontFamilyCopy: Record<
+  FontFamilySetting,
+  {
+    title: string;
+    description: string;
+    ariaLabel: string;
+    defaultValue: string;
+  }
+> = {
+  ui: {
+    title: 'UI Font Family',
+    description: 'The font family for the app interface.',
+    ariaLabel: 'UI font family',
+    defaultValue: 'ui-sans-serif',
+  },
+  editor: {
+    title: 'Editor Font Family',
+    description: 'The font family for the note editor.',
+    ariaLabel: 'Editor font family',
+    defaultValue: '',
+  },
+  'code-block': {
+    title: 'Code Block Font Family',
+    description: 'The font family for code block editors and output.',
+    ariaLabel: 'Code block font family',
+    defaultValue: 'monospace',
+  },
+};
+
+export function FontFamilyRow({
+  setting,
+  isFirst = false,
+}: {
+  setting: FontFamilySetting;
+  isFirst?: boolean;
+}) {
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
   const projectSettings = useAtomValue(projectSettingsAtom);
+  const copy = fontFamilyCopy[setting];
+  const currentFontFamily =
+    setting === 'ui'
+      ? projectSettings.appearance.uiFontFamily
+      : setting === 'editor'
+        ? projectSettings.appearance.editorFontFamily
+        : projectSettings.code.codeBlockFontFamily;
   const [fontFamilyInputValue, setFontFamilyInputValue] = useState(
-    projectSettings.appearance.editorFontFamily
+    currentFontFamily || copy.defaultValue
   );
+
+  function updateFontFamily(value: string) {
+    if (setting === 'code-block') {
+      updateProjectSettings({
+        newProjectSettings: {
+          ...projectSettings,
+          code: {
+            ...projectSettings.code,
+            codeBlockFontFamily: value,
+          },
+        },
+      });
+      return;
+    }
+
+    updateProjectSettings({
+      newProjectSettings: {
+        ...projectSettings,
+        appearance: {
+          ...projectSettings.appearance,
+          ...(setting === 'ui'
+            ? { uiFontFamily: value }
+            : { editorFontFamily: value }),
+        },
+      },
+    });
+  }
 
   return (
     <SettingsRow
-      title="Editor Font Family"
-      description="The font family for the note editor."
+      title={copy.title}
+      description={copy.description}
+      isFirst={isFirst}
     >
       <div className="flex items-center gap-1.5">
         <TextField
-          aria-label="Editor font family"
+          aria-label={copy.ariaLabel}
           value={fontFamilyInputValue}
           onChange={(value: string) => {
             setFontFamilyInputValue(value);
-            updateProjectSettings({
-              newProjectSettings: {
-                ...projectSettings,
-                appearance: {
-                  ...projectSettings.appearance,
-                  editorFontFamily: value,
-                },
-              },
-            });
+            updateFontFamily(value);
           }}
         >
           <Input
@@ -45,18 +109,10 @@ export function FontFamilyRow() {
         </TextField>
         <MotionIconButton
           {...getDefaultButtonVariants()}
-          isDisabled={fontFamilyInputValue.length === 0}
+          isDisabled={fontFamilyInputValue === copy.defaultValue}
           onClick={() => {
-            setFontFamilyInputValue('');
-            updateProjectSettings({
-              newProjectSettings: {
-                ...projectSettings,
-                appearance: {
-                  ...projectSettings.appearance,
-                  editorFontFamily: '',
-                },
-              },
-            });
+            setFontFamilyInputValue(copy.defaultValue);
+            updateFontFamily(copy.defaultValue);
           }}
         >
           <ArrowRotateAnticlockwise width="0.75rem" height="0.75rem" />

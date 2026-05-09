@@ -48,12 +48,16 @@ function ThemeButton({
   );
 }
 
-export function ThemeRow() {
+export function ThemeRow({ isFirst = false }: { isFirst?: boolean }) {
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
   const projectSettings = useAtomValue(projectSettingsAtom);
 
   return (
-    <SettingsRow title="Theme" description="Customize your UI theme">
+    <SettingsRow
+      title="Theme"
+      description="Customize your UI theme"
+      isFirst={isFirst}
+    >
       <div className="flex gap-3">
         <ThemeButton
           label="Light"

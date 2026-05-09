@@ -177,6 +177,7 @@ export function MediaContainer({
                 <>
                   <SelectionHighlight className="outline-4 outline-(--accent-color)" />
                   <motion.div
+                    data-drag-ghost-exclude
                     role="slider"
                     tabIndex={0}
                     aria-label={resizeAriaLabel}

@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   Button,
   ListBox,
@@ -12,6 +12,7 @@ import { ChevronDown } from '../../icons/chevron-down';
 import type { DropdownItem } from '../../types';
 import { cn } from '../../utils/string-formatting';
 import { AppMenuPopover } from '../menu';
+import { Tooltip } from '../tooltip';
 
 export function Dropdown({
   items,
@@ -22,6 +23,7 @@ export function Dropdown({
   disabled,
   'aria-label': ariaLabel,
   'aria-labelledby': ariaLabelledby,
+  disabledTooltipContent,
   id,
 }: {
   items: DropdownItem[];
@@ -32,6 +34,7 @@ export function Dropdown({
   disabled?: boolean;
   'aria-label'?: string;
   'aria-labelledby'?: string;
+  disabledTooltipContent?: ReactNode;
   id?: string;
 }) {
   const [uncontrolledValueIndex, setUncontrolledValueIndex] = useState(0);
@@ -59,7 +62,7 @@ export function Dropdown({
     onChange?.(item);
   }
 
-  return (
+  const dropdown = (
     <Select
       id={id}
       isDisabled={disabled}
@@ -110,5 +113,25 @@ export function Dropdown({
         </ListBox>
       </AppMenuPopover>
     </Select>
+  );
+
+  if (!disabledTooltipContent) {
+    return dropdown;
+  }
+
+  return (
+    <Tooltip
+      content={disabledTooltipContent}
+      disabled={!disabled}
+      delay={{ open: 450 }}
+    >
+      <span
+        className="inline-flex"
+        tabIndex={disabled ? 0 : undefined}
+        aria-label={disabled && ariaLabel ? ariaLabel : undefined}
+      >
+        {dropdown}
+      </span>
+    </Tooltip>
   );
 }

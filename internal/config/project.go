@@ -122,6 +122,7 @@ type AppearanceProjectSettingsJson struct {
 	Theme                    string `json:"theme"`
 	AccentColor              string `json:"accentColor"`
 	NoteWidth                string `json:"noteWidth"`
+	UiFontFamily             string `json:"uiFontFamily"`
 	EditorFontFamily         string `json:"editorFontFamily"`
 	EditorFontSize           int    `json:"editorFontSize"`
 	ShowEmptyLinePlaceholder bool   `json:"showEmptyLinePlaceholder"`
@@ -129,6 +130,7 @@ type AppearanceProjectSettingsJson struct {
 
 type CodeProjectSettingsJson struct {
 	CodeBlockVimMode      bool     `json:"codeBlockVimMode"`
+	CodeBlockFontFamily   string   `json:"codeBlockFontFamily"`
 	PythonVenvPath        string   `json:"pythonVenvPath"`
 	CustomPythonVenvPaths []string `json:"customPythonVenvPaths"`
 }
@@ -154,12 +156,14 @@ func GetProjectSettings(projectPath string) (ProjectSettingsJson, error) {
 		Appearance: AppearanceProjectSettingsJson{
 			Theme:                    "light",
 			AccentColor:              DefaultAccentColor,
+			UiFontFamily:             "ui-sans-serif",
 			EditorFontFamily:         "",
 			EditorFontSize:           DefaultEditorFontSize,
 			ShowEmptyLinePlaceholder: true,
 		},
 		Code: CodeProjectSettingsJson{
 			CodeBlockVimMode:      false,
+			CodeBlockFontFamily:   "",
 			PythonVenvPath:        "",
 			CustomPythonVenvPaths: []string{},
 		},

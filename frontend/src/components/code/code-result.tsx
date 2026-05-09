@@ -46,6 +46,7 @@ function RunningStatus({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.18 }}
           className="px-2 pb-1 pt-2 font-mono text-xs italic text-zinc-400 dark:text-zinc-500 flex items-center gap-0.5"
+          style={{ fontFamily: 'var(--code-block-font-family)' }}
         >
           <span>
             {Array.from(RUNNING_STATUS_TEXT).map((character, index) => (
@@ -197,6 +198,7 @@ export function CodeResult({
             'code-result-output flex flex-col justify-between overflow-x-hidden gap-1.5 relative font-mono text-xs px-2 py-3',
             showRunningStatus && 'italic text-zinc-400 dark:text-zinc-500'
           )}
+          style={{ fontFamily: 'var(--code-block-font-family)' }}
         />
       </div>
 

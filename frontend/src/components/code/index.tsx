@@ -226,6 +226,7 @@ export function Code({
           <motion.div
             layout="position"
             className="font-mono text-xs leading-tight"
+            style={{ fontFamily: 'var(--code-block-font-family)' }}
           >
             {executionMetadata}
           </motion.div>
@@ -273,7 +274,10 @@ export function Code({
         </div>
         <div className="flex justify-between w-12 shrink-0 flex-col items-center border-l border-l-zinc-200 pt-5 pb-3 text-zinc-400 dark:border-l-zinc-700">
           <div>{languageIconTooltip}</div>
-          <div className="font-mono text-xs leading-tight text-center">
+          <div
+            className="font-mono text-xs leading-tight text-center"
+            style={{ fontFamily: 'var(--code-block-font-family)' }}
+          >
             {executionMetadata}
           </div>
         </div>
@@ -287,6 +291,7 @@ export function Code({
       <dialog
         ref={dialogRef}
         id="code-dialog"
+        data-drag-ghost-exclude
         className="backdrop:bg-zinc-500/65 dark:backdrop:bg-zinc-800/70 p-0 bg-transparent m-auto h-[calc(100vh-5rem)] w-[calc(100vw-5rem)] max-h-none max-w-none"
         onClose={() => {
           if (isExpanded) {

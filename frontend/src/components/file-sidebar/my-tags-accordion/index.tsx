@@ -18,6 +18,7 @@ import { ArrowRotateAnticlockwise } from '../../../icons/arrow-rotate-anticlockw
 import { SidebarAccordionPanel } from '../sidebar-accordion-panel';
 import type { SidebarFlexWeights } from '../../../atoms';
 import type { FlexWeightMVs } from '../index';
+
 export function MyTagsAccordion({
   containerRef,
   flexWeightMVs,

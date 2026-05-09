@@ -30,6 +30,8 @@ import { QueryError } from '../utils/query';
 import { ProjectSettingsJson } from '../../bindings/github.com/etesam913/bytebook/internal/config/models';
 
 const DEFAULT_ACCENT_COLOR = 'rgb(96, 165, 250)';
+const DEFAULT_UI_FONT_FAMILY = 'ui-sans-serif';
+const DEFAULT_CODE_BLOCK_FONT_FAMILY = 'monospace';
 
 function updateAccentColorVariable(accentColor: string) {
   let rgbValues = parseRGB(accentColor);
@@ -51,6 +53,19 @@ function updateEditorFontSizeVariable(fontSize: unknown) {
     `${validatedFontSize}px`
   );
 }
+
+function updateFontFamilyVariable(
+  variableName: string,
+  fontFamily: unknown,
+  defaultFontFamily: string
+) {
+  document.documentElement.style.setProperty(
+    variableName,
+    typeof fontFamily === 'string' && fontFamily.trim().length > 0
+      ? fontFamily
+      : defaultFontFamily
+  );
+}
 /**
  * Validates project settings from the server.
  *
@@ -69,6 +84,16 @@ function validateProjectSettingsWrapper(data: ProjectSettingsJson) {
 
   updateAccentColorVariable(accentColor);
   updateEditorFontSizeVariable(editorFontSize);
+  updateFontFamilyVariable(
+    '--app-font-family',
+    data.appearance.uiFontFamily,
+    DEFAULT_UI_FONT_FAMILY
+  );
+  updateFontFamilyVariable(
+    '--code-block-font-family',
+    data.code.codeBlockFontFamily,
+    DEFAULT_CODE_BLOCK_FONT_FAMILY
+  );
 
   return {
     ...data,
@@ -77,8 +102,13 @@ function validateProjectSettingsWrapper(data: ProjectSettingsJson) {
       ...data.appearance,
       accentColor,
       editorFontSize,
+      uiFontFamily: data.appearance.uiFontFamily ?? DEFAULT_UI_FONT_FAMILY,
       theme,
       noteWidth,
+    },
+    code: {
+      ...data.code,
+      codeBlockFontFamily: data.code.codeBlockFontFamily ?? '',
     },
   };
 }
@@ -149,6 +179,16 @@ export function useUpdateProjectSettingsMutation() {
     onMutate: ({ newProjectSettings }) => {
       updateEditorFontSizeVariable(
         newProjectSettings.appearance.editorFontSize
+      );
+      updateFontFamilyVariable(
+        '--app-font-family',
+        newProjectSettings.appearance.uiFontFamily,
+        DEFAULT_UI_FONT_FAMILY
+      );
+      updateFontFamilyVariable(
+        '--code-block-font-family',
+        newProjectSettings.code.codeBlockFontFamily,
+        DEFAULT_CODE_BLOCK_FONT_FAMILY
       );
     },
     mutationFn: async ({

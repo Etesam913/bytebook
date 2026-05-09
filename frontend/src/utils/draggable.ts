@@ -24,6 +24,13 @@ export function dragItem(
   document.addEventListener('mouseup', cleanUpDocumentEvents);
 }
 
+/**
+ * Elements with this data attribute are stripped from the cloned drag ghost.
+ * Use it on accent outlines, selection highlights, floating tooltips, popovers,
+ * etc. that should not appear in the drag image.
+ */
+export const DRAG_GHOST_EXCLUDE_ATTR = 'data-drag-ghost-exclude';
+
 export function createGhostElementFromHtmlElement({
   element,
   classNames = ['dragging', 'drag-grid'],
@@ -35,8 +42,28 @@ export function createGhostElementFromHtmlElement({
 }): HTMLElement {
   const ghostElement = element.cloneNode(true) as HTMLElement;
   ghostElement.classList.add(...classNames);
-  // Remove the selected classes
-  ghostElement.classList.remove('bg-(--accent-color)!');
+  // Strip selected-state classes from the root and any descendants so the
+  // accent outline / fill doesn't bleed into the drag image.
+  const SELECTED_CLASSES = [
+    'bg-(--accent-color)!',
+    'border-(--accent-color)!',
+    'cm-background-selected',
+  ];
+  ghostElement.classList.remove(...SELECTED_CLASSES);
+  for (const cls of SELECTED_CLASSES) {
+    for (const el of Array.from(ghostElement.getElementsByClassName(cls))) {
+      el.classList.remove(cls);
+    }
+  }
+
+  for (const excluded of ghostElement.querySelectorAll(
+    `[${DRAG_GHOST_EXCLUDE_ATTR}]`
+  )) {
+    excluded.remove();
+  }
+  if (ghostElement.hasAttribute(DRAG_GHOST_EXCLUDE_ATTR)) {
+    ghostElement.removeAttribute(DRAG_GHOST_EXCLUDE_ATTR);
+  }
 
   if (useNoteContainer) {
     const noteContainer = document.getElementById('note-container');

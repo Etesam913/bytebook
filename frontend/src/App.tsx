@@ -33,7 +33,7 @@ import { useRenameEvents } from './components/virtualized/virtualized-file-tree/
 import { safeDecodeURIComponent } from './utils/path';
 import { isRegularMouseClick } from './utils/mouse';
 import { isE2ETestEnvironment } from './utils/e2e';
-import { useKernelInstancesQuery } from './hooks/code';
+import { useKernelInstanceEvents, useKernelInstancesQuery } from './hooks/code';
 
 const KernelInfo = lazy(() =>
   import('./routes/kernel-info').then((module) => ({
@@ -68,6 +68,7 @@ function App() {
   useThemeSetting();
   useProjectSettings();
   useKernelInstancesQuery();
+  useKernelInstanceEvents();
   useZoom();
   useFullscreen();
   useWindowReload();

@@ -100,9 +100,7 @@ export function MyKernelsAccordion({
         contentType="kernel"
         dataItemToString={(kernelName) => kernelName}
         dataItemToKey={(kernelName) => kernelName}
-        selectionOptions={{
-          dataItemToSelectionRangeEntry: (kernelName) => kernelName,
-        }}
+        selectionOptions={{ disableSelection: true }}
         isItemActive={(kernelName) => kernelName === kernelNameFromUrl}
         renderItem={({ dataItem: kernelName }) => {
           if (!isValidKernelLanguage(kernelName)) {

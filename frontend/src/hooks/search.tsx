@@ -165,7 +165,7 @@ export function useFullTextSearchQuery(searchQuery: string) {
 
 /**
  * Hook to provide a ref to an input element and focus it when "/" is pressed.
- * Ignores the shortcut if the event originates from an input or textarea.
+ * Ignores the shortcut if the event originates from an editable element.
  */
 export function useSearchFocus() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -177,9 +177,13 @@ export function useSearchFocus() {
         !event.metaKey &&
         !event.altKey
       ) {
+        const target = event.target;
         if (
-          event.target instanceof HTMLInputElement ||
-          event.target instanceof HTMLTextAreaElement
+          event.defaultPrevented ||
+          target instanceof HTMLInputElement ||
+          target instanceof HTMLTextAreaElement ||
+          target instanceof HTMLSelectElement ||
+          (target instanceof HTMLElement && target.isContentEditable)
         ) {
           return;
         }

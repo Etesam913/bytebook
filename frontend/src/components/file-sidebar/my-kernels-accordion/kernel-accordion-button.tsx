@@ -1,15 +1,10 @@
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { cn } from '../../../utils/string-formatting';
 import { navigate } from 'wouter/use-browser-location';
 import {
   contextMenuDataAtom,
   kernelInstancesByLanguageAtom,
-  sidebarSelectionAtom,
 } from '../../../atoms';
-import {
-  handleContextMenuSelection,
-  type SetSelectionUpdater,
-} from '../../../utils/selection';
 import PowerOff from '../../../icons/power-off';
 import { ShutdownKernelsByLanguage } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
 import type { Languages, LanguagesWithKernels } from '../../../types';
@@ -25,16 +20,7 @@ export function KernelAccordionButton({
   kernelNameFromUrl: string | undefined;
   instanceCount: number;
 }) {
-  const [sidebarSelection, setSidebarSelection] = useAtom(sidebarSelectionAtom);
-  const selectionRange = sidebarSelection.selections;
-  const setSelectionRange: SetSelectionUpdater = (updater) => {
-    setSidebarSelection((prev) => ({
-      ...prev,
-      selections: updater(prev.selections),
-    }));
-  };
   const isActive = decodeURIComponent(kernelNameFromUrl ?? '') === kernelName;
-  const isSelected = selectionRange.has(`kernel:${kernelName}`);
   const byLanguage = useAtomValue(kernelInstancesByLanguageAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
 
@@ -49,42 +35,33 @@ export function KernelAccordionButton({
       onDragStart={(e) => e.preventDefault()}
       className={cn(
         'list-sidebar-item text-sm transition-none',
-        isActive && 'bg-zinc-150 dark:bg-zinc-700',
-        isSelected && 'bg-(--accent-color)! text-white'
+        isActive && 'bg-zinc-150 dark:bg-zinc-700'
       )}
-      onClick={(e) => {
-        if (e.metaKey || e.shiftKey) return;
+      onClick={() => {
         navigate(routeUrls.kernel(kernelName));
       }}
       onContextMenu={(e) => {
         e.preventDefault();
-        handleContextMenuSelection({
-          setSelectionRange,
-          itemType: 'kernel',
-          itemName: kernelName,
-          onlyOne: true,
-        });
+        if (!hasRunningInstances) return;
         setContextMenuData({
           x: e.clientX,
           y: e.clientY,
           isShowing: true,
           targetId: null,
-          items: hasRunningInstances
-            ? [
-                {
-                  label: (
-                    <span className="flex items-center gap-1.5">
-                      <PowerOff height="0.75rem" width="0.75rem" />
-                      Stop All {kernelName} Kernels
-                    </span>
-                  ),
-                  value: 'stop-all',
-                  onChange: () => {
-                    void ShutdownKernelsByLanguage(kernelName);
-                  },
-                },
-              ]
-            : [],
+          items: [
+            {
+              label: (
+                <span className="flex items-center gap-1.5">
+                  <PowerOff height="0.75rem" width="0.75rem" />
+                  Stop All {kernelName} Kernels
+                </span>
+              ),
+              value: 'stop-all',
+              onChange: () => {
+                void ShutdownKernelsByLanguage(kernelName);
+              },
+            },
+          ],
         });
       }}
     >

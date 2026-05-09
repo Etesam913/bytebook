@@ -7,6 +7,7 @@ export function SelectionHighlight({
 }: HTMLMotionProps<'div'>) {
   return (
     <motion.div
+      data-drag-ghost-exclude
       className={cn(
         'pointer-events-none absolute z-10 top-0 left-0 w-full h-full bg-(--accent-color-highlight-low)',
         className

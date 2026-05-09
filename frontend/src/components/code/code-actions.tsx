@@ -147,6 +147,7 @@ export function CodeActions({
 
   return (
     <div
+      data-drag-ghost-exclude
       className={cn(
         'absolute flex gap-1 z-10 p-1 border border-zinc-200 dark:border-zinc-600 rounded-md shadow-lg bg-white dark:bg-zinc-750',
         isExpanded ? 'top-2 right-2' : '-top-5 right-1.5',

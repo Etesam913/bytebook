@@ -38,6 +38,7 @@ import { FilesPlugin } from './plugins/file';
 import { FilePickerMenuPlugin } from './plugins/file-picker.tsx';
 import { FocusPlugin } from './plugins/focus.tsx';
 import { LinkedMentions } from './linked-mentions';
+import { Tags } from './tags';
 import { LinkMatcherPlugin } from './plugins/link-matcher.tsx';
 import { LinkPlugin } from './plugins/link.tsx';
 import { SavePlugin } from './plugins/save.tsx';
@@ -159,7 +160,8 @@ export function NotesEditor({
               className="relative flex flex-col w-full flex-1"
               style={{
                 fontFamily:
-                  projectSettings.appearance.editorFontFamily || undefined,
+                  projectSettings.appearance.editorFontFamily ||
+                  'var(--editor-default-font-family)',
               }}
             >
               <NoteTitle key={note} filePath={filePath} />
@@ -240,6 +242,7 @@ export function NotesEditor({
               <LinkMatcherPlugin />
               {/* <InlineTreeViewPlugin /> */}
             </div>
+            <Tags filePath={filePath} />
             <LinkedMentions filePath={filePath} />
           </div>
         </div>

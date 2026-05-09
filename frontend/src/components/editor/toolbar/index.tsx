@@ -49,7 +49,7 @@ import {
   useCodeBlockIOPubError,
   useCodeBlockStatus,
   useCodeBlockStream,
-  useKernelInstanceEvents,
+  useKernelCodeNodeCleanupEvents,
 } from '../../../hooks/code';
 import { NoteFindPanel } from './note-find-panel/index';
 import { useToggleSidebarEvent } from '../../../routes/notes-sidebar/render-note/hooks';
@@ -131,7 +131,7 @@ export function Toolbar({
   });
 
   useNoteWriteEvent({ folder, note, editor, setFrontmatter });
-  useKernelInstanceEvents(editor);
+  useKernelCodeNodeCleanupEvents(editor);
   useCodeBlockStream(editor);
   useCodeBlockIOPubError(editor);
   useCodeBlockDisplayData(editor);
@@ -205,6 +205,7 @@ export function Toolbar({
             items={blockTypesDropdownItems}
             buttonClassName="w-48"
             disabled={disabled}
+            disabledTooltipContent="Place the cursor in the note body"
             aria-label="Select block type"
             id="block-type-dropdown"
           />
