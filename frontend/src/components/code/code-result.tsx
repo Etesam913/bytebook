@@ -25,6 +25,7 @@ export function CodeResult({
   } = output;
 
   const resultContainerRef = useRef<HTMLFormElement>(null);
+  const footerRef = useRef<HTMLElement>(null);
   const { mutate: sendInputReply } = useSendInputReplyMutation(
     id,
     execution.kernelInstanceId
@@ -32,10 +33,35 @@ export function CodeResult({
 
   return (
     <motion.footer
+      ref={footerRef}
+      onWheel={(event) => {
+        // Scrolling does not work without these wheel
+        const footer = footerRef.current;
+        if (!footer) return;
+        const maxScrollTop = footer.scrollHeight - footer.clientHeight;
+        const currentScrollTop = Math.min(
+          Math.max(footer.scrollTop, 0),
+          maxScrollTop
+        );
+        const canScrollWithWheel =
+          (event.deltaY < 0 && currentScrollTop > 0) ||
+          (event.deltaY > 0 && currentScrollTop < maxScrollTop);
+        const nextScrollTop = Math.min(
+          Math.max(currentScrollTop + event.deltaY, 0),
+          maxScrollTop
+        );
+        const didConsumeWheel =
+          canScrollWithWheel && nextScrollTop !== currentScrollTop;
+
+        if (didConsumeWheel) {
+          footer.scrollTop = nextScrollTop;
+          event.stopPropagation();
+        }
+      }}
       className={cn(
-        'group overflow-hidden hover:overflow-auto relative border-t border-t-zinc-200 dark:border-t-zinc-700 min-h-11 cm-background',
+        'group relative shrink-0 overflow-x-hidden overflow-y-auto border-t border-t-zinc-200 dark:border-t-zinc-700 cm-background',
         !isExpanded && 'max-h-[1000px]',
-        isExpanded && 'min-h-1/5 max-h-2/5'
+        isExpanded && 'max-h-2/5'
       )}
     >
       <AnimatePresence>
@@ -62,7 +88,7 @@ export function CodeResult({
         )}
       </AnimatePresence>
 
-      <div className="overflow-y-auto h-full">
+      <div>
         <form
           ref={resultContainerRef}
           onSubmit={(e) => {
