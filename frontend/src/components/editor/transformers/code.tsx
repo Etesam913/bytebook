@@ -85,7 +85,7 @@ function parseLanguageAndProperties(startMatch: RegExpMatchArray | string[]): {
   };
 }
 
-function extractCodeContent(
+export function extractCodeContent(
   startMatch: RegExpMatchArray | string[],
   endMatch: RegExpMatchArray | string[] | null,
   linesInBetween: string[] | null
@@ -111,12 +111,7 @@ function extractCodeContent(
   // Treat multi-line code blocks as if they always have an end match
   const processedLines = [...linesInBetween];
 
-  if (processedLines[0].trim().length === 0) {
-    // Filter out all start and end lines that are length 0 until we find the first line with content
-    while (processedLines.length > 0 && !processedLines[0].length) {
-      processedLines.shift();
-    }
-  } else {
+  if (processedLines[0].trim().length !== 0) {
     // The first line already has content => Remove the first space of the line if it exists
     processedLines[0] = processedLines[0].startsWith(' ')
       ? processedLines[0].slice(1)
