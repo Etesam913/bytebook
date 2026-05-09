@@ -3,6 +3,7 @@ import { useAtomValue } from 'jotai/react';
 import { isDarkModeOnAtom, projectSettingsAtom } from '../../atoms';
 import CodeMirror, { type ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { EditorView, tooltips } from '@codemirror/view';
+import type { Extension } from '@codemirror/state';
 import { debounce } from '../../utils/general';
 import {
   useEnsureKernelMutation,
@@ -14,7 +15,6 @@ import { useInspectTooltip } from '../../hooks/code-codemirror';
 import { getCodemirrorKeymap } from '../../utils/codemirror';
 import { focusEditor } from '.';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
-import { vim } from '@replit/codemirror-vim';
 import type {
   CodeBlockDocumentProps,
   CodeBlockExecutionProps,
@@ -24,18 +24,9 @@ import type {
 import { cn } from '../../utils/string-formatting';
 import type { Languages } from '../../types';
 import { useNodeInNodeSelection } from '../../hooks/lexical';
-import { useEffect, useRef, type WheelEvent } from 'react';
-import { java } from '@codemirror/lang-java';
-import { javascript } from '@codemirror/lang-javascript';
-import { python } from '@codemirror/lang-python';
-import { go } from '@codemirror/lang-go';
+import { useEffect, useRef, useState, type WheelEvent } from 'react';
 import { languageDisplayConfig } from './language-config';
 import type { BasicSetupOptions } from '@uiw/react-codemirror';
-
-type LanguageSetting = {
-  basicSetup?: BasicSetupOptions;
-  extension: () => unknown;
-};
 
 const codeBlockBasicSetup: BasicSetupOptions = {
   lineNumbers: false,
@@ -44,28 +35,46 @@ const codeBlockBasicSetup: BasicSetupOptions = {
   completionKeymap: false,
 };
 
-const languageToSettings: Record<Languages, LanguageSetting> = {
-  python: {
-    basicSetup: { tabSize: languageDisplayConfig.python.tabSize },
-    extension: python,
-  },
-  go: {
-    basicSetup: { tabSize: languageDisplayConfig.go.tabSize },
-    extension: go,
-  },
-  javascript: {
-    basicSetup: { tabSize: languageDisplayConfig.javascript.tabSize },
-    extension: javascript,
-  },
-  java: {
-    basicSetup: { tabSize: languageDisplayConfig.java.tabSize },
-    extension: java,
-  },
-  text: {
-    basicSetup: { tabSize: languageDisplayConfig.text.tabSize },
-    extension: () => [],
-  },
+const languageBasicSetup: Record<Languages, BasicSetupOptions> = {
+  python: { tabSize: languageDisplayConfig.python.tabSize },
+  go: { tabSize: languageDisplayConfig.go.tabSize },
+  javascript: { tabSize: languageDisplayConfig.javascript.tabSize },
+  java: { tabSize: languageDisplayConfig.java.tabSize },
+  text: { tabSize: languageDisplayConfig.text.tabSize },
 };
+
+// Lazy-loaded language extensions. Each grammar lives in its own chunk
+// (chunk-lang-*.js) so unused languages aren't shipped on initial load.
+const languageLoaders: Record<Languages, (() => Promise<Extension>) | null> = {
+  python: () => import('@codemirror/lang-python').then((m) => m.python()),
+  go: () => import('@codemirror/lang-go').then((m) => m.go()),
+  javascript: () =>
+    import('@codemirror/lang-javascript').then((m) => m.javascript()),
+  java: () => import('@codemirror/lang-java').then((m) => m.java()),
+  text: null,
+};
+
+const languageExtensionCache = new Map<Languages, Promise<Extension>>();
+
+function loadLanguageExtension(language: Languages): Promise<Extension> | null {
+  const loader = languageLoaders[language];
+  if (!loader) return null;
+  let cached = languageExtensionCache.get(language);
+  if (!cached) {
+    cached = loader();
+    languageExtensionCache.set(language, cached);
+  }
+  return cached;
+}
+
+let vimExtensionPromise: Promise<Extension> | null = null;
+
+function loadVimExtension(): Promise<Extension> {
+  if (!vimExtensionPromise) {
+    vimExtensionPromise = import('@replit/codemirror-vim').then((m) => m.vim());
+  }
+  return vimExtensionPromise;
+}
 
 // Map to store pending inspection promises by messageId
 const pendingInspections = new Map<
@@ -123,6 +132,35 @@ export function CodeMirrorEditor({
   const [, setSelected, clearSelection] = useLexicalNodeSelection(nodeKey);
   const isInNodeSelection = useNodeInNodeSelection(lexicalEditor, nodeKey);
   const internalCodeMirrorRef = useRef<ReactCodeMirrorRef | null>(null);
+
+  const [loadedLanguage, setLoadedLanguage] = useState<{
+    language: Languages;
+    extension: Extension;
+  } | null>(null);
+  const [vimExtension, setVimExtension] = useState<Extension | null>(null);
+
+  useEffect(() => {
+    const promise = loadLanguageExtension(language);
+    if (!promise) return;
+    let cancelled = false;
+    void promise.then((extension) => {
+      if (!cancelled) setLoadedLanguage({ language, extension });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [language]);
+
+  useEffect(() => {
+    if (!projectSettings.code.codeBlockVimMode) return;
+    let cancelled = false;
+    void loadVimExtension().then((ext) => {
+      if (!cancelled) setVimExtension(ext);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [projectSettings.code.codeBlockVimMode]);
 
   function handleEditorRef(instance: ReactCodeMirrorRef | null) {
     internalCodeMirrorRef.current = instance;
@@ -208,12 +246,13 @@ export function CodeMirrorEditor({
           //   parent: document.getElementById('code-dialog') ?? document.body,
           // }),
           EditorView.editable.of(isInNodeSelection),
-          ...(projectSettings.code.codeBlockVimMode ? [vim()] : []),
+          ...(projectSettings.code.codeBlockVimMode && vimExtension
+            ? [vimExtension]
+            : []),
           runCodeKeymap,
-          ...(() => {
-            const ext = languageToSettings[language].extension();
-            return Array.isArray(ext) && ext.length === 0 ? [] : [ext as never];
-          })(),
+          ...(loadedLanguage && loadedLanguage.language === language
+            ? [loadedLanguage.extension]
+            : []),
           inspectTooltip,
         ]}
         theme={isDarkModeOn ? vscodeDark : vscodeLight}
@@ -238,7 +277,7 @@ export function CodeMirrorEditor({
         }}
         basicSetup={{
           ...codeBlockBasicSetup,
-          ...languageToSettings[language].basicSetup,
+          ...languageBasicSetup[language],
         }}
       />
     </div>

@@ -3,9 +3,9 @@ import { projectSettingsAtom } from '../../../atoms';
 import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
 import { cn } from '../../../utils/string-formatting';
 import { SettingsRow } from '../settings-row';
-import lightMode from '../../../assets/images/light-mode.jpg';
-import darkMode from '../../../assets/images/dark-mode.jpg';
-import lightAndDarkMode from '../../../assets/images/light-and-dark-mode.jpg';
+import lightMode from '../../../assets/images/light-mode.avif';
+import darkMode from '../../../assets/images/dark-mode.avif';
+import lightAndDarkMode from '../../../assets/images/light-and-dark-mode.avif';
 
 function ThemeButton({
   label,

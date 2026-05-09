@@ -1,11 +1,11 @@
-import { registerMarkdownShortcuts, TRANSFORMERS } from '@lexical/markdown';
+import { registerMarkdownShortcuts, type Transformer } from '@lexical/markdown';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useEffect } from 'react';
 
 export function CustomMarkdownShortcutPlugin({
-  transformers = TRANSFORMERS,
+  transformers,
 }: {
-  transformers?: typeof TRANSFORMERS;
+  transformers: Array<Transformer>;
 }) {
   const [editor] = useLexicalComposerContext();
   useEffect(() => {

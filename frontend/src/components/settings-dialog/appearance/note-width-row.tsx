@@ -3,10 +3,10 @@ import { SettingImage } from '.';
 import { isDarkModeOnAtom, projectSettingsAtom } from '../../../atoms';
 import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
 import { SettingsRow } from '../settings-row';
-import fullWidthDark from '../../../assets/images/full-width-dark.webp';
-import fullWidthLight from '../../../assets/images/full-width-light.webp';
-import readabilityWidthDark from '../../../assets/images/readability-width-dark.webp';
-import readabilityWidthLight from '../../../assets/images/readability-width-light.webp';
+import fullWidthDark from '../../../assets/images/full-width-dark.avif';
+import fullWidthLight from '../../../assets/images/full-width-light.avif';
+import readabilityWidthDark from '../../../assets/images/readability-width-dark.avif';
+import readabilityWidthLight from '../../../assets/images/readability-width-light.avif';
 
 export function NoteWidthRow() {
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();

@@ -4,10 +4,37 @@ import { DEFAULT_SONNER_OPTIONS } from '../../../utils/general';
 const openUrl = mock<(url: string) => Promise<void>>(() => Promise.resolve());
 const toastError = mock<(message: string, options?: unknown) => void>(() => {});
 
+// Bun's mock.module is global across the test run, so this stub must
+// cover every namespace any other test's transitive imports may touch.
 void mock.module('@wailsio/runtime', () => ({
-  Browser: {
-    OpenURL: openUrl,
+  Application: {},
+  Browser: { OpenURL: openUrl },
+  Call: {},
+  Clipboard: {},
+  Create: {
+    Any: (source: unknown) => source,
+    ByteSlice: (source: unknown) => source,
+    Array: () => (source: unknown) => source,
+    Map: () => (source: unknown) => source,
+    Nullable: () => (source: unknown) => source,
+    Struct: () => (source: unknown) => source,
+    Events: {},
   },
+  Dialogs: {},
+  Events: { On: () => () => {}, Emit: () => {}, Off: () => {} },
+  Flags: {},
+  IOS: {},
+  Screens: {},
+  System: {},
+  Window: {},
+  WML: {},
+  setTransport: () => {},
+  getTransport: () => undefined,
+  objectNames: {},
+  clientId: '',
+  CancelError: class extends Error {},
+  CancelledRejectionError: class extends Error {},
+  CancellablePromise: Promise,
 }));
 
 void mock.module('sonner', () => ({
