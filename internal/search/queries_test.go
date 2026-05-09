@@ -107,15 +107,26 @@ func TestCreateFilenameQuery(t *testing.T) {
 		assert.True(t, ok, "expected ConjunctionQuery for slash-bearing input")
 		assert.Equal(t, 2, len(conj.Conjuncts))
 
-		folderWildcard, ok := conj.Conjuncts[0].(*query.WildcardQuery)
-		assert.True(t, ok)
-		assert.Equal(t, FieldFolder, folderWildcard.FieldVal)
-		assert.Equal(t, "*temp/joe*", folderWildcard.Wildcard)
+		// Each conjunct is a DisjunctionQuery containing a wildcard (substring match)
+		// and a prefix query (boosted leading-match) against the same field.
+		assertWildcardPlusPrefix := func(q query.Query, field, value string) {
+			disj, ok := q.(*query.DisjunctionQuery)
+			assert.True(t, ok, "expected DisjunctionQuery for %s", field)
+			assert.Equal(t, 2, len(disj.Disjuncts))
 
-		fileWildcard, ok := conj.Conjuncts[1].(*query.WildcardQuery)
-		assert.True(t, ok)
-		assert.Equal(t, FieldFileName, fileWildcard.FieldVal)
-		assert.Equal(t, "*get*", fileWildcard.Wildcard)
+			wc, ok := disj.Disjuncts[0].(*query.WildcardQuery)
+			assert.True(t, ok)
+			assert.Equal(t, field, wc.FieldVal)
+			assert.Equal(t, "*"+value+"*", wc.Wildcard)
+
+			pq, ok := disj.Disjuncts[1].(*query.PrefixQuery)
+			assert.True(t, ok)
+			assert.Equal(t, field, pq.FieldVal)
+			assert.Equal(t, value, pq.Prefix)
+		}
+
+		assertWildcardPlusPrefix(conj.Conjuncts[0], FieldFolder, "temp/joe")
+		assertWildcardPlusPrefix(conj.Conjuncts[1], FieldFileName, "get")
 	})
 }
 

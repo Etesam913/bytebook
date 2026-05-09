@@ -49,14 +49,28 @@ func createMatchQuery(field, term string, boost float64) query.Query {
 func CreateFilenameQuery(prefixTerm string, boost float64) query.Query {
 	normalized := strings.TrimSpace(prefixTerm)
 
-	wildcard := func(field, value string) query.Query {
-		pattern := "*"
-		if value != "" {
-			pattern = fmt.Sprintf("*%s*", value)
+	// fieldMatch returns a disjunction that matches the field on either a substring
+	// (wildcard) or a prefix. The prefix branch carries a higher boost so filenames
+	// that start with `value` outrank filenames that merely contain it.
+	fieldMatch := func(field, value string) query.Query {
+		if value == "" {
+			q := bleve.NewWildcardQuery("*")
+			q.SetField(field)
+			return q
 		}
-		q := bleve.NewWildcardQuery(pattern)
-		q.SetField(field)
-		return q
+
+		wildcardQuery := bleve.NewWildcardQuery(fmt.Sprintf("*%s*", value))
+		wildcardQuery.SetField(field)
+		wildcardQuery.SetBoost(1.0)
+
+		prefixQuery := bleve.NewPrefixQuery(value)
+		prefixQuery.SetField(field)
+		prefixQuery.SetBoost(5.0)
+
+		dq := bleve.NewDisjunctionQuery()
+		dq.AddQuery(wildcardQuery)
+		dq.AddQuery(prefixQuery)
+		return dq
 	}
 
 	if idx := strings.LastIndex(normalized, "/"); idx >= 0 {
@@ -65,18 +79,18 @@ func CreateFilenameQuery(prefixTerm string, boost float64) query.Query {
 
 		conjunction := bleve.NewConjunctionQuery()
 		if folderPart != "" {
-			conjunction.AddQuery(wildcard(FieldFolder, folderPart))
+			conjunction.AddQuery(fieldMatch(FieldFolder, folderPart))
 		}
 		if filePart != "" {
-			conjunction.AddQuery(wildcard(FieldFileName, filePart))
+			conjunction.AddQuery(fieldMatch(FieldFileName, filePart))
 		}
 		conjunction.SetBoost(boost)
 		return conjunction
 	}
 
 	disjunctionQuery := bleve.NewDisjunctionQuery()
-	disjunctionQuery.AddQuery(wildcard(FieldFolder, normalized))
-	disjunctionQuery.AddQuery(wildcard(FieldFileName, normalized))
+	disjunctionQuery.AddQuery(fieldMatch(FieldFolder, normalized))
+	disjunctionQuery.AddQuery(fieldMatch(FieldFileName, normalized))
 	disjunctionQuery.SetBoost(boost)
 	return disjunctionQuery
 }
