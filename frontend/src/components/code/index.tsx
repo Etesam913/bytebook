@@ -1,12 +1,4 @@
-import {
-  lazy,
-  Suspense,
-  useEffect,
-  useRef,
-  useState,
-  type Dispatch,
-  type SetStateAction,
-} from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import type { CodeMirrorRef } from './types';
 import { EditorSelection } from '@codemirror/state';
 import { Loader } from '../../icons/loader';
@@ -14,12 +6,13 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import { cn } from '../../utils/string-formatting';
 import { CodeBlockStatus, Languages } from '../../types';
-import { AnimatePresence } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import { CodeActions } from './code-actions';
 import { CodeResult } from './code-result';
 import { languageDisplayConfig } from './language-config';
 import { useNodeInNodeSelection } from '../../hooks/lexical';
 import { SelectionHighlight } from '../selection-highlight';
+import { Tooltip } from '../tooltip';
 
 const CodeMirrorEditor = lazy(() =>
   import('./codemirror-editor').then((module) => ({
@@ -65,18 +58,18 @@ export function Code({
 }: {
   id: string;
   code: string;
-  setCode: Dispatch<SetStateAction<string>>;
+  setCode: (code: string) => void;
   status: CodeBlockStatus;
-  setStatus: Dispatch<SetStateAction<CodeBlockStatus>>;
+  setStatus: (status: CodeBlockStatus) => void;
   language: Languages;
   nodeKey: string;
   isCreatedNow: boolean;
   lastExecutedResult: string | null;
-  setLastExecutedResult: Dispatch<SetStateAction<string>>;
+  setLastExecutedResult: (lastExecutedResult: string) => void;
   hideResults: boolean;
-  setHideResults: Dispatch<SetStateAction<boolean>>;
+  setHideResults: (hideResults: boolean) => void;
   isWaitingForInput: boolean;
-  setIsWaitingForInput: Dispatch<SetStateAction<boolean>>;
+  setIsWaitingForInput: (isWaitingForInput: boolean) => void;
   executionCount: number;
   durationText: string;
   executionId: string;
@@ -181,37 +174,111 @@ export function Code({
     kernelInstanceId,
   };
 
-  const codeContent = (
-    <Suspense
-      fallback={
-        <Loader className="mx-auto my-3" height="1.125rem" width="1.125rem" />
-      }
+  const executionMetadata = (
+    <>
+      <div>
+        {executionCount > 0 &&
+          `[${
+            executionCount > MAX_EXECUTION_COUNT
+              ? MAX_EXECUTION_COUNT
+              : executionCount
+          }]`}
+      </div>
+      <div>{durationText}</div>
+    </>
+  );
+
+  const codeActions = (
+    <CodeActions
+      identity={identityProps}
+      execution={executionProps}
+      shell={shellProps}
+      isSelected={isSelected}
+    />
+  );
+  const languageDisplay = languageDisplayConfig[language];
+
+  const languageIconTooltip = (
+    <Tooltip
+      content={languageDisplay.label}
+      placement="top"
+      root={isExpanded ? dialogRef : undefined}
     >
-      <CodeActions
-        identity={identityProps}
-        execution={executionProps}
-        shell={shellProps}
-        isSelected={isSelected}
-      />
+      <span className="w-fit" aria-label={languageDisplay.label}>
+        {languageDisplay.icon}
+      </span>
+    </Tooltip>
+  );
+
+  const codeEditor = (
+    <div
+      className={cn('relative', isExpanded && 'flex flex-1 flex-col min-h-0 ')}
+    >
       <CodeMirrorEditor
         identity={identityProps}
         editorDocument={editorDocumentProps}
         execution={executionProps}
         shell={shellProps}
       />
-      {lastExecutedResult !== null && !hideResults && (
-        <CodeResult
-          identity={identityProps}
-          execution={executionProps}
-          shell={shellProps}
-          output={{
-            lastExecutedResult,
-            setLastExecutedResult,
-            isWaitingForInput,
-            setIsWaitingForInput,
-          }}
-        />
+      {!isExpanded && (
+        <div className="absolute inset-y-1 right-1 translate-x-16 space-y-1 text-zinc-400 w-12 flex flex-col justify-between">
+          {languageIconTooltip}
+          <motion.div
+            layout="position"
+            className="font-mono text-xs leading-tight"
+          >
+            {executionMetadata}
+          </motion.div>
+        </div>
       )}
+    </div>
+  );
+
+  const codeResult = lastExecutedResult !== null && !hideResults && (
+    <CodeResult
+      identity={identityProps}
+      execution={executionProps}
+      shell={shellProps}
+      output={{
+        lastExecutedResult,
+        setLastExecutedResult,
+        isWaitingForInput,
+        setIsWaitingForInput,
+      }}
+    />
+  );
+
+  const codeContent = (
+    <Suspense
+      fallback={
+        <Loader className="mx-auto my-3" height="1.125rem" width="1.125rem" />
+      }
+    >
+      {codeActions}
+      {codeEditor}
+      {codeResult}
+    </Suspense>
+  );
+
+  const expandedCodeContent = (
+    <Suspense
+      fallback={
+        <Loader className="mx-auto my-3" height="1.125rem" width="1.125rem" />
+      }
+    >
+      <div className="flex min-h-0 flex-1">
+        <div className="relative flex min-w-0 flex-1 flex-col">
+          {codeActions}
+          {codeEditor}
+        </div>
+        <div className="flex justify-between w-12 shrink-0 flex-col items-center border-l border-l-zinc-200 pt-5 pb-3 text-zinc-400 dark:border-l-zinc-700">
+          <div>{languageIconTooltip}</div>
+          <div className="font-mono text-xs leading-tight text-center">
+            {executionMetadata}
+          </div>
+        </div>
+      </div>
+      {codeResult}
     </Suspense>
   );
 
@@ -240,21 +307,10 @@ export function Code({
               isSelected && 'cm-background-selected border-(--accent-color)!'
             )}
           >
-            {codeContent}
+            {expandedCodeContent}
           </span>
         )}
       </dialog>
-      <div className="absolute -translate-x-10 font-mono text-xs text-zinc-400">
-        <div>
-          {executionCount > 0 &&
-            `[${
-              executionCount > MAX_EXECUTION_COUNT
-                ? MAX_EXECUTION_COUNT
-                : executionCount
-            }]`}
-        </div>
-        <div>{durationText}</div>
-      </div>
       <AnimatePresence>
         {isSelected && !isInNodeSelection && (
           <SelectionHighlight
@@ -276,10 +332,6 @@ export function Code({
           {codeContent}
         </span>
       )}
-
-      <div className="translate-x-[24px] absolute text-zinc-400 right-1">
-        {languageDisplayConfig[language].icon}
-      </div>
     </div>
   );
 }

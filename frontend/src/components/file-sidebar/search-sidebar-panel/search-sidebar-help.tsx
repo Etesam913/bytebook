@@ -56,8 +56,8 @@ const HELP_SECTIONS: {
         description: 'Sort by last update time, oldest first.',
       },
       {
-        query: 'sort:size_asc',
-        description: 'Sort by size, smallest first.',
+        query: 'sort:size_desc',
+        description: 'Sort by size, largest first.',
       },
     ],
   },

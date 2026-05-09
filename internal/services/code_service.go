@@ -8,6 +8,7 @@ import (
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/kernel_manager"
 	"github.com/etesam913/bytebook/internal/util"
+	"github.com/pebbe/zmq4"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -47,7 +48,22 @@ func (c *CodeService) SendExecuteRequest(noteID, codeBlockID, executionID, langu
 	}
 
 	if err := inst.SendExecute(codeBlockID, executionID, code); err != nil {
-		return errResp[SendExecuteRequestResponse](fmt.Sprintf("Failed to send execute request: %v", err))
+		if !errors.Is(err, zmq4.ErrorSocketClosed) {
+			return errResp[SendExecuteRequestResponse](fmt.Sprintf("Failed to send execute request: %v", err))
+		}
+
+		// If the socket is closed, try to re-create it
+		_ = c.Manager.Shutdown(inst.ID(), true)
+		inst, err = c.Manager.GetOrCreate(context.Background(), language, noteID, venvPath)
+		if err != nil {
+			if errors.Is(err, kernel_manager.ErrNoIdleKernelToEvict) {
+				return errResp[SendExecuteRequestResponse](fmt.Sprintf("Stop another %s kernel to start this one.", language))
+			}
+			return errResp[SendExecuteRequestResponse](err.Error())
+		}
+		if err := inst.SendExecute(codeBlockID, executionID, code); err != nil {
+			return errResp[SendExecuteRequestResponse](fmt.Sprintf("Failed to send execute request after reopening kernel: %v", err))
+		}
 	}
 	inst.MarkActivity()
 

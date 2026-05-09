@@ -147,8 +147,8 @@ textarea,
   @apply cursor-text isolate py-1;
   font-size: var(--editor-font-size);
   line-height: calc(var(--editor-font-size) * 2);
-  /* Contain:layout style paint makes the editor handle larger content more efficiently */
-  contain: layout style paint;
+  /* Avoid paint containment so floating node affordances can render outside blocks. */
+  contain: layout style;
 
   h1,
   h1.dragging {
@@ -440,7 +440,7 @@ textarea,
 }
 
 .cm-background-expanded .cm-scroller {
-  @apply flex-1 basis-0 min-h-0 overflow-y-scroll! overflow-x-auto!;
+  @apply flex-1 basis-0 min-h-0 overflow-y-auto! overflow-x-auto!;
 }
 
 /** The active line is hidden when the editor is not focused */
@@ -450,6 +450,11 @@ textarea,
 
 .cm-background.cm-background-selected .cm-activeLine {
   @apply bg-zinc-100/70 dark:bg-zinc-750/45;
+}
+
+.code-result-output img {
+  @apply max-w-full max-h-[480px] object-contain w-fit;
+  height: auto;
 }
 
 .cm-lineNumbers {

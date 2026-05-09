@@ -1,12 +1,96 @@
-import { useRef } from 'react';
-import { easingFunctions, getDefaultButtonVariants } from '../../animations';
+import { useEffect, useRef, useState } from 'react';
+import { getDefaultButtonVariants } from '../../animations';
 import { MotionIconButton } from '../buttons';
 import { Duplicate2 } from '../../icons/duplicate-2';
-import { AnimatePresence, motion } from 'motion/react';
-import { Loader } from '../../icons/loader';
+import { motion } from 'motion/react';
 import { cn } from '../../utils/string-formatting';
 import { useSendInputReplyMutation } from '../../hooks/code';
 import type { CodeBlockResultProps } from './types';
+
+const RUNNING_STATUS_TEXT = 'Running';
+const RUNNING_STATUS_CHARACTER_DELAY_SECONDS = 0.08;
+const RUNNING_STATUS_ANIMATION_DURATION_SECONDS = 0.7;
+const RUNNING_STATUS_ANIMATION_REPEAT_DELAY_SECONDS = 0.55;
+const RUNNING_STATUS_DELAY_MS = 1500;
+
+function RunningStatus({
+  isRunning,
+  runId,
+  onVisible,
+}: {
+  isRunning: boolean;
+  runId: string;
+  onVisible: (runId: string) => void;
+}) {
+  const [visibleRunId, setVisibleRunId] = useState<string | null>(null);
+  const isVisible = isRunning && visibleRunId === runId;
+
+  useEffect(() => {
+    if (!isRunning) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setVisibleRunId(runId);
+      onVisible(runId);
+    }, RUNNING_STATUS_DELAY_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [isRunning, onVisible, runId]);
+
+  return (
+    <>
+      {isVisible && (
+        <motion.div
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.18 }}
+          className="px-2 pb-1 pt-2 font-mono text-xs italic text-zinc-400 dark:text-zinc-500 flex items-center gap-0.5"
+        >
+          <span>
+            {Array.from(RUNNING_STATUS_TEXT).map((character, index) => (
+              <motion.span
+                aria-hidden="true"
+                key={`${character}-${index}`}
+                animate={{ opacity: [0.35, 1, 0.35] }}
+                transition={{
+                  delay: index * RUNNING_STATUS_CHARACTER_DELAY_SECONDS,
+                  duration: RUNNING_STATUS_ANIMATION_DURATION_SECONDS,
+                  repeat: Infinity,
+                  repeatDelay: RUNNING_STATUS_ANIMATION_REPEAT_DELAY_SECONDS,
+                  ease: 'easeInOut',
+                }}
+              >
+                {character}
+              </motion.span>
+            ))}
+            <span className="sr-only">{RUNNING_STATUS_TEXT}</span>
+          </span>
+          <span className="tracking-[-0.2em]">
+            {[0, 1, 2].map((dotIndex) => (
+              <motion.span
+                aria-hidden="true"
+                key={dotIndex}
+                animate={{ opacity: [0.35, 1, 0.35] }}
+                transition={{
+                  delay:
+                    (RUNNING_STATUS_TEXT.length + dotIndex) *
+                    RUNNING_STATUS_CHARACTER_DELAY_SECONDS,
+                  duration: RUNNING_STATUS_ANIMATION_DURATION_SECONDS,
+                  repeat: Infinity,
+                  repeatDelay: RUNNING_STATUS_ANIMATION_REPEAT_DELAY_SECONDS,
+                  ease: 'easeInOut',
+                }}
+              >
+                .
+              </motion.span>
+            ))}
+          </span>
+        </motion.div>
+      )}
+    </>
+  );
+}
 
 export function CodeResult({
   identity,
@@ -15,7 +99,7 @@ export function CodeResult({
   output,
 }: CodeBlockResultProps) {
   const { id } = identity;
-  const { status } = execution;
+  const { executionId, status } = execution;
   const { isExpanded, codeMirrorInstance } = shell;
   const {
     lastExecutedResult,
@@ -26,6 +110,12 @@ export function CodeResult({
 
   const resultContainerRef = useRef<HTMLFormElement>(null);
   const footerRef = useRef<HTMLElement>(null);
+  const [visibleRunningStatusId, setVisibleRunningStatusId] = useState<
+    string | null
+  >(null);
+  const isBusyWithoutInput = status === 'busy' && !isWaitingForInput;
+  const showRunningStatus =
+    isBusyWithoutInput && visibleRunningStatusId === executionId;
   const { mutate: sendInputReply } = useSendInputReplyMutation(
     id,
     execution.kernelInstanceId
@@ -64,31 +154,12 @@ export function CodeResult({
         isExpanded && 'max-h-2/5'
       )}
     >
-      <AnimatePresence>
-        {status === 'busy' && !isWaitingForInput && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ delay: 0.325 }}
-            className="absolute inset-0 flex items-center justify-center z-20 bg-zinc-400/20 dark:bg-zinc-900/20"
-          >
-            <motion.div
-              initial={{ y: -100 }}
-              animate={{ y: 0 }}
-              exit={{ y: 100 }}
-              transition={{
-                delay: 0.325,
-                ease: easingFunctions['ease-in-out-cubic'],
-              }}
-            >
-              <Loader width="1rem" height="1rem" />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <div>
+        <RunningStatus
+          isRunning={isBusyWithoutInput}
+          runId={executionId}
+          onVisible={setVisibleRunningStatusId}
+        />
         <form
           ref={resultContainerRef}
           onSubmit={(e) => {
@@ -122,7 +193,10 @@ export function CodeResult({
           }}
           aria-live="polite"
           dangerouslySetInnerHTML={{ __html: lastExecutedResult }}
-          className="flex flex-col justify-between overflow-x-hidden gap-1.5 relative font-mono text-xs px-2 py-3"
+          className={cn(
+            'code-result-output flex flex-col justify-between overflow-x-hidden gap-1.5 relative font-mono text-xs px-2 py-3',
+            showRunningStatus && 'italic text-zinc-400 dark:text-zinc-500'
+          )}
         />
       </div>
 

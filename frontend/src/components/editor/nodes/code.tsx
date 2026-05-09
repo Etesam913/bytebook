@@ -7,7 +7,7 @@ import type {
   Spread,
 } from 'lexical';
 import { $applyNodeReplacement, DecoratorNode } from 'lexical';
-import type { JSX, SetStateAction } from 'react';
+import type { JSX } from 'react';
 import { Code } from '../../code';
 import { CodeBlockStatus, Languages } from '../../../types';
 
@@ -393,46 +393,23 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
       <Code
         id={this.getId()}
         code={this.getCode()}
-        setCode={(value: SetStateAction<string>) =>
-          this.setCode(
-            typeof value === 'function' ? value(this.getCode()) : value,
-            _editor
-          )
-        }
+        setCode={(value: string) => this.setCode(value, _editor)}
         status={this.getStatus()}
-        setStatus={(value: SetStateAction<CodeBlockStatus>) =>
-          this.setStatus(
-            typeof value === 'function' ? value(this.getStatus()) : value,
-            _editor
-          )
-        }
+        setStatus={(value: CodeBlockStatus) => this.setStatus(value, _editor)}
         language={this.getLanguage()}
         nodeKey={this.getKey()}
         isCreatedNow={this.getIsCreatedNow()}
         lastExecutedResult={this.getLastExecutedResult()}
-        setLastExecutedResult={(value: SetStateAction<string>) =>
-          this.setLastExecutedResult(
-            typeof value === 'function'
-              ? value(this.getLastExecutedResult() ?? '')
-              : value,
-            _editor
-          )
+        setLastExecutedResult={(value: string) =>
+          this.setLastExecutedResult(value, _editor)
         }
         hideResults={this.getHideResults()}
-        setHideResults={(value: SetStateAction<boolean>) =>
-          this.setHideResults(
-            typeof value === 'function' ? value(this.getHideResults()) : value,
-            _editor
-          )
+        setHideResults={(value: boolean) =>
+          this.setHideResults(value, _editor)
         }
         isWaitingForInput={this.getIsWaitingForInput()}
-        setIsWaitingForInput={(value: SetStateAction<boolean>) =>
-          this.setIsWaitingForInput(
-            typeof value === 'function'
-              ? value(this.getIsWaitingForInput())
-              : value,
-            _editor
-          )
+        setIsWaitingForInput={(value: boolean) =>
+          this.setIsWaitingForInput(value, _editor)
         }
         executionCount={this.getExecutionCount()}
         durationText={this.getDuration()}

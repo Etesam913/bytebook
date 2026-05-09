@@ -13,12 +13,12 @@ export type CodeBlockIdentityProps = {
 
 export type CodeBlockDocumentProps = {
   code: string;
-  setCode: Dispatch<SetStateAction<string>>;
+  setCode: (code: string) => void;
 };
 
 export type CodeBlockExecutionProps = {
   status: CodeBlockStatus;
-  setStatus: Dispatch<SetStateAction<CodeBlockStatus>>;
+  setStatus: (status: CodeBlockStatus) => void;
   executionId: string;
   kernelInstanceId: string | null;
 };
@@ -33,16 +33,16 @@ export type CodeBlockShellProps = {
   collapseCodeBlock: () => void;
   restoreCodeMirrorViewState: (instance: CodeMirrorRef) => boolean;
   hideResults: boolean;
-  setHideResults: Dispatch<SetStateAction<boolean>>;
+  setHideResults: (hideResults: boolean) => void;
   dialogRef?: RefObject<HTMLDialogElement | null>;
   isCreatedNow: boolean;
 };
 
 export type CodeBlockOutputProps = {
   lastExecutedResult: string;
-  setLastExecutedResult: Dispatch<SetStateAction<string>>;
+  setLastExecutedResult: (lastExecutedResult: string) => void;
   isWaitingForInput: boolean;
-  setIsWaitingForInput: Dispatch<SetStateAction<boolean>>;
+  setIsWaitingForInput: (isWaitingForInput: boolean) => void;
 };
 
 export type CodeBlockResultProps = {
