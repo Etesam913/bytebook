@@ -404,9 +404,7 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
           this.setLastExecutedResult(value, _editor)
         }
         hideResults={this.getHideResults()}
-        setHideResults={(value: boolean) =>
-          this.setHideResults(value, _editor)
-        }
+        setHideResults={(value: boolean) => this.setHideResults(value, _editor)}
         isWaitingForInput={this.getIsWaitingForInput()}
         setIsWaitingForInput={(value: boolean) =>
           this.setIsWaitingForInput(value, _editor)

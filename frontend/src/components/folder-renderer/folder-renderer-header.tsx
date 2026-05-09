@@ -123,7 +123,7 @@ export function FolderRendererHeader({
                   aria-label="Search this folder"
                   className="shrink-0"
                   onClick={() => {
-                    navigate(routeUrls.search(`f:"${folderPath.fullPath}"`));
+                    navigate(routeUrls.search(`f:"${folderPath.fullPath}/"`));
                   }}
                 >
                   <Magnifier width="0.875rem" height="0.875rem" />

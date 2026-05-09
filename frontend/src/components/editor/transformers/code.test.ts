@@ -28,10 +28,11 @@ describe('extractCodeContent', () => {
   });
 
   it('removes one spacer before the first content line in multi-line blocks', () => {
-    const code = extractCodeContent(['```python', 'python'], ['```'], [
-      ' print("Hello")',
-      'print("Goodbye")',
-    ]);
+    const code = extractCodeContent(
+      ['```python', 'python'],
+      ['```'],
+      [' print("Hello")', 'print("Goodbye")']
+    );
 
     expect(code).toBe('print("Hello")\nprint("Goodbye")');
   });

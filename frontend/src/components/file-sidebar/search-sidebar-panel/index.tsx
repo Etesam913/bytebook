@@ -55,6 +55,16 @@ export function SearchSidebarPanel({
 
   const [internalSearchQuery, setInternalSearchQuery] =
     useState(routeSearchQuery);
+  // Sync internal state when the route's search query changes externally
+  // (e.g. clicking "Search this folder"). Only resets on actual route change,
+  // so in-progress typing isn't clobbered while auto-navigate debounces the URL.
+  const [prevRouteSearchQuery, setPrevRouteSearchQuery] =
+    useState(routeSearchQuery);
+  if (routeSearchQuery !== prevRouteSearchQuery) {
+    setPrevRouteSearchQuery(routeSearchQuery);
+    setInternalSearchQuery(routeSearchQuery);
+  }
+
   const encodedActivePath = searchParams?.['*'] || undefined;
 
   const searchInputRef = useSearchFocus();
