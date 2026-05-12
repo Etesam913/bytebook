@@ -1,5 +1,5 @@
 import { useAtom } from 'jotai';
-import { type RefObject, useRef, useState } from 'react';
+import { type MouseEvent, type RefObject, useRef, useState } from 'react';
 import { Virtuoso, type ListRange, type VirtuosoHandle } from 'react-virtuoso';
 import { useTopLevelFileOrFolders } from './hooks/top-level';
 import { FileTreeItem } from './file-tree-item';
@@ -16,6 +16,7 @@ import { shouldHandleOutsideSelectionInteraction } from '../../../utils/mouse';
 import { useExternalFileTreeDrag } from './hooks/use-external-file-tree-drag';
 import { useFileTreeContentDrop } from './hooks/use-file-tree-content-drop';
 import { usePreventBoundaryOverscrollFlicker } from '../virtualized-list/hooks';
+import { isFileTreeBlankAreaClickTarget } from './utils/file-tree-utils';
 
 const INITIAL_VISIBLE_RANGE: ListRange = { startIndex: 0, endIndex: -1 };
 
@@ -38,6 +39,14 @@ export function VirtualizedFileTree({
   useExternalFileTreeDrag();
   usePreventBoundaryOverscrollFlicker({ scrollElementRef: ref });
 
+  function clearSidebarSelection() {
+    setSidebarSelection((prev) => ({
+      ...prev,
+      selections: new Set([]),
+      anchorSelection: null,
+    }));
+  }
+
   // Clear selection when clicking outside the file tree (unless it's a context menu click)
   useOnClickOutside(
     ref,
@@ -48,14 +57,22 @@ export function VirtualizedFileTree({
       )
         return;
 
-      setSidebarSelection((prev) => ({
-        ...prev,
-        selections: new Set([]),
-        anchorSelection: null,
-      }));
+      clearSidebarSelection();
     },
     []
   );
+
+  function handleFileTreeBlankAreaMouseDownCapture(event: MouseEvent) {
+    if (
+      !shouldHandleOutsideSelectionInteraction(event.nativeEvent) ||
+      sidebarSelection.selections.size === 0 ||
+      !isFileTreeBlankAreaClickTarget(event.target)
+    ) {
+      return;
+    }
+
+    clearSidebarSelection();
+  }
 
   /**
    * Renders a row wrapper used by tree navigation and delegates row content.
@@ -87,6 +104,7 @@ export function VirtualizedFileTree({
       role="tree"
       aria-label="File tree"
       className="relative flex flex-1 flex-col min-h-0 overflow-hidden text-sm"
+      onMouseDownCapture={handleFileTreeBlankAreaMouseDownCapture}
       onKeyDown={(event) => {
         handleFileTreeKeyDown(
           {

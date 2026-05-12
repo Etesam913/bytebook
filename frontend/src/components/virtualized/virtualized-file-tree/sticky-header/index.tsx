@@ -80,7 +80,11 @@ export function StickyHeader({
       )}
     >
       {stickyItems.map((stickyItem) => (
-        <div key={stickyItem.id} className="overflow-hidden px-2">
+        <div
+          key={stickyItem.id}
+          data-file-tree-sticky-item
+          className="overflow-hidden px-2"
+        >
           <FileTreeItem dataItem={stickyItem} />
         </div>
       ))}

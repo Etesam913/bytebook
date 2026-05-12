@@ -19,6 +19,14 @@ export function getFileTreeItemIndent(level: number): string {
   return `${(level + 1) * INDENT_WIDTH_REM}rem`;
 }
 
+export function isFileTreeBlankAreaClickTarget(target: EventTarget | null) {
+  const element = target instanceof HTMLElement ? target : null;
+  return (
+    !element?.closest('[data-file-tree-index]') &&
+    !element?.closest('[data-file-tree-sticky-item]')
+  );
+}
+
 /**
  * Flattens the file tree map into a linear list for virtualization.
  *
