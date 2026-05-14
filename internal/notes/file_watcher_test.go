@@ -181,6 +181,63 @@ func newTestFileWatcher(t *testing.T, projectPath string) *FileWatcher {
 	return fw
 }
 
+func TestProcessEventRoutingDoesNotCollideWithUserFolders(t *testing.T) {
+	t.Run("notes/settings/* file write is routed as a file event, not a settings update", func(t *testing.T) {
+		testDir, _, notesDir, _, _ := setupProjectFolders(t)
+		userSettingsDir := filepath.Join(notesDir, "settings")
+		userNote := filepath.Join(userSettingsDir, "note.md")
+
+		err := os.MkdirAll(userSettingsDir, 0755)
+		assert.NoError(t, err)
+		err = os.WriteFile(userNote, []byte("hello"), 0644)
+		assert.NoError(t, err)
+
+		fw := newTestFileWatcher(t, testDir)
+
+		fw.processEvent(fsnotify.Event{Name: userNote, Op: fsnotify.Write})
+
+		assert.Equal(t, []map[string]string{
+			{"filePath": "settings/note.md", "markdown": "hello"},
+		}, fw.debounceEvents[util.Events.FileWrite])
+	})
+
+	t.Run("notes/search/saved-searches.json is routed as a file event, not a saved-search update", func(t *testing.T) {
+		testDir, _, notesDir, _, _ := setupProjectFolders(t)
+		userSearchDir := filepath.Join(notesDir, "search")
+		collidingFile := filepath.Join(userSearchDir, "saved-searches.json")
+
+		err := os.MkdirAll(userSearchDir, 0755)
+		assert.NoError(t, err)
+		err = os.WriteFile(collidingFile, []byte("{}"), 0644)
+		assert.NoError(t, err)
+
+		fw := newTestFileWatcher(t, testDir)
+
+		fw.processEvent(fsnotify.Event{Name: collidingFile, Op: fsnotify.Write})
+
+		assert.Equal(t, []map[string]string{
+			{"filePath": "search/saved-searches.json"},
+		}, fw.debounceEvents[util.Events.FileWrite])
+	})
+
+	t.Run("chmod inside notes/settings/* is ignored, not treated as settings update", func(t *testing.T) {
+		testDir, _, notesDir, _, _ := setupProjectFolders(t)
+		userSettingsDir := filepath.Join(notesDir, "settings")
+		userNote := filepath.Join(userSettingsDir, "note.md")
+
+		err := os.MkdirAll(userSettingsDir, 0755)
+		assert.NoError(t, err)
+		err = os.WriteFile(userNote, []byte("hello"), 0644)
+		assert.NoError(t, err)
+
+		fw := newTestFileWatcher(t, testDir)
+
+		fw.processEvent(fsnotify.Event{Name: userNote, Op: fsnotify.Chmod})
+
+		assert.Empty(t, fw.debounceEvents)
+	})
+}
+
 func TestCollectWatchableFolderPaths(t *testing.T) {
 	testDir, _, notesDir, _, _ := setupProjectFolders(t)
 	alphaDir := filepath.Join(notesDir, "alpha")

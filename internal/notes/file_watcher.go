@@ -131,8 +131,7 @@ func (fw *FileWatcher) pathFromNotes(path string) string {
 }
 
 // handleFileEvents processes file-related events (create, delete, write)
-func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event) {
-	note := segments[len(segments)-1]
+func (fw *FileWatcher) handleFileEvents(event fsnotify.Event) {
 	filePath := event.Name
 
 	if event.Has(fsnotify.Create) {
@@ -157,7 +156,7 @@ func (fw *FileWatcher) handleFileEvents(segments []string, event fsnotify.Event)
 	}
 
 	if event.Has(fsnotify.Write) {
-		fw.emitFileWriteEvent(filePath, note)
+		fw.emitFileWriteEvent(filePath)
 	}
 
 	fw.handleDebounceReset()
@@ -519,7 +518,7 @@ func (fw *FileWatcher) emitCodeResultsSidecarUpdateEvent(sidecarPath string) {
 	})
 }
 
-func (fw *FileWatcher) emitFileWriteEvent(filePath, note string) {
+func (fw *FileWatcher) emitFileWriteEvent(filePath string) {
 	if !fw.hasFileChanged(filePath) {
 		return
 	}
@@ -528,7 +527,7 @@ func (fw *FileWatcher) emitFileWriteEvent(filePath, note string) {
 		"filePath": fw.pathFromNotes(filePath),
 	}
 
-	if filepath.Ext(note) == ".md" {
+	if filepath.Ext(filePath) == ".md" {
 		content, err := os.ReadFile(filePath)
 		if err == nil {
 			eventData["markdown"] = string(content)
@@ -544,14 +543,8 @@ func (fw *FileWatcher) processEvent(event fsnotify.Event) {
 
 	isDir := fw.isDirectoryEvent(event)
 
-	// Parse path components
-	segments := strings.Split(event.Name, "/")
-	if len(segments) < 3 {
-		return // Skip if path is too short
-	}
-
-	// Skip hidden files unless they are file sidecars handled below.
 	fileName := filepath.Base(event.Name)
+	// Skip hidden files unless they are file sidecars handled below.
 	if shouldIgnoreFile(fileName) {
 		return
 	}
@@ -567,10 +560,16 @@ func (fw *FileWatcher) processEvent(event fsnotify.Event) {
 		return
 	}
 
-	oneFolderBack := segments[len(segments)-2]
+	projectSettingsRoot := filepath.Join(fw.projectPath, "settings")
+	projectSavedSearchesPath := filepath.Join(fw.projectPath, "search", "saved-searches.json")
 
-	// We can ignore chmod events unless it is a settings folder
-	if event.Has(fsnotify.Chmod) && oneFolderBack != "settings" {
+	isProjectSettingsEvent := event.Name == projectSettingsRoot ||
+		strings.HasPrefix(event.Name, projectSettingsRoot+string(os.PathSeparator))
+	isProjectSavedSearchesEvent := event.Name == projectSavedSearchesPath
+
+	// We can ignore chmod events unless they target the project settings folder.
+	// settings.json is written atomically (write temp + rename), which surfaces as Chmod.
+	if event.Has(fsnotify.Chmod) && !isProjectSettingsEvent {
 		return
 	}
 
@@ -579,12 +578,12 @@ func (fw *FileWatcher) processEvent(event fsnotify.Event) {
 		fw.handleFolderEvents(event)
 	} else {
 		// Handle file events
-		if oneFolderBack == "settings" {
+		if isProjectSettingsEvent {
 			fw.handleSettingsUpdate()
-		} else if oneFolderBack == "search" && filepath.Base(event.Name) == "saved-searches.json" {
+		} else if isProjectSavedSearchesEvent {
 			fw.handleSavedSearchUpdate(event)
 		} else {
-			fw.handleFileEvents(segments, event)
+			fw.handleFileEvents(event)
 		}
 	}
 
@@ -647,7 +646,7 @@ func (fw *FileWatcher) resolvePendingRenames(isFolder bool) {
 			// Same-path file rename+create is effectively a replace-in-place save.
 			// Emitting file:write keeps the editor in sync without navigating the UI.
 			fw.renameFileState(pending.event.Name, matched.event.Name)
-			fw.emitFileWriteEvent(matched.event.Name, filepath.Base(matched.event.Name))
+			fw.emitFileWriteEvent(matched.event.Name)
 			continue
 		}
 

@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>bytebook</title>
     <script src="/theme-init.js"></script>
+    <!--
+      @lexical/code (pulled in transitively by @lexical/markdown) executes a
+      top-level IIFE that references the bare global `Prism` at module load.
+      In dev, Vite's ESM transform runs prismjs's side effects so window.Prism
+      gets populated. In prod, rolldown wraps prismjs's CJS body in a lazy
+      initializer that is never invoked (no module uses prismjs's exports),
+      so window.Prism is unset and the IIFE throws ReferenceError. This
+      stub satisfies the IIFE; we don't use Prism tokenization (no calls to
+      registerCodeHighlighting / CodeHighlightNode), so a bare .languages
+      object is enough.
+    -->
+    <script>
+      window.Prism = window.Prism || { languages: {} };
+    </script>
   </head>
   <body class="overscroll-none overflow-hidden">
     <div

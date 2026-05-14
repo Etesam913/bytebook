@@ -15,28 +15,37 @@ import {
 function removeSubtreeFromMaps(
   treeData: Map<string, FileOrFolder>,
   filePathToTreeDataId: Map<string, string>,
-  nodeId: string
+  nodeId: string,
+  removedIds: Set<string>
 ): void {
   const node = treeData.get(nodeId);
   if (!node) return;
 
   if (isTreeNodeAFolder(node)) {
     for (const childId of node.childrenIds) {
-      removeSubtreeFromMaps(treeData, filePathToTreeDataId, childId);
+      removeSubtreeFromMaps(
+        treeData,
+        filePathToTreeDataId,
+        childId,
+        removedIds
+      );
     }
   }
 
   filePathToTreeDataId.delete(node.path);
   treeData.delete(nodeId);
+  removedIds.add(nodeId);
 }
 
 /**
  * Immutably removes a deleted node (and its subtree) from the file tree.
  * Returns updated FileTreeData, or null if the node is already absent.
+ * Every removed id (the node plus all descendants) is added to `removedIds`.
  */
 function removeDeletedNodeFromFileTree(
   prev: FileTreeData,
-  path: string
+  path: string,
+  removedIds: Set<string>
 ): FileTreeData | null {
   const nodeId = prev.filePathToTreeDataId.get(path);
   if (!nodeId) return null;
@@ -54,7 +63,12 @@ function removeDeletedNodeFromFileTree(
   }
 
   // Remove the node and its subtree
-  removeSubtreeFromMaps(newTreeData, newFilePathToTreeDataId, nodeId);
+  removeSubtreeFromMaps(
+    newTreeData,
+    newFilePathToTreeDataId,
+    nodeId,
+    removedIds
+  );
 
   return {
     treeData: newTreeData,
@@ -157,24 +171,31 @@ export function removePathsFromFileTree(
   next: FileTreeData;
   didChange: boolean;
   needsTopLevelInvalidation: boolean;
+  removedIds: Set<string>;
 } {
   let current: FileTreeData = prev;
   let didChange = false;
   let needsTopLevelInvalidation = false;
+  const removedIds = new Set<string>();
 
   for (const path of paths) {
     const segments = path.split('/').filter(Boolean);
     if (segments.length <= 1) {
       needsTopLevelInvalidation = true;
+      // Tree mutation is deferred to top-level reconciliation, but record the
+      // root id so callers can prune stale references (e.g. sidebar selection)
+      // eagerly. Descendants stay in the tree until the refetch lands.
+      const topLevelId = current.filePathToTreeDataId.get(path);
+      if (topLevelId) removedIds.add(topLevelId);
       continue;
     }
 
-    const result = removeDeletedNodeFromFileTree(current, path);
+    const result = removeDeletedNodeFromFileTree(current, path, removedIds);
     if (!result) continue;
 
     current = result;
     didChange = true;
   }
 
-  return { next: current, didChange, needsTopLevelInvalidation };
+  return { next: current, didChange, needsTopLevelInvalidation, removedIds };
 }

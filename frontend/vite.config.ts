@@ -51,8 +51,10 @@ export default defineConfig(({ mode }) => {
         treeshake: {
           // @lexical/code declares sideEffects: true but is only reached
           // transitively via @lexical/markdown's CODE transformer (which
-          // we don't use). Marking it side-effect-free lets the bundler
-          // drop most of it, including the bulk of prismjs.
+          // we don't use). Marking it and prismjs side-effect-free lets
+          // the bundler drop most of it. We provide a tiny window.Prism
+          // stub in index.html so @lexical/code's top-level IIFE doesn't
+          // explode if any of its code survives shaking.
           moduleSideEffects: (id) => {
             if (id.includes('node_modules/@lexical/code/')) return false;
             if (id.includes('node_modules/prismjs')) return false;
@@ -76,9 +78,7 @@ export default defineConfig(({ mode }) => {
               )
             )
               return undefined;
-            if (
-              id.match(/node_modules\/@lezer\/(python|go|java|javascript)\//)
-            )
+            if (id.match(/node_modules\/@lezer\/(python|go|java|javascript)\//))
               return undefined;
             if (id.includes('node_modules/@replit/codemirror-vim/'))
               return undefined;

@@ -96,7 +96,9 @@ function App() {
       <Dialog />
       <LoadingModal />
       <Toaster richColors theme="system" />
-      {!isE2ETestEnvironment() && <VirtualizedFileTreeDebugView />}
+      {import.meta.env.DEV && !isE2ETestEnvironment() && (
+        <VirtualizedFileTreeDebugView />
+      )}
       <Activity mode={isFileMaximized ? 'hidden' : 'visible'}>
         <FileSidebar width={fileSidebarWidth} />
       </Activity>

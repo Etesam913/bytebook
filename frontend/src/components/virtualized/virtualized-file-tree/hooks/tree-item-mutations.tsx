@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { navigate } from 'wouter/use-browser-location';
 import {
   AddFolder,
@@ -22,12 +22,20 @@ import { NAME_CHARS } from '../../../../utils/string-formatting';
 import { FILE_TYPE, FOLDER_TYPE, FileOrFolder, type Folder } from '../types';
 import { MoveItemsToFolder } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 import { getSelectionValue } from '../../../../utils/selection';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtomValue, useSetAtom, useStore } from 'jotai';
 import { fileTreeDataAtom } from '../../../../atoms';
 import { backendQueryAtom, sidebarSelectionAtom } from '../../../../atoms';
 import { QueryError } from '../../../../utils/query';
 import { insertCreatedNodeIntoFileTree } from '../utils/create-node';
-import { getParentNodeFromPath } from '../utils/file-tree-utils';
+import {
+  getParentNodeFromPath,
+  isTreeNodeAFolder,
+} from '../utils/file-tree-utils';
+import {
+  applyParentFolderUpdates,
+  applyPathRemappings,
+  buildRenameUpdates,
+} from '../utils/rename-node';
 
 /**
  * A mutation hook for adding new tree items (folders or notes) to the file tree.
@@ -142,10 +150,18 @@ type RenameFilePayload = {
 
 /**
  * A mutation hook for renaming files or folders in the file tree.
- * Validates the new name, calls the appropriate backend service (folder or file),
- * and displays a success toast on completion.
+ *
+ * Applies the rename to `fileTreeDataAtom` optimistically (reusing the same
+ * path-remap pipeline as the watcher event handler) before issuing the
+ * backend call, and rolls back on error. The `file:rename` / `folder:rename`
+ * event that follows is idempotent — its `buildRenameUpdates` won't find the
+ * old path in the tree and bails out at `pathRemappings.size === 0`.
  */
 export function useRenameTreeItemMutation() {
+  const setFileTreeData = useSetAtom(fileTreeDataAtom);
+  const queryClient = useQueryClient();
+  const store = useStore();
+
   return useMutation({
     mutationFn: async (args: RenameTreeItemPayload) => {
       const trimmedName = args.newName.trim();
@@ -155,32 +171,59 @@ export function useRenameTreeItemMutation() {
         );
       }
 
-      if (args.itemType === 'folder') {
-        const newFolderPath = replaceLastPathSegment(
-          args.folderPath,
-          trimmedName
-        );
-        const res = await RenameFolder(args.folderPath, newFolderPath);
-        if (!res.success) {
-          throw new Error(res.message);
-        }
-        return { itemType: 'folder' as const };
+      const oldPath =
+        args.itemType === 'folder' ? args.folderPath : args.filePath.fullPath;
+      const newLastSegment =
+        args.itemType === 'folder'
+          ? trimmedName
+          : `${trimmedName}.${args.filePath.extension}`;
+      const newPath = replaceLastPathSegment(oldPath, newLastSegment);
+
+      // Snapshot for rollback, then apply the optimistic tree update
+      // synchronously before awaiting the backend.
+      const previousFileTreeData = store.get(fileTreeDataAtom);
+      let needsTopLevelInvalidation = false;
+
+      setFileTreeData((prev) => {
+        const renameUpdates = buildRenameUpdates({
+          entries: [{ oldPath, newPath }],
+          fileTreeData: prev,
+          isValidNode:
+            args.itemType === 'folder'
+              ? (node) => isTreeNodeAFolder(node)
+              : undefined,
+        });
+        needsTopLevelInvalidation = renameUpdates.needsTopLevelInvalidation;
+        if (renameUpdates.pathRemappings.size === 0) return prev;
+
+        const remapped = applyPathRemappings({
+          fileTreeData: prev,
+          pathRemappings: renameUpdates.pathRemappings,
+          nodeUpdates: renameUpdates.nodeUpdates,
+          mode: args.itemType,
+        });
+        return applyParentFolderUpdates({
+          treeData: remapped.treeData,
+          filePathToTreeDataId: remapped.filePathToTreeDataId,
+          parentFolderUpdates: renameUpdates.parentFolderUpdates,
+        });
+      });
+
+      if (needsTopLevelInvalidation) {
+        void queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
       }
 
-      // Renaming a file
-      const newFilePathString = `${args.filePath.folder}/${trimmedName}.${args.filePath.extension}`;
-      const newFilePath = createFilePath(newFilePathString);
-      if (!newFilePath) {
-        throw new Error('Invalid file path');
+      try {
+        const res =
+          args.itemType === 'folder'
+            ? await RenameFolder(oldPath, newPath)
+            : await RenameFile(oldPath, newPath);
+        if (!res.success) throw new Error(res.message);
+        return { itemType: args.itemType };
+      } catch (err) {
+        setFileTreeData(previousFileTreeData);
+        throw err;
       }
-      const res = await RenameFile(
-        args.filePath.fullPath,
-        newFilePath.fullPath
-      );
-      if (!res.success) {
-        throw new Error(res.message);
-      }
-      return { itemType: 'file' as const };
     },
     onSuccess: (_, variables) => {
       variables.onSuccess?.();

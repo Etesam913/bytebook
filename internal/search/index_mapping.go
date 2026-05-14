@@ -97,14 +97,15 @@ func CreateMarkdownNoteBleveDocument(markdown, folder, fileName string) Markdown
 	createdDate, _ := notes.GetCreatedDateFromFrontmatter(markdown)
 	tags, _ := notes.GetTagsFromFrontmatter(markdown)
 	links := notes.GetInternalLinksFromBody(markdown)
+	textContent := notes.GetTextContent(markdown)
 	return MarkdownNoteBleveDocument{
 		Type:                  MARKDOWN_NOTE_TYPE,
 		Folder:                folder,
 		FileName:              fileName,
 		FileNameLC:            strings.ToLower(fileName),
 		FileExtension:         ".md",
-		TextContent:           notes.GetTextContent(markdown),
-		TextContentNgram:      notes.GetTextContent(markdown),
+		TextContent:           textContent,
+		TextContentNgram:      textContent,
 		CodeContent:           notes.GetCodeContent(markdown),
 		GoCodeContent:         notes.GetGoCodeContent(markdown),
 		JavaCodeContent:       notes.GetJavaCodeContent(markdown),
@@ -165,10 +166,9 @@ func doesIndexExist(projectPath string) bool {
 	return exists
 }
 
-// createIndex creates a new Bleve search index at the specified project path.
+// createIndex creates a new Bleve search index at the given on-disk path.
 // It returns the created index or an error if the creation fails.
-func createIndex(projectPath string) (bleve.Index, error) {
-	pathToIndex := GetPathToIndex(projectPath)
+func createIndex(pathToIndex string) (bleve.Index, error) {
 	indexMapping := bleve.NewIndexMapping()
 	err := indexMapping.AddCustomTokenFilter(
 		NGramTokenFilter,
@@ -239,7 +239,7 @@ func OpenOrCreateIndex(projectPath string) (bleve.Index, error) {
 		return openedIndex, nil
 	}
 
-	index, err := createIndex(projectPath)
+	index, err := createIndex(GetPathToIndex(projectPath))
 	if err != nil {
 		return nil, err
 	}
@@ -481,45 +481,58 @@ func IndexFilesInFolderWithBatch(
 	return nil
 }
 
-// RegenerateSearchIndex regenerates the search index by closing the existing index,
-// deleting it, creating a new index, and re-indexing all files.
-// It returns the new index and any error encountered during the process.
+// RegenerateSearchIndex builds a fresh search index without disturbing the
+// existing one until the new one is fully populated. The new index is created
+// at a sibling temp path and re-indexed; only after that succeeds does this
+// function close the old index, remove its data on disk, and rename the temp
+// directory into place. On any failure during build/reindex the old index is
+// left untouched so the IndexHolder's existing handle remains usable.
 func RegenerateSearchIndex(projectPath string, index bleve.Index) (bleve.Index, error) {
-	// Close the existing index if it's open
-	if index != nil {
-		err := index.Close()
-		if err != nil {
-			log.Printf("Error closing existing index: %v", err)
-			// Continue with regeneration even if close fails
-		}
-	}
+	finalPath := GetPathToIndex(projectPath)
+	tempPath := finalPath + ".regen"
 
-	// Delete the existing index directory
-	pathToIndex := GetPathToIndex(projectPath)
-	indexExists, err := util.FileOrFolderExists(pathToIndex)
-	if err != nil {
-		return nil, err
-	}
-	if indexExists {
-		err := os.RemoveAll(pathToIndex)
-		if err != nil {
+	// Clean up any leftover temp directory from a previous failed run.
+	if exists, _ := util.FileOrFolderExists(tempPath); exists {
+		if err := os.RemoveAll(tempPath); err != nil {
 			return nil, err
 		}
 	}
 
-	// Create a new index
-	newIndex, err := createIndex(projectPath)
+	newIndex, err := createIndex(tempPath)
 	if err != nil {
 		return nil, err
 	}
 
-	// Re-index all files
-	err = IndexAllFiles(projectPath, newIndex)
-	if err != nil {
-		// Close the new index if re-indexing fails
+	if err := IndexAllFiles(projectPath, newIndex); err != nil {
 		newIndex.Close()
+		os.RemoveAll(tempPath)
 		return nil, err
 	}
 
-	return newIndex, nil
+	// New index is fully populated. Close it so we can move its directory.
+	if err := newIndex.Close(); err != nil {
+		os.RemoveAll(tempPath)
+		return nil, err
+	}
+
+	// Commit the swap on disk: close the old index, remove its data, and
+	// rename the temp directory into the final location.
+	if index != nil {
+		if err := index.Close(); err != nil {
+			log.Printf("Error closing existing index: %v", err)
+		}
+	}
+
+	if exists, _ := util.FileOrFolderExists(finalPath); exists {
+		if err := os.RemoveAll(finalPath); err != nil {
+			os.RemoveAll(tempPath)
+			return nil, err
+		}
+	}
+
+	if err := os.Rename(tempPath, finalPath); err != nil {
+		return nil, err
+	}
+
+	return bleve.Open(finalPath)
 }

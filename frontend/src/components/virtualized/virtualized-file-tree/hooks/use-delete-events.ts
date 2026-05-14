@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useAtom } from 'jotai';
+import { useAtom, useSetAtom } from 'jotai';
 import { navigate } from 'wouter/use-browser-location';
-import { fileTreeDataAtom } from '../../../../atoms';
+import { fileTreeDataAtom, sidebarSelectionAtom } from '../../../../atoms';
 import { WailsEvent, useWailsEvent } from '../../../../hooks/events';
 import {
   useFilePathFromRoute,
@@ -9,6 +9,7 @@ import {
 } from '../../../../hooks/routes';
 import { FILE_DELETE, FOLDER_DELETE } from '../../../../utils/events';
 import { logger } from '../../../../utils/logging';
+import { getSelectionValue } from '../../../../utils/selection';
 import {
   getNavigationTargetForDeletedPaths,
   removePathsFromFileTree,
@@ -23,6 +24,7 @@ import {
 export function useDeleteEvents() {
   const queryClient = useQueryClient();
   const [fileTreeData, setFileTreeData] = useAtom(fileTreeDataAtom);
+  const setSidebarSelection = useSetAtom(sidebarSelectionAtom);
   const currentRouteFilePath = useFilePathFromRoute();
   const currentRouteFolderPath = useFolderPathFromRoute();
   const currentRoutePath =
@@ -45,12 +47,41 @@ export function useDeleteEvents() {
     }
 
     let needsTopLevelInvalidation = false;
+    let removedIds: Set<string> = new Set();
     setFileTreeData((prev) => {
       const result = removePathsFromFileTree(prev, paths);
       needsTopLevelInvalidation = result.needsTopLevelInvalidation;
+      removedIds = result.removedIds;
       if (!result.didChange) return prev;
       return result.next;
     });
+
+    if (removedIds.size > 0) {
+      setSidebarSelection((prev) => {
+        let changed = false;
+        const nextSelections = new Set<string>();
+        for (const key of prev.selections) {
+          const id = getSelectionValue(key);
+          if (id && removedIds.has(id)) {
+            changed = true;
+            continue;
+          }
+          nextSelections.add(key);
+        }
+
+        let nextAnchor = prev.anchorSelection;
+        if (nextAnchor) {
+          const anchorId = getSelectionValue(nextAnchor);
+          if (anchorId && removedIds.has(anchorId)) {
+            nextAnchor = null;
+            changed = true;
+          }
+        }
+
+        if (!changed) return prev;
+        return { selections: nextSelections, anchorSelection: nextAnchor };
+      });
+    }
 
     if (needsTopLevelInvalidation) {
       void queryClient.invalidateQueries({ queryKey: ['top-level-files'] });

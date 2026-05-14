@@ -87,9 +87,11 @@ func (s *SearchService) FullTextSearch(searchQuery string, searchAfter []string,
 	totalQuery, sortOption := search.BuildBooleanQueryFromUserInput(searchQuery, 1)
 	request := search.CreateSearchRequest(totalQuery, effectivePageSize+1, sortOption, searchAfter)
 
-	idx := s.Index.RLock()
-	defer s.Index.RUnlock()
-	res, err := idx.Search(request)
+	res, err := func() (*bleve.SearchResult, error) {
+		idx := s.Index.RLock()
+		defer s.Index.RUnlock()
+		return idx.Search(request)
+	}()
 	if err != nil {
 		log.Println("full text search failed:", err)
 		return search.FullTextSearchPage{
@@ -146,10 +148,10 @@ func (s *SearchService) SearchFileNamesFromQuery(searchQuery string) []FilePicke
 		}
 
 		key := docType + ":" + folder + "/" + fileName
-		if exists := seen.Has(key); exists {
+		if seen.Has(key) {
 			continue
 		}
-		seen[key] = struct{}{}
+		seen.Add(key)
 
 		searchResults = append(searchResults, FilePickerSearchResult{
 			Type:   docType,
@@ -224,9 +226,11 @@ func (s *SearchService) GetLinkedMentions(pathToNote string, pageSize int) confi
 		}
 	}
 
-	idx := s.Index.RLock()
-	hits := events.FindNotesWithLink(idx, urlPath, pageSize)
-	s.Index.RUnlock()
+	hits := func() []string {
+		idx := s.Index.RLock()
+		defer s.Index.RUnlock()
+		return events.FindNotesWithLink(idx, urlPath, pageSize)
+	}()
 
 	mentions := make([]LinkedMention, 0, len(hits))
 	for _, hit := range hits {

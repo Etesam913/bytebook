@@ -77,6 +77,10 @@ func CreateFilenameQuery(prefixTerm string, boost float64) query.Query {
 		folderPart := normalized[:idx]
 		filePart := normalized[idx+1:]
 
+		if folderPart == "" && filePart == "" {
+			return bleve.NewMatchNoneQuery()
+		}
+
 		conjunction := bleve.NewConjunctionQuery()
 		if folderPart != "" {
 			conjunction.AddQuery(fieldMatch(FieldFolder, folderPart))
