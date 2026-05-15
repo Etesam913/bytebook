@@ -191,7 +191,7 @@ export function NonMarkdownToolbar({
               aria-label="Note settings menu"
               className={({ isHovered, isPressed }) =>
                 cn(
-                  'bg-transparent border-0 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md h-auto p-1.5 disabled:opacity-30 will-change-transform outline-hidden transition-transform',
+                  'bg-transparent border-0 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 aria-expanded:bg-zinc-100 dark:aria-expanded:bg-zinc-700 rounded-md h-auto p-1.5 disabled:opacity-30 will-change-transform outline-hidden transition-transform',
                   !isFullscreen && 'rounded-tr-2xl',
                   isHovered && 'scale-105',
                   isPressed && 'scale-[0.975]'

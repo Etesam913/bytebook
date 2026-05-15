@@ -626,5 +626,5 @@ div[data-is-fullscreen='true'] .cm-scroller {
   @apply pointer-events-none opacity-0;
 }
 .table-cell-action-button {
-  @apply flex justify-center items-center border-0 absolute top-1 right-1 rounded-full text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700;
+  @apply flex justify-center items-center border-0 absolute top-1 right-1 rounded-full text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 aria-expanded:bg-zinc-100 dark:aria-expanded:bg-zinc-700;
 }

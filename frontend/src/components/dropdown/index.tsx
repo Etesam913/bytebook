@@ -73,7 +73,7 @@ export function Dropdown({
     >
       <Button
         className={cn(
-          'relative w-fit text-sm flex items-center rounded-md gap-1.5 border-[1.25px] border-zinc-300 bg-zinc-50 px-2 py-0.5 text-left dark:border-zinc-600 dark:bg-zinc-700 whitespace-nowrap outline-hidden',
+          'relative w-fit text-sm flex items-center rounded-md gap-1.5 border-[1.25px] border-zinc-300 bg-zinc-50 px-2 py-0.5 text-left dark:border-zinc-600 dark:bg-zinc-700 aria-expanded:bg-zinc-100 dark:aria-expanded:bg-zinc-600 whitespace-nowrap outline-hidden',
           buttonClassName,
           className,
           disabled && 'pointer-events-none opacity-50'

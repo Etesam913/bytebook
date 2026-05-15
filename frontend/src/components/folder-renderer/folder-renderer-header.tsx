@@ -145,7 +145,7 @@ export function FolderRendererHeader({
                   aria-label="Folder settings menu"
                   className={({ isHovered, isPressed }) =>
                     cn(
-                      'bg-transparent border-0 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md h-auto p-1.5 disabled:opacity-30 will-change-transform outline-hidden transition-transform mt-1 shrink-0 rounded-tr-2xl',
+                      'bg-transparent border-0 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 aria-expanded:bg-zinc-100 dark:aria-expanded:bg-zinc-700 rounded-md h-auto p-1.5 disabled:opacity-30 will-change-transform outline-hidden transition-transform mt-1 shrink-0',
                       isHovered && 'scale-105',
                       isPressed && 'scale-[0.975]'
                     )
@@ -154,7 +154,7 @@ export function FolderRendererHeader({
                   <HorizontalDots />
                 </Button>
               </Tooltip>
-              <AppMenuPopover className="w-52">
+              <AppMenuPopover className="w-52" placement="bottom end">
                 <AppMenu onAction={handleAction}>
                   {items.map((item) => (
                     <AppMenuItem key={item.id} id={item.id}>

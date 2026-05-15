@@ -139,7 +139,7 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
     <AppMenuTrigger>
       <Button
         aria-label={`${language} kernel options`}
-        className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600 whitespace-nowrap outline-hidden"
+        className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-700 aria-expanded:bg-zinc-200 dark:aria-expanded:bg-zinc-600 px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600 whitespace-nowrap outline-hidden"
       >
         {({ isPressed }) => (
           <>

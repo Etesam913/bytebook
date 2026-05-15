@@ -151,7 +151,7 @@ export function CodeActions({
       className={cn(
         'absolute flex gap-1 z-10 p-1 border border-zinc-200 dark:border-zinc-600 rounded-md shadow-lg bg-white dark:bg-zinc-750',
         isExpanded ? 'top-2 right-2' : '-top-5 right-1.5',
-        'group-hover:opacity-100 focus-within:opacity-100 has-[[aria-expanded=true]]:opacity-100 transition-opacity',
+        'group-hover:opacity-100 focus-within:opacity-100 has-aria-expanded:opacity-100 transition-opacity',
         isSelected ? 'opacity-100' : 'opacity-0'
       )}
     >
@@ -188,7 +188,7 @@ export function CodeActions({
             aria-label="More actions"
             className={({ isHovered, isPressed }) =>
               cn(
-                'bg-transparent border-0 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md h-auto p-1.5 disabled:opacity-30 will-change-transform outline-hidden transition-transform',
+                'bg-transparent border-0 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 aria-expanded:bg-zinc-100 dark:aria-expanded:bg-zinc-700 rounded-md h-auto p-1.5 disabled:opacity-30 will-change-transform outline-hidden transition-transform',
                 isHovered && 'scale-105',
                 isPressed && 'scale-[0.975]'
               )
