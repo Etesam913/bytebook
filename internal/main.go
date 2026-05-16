@@ -11,6 +11,7 @@ import (
 	"github.com/etesam913/bytebook/internal/events"
 	"github.com/etesam913/bytebook/internal/ingest"
 	"github.com/etesam913/bytebook/internal/kernel_manager"
+	"github.com/etesam913/bytebook/internal/lsp"
 	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/services"
@@ -24,6 +25,8 @@ import (
 
 // main function serves as the application's entry point.
 func main() {
+	appLogger := newAppLogger()
+
 	projectPath, err := config.GetProjectPath()
 	if err != nil {
 		log.Fatal(err.Error())
@@ -53,6 +56,9 @@ func main() {
 	kernelManager := kernel_manager.New(projectPath, projectFiles.AllKernels)
 	defer kernelManager.ShutdownAll()
 
+	lspManager := lsp.New(appLogger.With("component", "lsp"))
+	defer lspManager.ShutdownAll()
+
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal("failed to setup file watcher " + err.Error())
@@ -62,11 +68,6 @@ func main() {
 	watchRegistry := notes.NewDirectoryWatchRegistry()
 	importCoordinator := ingest.NewBulkImportCoordinator(projectPath, indexHolder, watcher, watchRegistry)
 	defer importCoordinator.Shutdown()
-
-	logLevel := slog.LevelError
-	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: logLevel,
-	})
 
 	app := application.New(application.Options{
 		Name:        "bytebook",
@@ -83,6 +84,10 @@ func main() {
 				ProjectPath: projectPath,
 				Manager:     kernelManager,
 			}),
+			application.NewService(&services.LSPService{
+				ProjectPath: projectPath,
+				Manager:     lspManager,
+			}),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(bytebook.Frontend),
@@ -94,7 +99,7 @@ func main() {
 		Mac: application.MacOptions{
 			ApplicationShouldTerminateAfterLastWindowClosed: true,
 		},
-		Logger: slog.New(handler),
+		Logger: appLogger,
 	})
 
 	backgroundColor := application.NewRGB(27, 38, 54)
@@ -126,4 +131,17 @@ func main() {
 	if err := app.Run(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func newAppLogger() *slog.Logger {
+	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelError,
+	})
+	logger := slog.New(handler)
+
+	slog.SetDefault(logger)
+	log.SetFlags(0)
+	log.SetOutput(slog.NewLogLogger(handler, slog.LevelError).Writer())
+
+	return logger
 }
