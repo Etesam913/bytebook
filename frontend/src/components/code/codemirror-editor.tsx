@@ -12,6 +12,7 @@ import {
 } from '../../hooks/code';
 import { useDecodedNotesWildcardPath } from '../../hooks/routes';
 import { useInspectTooltip } from '../../hooks/code-codemirror';
+import { useCompletionExtension } from '../../hooks/code-completion';
 import { getCodemirrorKeymap } from '../../utils/codemirror';
 import { focusEditor } from '.';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
@@ -28,6 +29,10 @@ import { useEffect, useRef, useState, type WheelEvent } from 'react';
 import { languageDisplayConfig } from './language-config';
 import type { BasicSetupOptions } from '@uiw/react-codemirror';
 import {
+  NotifyBlockEdit,
+  NotifyBlockRemoved,
+} from '../../../bindings/github.com/etesam913/bytebook/internal/services/lspservice';
+import {
   getLoadedLanguageExtension,
   loadLanguageExtension,
 } from './language-extensions';
@@ -35,8 +40,8 @@ import {
 const codeBlockBasicSetup: BasicSetupOptions = {
   lineNumbers: false,
   foldGutter: false,
-  autocompletion: false,
-  completionKeymap: false,
+  autocompletion: true,
+  completionKeymap: true,
 };
 
 const languageBasicSetup: Record<Languages, BasicSetupOptions> = {
@@ -73,7 +78,7 @@ export function CodeMirrorEditor({
   execution: CodeBlockExecutionProps;
   shell: CodeBlockShellProps;
 }) {
-  const { id, nodeKey, language } = identity;
+  const { id, nodeKey, language, blockOrder } = identity;
   const { code, setCode } = editorDocument;
   const { status, setStatus, executionId, kernelInstanceId } = execution;
   const {
@@ -106,12 +111,23 @@ export function CodeMirrorEditor({
     executionId,
     pendingInspections,
   });
+  const completionExtension = useCompletionExtension({
+    language,
+    noteId,
+    blockId: id,
+    blockOrder,
+    kernelInstanceId,
+    executionId,
+  });
 
   const debouncedSetCode = debounce(setCode, 300);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const [, setSelected, clearSelection] = useLexicalNodeSelection(nodeKey);
   const isInNodeSelection = useNodeInNodeSelection(lexicalEditor, nodeKey);
   const internalCodeMirrorRef = useRef<ReactCodeMirrorRef | null>(null);
+  const lspNotifyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
 
   const [loadedLanguage, setLoadedLanguage] = useState<{
     language: Languages;
@@ -159,11 +175,39 @@ export function CodeMirrorEditor({
     }
   }
 
+  function scheduleLSPNotifyBlockEdit(newSource: string) {
+    if (lspNotifyTimeoutRef.current) {
+      clearTimeout(lspNotifyTimeoutRef.current);
+    }
+
+    if (language !== 'python' || !noteId) return;
+
+    lspNotifyTimeoutRef.current = setTimeout(() => {
+      void NotifyBlockEdit(noteId, id, blockOrder, newSource).catch(
+        () => undefined
+      );
+    }, 100);
+  }
+
   useEffect(() => {
     if (codeMirrorInstance?.view && isInNodeSelection) {
       codeMirrorInstance.view.focus();
     }
   }, [codeMirrorInstance, isInNodeSelection]);
+
+  useEffect(() => {
+    scheduleLSPNotifyBlockEdit(code);
+  }, [code, language, noteId, id, blockOrder]);
+
+  useEffect(() => {
+    return () => {
+      if (lspNotifyTimeoutRef.current) {
+        clearTimeout(lspNotifyTimeoutRef.current);
+      }
+      if (language !== 'python' || !noteId) return;
+      void NotifyBlockRemoved(noteId, id).catch(() => undefined);
+    };
+  }, [language, noteId, id]);
 
   /**
    * Previously, the codemirror scroller would be inconsistent and get stuck
@@ -221,6 +265,7 @@ export function CodeMirrorEditor({
         value={code}
         onChange={(newCode) => {
           debouncedSetCode(newCode);
+          scheduleLSPNotifyBlockEdit(newCode);
         }}
         className={cn(
           'cm-background',
@@ -241,6 +286,7 @@ export function CodeMirrorEditor({
           ...(loadedLanguage && loadedLanguage.language === language
             ? [loadedLanguage.extension]
             : []),
+          completionExtension,
           inspectTooltip,
         ]}
         theme={isDarkModeOn ? vscodeDark : vscodeLight}

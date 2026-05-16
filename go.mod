@@ -51,10 +51,10 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	go.etcd.io/bbolt v1.4.3 // indirect
-	go.lsp.dev/jsonrpc2 v0.10.0 // indirect
+	go.lsp.dev/jsonrpc2 v0.10.0
 	go.lsp.dev/pkg v0.0.0-20210717090340-384b27a52fb2 // indirect
-	go.lsp.dev/protocol v0.12.0 // indirect
-	go.lsp.dev/uri v0.3.0 // indirect
+	go.lsp.dev/protocol v0.12.0
+	go.lsp.dev/uri v0.3.0
 	go.uber.org/multierr v1.10.0 // indirect
 	go.uber.org/zap v1.28.0
 	google.golang.org/protobuf v1.36.10 // indirect

@@ -9,6 +9,7 @@ export type CodeBlockIdentityProps = {
   id: string;
   nodeKey: string;
   language: Languages;
+  blockOrder: number;
 };
 
 export type CodeBlockDocumentProps = {

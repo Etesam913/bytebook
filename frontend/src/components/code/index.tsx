@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import type { CodeMirrorRef } from './types';
 import { EditorSelection } from '@codemirror/state';
+import { $getRoot, $isElementNode, type LexicalNode } from 'lexical';
 import { Loader } from '../../icons/loader';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
@@ -35,6 +36,28 @@ type CodeMirrorViewState = {
   scrollLeft: number;
   shouldFocus: boolean;
 };
+
+function findCodeBlockOrder(nodeKey: string): number {
+  let order = 0;
+  let foundOrder = 0;
+
+  function visit(node: LexicalNode): boolean {
+    if (node.getType() === 'code') {
+      if (node.getKey() === nodeKey) {
+        foundOrder = order;
+        return true;
+      }
+      order += 1;
+      return false;
+    }
+
+    if (!$isElementNode(node)) return false;
+    return node.getChildren().some(visit);
+  }
+
+  visit($getRoot());
+  return foundOrder;
+}
 
 export function Code({
   id,
@@ -81,6 +104,7 @@ export function Code({
   const [lexicalEditor] = useLexicalComposerContext();
   const [isSelected] = useLexicalNodeSelection(nodeKey);
   const isInNodeSelection = useNodeInNodeSelection(lexicalEditor, nodeKey);
+  const [blockOrder, setBlockOrder] = useState(0);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const pendingCodeMirrorViewStateRef = useRef<CodeMirrorViewState | null>(
     null
@@ -140,6 +164,20 @@ export function Code({
   }
 
   useEffect(() => {
+    const updateBlockOrder = () => {
+      lexicalEditor.getEditorState().read(() => {
+        const nextOrder = findCodeBlockOrder(nodeKey);
+        setBlockOrder((currentOrder) =>
+          currentOrder === nextOrder ? currentOrder : nextOrder
+        );
+      });
+    };
+
+    updateBlockOrder();
+    return lexicalEditor.registerUpdateListener(updateBlockOrder);
+  }, [lexicalEditor, nodeKey]);
+
+  useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
 
@@ -165,7 +203,7 @@ export function Code({
     isCreatedNow,
   };
 
-  const identityProps = { id, nodeKey, language };
+  const identityProps = { id, nodeKey, language, blockOrder };
   const editorDocumentProps = { code, setCode };
   const executionProps = {
     status,
