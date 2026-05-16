@@ -1,6 +1,5 @@
-import type { Key } from 'react-aria-components';
-import { Button } from 'react-aria-components';
-import { UNSAFE_PortalProvider } from '@react-aria/overlays';
+import type { Key } from 'react-aria-components/Breadcrumbs';
+import { Button } from 'react-aria-components/Button';
 import { MotionIconButton } from '../buttons';
 import { Duplicate2 } from '../../icons/duplicate-2';
 import { Maximize } from '../../icons/maximize';
@@ -22,6 +21,7 @@ import { navigate } from 'wouter/use-browser-location';
 import { Trash } from '../../icons/trash';
 import { removeDecoratorNode } from '../../utils/commands';
 import { cn } from '../../utils/string-formatting';
+import { UNSAFE_PortalProvider } from 'react-aria/PortalProvider';
 
 export function CodeActions({
   identity,

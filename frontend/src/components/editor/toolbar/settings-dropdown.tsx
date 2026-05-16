@@ -1,7 +1,7 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useAtomValue, useSetAtom } from 'jotai';
-import type { Key } from 'react-aria-components';
-import { Button } from 'react-aria-components';
+import type { Key } from 'react-aria-components/Breadcrumbs';
+import { Button } from 'react-aria-components/Button';
 import { useRoute } from 'wouter';
 import { navigate } from 'wouter/use-browser-location';
 import {

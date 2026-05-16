@@ -42,8 +42,8 @@ import {
 } from 'lexical';
 import { ReactPortal, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { Key } from 'react-aria-components';
-import { Button } from 'react-aria-components';
+import type { Key } from 'react-aria-components/Breadcrumbs';
+import { Button } from 'react-aria-components/Button';
 import { ChevronDown } from '../../../../icons/chevron-down';
 import { TableColNewLeft2 } from '../../../../icons/table-col-new-left-2';
 import { TableColNewRight2 } from '../../../../icons/table-col-new-right-2';

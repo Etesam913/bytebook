@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TextField, Input } from 'react-aria-components';
+import { TextField, Input } from 'react-aria-components/TextField';
 import { ArrowRotateAnticlockwise } from '../../../icons/arrow-rotate-anticlockwise';
 import { MotionIconButton } from '../../buttons';
 import { SettingsRow } from '../settings-row';

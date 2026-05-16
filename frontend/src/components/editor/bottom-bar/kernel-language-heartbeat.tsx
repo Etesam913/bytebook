@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
-import type { Key } from 'react-aria-components';
-import { Button } from 'react-aria-components';
+import type { Key } from 'react-aria-components/Breadcrumbs';
+import { Button } from 'react-aria-components/Button';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { dialogDataAtom, projectSettingsAtom } from '../../../atoms';
 import { kernelInstanceForNoteAtomFamily } from '../../../atoms';

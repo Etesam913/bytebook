@@ -70,7 +70,6 @@ export function NoteComponentControls({
           <Trash className="will-change-transform" />
         </motion.button>
       )}
-
       {buttonOptions?.fullscreen?.enabled && (
         <motion.button
           {...getDefaultButtonVariants({

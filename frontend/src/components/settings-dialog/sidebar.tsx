@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Tab, TabList } from 'react-aria-components';
+import { Tab, TabList } from 'react-aria-components/Tabs';
 import type { SettingsTab } from '.';
 import { ColorPalette2 } from '../../icons/color-palette-2';
 import { cn } from '../../utils/string-formatting';

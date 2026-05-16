@@ -1,12 +1,12 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { useContext, type JSX, type ReactNode } from 'react';
+import { Button } from 'react-aria-components/Button';
 import {
-  Button,
   Disclosure,
   DisclosurePanel,
   DisclosureStateContext,
   Heading,
-} from 'react-aria-components';
+} from 'react-aria-components/Disclosure';
 import { ChevronDown } from '../../icons/chevron-down';
 import { cn } from '../../utils/string-formatting';
 

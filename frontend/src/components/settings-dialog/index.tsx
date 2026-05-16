@@ -1,4 +1,4 @@
-import { Tabs, TabPanel } from 'react-aria-components';
+import { Tabs, TabPanel } from 'react-aria-components/Tabs';
 import { SettingsSidebar } from './sidebar';
 import { MotionButton } from '../buttons';
 import { XMark } from '../../icons/circle-xmark';

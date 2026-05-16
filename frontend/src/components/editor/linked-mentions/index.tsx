@@ -1,10 +1,10 @@
 import { useState } from 'react';
+import { Button } from 'react-aria-components/Button';
 import {
-  Button,
   Disclosure,
   DisclosurePanel,
   Heading,
-} from 'react-aria-components';
+} from 'react-aria-components/Disclosure';
 import { Virtuoso } from 'react-virtuoso';
 import { Link } from 'wouter';
 import { ChevronDown } from '../../../icons/chevron-down';

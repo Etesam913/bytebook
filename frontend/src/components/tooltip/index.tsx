@@ -1,12 +1,12 @@
 import type { ReactElement, ReactNode, RefObject } from 'react';
-import { UNSAFE_PortalProvider } from '@react-aria/overlays';
+import { Focusable } from 'react-aria-components/Focusable';
 import {
-  Focusable,
   OverlayArrow,
   Tooltip as RACTooltip,
   TooltipTrigger,
-} from 'react-aria-components';
+} from 'react-aria-components/Tooltip';
 import { cn } from '../../utils/string-formatting';
+import { UNSAFE_PortalProvider } from 'react-aria/PortalProvider';
 
 type Placement = 'top' | 'bottom' | 'left' | 'right';
 
@@ -48,8 +48,11 @@ export function Tooltip({
         placement={placement}
         offset={8}
         className={(renderProps) => {
-          const { isEntering, isExiting, placement: actualPlacement } =
-            renderProps;
+          const {
+            isEntering,
+            isExiting,
+            placement: actualPlacement,
+          } = renderProps;
           return cn(
             'group rounded-md px-2 py-1.5 text-sm shadow-md border bg-zinc-50 dark:bg-zinc-750 border-zinc-300 dark:border-zinc-600 whitespace-pre-wrap break-words max-w-xs z-1000 outline-none will-change-transform transition',
             isEntering && 'duration-150 ease-out',

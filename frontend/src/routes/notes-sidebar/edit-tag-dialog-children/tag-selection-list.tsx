@@ -1,9 +1,10 @@
-import { ListBox, ListBoxItem } from 'react-aria-components';
+import { ListBox, ListBoxItem } from 'react-aria-components/ListBox';
 import { AppIconButton } from '../../../components/buttons';
 import { AppCheckbox } from '../../../components/checkbox';
 import { cn } from '../../../utils/string-formatting';
 import { TagPlus } from '../../../icons/tag-plus';
-import type { Key, Selection } from 'react-aria-components';
+import type { Key } from 'react-aria-components/Breadcrumbs';
+import type { Selection } from 'react-aria-components/GridList';
 
 /**
  * Scrollable multi-select list of tags shown in the Edit Tags dialog. A tag

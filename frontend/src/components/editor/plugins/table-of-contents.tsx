@@ -3,6 +3,7 @@ import {
   TableOfContentsPlugin as LexicalTableOfContentsPlugin,
   type TableOfContentsEntry,
 } from '@lexical/react/LexicalTableOfContentsPlugin';
+import { ListBox, ListBoxItem } from 'react-aria-components/ListBox';
 import { cn } from '../../../utils/string-formatting';
 
 function getPadding(level: string) {
@@ -31,35 +32,40 @@ function TableOfContentsElement({
 }) {
   const [editor] = useLexicalComposerContext();
 
-  const contentElements = content.map(([key, title, tag]) => {
-    const level = tag[tag.length - 1];
-    return (
-      <li className={cn(getPadding(level), 'toc-list-item flex')} key={key}>
-        <button
-          type="button"
-          className="app-link text-left"
-          onClick={() => {
-            editor.read(() => {
-              const element = editor.getElementByKey(key);
-              if (element) {
-                element.scrollIntoView({
-                  behavior: 'smooth',
-                });
-              }
-            });
-          }}
-        >
-          {title}
-        </button>
-      </li>
-    );
-  });
-
   return (
     <section className="border border-zinc-200 dark:border-zinc-600 rounded-md px-3 pb-2 pt-1 mb-3 text-base/10">
       <h3>Table of Contents</h3>
-      {contentElements.length > 0 ? (
-        <ul>{contentElements}</ul>
+      {content.length > 0 ? (
+        <ListBox
+          aria-label="Table of contents"
+          selectionMode="none"
+          onAction={(key) => {
+            editor.read(() => {
+              const element = editor.getElementByKey(String(key));
+              if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+              }
+            });
+          }}
+          className="outline-none"
+        >
+          {content.map(([key, title, tag]) => {
+            const level = tag[tag.length - 1];
+            return (
+              <ListBoxItem
+                id={key}
+                key={key}
+                textValue={title}
+                className={cn(
+                  getPadding(level),
+                  'toc-list-item flex app-link text-left outline-none rounded-sm data-[focus-visible]:ring-2 data-[focus-visible]:ring-(--accent-color) cursor-pointer'
+                )}
+              >
+                {title}
+              </ListBoxItem>
+            );
+          })}
+        </ListBox>
       ) : (
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
           No headings found. Add headings to your document to generate a table

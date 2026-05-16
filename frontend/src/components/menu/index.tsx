@@ -9,7 +9,7 @@ import {
   type MenuTriggerProps,
   Popover,
   type PopoverProps,
-} from 'react-aria-components';
+} from 'react-aria-components/Menu';
 import { cn } from '../../utils/string-formatting';
 
 const SPRING_TRANSITION = {

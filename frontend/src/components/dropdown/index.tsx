@@ -1,13 +1,9 @@
 import { motion } from 'motion/react';
 import { useState, type ReactNode } from 'react';
-import {
-  Button,
-  ListBox,
-  ListBoxItem,
-  Select,
-  SelectValue,
-} from 'react-aria-components';
-import type { Key } from 'react-aria-components';
+import { Button } from 'react-aria-components/Button';
+import { ListBox, ListBoxItem } from 'react-aria-components/ListBox';
+import { Select, SelectValue } from 'react-aria-components/Select';
+import type { Key } from 'react-aria-components/Breadcrumbs';
 import { ChevronDown } from '../../icons/chevron-down';
 import type { DropdownItem } from '../../types';
 import { cn } from '../../utils/string-formatting';

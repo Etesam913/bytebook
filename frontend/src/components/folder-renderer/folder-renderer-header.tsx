@@ -1,7 +1,7 @@
 import { useAtomValue } from 'jotai';
 import { navigate } from 'wouter/use-browser-location';
-import type { Key } from 'react-aria-components';
-import { Button } from 'react-aria-components';
+import type { Key } from 'react-aria-components/Breadcrumbs';
+import { Button } from 'react-aria-components/Button';
 import { isFileMaximizedAtom, projectSettingsAtom } from '../../atoms';
 import { MaximizeNoteButton } from '../buttons/maximize-note';
 import { AppMenu, AppMenuItem, AppMenuPopover, AppMenuTrigger } from '../menu';

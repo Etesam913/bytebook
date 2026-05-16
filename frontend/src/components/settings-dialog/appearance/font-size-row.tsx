@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { useAtomValue } from 'jotai/react';
-import { TextField, Input } from 'react-aria-components';
+import { TextField, Input } from 'react-aria-components/TextField';
 import { ArrowRotateAnticlockwise } from '../../../icons/arrow-rotate-anticlockwise';
 import { projectSettingsAtom } from '../../../atoms';
 import { getDefaultButtonVariants } from '../../../animations';

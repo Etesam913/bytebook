@@ -1,10 +1,10 @@
 import { useState } from 'react';
+import { Button } from 'react-aria-components/Button';
 import {
-  Button,
   Disclosure,
   DisclosurePanel,
   Heading,
-} from 'react-aria-components';
+} from 'react-aria-components/Disclosure';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { motion } from 'motion/react';
 import { dialogDataAtom, isFileMaximizedAtom } from '../../../atoms';

@@ -7,7 +7,9 @@ import {
   UNDO_COMMAND,
 } from 'lexical';
 import { type Dispatch, type ReactNode, type SetStateAction } from 'react';
-import { Button, ToggleButton, Toolbar } from 'react-aria-components';
+import { Button } from 'react-aria-components/Button';
+import { ToggleButton } from 'react-aria-components/ToggleButton';
+import { Toolbar } from 'react-aria-components/Toolbar';
 import { ListCheckbox } from '../../../icons/list-checkbox';
 import { OrderedList } from '../../../icons/ordered-list';
 import { Redo } from '../../../icons/redo';

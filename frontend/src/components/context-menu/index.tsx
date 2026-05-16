@@ -1,7 +1,7 @@
 import { useAtom, useAtomValue } from 'jotai/react';
 import { useRef } from 'react';
-import type { Key } from 'react-aria-components';
-import { Popover } from 'react-aria-components';
+import type { Key } from 'react-aria-components/Breadcrumbs';
+import { Popover } from 'react-aria-components/Popover';
 import { contextMenuDataAtom, sidebarSelectionAtom } from '../../atoms';
 import { AppMenu, AppMenuItem } from '../menu';
 import {

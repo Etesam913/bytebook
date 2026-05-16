@@ -1,14 +1,16 @@
 import type { InputHTMLAttributes, ReactNode, Ref } from 'react';
+import { Button } from 'react-aria-components/Button';
+import { FieldError } from 'react-aria-components/FieldError';
+import { Input as RACInput } from 'react-aria-components/Input';
+import { Label } from 'react-aria-components/Label';
 import {
-  Button,
-  FieldError,
-  Input as RACInput,
-  Label,
   SearchField,
   type SearchFieldProps,
+} from 'react-aria-components/SearchField';
+import {
   TextField,
   type TextFieldProps,
-} from 'react-aria-components';
+} from 'react-aria-components/TextField';
 import { XMark } from '../../icons/circle-xmark';
 import { cn } from '../../utils/string-formatting';
 

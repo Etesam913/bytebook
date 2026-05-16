@@ -2,13 +2,9 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useAtom, useSetAtom } from 'jotai';
 import { useRef, useState } from 'react';
 import useMeasure from 'react-use-measure';
-import {
-  Dialog as AriaDialog,
-  Form,
-  Heading,
-  Modal,
-  ModalOverlay,
-} from 'react-aria-components';
+import { Dialog as AriaDialog, Heading } from 'react-aria-components/Dialog';
+import { Form } from 'react-aria-components/Form';
+import { Modal, ModalOverlay } from 'react-aria-components/Modal';
 import { easingFunctions, getDefaultButtonVariants } from '../../animations';
 import { dialogDataAtom, sidebarSelectionAtom } from '../../atoms';
 import { XMark } from '../../icons/circle-xmark';

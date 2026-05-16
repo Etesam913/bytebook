@@ -1,34 +1,29 @@
-import { useEffect, useRef } from 'react';
 import { useAtomValue } from 'jotai';
+import { Dialog as AriaDialog } from 'react-aria-components/Dialog';
+import { Modal, ModalOverlay } from 'react-aria-components/Modal';
 import { backendQueryAtom } from '../../atoms';
 import { Loader } from '../../icons/loader';
 
 export function LoadingModal() {
   const backendQuery = useAtomValue(backendQueryAtom);
-  const dialogRef = useRef<HTMLDialogElement>(null);
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-
-    if (backendQuery.isLoading) {
-      dialog.showModal();
-    } else {
-      dialog.close();
-    }
-  }, [backendQuery.isLoading]);
 
   return (
-    <dialog
-      ref={dialogRef}
-      aria-label={`Loading: ${backendQuery.message}`}
-      onCancel={(e) => e.preventDefault()}
-      className="m-auto bg-zinc-50 dark:bg-zinc-800 px-4 py-5 max-w-[80vw] w-80 rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 backdrop:bg-[rgba(0,0,0,0.5)]"
+    <ModalOverlay
+      isOpen={backendQuery.isLoading}
+      isKeyboardDismissDisabled
+      className="fixed inset-0 z-40 bg-black/40 transition-opacity duration-150 ease-out data-[entering]:opacity-0 data-[exiting]:opacity-0"
     >
-      <div className="flex flex-col items-center gap-3 text-center text-balance">
-        <Loader height="1.5rem" width="1.5rem" />
-        <h3>{backendQuery.message}</h3>
-      </div>
-    </dialog>
+      <Modal className="fixed inset-0 z-60 flex items-center justify-center transition duration-150 ease-out data-[entering]:opacity-0 data-[entering]:scale-95 data-[exiting]:opacity-0 data-[exiting]:scale-95">
+        <AriaDialog
+          aria-label={`Loading: ${backendQuery.message}`}
+          className="bg-zinc-50 dark:bg-zinc-800 px-4 py-5 max-w-[80vw] w-80 rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 outline-none"
+        >
+          <div className="flex flex-col items-center gap-3 text-center text-balance">
+            <Loader height="1.5rem" width="1.5rem" />
+            <h3>{backendQuery.message}</h3>
+          </div>
+        </AriaDialog>
+      </Modal>
+    </ModalOverlay>
   );
 }
