@@ -3,7 +3,11 @@ import type { RefObject } from 'react';
 import { useRoute } from 'wouter';
 import { VirtualizedListAccordion } from '../../virtualized/virtualized-list/accordion';
 import { AccordionButton } from '../../accordion/accordion-button';
-import { isValidKernelLanguage, languagesWithKernelsSet } from '../../../types';
+import {
+  isValidKernelLanguage,
+  LANGUAGES,
+  languagesWithKernelsSet,
+} from '../../../types';
 import {
   routeUrls,
   type KernelWithFilesRouteParams,
@@ -26,17 +30,17 @@ import type { FlexWeightMVs } from '../index';
 export function getKernelIcon(kernel: Languages, size: string = '1.125rem') {
   const className = 'will-change-transform';
   switch (kernel) {
-    case 'python':
+    case LANGUAGES.PYTHON:
       return <PythonLogo height={size} width={size} className={className} />;
-    case 'go':
+    case LANGUAGES.GO:
       return <GolangLogo height={size} width={size} className={className} />;
-    case 'javascript':
+    case LANGUAGES.JAVASCRIPT:
       return (
         <JavascriptLogo height={size} width={size} className={className} />
       );
-    case 'java':
+    case LANGUAGES.JAVA:
       return <JavaLogo height={size} width={size} className={className} />;
-    case 'text': {
+    case LANGUAGES.TEXT: {
       const smallerSize = `calc(${size} - 0.125rem)`;
       return (
         <SquareTerminal

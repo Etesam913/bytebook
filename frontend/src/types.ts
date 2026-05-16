@@ -80,8 +80,16 @@ export type ContextMenuData = {
 export type KernelStatus = 'busy' | 'idle' | 'starting';
 export type CodeBlockStatus = KernelStatus | 'queueing';
 export type KernelHeartbeatStatus = 'success' | 'failure' | 'idle';
-export type Languages = 'python' | 'go' | 'javascript' | 'java' | 'text';
-export type LanguagesWithKernels = Exclude<Languages, 'text'>;
+export const LANGUAGES = {
+  PYTHON: 'python',
+  GO: 'go',
+  JAVASCRIPT: 'javascript',
+  JAVA: 'java',
+  TEXT: 'text',
+} as const;
+
+export type Languages = (typeof LANGUAGES)[keyof typeof LANGUAGES];
+export type LanguagesWithKernels = Exclude<Languages, typeof LANGUAGES.TEXT>;
 
 export type KernelInstanceData = {
   id: string;
@@ -93,12 +101,20 @@ export type KernelInstanceData = {
   lastActivityAt: number;
 };
 
-const allLanguages = ['python', 'go', 'javascript', 'java', 'text'] as const;
+const allLanguages = [
+  LANGUAGES.PYTHON,
+  LANGUAGES.GO,
+  LANGUAGES.JAVASCRIPT,
+  LANGUAGES.JAVA,
+  LANGUAGES.TEXT,
+] as const;
 
 export const allLanguagesSet = new Set<Languages>(allLanguages);
 
 export const languagesWithKernelsSet = new Set<LanguagesWithKernels>(
-  allLanguages.filter((language) => language !== 'text')
+  allLanguages.filter(
+    (language): language is LanguagesWithKernels => language !== LANGUAGES.TEXT
+  )
 );
 
 export function isValidKernelLanguage(key: unknown): key is Languages {

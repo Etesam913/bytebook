@@ -9,6 +9,7 @@ import {
   KernelHeartbeatStatus,
   KernelInstanceData,
   KernelStatus,
+  LANGUAGES,
   Languages,
   LanguagesWithKernels,
   ProjectSettings,
@@ -98,7 +99,7 @@ export function useKernelInstancesQuery() {
         (acc, snapshot) => {
           if (
             !isValidKernelLanguage(snapshot.language) ||
-            snapshot.language === 'text'
+            snapshot.language === LANGUAGES.TEXT
           ) {
             return acc;
           }
@@ -628,7 +629,7 @@ export function usePythonVenvSubmitMutation(projectSettings: ProjectSettings) {
       });
 
       // Tear down every existing python kernel; they will be recreated on next execute.
-      await ShutdownKernelsByLanguage('python');
+      await ShutdownKernelsByLanguage(LANGUAGES.PYTHON);
       return true;
     },
     onError: (error, variables) => {

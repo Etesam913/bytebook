@@ -15,7 +15,7 @@ import type {
   CodeBlockIdentityProps,
   CodeBlockShellProps,
 } from './types';
-import { languagesWithKernelsSet } from '../../types';
+import { LANGUAGES, languagesWithKernelsSet } from '../../types';
 import { routeUrls } from '../../utils/routes';
 import { navigate } from 'wouter/use-browser-location';
 import { Trash } from '../../icons/trash';
@@ -48,7 +48,7 @@ export function CodeActions({
   const { status, setStatus, kernelInstanceId } = execution;
 
   const canShowKernelInfo =
-    language !== 'text' && languagesWithKernelsSet.has(language);
+    language !== LANGUAGES.TEXT && languagesWithKernelsSet.has(language);
 
   const tooltipRoot = isExpanded && dialogRef ? dialogRef : undefined;
 
@@ -87,15 +87,19 @@ export function CodeActions({
           },
         ]
       : []),
-    {
-      id: hideResults ? 'show-results' : 'hide-results',
-      label: (
-        <span className="flex items-center gap-1.5 will-change-transform">
-          <Subtitles height="18" width="18" />
-          {hideResults ? 'Show Results' : 'Hide Results'}
-        </span>
-      ),
-    },
+    ...(language !== LANGUAGES.TEXT
+      ? [
+          {
+            id: hideResults ? 'show-results' : 'hide-results',
+            label: (
+              <span className="flex items-center gap-1.5 will-change-transform">
+                <Subtitles height="18" width="18" />
+                {hideResults ? 'Show Results' : 'Hide Results'}
+              </span>
+            ),
+          },
+        ]
+      : []),
     {
       id: 'delete',
       label: (
@@ -155,7 +159,7 @@ export function CodeActions({
         isSelected ? 'opacity-100' : 'opacity-0'
       )}
     >
-      {!hideResults && language !== 'text' && (
+      {!hideResults && language !== LANGUAGES.TEXT && (
         <PlayButton
           codeBlockId={id}
           codeMirrorInstance={codeMirrorInstance}

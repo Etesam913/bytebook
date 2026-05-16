@@ -1,6 +1,6 @@
 import type { MultilineElementTransformer } from '@lexical/markdown';
 import { type LexicalNode } from 'lexical';
-import { Languages, allLanguagesSet } from '../../../types';
+import { LANGUAGES, Languages, allLanguagesSet } from '../../../types';
 import { escapeQuotes } from '../../../utils/string-formatting';
 import { getDefaultCodeForLanguage } from '../../../utils/code';
 import { $createCodeNode, $isCodeNode, CodeNode } from '../nodes/code';
@@ -73,7 +73,7 @@ function parseLanguageAndProperties(startMatch: RegExpMatchArray | string[]): {
   const language =
     startMatch[1] && allLanguagesSet.has(startMatch[1] as Languages)
       ? startMatch[1]
-      : 'text';
+      : LANGUAGES.TEXT;
 
   // Parse properties from the header (everything after the language)
   const codeBlockId = startMatch[2] ? parseOutCodeBlockId(startMatch[2]) : null;

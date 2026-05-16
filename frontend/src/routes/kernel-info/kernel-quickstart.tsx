@@ -1,4 +1,4 @@
-import { Languages } from '../../types';
+import { LANGUAGES, Languages } from '../../types';
 import { DEFAULT_SONNER_OPTIONS } from '../../utils/general';
 import { toast } from 'sonner';
 import { PlainCodeSnippet } from '../../components/plain-code-snippet';
@@ -291,15 +291,15 @@ export function KernelQuickstart({ language }: { language: Languages }) {
 
   const renderContent = () => {
     switch (language) {
-      case 'python':
+      case LANGUAGES.PYTHON:
         return renderPythonQuickstart();
-      case 'go':
+      case LANGUAGES.GO:
         return renderGoQuickstart();
-      case 'javascript':
+      case LANGUAGES.JAVASCRIPT:
         return renderJavaScriptQuickstart();
-      case 'java':
+      case LANGUAGES.JAVA:
         return renderJavaQuickstart();
-      case 'text':
+      case LANGUAGES.TEXT:
         return (
           <div className="text-center py-8">
             <p className="text-zinc-500 dark:text-zinc-300">

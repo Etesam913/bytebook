@@ -3,6 +3,7 @@ import type { CodeMirrorRef } from '../components/code/types';
 import {
   CodeBlockStatus,
   KernelInstanceData,
+  LANGUAGES,
   Languages,
   LanguagesWithKernels,
 } from '../types';
@@ -24,15 +25,15 @@ export type EnsureKernelFunction = UseMutateFunction<
  */
 export function getDefaultCodeForLanguage(language: Languages) {
   switch (language) {
-    case 'python':
+    case LANGUAGES.PYTHON:
       return 'print("Hello, World!")\n\n\n\n';
-    case 'go':
+    case LANGUAGES.GO:
       return '%% \nfmt.Println("Hello, World!")\n\n\n\n';
-    case 'javascript':
+    case LANGUAGES.JAVASCRIPT:
       return 'console.log("Hello, World!");\n\n\n\n';
-    case 'java':
+    case LANGUAGES.JAVA:
       return 'System.out.println("Hello, World!");\n\n\n\n';
-    case 'text':
+    case LANGUAGES.TEXT:
       return '';
     default:
       return '';
@@ -119,7 +120,7 @@ export function handleRunOrInterruptCode({
   >;
   ensureKernel: EnsureKernelFunction;
 }) {
-  if (codeBlockLanguage === 'text') return false;
+  if (codeBlockLanguage === LANGUAGES.TEXT) return false;
 
   const language = codeBlockLanguage as LanguagesWithKernels;
   const instance = getInstanceForNote(noteId, language);

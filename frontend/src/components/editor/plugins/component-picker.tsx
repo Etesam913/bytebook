@@ -34,7 +34,7 @@ import {
 } from '../../dropdown/dropdown-picker';
 import { attachmentCommandData, listCommandData } from '../utils/toolbar';
 import { INSERT_CODE_COMMAND } from './code';
-import { Languages } from '../../../types';
+import { LANGUAGES, Languages } from '../../../types';
 import { getDefaultCodeForLanguage } from '../../../utils/code';
 import { JavascriptLogo } from '../../../icons/javascript-logo';
 import { Table } from '../../../icons/table';
@@ -50,13 +50,13 @@ const languageCommandData: {
   icon?: JSX.Element;
 }[] = [
   {
-    languageName: 'text',
+    languageName: LANGUAGES.TEXT,
     keywords: ['text', 'plain', 'plaintext', 'txt'],
     icon: <SquareCode />,
     name: 'Text',
   },
   {
-    languageName: 'go',
+    languageName: LANGUAGES.GO,
     keywords: ['go', 'golang', 'google'],
     icon: <GolangLogo />,
     name: 'Go',
@@ -68,13 +68,13 @@ const languageCommandData: {
   //   name: 'Java',
   // },
   {
-    languageName: 'python',
+    languageName: LANGUAGES.PYTHON,
     keywords: ['python', 'py'],
     icon: <PythonLogo />,
     name: 'Python',
   },
   {
-    languageName: 'javascript',
+    languageName: LANGUAGES.JAVASCRIPT,
     keywords: ['javascript', 'js'],
     icon: <JavascriptLogo />,
     name: 'Javascript',
@@ -87,7 +87,7 @@ const languageCommandData: {
   // },
   // { id: 'rust', keywords: ['rust', 'rs'], icon: <RustLogo />, name: 'Rust' },
   {
-    languageName: 'java',
+    languageName: LANGUAGES.JAVA,
     keywords: ['java', 'jjava'],
     icon: <JavaLogo />,
     name: 'Java',

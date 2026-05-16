@@ -22,7 +22,7 @@ import type {
   CodeBlockShellProps,
 } from './types';
 import { cn } from '../../utils/string-formatting';
-import type { Languages } from '../../types';
+import { LANGUAGES, type Languages } from '../../types';
 import { useNodeInNodeSelection } from '../../hooks/lexical';
 import { useEffect, useRef, useState, type WheelEvent } from 'react';
 import { languageDisplayConfig } from './language-config';
@@ -198,7 +198,7 @@ export function CodeMirrorEditor({
     ensureKernel,
     codeMirrorInstance,
     setSelected,
-    isExecutionEnabled: !hideResults && language !== 'text',
+    isExecutionEnabled: !hideResults && language !== LANGUAGES.TEXT,
   });
 
   return (

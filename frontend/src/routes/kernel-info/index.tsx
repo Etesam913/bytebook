@@ -9,8 +9,8 @@ import { KernelStatusCard } from './kernel-status-card';
 import { KernelInfoCard } from './kernel-info-card';
 import { KernelErrorCard } from './kernel-error-card';
 import { KernelQuickstart } from './kernel-quickstart';
+import { isValidKernelLanguage, LANGUAGES } from '../../types';
 import type { LanguagesWithKernels } from '../../types';
-import { isValidKernelLanguage } from '../../types';
 import { JavascriptLogo } from '../../icons/javascript-logo';
 import { JavaLogo } from '../../icons/java-logo';
 
@@ -21,22 +21,22 @@ interface KernelConfig {
 }
 
 const KERNEL_CONFIGS: Record<LanguagesWithKernels, KernelConfig> = {
-  python: {
+  [LANGUAGES.PYTHON]: {
     displayName: 'Python',
     executable: 'python',
     icon: <PythonLogo height="2rem" width="2rem" />,
   },
-  go: {
+  [LANGUAGES.GO]: {
     displayName: 'Go',
     executable: 'go',
     icon: <GolangLogo height="2rem" width="2rem" />,
   },
-  javascript: {
+  [LANGUAGES.JAVASCRIPT]: {
     displayName: 'Javascript',
     executable: 'deno',
     icon: <JavascriptLogo height="2rem" width="2rem" />,
   },
-  java: {
+  [LANGUAGES.JAVA]: {
     displayName: 'Java',
     executable: 'java',
     icon: <JavaLogo height="2rem" width="2rem" />,
@@ -50,7 +50,7 @@ export function KernelInfo() {
   const isValidKernel =
     kernelName &&
     isValidKernelLanguage(kernelName) &&
-    kernelName !== 'text' &&
+    kernelName !== LANGUAGES.TEXT &&
     kernelName in KERNEL_CONFIGS;
 
   if (!isValidKernel) {
