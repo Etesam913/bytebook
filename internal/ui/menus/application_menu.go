@@ -133,6 +133,15 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 		}
 	})
 
+	reload := sub.FindByLabel("Reload")
+	if reload != nil {
+		sub.RemoveMenuItem(reload)
+	}
+	forceReload := sub.FindByLabel("Force Reload")
+	if forceReload != nil {
+		sub.RemoveMenuItem(forceReload)
+	}
+
 	// Replace the default zoom items so zoom is handled by the frontend UI scale instead of native magnification.
 	zoomIn := sub.FindByLabel("Zoom In")
 	if zoomIn != nil {

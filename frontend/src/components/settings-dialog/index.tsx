@@ -1,7 +1,6 @@
 import { Tabs, TabPanel } from 'react-aria-components/Tabs';
 import { SettingsSidebar } from './sidebar';
 import { MotionButton } from '../buttons';
-import { XMark } from '../../icons/circle-xmark';
 import { getDefaultButtonVariants } from '../../animations';
 import { CodeBlockPage } from './code-block-page';
 import { SearchPage } from './search-page';
@@ -56,7 +55,6 @@ export function SettingsDialog() {
           {...getDefaultButtonVariants()}
           className="ml-auto w-36 flex justify-center"
         >
-          <XMark />
           Close
         </MotionButton>
       </footer>
