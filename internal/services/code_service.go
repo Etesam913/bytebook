@@ -167,6 +167,30 @@ func (c *CodeService) SendInspectRequest(kernelInstanceID, codeBlockID, executio
 	}
 }
 
+type SendCompleteRequestResponse struct {
+	MessageId *string `json:"messageId"`
+}
+
+// SendCompleteRequest sends a complete_request to the named instance.
+func (c *CodeService) SendCompleteRequest(kernelInstanceID, codeBlockID, executionID, code string, cursorPos int) config.BackendResponseWithData[SendCompleteRequestResponse] {
+	inst := c.Manager.GetByID(kernelInstanceID)
+	if inst == nil {
+		return errResp[SendCompleteRequestResponse]("Kernel instance not found")
+	}
+	if !inst.IsHeartbeating() {
+		return errResp[SendCompleteRequestResponse]("Kernel is not running.")
+	}
+	messageID, err := inst.SendComplete(codeBlockID, executionID, code, cursorPos)
+	if err != nil {
+		return errResp[SendCompleteRequestResponse](err.Error())
+	}
+	return config.BackendResponseWithData[SendCompleteRequestResponse]{
+		Success: true,
+		Message: "Completion request sent",
+		Data:    SendCompleteRequestResponse{MessageId: &messageID},
+	}
+}
+
 // ListKernels returns snapshots of every live kernel instance.
 func (c *CodeService) ListKernels() config.BackendResponseWithData[[]kernel_manager.KernelInstanceSnapshot] {
 	return config.BackendResponseWithData[[]kernel_manager.KernelInstanceSnapshot]{

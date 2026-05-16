@@ -224,6 +224,30 @@ func (i *KernelInstance) SendInspect(codeBlockID, executionID, code string, curs
 	return messageID, nil
 }
 
+// SendComplete sends a complete_request on the shell socket and returns the generated message id.
+func (i *KernelInstance) SendComplete(codeBlockID, executionID, code string, cursorPos int) (string, error) {
+	if i.sockets == nil || i.sockets.ShellSocketDealer == nil {
+		return "", fmt.Errorf("shell socket not initialized")
+	}
+	messageID := fmt.Sprintf("%s|%s|complete_%d", codeBlockID, executionID, time.Now().UnixNano())
+	err := jupyter_protocol.SendCompleteRequest(
+		i.sockets.ShellSocketDealer,
+		jupyter_protocol.CompleteRequestParams{
+			MessageParams: jupyter_protocol.MessageParams{
+				MessageID: messageID,
+				SessionID: "current-session",
+				Key:       i.connectionInfo.Key,
+			},
+			Code:      code,
+			CursorPos: cursorPos,
+		},
+	)
+	if err != nil {
+		return "", err
+	}
+	return messageID, nil
+}
+
 // IsHeartbeating reports whether the heartbeat goroutine has confirmed the kernel is alive.
 func (i *KernelInstance) IsHeartbeating() bool {
 	if i.heartbeatState == nil {

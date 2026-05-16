@@ -211,6 +211,13 @@ type InspectRequestParams struct {
 	DetailLevel int
 }
 
+// CompleteRequestParams contains parameters for completion request messages.
+type CompleteRequestParams struct {
+	MessageParams
+	Code      string
+	CursorPos int
+}
+
 // SendExecuteRequest sends an execute_request message to the kernel.
 func SendExecuteRequest(shellDealerSocket *zmq4.Socket, params ExecuteMessageParams) error {
 	requestParams := RequestParams{
@@ -324,5 +331,27 @@ func SendInspectRequest(shellDealerSocket *zmq4.Socket, params InspectRequestPar
 	}
 
 	log.Println("inspect_request 💬 sent successfully")
+	return nil
+}
+
+// SendCompleteRequest sends a complete_request message to the kernel.
+func SendCompleteRequest(shellDealerSocket *zmq4.Socket, params CompleteRequestParams) error {
+	requestParams := RequestParams{
+		MessageID: params.MessageID,
+		SessionID: params.SessionID,
+		MsgType:   "complete_request",
+		Username:  "username",
+		Key:       params.Key,
+		Content: map[string]any{
+			"code":       params.Code,
+			"cursor_pos": params.CursorPos,
+		},
+	}
+
+	if err := sendMessage(shellDealerSocket, requestParams); err != nil {
+		return fmt.Errorf("failed to send complete request message: %w", err)
+	}
+
+	log.Println("complete_request 💬 sent successfully")
 	return nil
 }

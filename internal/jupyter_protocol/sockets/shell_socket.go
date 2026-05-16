@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/pebbe/zmq4"
 	"github.com/robert-nix/ansihtml"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -32,6 +33,15 @@ type inspectReplyEvent struct {
 	Found     bool           `json:"found"`
 	Data      map[string]any `json:"data"`
 	Metadata  map[string]any `json:"metadata"`
+}
+
+type completeReplyEvent struct {
+	Status      string         `json:"status"`
+	MessageId   string         `json:"messageId"`
+	Matches     []string       `json:"matches"`
+	CursorStart int            `json:"cursorStart"`
+	CursorEnd   int            `json:"cursorEnd"`
+	Metadata    map[string]any `json:"metadata"`
 }
 
 func createShellSocket(p CreateParams) *shellSocket {
@@ -177,13 +187,63 @@ func (s *shellSocket) Listen(p CreateParams) {
 				if app != nil {
 					if currentWindow := app.Window.Current(); currentWindow != nil {
 						currentWindow.EmitEvent(
-							"code:code-block:inspect_reply",
+							util.Events.CodeBlockInspectReply,
 							inspectReplyEvent{
 								Status:    status,
 								MessageId: msgId,
 								Found:     found,
 								Data:      data,
 								Metadata:  metadata,
+							},
+						)
+					}
+				}
+
+			case ShellSocket.CompleteReply:
+				status, ok := msg.Content["status"].(string)
+				if !ok {
+					continue
+				}
+				msgId, ok := msg.ParentHeader["msg_id"].(string)
+				if !ok {
+					continue
+				}
+
+				matches := []string{}
+				cursorStart := 0
+				cursorEnd := 0
+				metadata := map[string]any{}
+
+				if status == "ok" {
+					if rawMatches, ok := msg.Content["matches"].([]any); ok {
+						for _, m := range rawMatches {
+							if s, ok := m.(string); ok {
+								matches = append(matches, s)
+							}
+						}
+					}
+					if cs, ok := msg.Content["cursor_start"].(float64); ok {
+						cursorStart = int(cs)
+					}
+					if ce, ok := msg.Content["cursor_end"].(float64); ok {
+						cursorEnd = int(ce)
+					}
+					if md, ok := msg.Content["metadata"].(map[string]any); ok {
+						metadata = md
+					}
+				}
+
+				if app != nil {
+					if currentWindow := app.Window.Current(); currentWindow != nil {
+						currentWindow.EmitEvent(
+							util.Events.CodeBlockCompleteReply,
+							completeReplyEvent{
+								Status:      status,
+								MessageId:   msgId,
+								Matches:     matches,
+								CursorStart: cursorStart,
+								CursorEnd:   cursorEnd,
+								Metadata:    metadata,
 							},
 						)
 					}

@@ -10,11 +10,15 @@ var ShellSocket = struct {
 	// InspectReply is the response to an inspect_request message, containing object introspection information
 	InspectReply string
 
+	// CompleteReply is the response to a complete_request message, containing tab-completion matches
+	CompleteReply string
+
 	// ShutdownReply is the response to a shutdown_request message, confirming kernel shutdown
 	ShutdownReply string
 }{
 	ExecuteReply:  "execute_reply",
 	InspectReply:  "inspect_reply",
+	CompleteReply: "complete_reply",
 	ShutdownReply: "shutdown_reply",
 }
 
