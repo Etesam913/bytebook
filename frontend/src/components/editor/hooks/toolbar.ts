@@ -51,6 +51,7 @@ import {
   overrideUndoRedoCommand,
   overrideUpDownKeyCommand,
 } from '../utils/note-commands';
+import { handleMarkdownPaste } from '../utils/paste';
 import { handleKeyboardShortcuts } from '../utils/hotkeys';
 import { parseFrontMatter } from '../utils/note-metadata';
 import { updateToolbar } from '../utils/toolbar';
@@ -239,12 +240,17 @@ export function useToolbarEvents({
       ),
       editor.registerCommand(
         PASTE_COMMAND,
-        () => {
+        (event) => {
           const selection = $getSelection();
           // When using a node selection, let lexical handle the paste command
-          // Otherwise, let the default browser paste behavior handle it
           if (selection && $isNodeSelection(selection)) {
             return true;
+          }
+          // Convert pasted plain-text markdown (e.g. `**abc**`) into formatted
+          // nodes. Without this, only typed markdown shortcuts trigger
+          // formatting and pasted markdown stays as literal text.
+          if (event instanceof ClipboardEvent) {
+            return handleMarkdownPaste(event, editor);
           }
           return false;
         },

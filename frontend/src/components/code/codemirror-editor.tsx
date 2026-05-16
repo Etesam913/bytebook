@@ -27,6 +27,10 @@ import { useNodeInNodeSelection } from '../../hooks/lexical';
 import { useEffect, useRef, useState, type WheelEvent } from 'react';
 import { languageDisplayConfig } from './language-config';
 import type { BasicSetupOptions } from '@uiw/react-codemirror';
+import {
+  getLoadedLanguageExtension,
+  loadLanguageExtension,
+} from './language-extensions';
 
 const codeBlockBasicSetup: BasicSetupOptions = {
   lineNumbers: false,
@@ -42,30 +46,6 @@ const languageBasicSetup: Record<Languages, BasicSetupOptions> = {
   java: { tabSize: languageDisplayConfig.java.tabSize },
   text: { tabSize: languageDisplayConfig.text.tabSize },
 };
-
-// Lazy-loaded language extensions. Each grammar lives in its own chunk
-// (chunk-lang-*.js) so unused languages aren't shipped on initial load.
-const languageLoaders: Record<Languages, (() => Promise<Extension>) | null> = {
-  python: () => import('@codemirror/lang-python').then((m) => m.python()),
-  go: () => import('@codemirror/lang-go').then((m) => m.go()),
-  javascript: () =>
-    import('@codemirror/lang-javascript').then((m) => m.javascript()),
-  java: () => import('@codemirror/lang-java').then((m) => m.java()),
-  text: null,
-};
-
-const languageExtensionCache = new Map<Languages, Promise<Extension>>();
-
-function loadLanguageExtension(language: Languages): Promise<Extension> | null {
-  const loader = languageLoaders[language];
-  if (!loader) return null;
-  let cached = languageExtensionCache.get(language);
-  if (!cached) {
-    cached = loader();
-    languageExtensionCache.set(language, cached);
-  }
-  return cached;
-}
 
 let vimExtensionPromise: Promise<Extension> | null = null;
 
@@ -136,10 +116,18 @@ export function CodeMirrorEditor({
   const [loadedLanguage, setLoadedLanguage] = useState<{
     language: Languages;
     extension: Extension;
-  } | null>(null);
+  } | null>(() => {
+    // If the grammar was already preloaded (e.g. by the markdown paste path),
+    // seed state synchronously so the very first render of CodeMirror mounts
+    // with the language extension already present — no later reconfigure
+    // dispatch that can race with the lazy `@codemirror/lang-*` import.
+    const preloaded = getLoadedLanguageExtension(language);
+    return preloaded ? { language, extension: preloaded } : null;
+  });
   const [vimExtension, setVimExtension] = useState<Extension | null>(null);
 
   useEffect(() => {
+    if (loadedLanguage?.language === language) return;
     const promise = loadLanguageExtension(language);
     if (!promise) return;
     let cancelled = false;
@@ -149,7 +137,7 @@ export function CodeMirrorEditor({
     return () => {
       cancelled = true;
     };
-  }, [language]);
+  }, [language, loadedLanguage]);
 
   useEffect(() => {
     if (!projectSettings.code.codeBlockVimMode) return;
