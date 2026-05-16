@@ -4,7 +4,7 @@ import {
   GetPythonVirtualEnvironments,
 } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
 import { Loader } from '../../../icons/loader';
-import { RadioButton } from '../../radio-button';
+import { AppRadio, AppRadioGroup } from '../../radio-button';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { backendQueryAtom, projectSettingsAtom } from '../../../atoms';
 import { ShareRight } from '../../../icons/share-right';
@@ -105,29 +105,23 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
       {isLoading && <Loader />}
       {data?.success &&
         (pythonVenvPaths?.length ? (
-          <div className="flex flex-col gap-1.5">
+          <AppRadioGroup
+            name="venv-path-option"
+            defaultValue={projectSettings.code.pythonVenvPath}
+            aria-label="Python virtual environment"
+          >
             {pythonVenvPaths.map((venvPath) => (
               <span
                 className="flex items-center gap-1.5 group py-1 px-2 bg-zinc-150 dark:bg-zinc-750 rounded-md "
                 key={venvPath}
               >
-                <RadioButton
-                  name="venv-path-option"
-                  value={venvPath}
-                  defaultChecked={
-                    venvPath === projectSettings.code.pythonVenvPath
-                  }
-                  label={
-                    venvPath.split('/').length > 3
-                      ? venvPath.split('/').slice(-3).join('/')
-                      : venvPath
-                  }
-                  labelProps={{
-                    className: '',
-                  }}
-                />
+                <AppRadio value={venvPath}>
+                  {venvPath.split('/').length > 3
+                    ? venvPath.split('/').slice(-3).join('/')
+                    : venvPath}
+                </AppRadio>
                 <MotionIconButton
-                  className="opacity-0 focus:opacity-100 group-hover:opacity-100 transition-opacity"
+                  className="opacity-0 focus:opacity-100 group-hover:opacity-100 transition-opacity ml-auto"
                   {...getDefaultButtonVariants()}
                   onClick={() => {
                     void RevealFolderOrFileInFinder(venvPath, false);
@@ -138,15 +132,9 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
               </span>
             ))}
             <div className="flex flex-col group p-2 bg-zinc-150 dark:bg-zinc-750 rounded-md overflow-hidden">
-              <RadioButton
-                id="custom-venv-path"
-                name="venv-path-option"
-                value={customVenvPath ?? ''}
-                label={'Or choose a custom virtual environment'}
-                labelProps={{
-                  className: '',
-                }}
-              />
+              <AppRadio id="custom-venv-path" value={customVenvPath ?? ''}>
+                Or choose a custom virtual environment
+              </AppRadio>
               <footer>
                 <div className="mt-2.5 flex items-center gap-3">
                   <MotionButton
@@ -175,7 +163,7 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
                 </div>
               </footer>
             </div>
-          </div>
+          </AppRadioGroup>
         ) : (
           <p>No virtual environments found</p>
         ))}

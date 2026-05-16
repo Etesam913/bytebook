@@ -3,7 +3,7 @@ import { getDefaultButtonVariants } from '../animations';
 import { dialogDataAtom } from '../atoms';
 import { MotionButton } from '../components/buttons';
 import { DialogErrorText } from '../components/dialog';
-import { Input } from '../components/input';
+import { AppTextField } from '../components/input';
 import { useSaveSearchMutation } from './search';
 import { BookBookmark } from '../icons/book-bookmark';
 import { Table } from '../icons/table';
@@ -35,19 +35,16 @@ export function useSaveSearchDialog(): (searchQuery: string) => void {
       children: (errorText) => (
         <>
           <fieldset className="flex flex-col">
-            <Input
+            <AppTextField
               label="Search Name"
-              labelProps={{ htmlFor: 'search-name' }}
-              inputProps={{
-                id: 'search-name',
-                name: 'search-name',
-                placeholder: 'Grocery Lists',
-                autoFocus: true,
-                autoCapitalize: 'off',
-                autoComplete: 'off',
-                spellCheck: 'false',
-                type: 'text',
-              }}
+              id="search-name"
+              name="search-name"
+              placeholder="Grocery Lists"
+              autoFocus
+              autoCapitalize="off"
+              autoComplete="off"
+              spellCheck="false"
+              type="text"
             />
             <div className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
               Query name: <span className="font-mono">{searchQuery}</span>
@@ -123,32 +120,30 @@ export function useCreateTableDialog(): (
         <>
           <fieldset className="flex flex-col gap-3">
             <div className="flex flex-col">
-              <Input
+              <AppTextField
                 label="Rows"
-                labelProps={{ htmlFor: 'table-rows' }}
-                inputProps={{
-                  id: 'table-rows',
-                  name: 'table-rows',
-                  placeholder: '3',
-                  defaultValue: '3',
-                  autoFocus: true,
+                id="table-rows"
+                name="table-rows"
+                placeholder="3"
+                defaultValue="3"
+                autoFocus
+                type="number"
+                inputAttrs={{
                   onFocus: (e) => e.target.select(),
-                  type: 'number',
                   min: '1',
                   max: String(MAX_TABLE_ROWS),
                 }}
               />
             </div>
             <div className="flex flex-col">
-              <Input
+              <AppTextField
                 label="Columns"
-                labelProps={{ htmlFor: 'table-columns' }}
-                inputProps={{
-                  id: 'table-columns',
-                  name: 'table-columns',
-                  placeholder: '3',
-                  defaultValue: '3',
-                  type: 'number',
+                id="table-columns"
+                name="table-columns"
+                placeholder="3"
+                defaultValue="3"
+                type="number"
+                inputAttrs={{
                   min: '1',
                   max: String(MAX_TABLE_COLUMNS),
                 }}

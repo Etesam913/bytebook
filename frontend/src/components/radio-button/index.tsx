@@ -1,51 +1,61 @@
-import { InputHTMLAttributes, JSX } from 'react';
+import type { JSX, ReactNode } from 'react';
+import {
+  Radio,
+  RadioGroup,
+  type RadioGroupProps,
+  type RadioProps,
+} from 'react-aria-components';
 import { cn } from '../../utils/string-formatting';
 
-interface RadioButtonProps extends InputHTMLAttributes<HTMLInputElement> {
-  label: string;
-  /**
-   * If you pass `checked`, this becomes a controlled radio.
-   * Otherwise it’s uncontrolled and toggles itself via defaultChecked.
-   */
-  checked?: boolean;
-  labelProps?: React.HTMLAttributes<HTMLLabelElement>;
+export function AppRadioGroup({
+  className,
+  children,
+  ...props
+}: RadioGroupProps & { children: ReactNode }): JSX.Element {
+  return (
+    <RadioGroup
+      {...props}
+      className={cn('flex flex-col gap-1.5', className as string | undefined)}
+    >
+      {children}
+    </RadioGroup>
+  );
 }
 
-export function RadioButton({
-  label,
-  checked,
-  labelProps,
-  ...rest
-}: RadioButtonProps): JSX.Element {
+export function AppRadio({
+  className,
+  children,
+  ...props
+}: RadioProps & { children: ReactNode }): JSX.Element {
   return (
-    <label className="flex items-center cursor-pointer">
-      <input
-        type="radio"
-        // only set checked if defined, otherwise let `defaultChecked` in `rest` handle it
-        {...(checked !== undefined ? { checked } : {})}
-        {...rest}
-        className="sr-only peer"
-      />
-
-      <span
-        className={cn(
-          'w-4 h-4 border-2 rounded-full flex-shrink-0 mr-2 flex justify-center items-center',
-          'border-zinc-500 peer-checked:border-(--accent-color)',
-          'peer-focus:ring-1 peer-focus:ring-(--accent-color)',
-          checked && 'border-(--accent-color)',
-          'peer-checked:[&>span]:opacity-100'
-        )}
-      >
-        <span
-          className={cn(
-            'w-2 h-2 bg-(--accent-color) rounded-full transition-opacity duration-200',
-            'opacity-0 peer-checked:opacity-100',
-            checked && '!opacity-100'
-          )}
-        />
-      </span>
-
-      <span {...labelProps}>{label}</span>
-    </label>
+    <Radio
+      {...props}
+      className={cn(
+        'flex items-center cursor-pointer outline-none',
+        className as string | undefined
+      )}
+    >
+      {(renderProps) => (
+        <>
+          <span
+            className={cn(
+              'w-4 h-4 border-2 rounded-full flex-shrink-0 mr-2 flex justify-center items-center transition-colors',
+              renderProps.isSelected
+                ? 'border-(--accent-color)'
+                : 'border-zinc-500',
+              renderProps.isFocusVisible && 'ring-1 ring-(--accent-color)'
+            )}
+          >
+            <span
+              className={cn(
+                'w-2 h-2 bg-(--accent-color) rounded-full transition-opacity duration-200',
+                renderProps.isSelected ? 'opacity-100' : 'opacity-0'
+              )}
+            />
+          </span>
+          {typeof children === 'function' ? children(renderProps) : children}
+        </>
+      )}
+    </Radio>
   );
 }

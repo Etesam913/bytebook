@@ -29,7 +29,7 @@ import { SubmitLink } from '../../../icons/submit-link';
 import type { FloatingDataType } from '../../../types';
 import { MotionButton } from '../../buttons';
 import { TOGGLE_LINK_COMMAND } from '../nodes/link';
-import { Input } from '../../input';
+import { AppTextField } from '../../input';
 import { $setSelection } from 'lexical';
 
 export function FloatingMenuPlugin({
@@ -261,33 +261,30 @@ export function FloatingMenuPlugin({
           {isTextFormatMenuOpen && children}
           {isLinkMenuOpen && (
             <>
-              <Input
+              <AppTextField
                 ref={inputRef}
-                labelProps={{}}
-                inputProps={{
-                  'aria-label': 'URL',
-                  defaultValue: floatingData.previousUrl ?? 'https://',
-                  autoFocus: true,
-                  className: 'text-sm w-64',
-                  maxLength: undefined,
-                  onKeyDown: (e) => {
-                    if (e.key === 'Escape') {
-                      e.preventDefault();
-                      setFloatingData({
-                        isOpen: false,
-                        type: null,
-                        top: 0,
-                        left: 0,
-                        previousSelection: null,
-                      });
+                aria-label="URL"
+                defaultValue={floatingData.previousUrl ?? 'https://'}
+                autoFocus
+                inputClassName="text-sm w-64"
+                maxLength={undefined}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    e.preventDefault();
+                    setFloatingData({
+                      isOpen: false,
+                      type: null,
+                      top: 0,
+                      left: 0,
+                      previousSelection: null,
+                    });
 
-                      setTimeout(() => {
-                        editor.update(() => {
-                          $setSelection(floatingData.previousSelection);
-                        });
-                      }, 200);
-                    }
-                  },
+                    setTimeout(() => {
+                      editor.update(() => {
+                        $setSelection(floatingData.previousSelection);
+                      });
+                    }, 200);
+                  }
                 }}
               />
               <MotionButton

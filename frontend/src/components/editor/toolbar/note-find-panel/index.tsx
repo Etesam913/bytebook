@@ -5,7 +5,7 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { XMark } from '../../../../icons/circle-xmark';
 import { Magnifier } from '../../../../icons/magnifier';
 import { NavigationControls } from './navigation-controls';
-import { Input } from '../../../input';
+import { AppTextField } from '../../../input';
 import { useOnClickOutside } from '../../../../hooks/general';
 import { useFindPanelSearch, useMatchNavigation } from './hooks/find-panel';
 import { clearHighlight } from './utils/highlight';
@@ -70,35 +70,34 @@ export function NoteFindPanel({
             className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
           />
 
-          <Input
+          <AppTextField
             ref={inputRef}
-            labelProps={{}}
-            inputProps={{
-              placeholder: 'Search in note...',
-              value: highlightParam,
-              className:
-                'text-sm flex-1 dark:text-zinc-100 bg-transparent outline-none rounded-sm border-none px-0.5 !border-0 font-mono',
-              autoFocus: true,
-              autoCapitalize: 'off',
-              autoComplete: 'off',
-              autoCorrect: 'off',
-              spellCheck: false,
+            className="flex-1"
+            placeholder="Search in note..."
+            value={highlightParam}
+            inputClassName="text-sm dark:text-zinc-100 bg-transparent outline-none rounded-sm border-none px-0.5 !border-0 font-mono"
+            autoFocus
+            autoCapitalize="off"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+            onChange={setHighlightParam}
+            inputAttrs={{
               onFocus: (e) => e.target.select(),
-              onChange: (e) => setHighlightParam(e.target.value),
-              onKeyDown: (e) => {
-                if (e.key === 'Escape') {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setIsSearchOpen(false);
-                } else if (e.key === 'Enter') {
-                  e.preventDefault();
-                  if (e.shiftKey) {
-                    navigateToPreviousMatch();
-                  } else {
-                    navigateToNextMatch();
-                  }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsSearchOpen(false);
+              } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (e.shiftKey) {
+                  navigateToPreviousMatch();
+                } else {
+                  navigateToNextMatch();
                 }
-              },
+              }
             }}
           />
 
