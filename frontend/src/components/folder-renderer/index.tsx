@@ -21,6 +21,7 @@ import { FOLDER_TYPE } from '../virtualized/virtualized-file-tree/types';
 import { NotFound } from '../../routes/not-found';
 import { motion, type LegacyAnimationControls } from 'motion/react';
 import { cn } from '../../utils/string-formatting';
+import { queryKeys } from '../../utils/query-keys';
 import {
   FolderRendererCard,
   type FolderRendererItem,
@@ -98,7 +99,7 @@ export function FolderRenderer({
     folderTreeNode?.type === FOLDER_TYPE ? folderTreeNode.id : '';
 
   const { data, fetchNextPage, hasNextPage, isLoading } = useInfiniteQuery({
-    queryKey: ['folder-children', folderPath.fullPath],
+    queryKey: queryKeys.folderChildren(folderPath.fullPath),
     enabled: !!folderTreeNode && folderTreeNode.type === FOLDER_TYPE,
     initialPageParam: '',
     queryFn: ({ pageParam }) =>

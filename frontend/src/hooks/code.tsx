@@ -26,6 +26,7 @@ import {
   ShutdownKernelsByLanguage,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
 import { QueryError } from '../utils/query';
+import { queryKeys } from '../utils/query-keys';
 import { $nodesOfType, LexicalEditor } from 'lexical';
 import { toast } from 'sonner';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
@@ -86,7 +87,7 @@ export function useKernelInstancesQuery() {
   const setInstances = useSetAtom(kernelInstancesAtom);
 
   const { data: instances } = useQuery({
-    queryKey: ['kernel-instances'],
+    queryKey: queryKeys.kernelInstances(),
     staleTime: Infinity,
     refetchOnWindowFocus: false,
     queryFn: async () => {

@@ -32,6 +32,7 @@ import { createFilePath, type FilePath } from '../utils/path';
 import { routeUrls } from '../utils/routes';
 import { toast } from 'sonner';
 import { QueryError } from '../utils/query';
+import { queryKeys } from '../utils/query-keys';
 
 export type NoteSearchResult = {
   type: 'note';
@@ -100,12 +101,10 @@ function mapFullTextSearchResults(
   return results;
 }
 
-export const searchQueries = {
-  fullTextSearchKey: (searchQuery: string) =>
-    ['full-text-search', searchQuery] as const,
+const searchQueries = {
   savedSearches: () =>
     queryOptions({
-      queryKey: ['saved-searches'],
+      queryKey: queryKeys.savedSearches(),
       queryFn: async () => {
         const response = await GetAllSavedSearches();
         if (!response.success) {
@@ -125,7 +124,7 @@ const FILE_PICKER_PAGE_SIZE = 15;
  */
 export function useFilePickerSearchQuery(searchQuery: string) {
   return useQuery({
-    queryKey: ['file-picker-full-text-search', searchQuery],
+    queryKey: queryKeys.filePickerFullTextSearch(searchQuery),
     queryFn: async () => {
       const page = await FullTextSearch(searchQuery, [], FILE_PICKER_PAGE_SIZE);
       return mapFullTextSearchResults(page.results);
@@ -140,7 +139,7 @@ export function useFilePickerSearchQuery(searchQuery: string) {
  */
 export function useFullTextSearchQuery(searchQuery: string) {
   const query = useInfiniteQuery({
-    queryKey: searchQueries.fullTextSearchKey(searchQuery),
+    queryKey: queryKeys.fullTextSearch(searchQuery),
     initialPageParam: undefined as string[] | undefined,
     queryFn: ({ pageParam }) =>
       FullTextSearch(searchQuery, pageParam ?? [], null),
@@ -305,7 +304,7 @@ function updateSearchCache(
   ) => FullTextSearchPage['results'][number] | null
 ) {
   queryClient.setQueriesData<InfiniteData<FullTextSearchPage>>(
-    { queryKey: ['full-text-search'] },
+    { queryKey: queryKeys.fullTextSearchAll() },
     (oldData) => {
       if (!oldData) return oldData;
 

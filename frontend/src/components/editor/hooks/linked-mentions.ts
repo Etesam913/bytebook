@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { GetLinkedMentions } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/searchservice';
 import type { FilePath } from '../../../utils/path';
+import { queryKeys } from '../../../utils/query-keys';
 
 const LINKED_MENTIONS_PAGE_SIZE = 100;
 
@@ -8,7 +9,7 @@ export function useLinkedMentionsQuery(filePath: FilePath) {
   const pathToNote = filePath.fullPath;
 
   return useQuery({
-    queryKey: ['linked-mentions', pathToNote],
+    queryKey: queryKeys.linkedMentions(pathToNote),
     queryFn: async () => {
       const res = await GetLinkedMentions(
         pathToNote,

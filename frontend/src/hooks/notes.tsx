@@ -21,6 +21,7 @@ import { projectSettingsAtom, type TrashRestoreInfo } from '../atoms';
 import { CUSTOM_TRANSFORMERS } from '../components/editor/transformers';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
+import { queryKeys } from '../utils/query-keys';
 import {
   createFilePath,
   type FileOrFolderPath,
@@ -43,7 +44,7 @@ import { applyCodeResultsSidecar } from '../components/editor/utils/code-results
 const noteQueries = {
   doesNoteExist: (filePath: FilePath | null) =>
     queryOptions({
-      queryKey: ['doesNoteExist', filePath?.fullPath ?? ''],
+      queryKey: queryKeys.doesNoteExist(filePath?.fullPath ?? ''),
       queryFn: () => {
         if (!filePath) return false;
         return DoesNoteExist(filePath.fullPath);
@@ -105,7 +106,9 @@ export function useMoveToTrashMutation() {
       });
 
       if (needsTopLevelInvalidation) {
-        void queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+        void queryClient.invalidateQueries({
+          queryKey: queryKeys.topLevelFiles(),
+        });
       }
 
       // Navigate immediately if the current route was among the deleted paths
@@ -130,7 +133,9 @@ export function useMoveToTrashMutation() {
       }
     },
     onSuccess: (restoreItems) => {
-      void queryClient.invalidateQueries({ queryKey: ['full-text-search'] });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.fullTextSearchAll(),
+      });
 
       if (restoreItems.length === 0) {
         return;

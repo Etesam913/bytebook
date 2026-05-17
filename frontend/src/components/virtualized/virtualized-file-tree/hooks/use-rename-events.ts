@@ -12,6 +12,7 @@ import { createFilePath, createFolderPath } from '../../../../utils/path';
 import { logger } from '../../../../utils/logging';
 import { routeUrls } from '../../../../utils/routes';
 import { isTreeNodeAFolder } from '../utils/file-tree-utils';
+import { queryKeys } from '../../../../utils/query-keys';
 import {
   applyParentFolderUpdates,
   applyPathRemappings,
@@ -130,7 +131,9 @@ export function useRenameEvents() {
 
     // --- Phase 2: query invalidation ---
     if (needsTopLevelInvalidation) {
-      void queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.topLevelFiles(),
+      });
     }
 
     // The folder view's grid (`FolderRenderer`) reads from a

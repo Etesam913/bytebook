@@ -27,6 +27,7 @@ import {
 } from '../utils/events';
 import { parseRGB } from '../utils/string-formatting';
 import { QueryError } from '../utils/query';
+import { queryKeys } from '../utils/query-keys';
 import { ProjectSettingsJson } from '../../bindings/github.com/etesam913/bytebook/internal/config/models';
 
 const DEFAULT_ACCENT_COLOR = 'rgb(96, 165, 250)';
@@ -133,7 +134,7 @@ export function useProjectSettings() {
   const setDialogData = useSetAtom(dialogDataAtom);
 
   const { data: settings } = useQuery({
-    queryKey: ['project-settings'],
+    queryKey: queryKeys.projectSettings(),
     queryFn: async () => {
       const { success, message, data } = await GetProjectSettings();
       if (!success || !data) {

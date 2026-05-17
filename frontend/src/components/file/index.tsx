@@ -8,6 +8,7 @@ import { Image } from './media/image';
 import { Pdf } from './pdf';
 import { Video } from './media/video';
 import { FileDimensions } from '../editor/nodes/types';
+import { queryKeys } from '../../utils/query-keys';
 
 function getFileUrlFromSrc(src: string): string {
   if (src.startsWith('wails://')) {
@@ -36,7 +37,7 @@ export function File({
   setElementType: (elementType: FileType) => void;
 }) {
   const { data: fileType, isLoading } = useQuery({
-    queryKey: ['file', src],
+    queryKey: queryKeys.file(src),
     queryFn: async () => await getFileElementTypeFromExtensionAndHead(src),
   });
 

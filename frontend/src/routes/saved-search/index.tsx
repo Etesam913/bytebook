@@ -17,11 +17,11 @@ import { NoteSidebarButton } from '../notes-sidebar/sidebar-button/index.tsx';
 import { NoteRenderer } from '../../components/note-renderer';
 import { VirtualizedList } from '../../components/virtualized/virtualized-list/index.tsx';
 import {
-  searchQueries,
   useFullTextSearchQuery,
   useRegenerateSearchIndexMutation,
   useSavedSearchSyncEvents,
 } from '../../hooks/search.tsx';
+import { queryKeys } from '../../utils/query-keys.ts';
 import { useNoteExists } from '../../hooks/notes';
 import { createFilePath, type FilePath } from '../../utils/path.ts';
 import { isFileMaximizedAtom } from '../../atoms.ts';
@@ -223,7 +223,7 @@ export function SavedSearchPage({
   } = useRegenerateSearchIndexMutation({
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: searchQueries.fullTextSearchKey(searchQuery),
+        queryKey: queryKeys.fullTextSearch(searchQuery),
         exact: true,
       });
     },

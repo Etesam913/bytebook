@@ -62,6 +62,7 @@ import type { PlaceholderLineData } from '../types';
 import { updatePlaceholderLineData } from '../utils/placeholder-line';
 import { applyCodeResultsSidecar } from '../utils/code-results';
 import { createFilePath } from '../../../utils/path';
+import { queryKeys } from '../../../utils/query-keys';
 
 /** Gets note markdown from local system on mount */
 export function useNoteMarkdown({
@@ -83,7 +84,7 @@ export function useNoteMarkdown({
   const [hasFirstLoad, setHasFirstLoad] = useState(false);
 
   const getNoteMarkdownQuery = useQuery({
-    queryKey: ['note-markdown', `${folder}/${note}.md`],
+    queryKey: queryKeys.noteMarkdown(`${folder}/${note}.md`),
     queryFn: async () => {
       // Reset previous markdown when loading a new note
       setPreviousMarkdown('');

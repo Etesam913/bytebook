@@ -6,6 +6,7 @@ import { useWailsEvent, type WailsEvent } from '../../../../hooks/events';
 import { FILE_CREATE, FOLDER_CREATE } from '../../../../utils/events';
 import { getParentNodeFromPath } from '../utils/file-tree-utils';
 import { insertCreatedNodeIntoFileTree } from '../utils/create-node';
+import { queryKeys } from '../../../../utils/query-keys';
 
 /**
  * Handles `folder:create` and `file:create` Wails events with shared logic:
@@ -61,7 +62,9 @@ export function useCreateEvents() {
     });
 
     if (needsTopLevelInvalidation) {
-      void queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.topLevelFiles(),
+      });
     }
 
     // The folder view's grid (`FolderRenderer`) reads from a

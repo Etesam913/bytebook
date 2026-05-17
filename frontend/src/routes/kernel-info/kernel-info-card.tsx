@@ -4,10 +4,11 @@ import { Languages } from '../../types';
 import { GetKernelDescriptor } from '../../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
 import { Duplicate2 } from '../../icons/duplicate-2';
 import { LoadingSpinner } from '../../components/loading-spinner';
+import { queryKeys } from '../../utils/query-keys';
 
 export function KernelInfoCard({ language }: { language: Languages }) {
   const { data: response, isPending } = useQuery({
-    queryKey: ['kernel-descriptor', language],
+    queryKey: queryKeys.kernelDescriptor(language),
     queryFn: () => GetKernelDescriptor(language),
   });
   const kernelInfo = response?.success ? response.data : null;

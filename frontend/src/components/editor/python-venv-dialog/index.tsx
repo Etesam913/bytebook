@@ -19,12 +19,13 @@ import { SidebarAccordion } from '../../accordion';
 import { DesktopArrowDown } from '../../../icons/desktop-arrow-down';
 import { cn } from '../../../utils/string-formatting';
 import { RevealFolderOrFileInFinder } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
+import { queryKeys } from '../../../utils/query-keys';
 
 export function PythonVenvDialog({ errorText }: { errorText: string }) {
   const [customVenvPath, setCustomVenvPath] = useState<string | null>(null);
   const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
   const { data, error, isLoading } = useQuery({
-    queryKey: ['python-venvs'],
+    queryKey: queryKeys.pythonVenvs(),
     queryFn: () => GetPythonVirtualEnvironments(),
     refetchInterval: 3500,
   });

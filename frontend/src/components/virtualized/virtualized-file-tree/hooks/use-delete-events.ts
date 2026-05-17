@@ -14,6 +14,7 @@ import {
   getNavigationTargetForDeletedPaths,
   removePathsFromFileTree,
 } from '../utils/delete-node';
+import { queryKeys } from '../../../../utils/query-keys';
 
 /**
  * Handles `folder:delete` and `file:delete` Wails events with shared logic:
@@ -84,7 +85,9 @@ export function useDeleteEvents() {
     }
 
     if (needsTopLevelInvalidation) {
-      void queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.topLevelFiles(),
+      });
     }
 
     // The folder view's grid (`FolderRenderer`) reads from a

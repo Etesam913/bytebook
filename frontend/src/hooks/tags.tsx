@@ -9,6 +9,7 @@ import {
   SetTagsOnNotes,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/tagsservice';
 import { QueryError } from '../utils/query';
+import { queryKeys } from '../utils/query-keys';
 import { Dispatch, SetStateAction } from 'react';
 import { getSelectionValue } from '../utils/selection';
 import { useFilePathFromRoute } from './routes';
@@ -24,10 +25,10 @@ export function useTagEvents() {
   useWailsEvent(TAGS_INDEX_UPDATE, () => {
     logger.event(TAGS_INDEX_UPDATE);
 
-    void queryClient.invalidateQueries({ queryKey: ['get-tags'] });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.tagsAll() });
     if (filePath) {
       void queryClient.invalidateQueries({
-        queryKey: ['notes-tags', [filePath.fullPath]],
+        queryKey: queryKeys.notesTags([filePath.fullPath]),
       });
     }
   });
@@ -42,7 +43,7 @@ export function useTagEvents() {
  */
 export function useTagsQuery() {
   return useQuery({
-    queryKey: ['get-tags'],
+    queryKey: queryKeys.tagsAll(),
     queryFn: async (): Promise<string[]> => {
       const res = await GetTags();
       if (!res.success) {
@@ -60,7 +61,7 @@ export function useTagsQuery() {
  */
 export function useTagsForNotesQuery(paths: string[]) {
   return useQuery({
-    queryKey: ['notes-tags', paths],
+    queryKey: queryKeys.notesTags(paths),
     queryFn: async (): Promise<Record<string, string[]>> => {
       const res = await GetTagsForNotes(paths);
       if (!res.success) {
@@ -138,7 +139,7 @@ export function useDeleteTagFromNoteMutation(filePath: string) {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: ['notes-tags', [filePath]],
+        queryKey: queryKeys.notesTags([filePath]),
       });
     },
   });

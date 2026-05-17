@@ -19,6 +19,7 @@ import { FilePath } from '../../../utils/path';
 import { Frontmatter } from '../../../types';
 import { $convertToMarkdownString } from '@lexical/markdown';
 import { collectCodeResultsSidecar } from '../utils/code-results';
+import { queryKeys } from '../../../utils/query-keys';
 
 type SaveMarkdownContentPayload =
   | undefined
@@ -52,7 +53,7 @@ export function SavePlugin({
       codeResults
     );
     await queryClient.invalidateQueries({
-      queryKey: ['note-preview', decodedFolder, decodedNote],
+      queryKey: queryKeys.notePreview(decodedFolder, decodedNote),
     });
   }
   // Register a command to save markdown content
@@ -79,10 +80,10 @@ export function SavePlugin({
               ...existingFrontmatter,
             };
           }
-          const tags: string[] | undefined = queryClient.getQueryData([
-            'notes-tags',
-            filePath.fullPath,
-          ]);
+          const notesTags = queryClient.getQueryData<Record<string, string[]>>(
+            queryKeys.notesTags([filePath.fullPath])
+          );
+          const tags = notesTags?.[filePath.fullPath];
           const timeOfChange = new Date().toISOString();
           frontmatterCopy.folder = filePath.folder;
           frontmatterCopy.note = filePath.noteWithoutExtension;

@@ -15,6 +15,7 @@ import {
   type FileOrFolder,
 } from '../types';
 import { useAtom } from 'jotai';
+import { queryKeys } from '../../../../utils/query-keys';
 
 /**
  * Hook that fetches top-level files and folders from the backend
@@ -22,7 +23,7 @@ import { useAtom } from 'jotai';
  */
 function useTopLevelFileOrFoldersQuery() {
   return useQuery({
-    queryKey: ['top-level-files'],
+    queryKey: queryKeys.topLevelFiles(),
     queryFn: async (): Promise<FileOrFolder[]> => {
       const res = await GetTopLevelItems();
       if (!res.success || !res.data) {

@@ -26,6 +26,7 @@ import { useAtomValue, useSetAtom, useStore } from 'jotai';
 import { fileTreeDataAtom } from '../../../../atoms';
 import { backendQueryAtom, sidebarSelectionAtom } from '../../../../atoms';
 import { QueryError } from '../../../../utils/query';
+import { queryKeys } from '../../../../utils/query-keys';
 import { insertCreatedNodeIntoFileTree } from '../utils/create-node';
 import {
   getParentNodeFromPath,
@@ -221,7 +222,9 @@ export function useRenameTreeItemMutation() {
       });
 
       if (needsTopLevelInvalidation) {
-        void queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+        void queryClient.invalidateQueries({
+          queryKey: queryKeys.topLevelFiles(),
+        });
       }
 
       try {
