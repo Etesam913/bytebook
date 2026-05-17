@@ -42,93 +42,104 @@ import {
  * Validates the name, creates the item via the backend service, and navigates
  * to the newly created item.
  */
+type AddTreeItemVariables = {
+  parentFolder: Folder | null;
+  addType: typeof FOLDER_TYPE | typeof FILE_TYPE;
+  newName: string;
+  onSuccess?: () => void;
+};
+
 export function useAddTreeItemMutation() {
   const setFileTreeData = useSetAtom(fileTreeDataAtom);
+  const queryClient = useQueryClient();
+  const store = useStore();
 
   return useMutation({
     mutationFn: async ({
       parentFolder,
       addType,
       newName,
-    }: {
-      parentFolder: Folder | null;
-      addType: typeof FOLDER_TYPE | typeof FILE_TYPE;
-      newName: string;
-      onSuccess?: () => void;
-    }) => {
-      if (!NAME_CHARS.test(newName)) {
+    }: AddTreeItemVariables) => {
+      const trimmedName = newName.trim();
+      if (!NAME_CHARS.test(trimmedName)) {
         throw new Error(
           'Names can only contain letters, numbers, spaces, hyphens, and underscores.'
         );
       }
-
-      if (addType === FOLDER_TYPE) {
-        // Create folder: path is parentFolder/newFolderName (or top-level if null)
-        const newFolderPath = parentFolder
-          ? `${parentFolder.path}/${newName}`
-          : newName;
-        const res = await AddFolder(newFolderPath);
-        if (!res.success) {
-          throw new Error(res.message);
-        }
-        return {
-          addType,
-          parentPath: parentFolder?.path ?? '',
-          newName,
-          newFolderPath,
-        };
-      }
-
-      if (!parentFolder) {
+      if (addType === FILE_TYPE && !parentFolder) {
         throw new Error('Parent folder is required to add a note');
       }
 
-      const newNotePath = `${parentFolder.path}/${newName}.md`;
-      // Create note: folder is parentFolder.id, note name is newName
-      const res = await AddNoteToFolder(parentFolder.path, newName);
-      if (!res.success) {
-        throw new Error(res.message);
+      const isTopLevel = !parentFolder;
+      const newPath =
+        addType === FOLDER_TYPE
+          ? parentFolder
+            ? `${parentFolder.path}/${trimmedName}`
+            : trimmedName
+          : `${parentFolder!.path}/${trimmedName}.md`;
+
+      // Snapshot for rollback, then optimistically insert + navigate before
+      // the backend call. The follow-up `folder:create` / `file:create`
+      // watcher event is idempotent (skips paths already in the tree).
+      const previousFileTreeData = store.get(fileTreeDataAtom);
+      setFileTreeData((prev) => {
+        // Top-level folders have no parent in the tree, so the general-purpose
+        // insert helper bails. Insert directly with `parentId: null` to avoid
+        // a NotFound flicker when FolderRenderer mounts before the backend
+        // ack + `top-level-files` refetch lands.
+        // `reconcileTopLevelFileTreeMap` dedupes by path on refetch and
+        // preserves this optimistic id.
+        if (addType === FOLDER_TYPE && isTopLevel) {
+          if (prev.filePathToTreeDataId.has(newPath)) return prev;
+          const id = globalThis.crypto.randomUUID();
+          const treeData = new Map(prev.treeData);
+          const filePathToTreeDataId = new Map(prev.filePathToTreeDataId);
+          treeData.set(id, {
+            id,
+            type: FOLDER_TYPE,
+            name: trimmedName,
+            path: newPath,
+            parentId: null,
+            childrenIds: [],
+            childrenCursor: '',
+            hasMoreChildren: false,
+            isOpen: false,
+          });
+          filePathToTreeDataId.set(newPath, id);
+          return { treeData, filePathToTreeDataId };
+        }
+        return insertCreatedNodeIntoFileTree(prev, newPath, addType) ?? prev;
+      });
+
+      if (addType === FOLDER_TYPE) {
+        const folderPath = createFolderPath(newPath);
+        if (folderPath) navigate(folderPath.encodedFolderUrl);
+      } else {
+        const filePath = createFilePath(newPath);
+        if (filePath) navigate(filePath.encodedFileUrl);
       }
 
-      return { addType, parentPath: parentFolder.path, newName, newNotePath };
+      try {
+        const res =
+          addType === FOLDER_TYPE
+            ? await AddFolder(newPath)
+            : await AddNoteToFolder(parentFolder!.path, trimmedName);
+        if (!res.success) throw new Error(res.message);
+      } catch (err) {
+        setFileTreeData(previousFileTreeData);
+        throw err;
+      }
+
+      // Refresh the top-level list so the backend's authoritative id and
+      // ordering replace our optimistic insert. `reconcileTopLevelFileTreeMap`
+      // dedupes by path, so this won't double-insert.
+      if (addType === FOLDER_TYPE && isTopLevel) {
+        void queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+      }
+
+      return { addType, newPath };
     },
-    onSuccess: (result, variables) => {
-      if (result.addType === FOLDER_TYPE) {
-        // Optimistically insert the node into tree data
-        setFileTreeData(
-          (prev) =>
-            insertCreatedNodeIntoFileTree(
-              prev,
-              result.newFolderPath,
-              FOLDER_TYPE
-            ) ?? prev
-        );
-
-        const folderPath = createFolderPath(result.newFolderPath);
-        if (folderPath) {
-          console.log('navigating to folder', folderPath.encodedFolderUrl);
-          navigate(folderPath.encodedFolderUrl);
-        }
-      }
-
-      if (result.addType === FILE_TYPE) {
-        // Optimistically insert the node into tree data
-        setFileTreeData((prev) => {
-          return (
-            insertCreatedNodeIntoFileTree(
-              prev,
-              result.newNotePath,
-              FILE_TYPE
-            ) ?? prev
-          );
-        });
-
-        const filePath = createFilePath(result.newNotePath);
-        if (filePath) {
-          navigate(filePath.encodedFileUrl);
-        }
-      }
-
+    onSuccess: (_, variables) => {
       variables.onSuccess?.();
     },
   });
