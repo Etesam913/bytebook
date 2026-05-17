@@ -63,6 +63,12 @@ export function useCreateEvents() {
     if (needsTopLevelInvalidation) {
       void queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
     }
+
+    // The folder view's grid (`FolderRenderer`) reads from a
+    // `['folder-children', folderPath]` infinite query that isn't backed by
+    // `fileTreeDataAtom`, so invalidate it so newly created children appear
+    // in the grid.
+    void queryClient.invalidateQueries({ queryKey: ['folder-children'] });
   }
 
   useWailsEvent(FOLDER_CREATE, (body) => handleCreate(FOLDER_CREATE, body));

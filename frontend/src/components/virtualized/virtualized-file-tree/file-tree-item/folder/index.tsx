@@ -458,16 +458,6 @@ export function FileTreeFolderItem({
                 : []),
               ...addFolderOption,
               ...addNoteOption,
-              ...addAttachmentsOption,
-              ...(selectedFolders.length > 0
-                ? [
-                    pin({
-                      paths: selectedFolders.map((item) => item.path),
-                      shouldPin: shouldPinSelectedFolders,
-                      kind: 'folder',
-                    }),
-                  ]
-                : []),
               ...(!isMultiSelection
                 ? [
                     rename({
@@ -476,6 +466,16 @@ export function FileTreeFolderItem({
                         resetRenameTreeItem();
                         setIsEditing(true);
                       },
+                    }),
+                  ]
+                : []),
+              ...addAttachmentsOption,
+              ...(selectedFolders.length > 0
+                ? [
+                    pin({
+                      paths: selectedFolders.map((item) => item.path),
+                      shouldPin: shouldPinSelectedFolders,
+                      kind: 'folder',
                     }),
                   ]
                 : []),

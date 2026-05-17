@@ -133,6 +133,11 @@ export function useRenameEvents() {
       void queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
     }
 
+    // The folder view's grid (`FolderRenderer`) reads from a
+    // `['folder-children', folderPath]` infinite query that isn't backed by
+    // `fileTreeDataAtom`, so invalidate it so renames reflect in the grid.
+    void queryClient.invalidateQueries({ queryKey: ['folder-children'] });
+
     // --- Phase 3: navigation ---
 
     // For note renames: if the user is viewing the renamed note, redirect to

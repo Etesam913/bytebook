@@ -87,6 +87,12 @@ export function useDeleteEvents() {
       void queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
     }
 
+    // The folder view's grid (`FolderRenderer`) reads from a
+    // `['folder-children', folderPath]` infinite query that isn't backed by
+    // `fileTreeDataAtom`, so invalidate it on every delete to keep the grid
+    // in sync.
+    void queryClient.invalidateQueries({ queryKey: ['folder-children'] });
+
     // Compute navigation target before tree mutation using pre-mutation state
     const navigationTarget = getNavigationTargetForDeletedPaths({
       currentRoutePath,

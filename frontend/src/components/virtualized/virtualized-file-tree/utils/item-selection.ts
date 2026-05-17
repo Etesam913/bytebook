@@ -251,7 +251,7 @@ export function computeMetaClickState({
 }
 
 /** SVG markup for folder icon used in drag ghost */
-const FOLDER_SVG = `<svg style="width: 16px; height: 16px;" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+const FOLDER_SVG = `<svg style="width: 1rem; height: 1rem;" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
   <g fill="currentColor" stroke="currentColor">
     <path d="M1.75,7.75V3.75c0-.552,.448-1,1-1h3.797c.288,0,.563,.125,.753,.342l2.325,2.658" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
     <rect height="9.5" width="14.5" fill="none" rx="2" ry="2" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" x="1.75" y="5.75"/>
@@ -259,7 +259,7 @@ const FOLDER_SVG = `<svg style="width: 16px; height: 16px;" viewBox="0 0 18 18" 
 </svg>`;
 
 /** SVG markup for page/note icon used in drag ghost */
-const PAGE_SVG = `<svg style="width: 16px; height: 16px;" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+const PAGE_SVG = `<svg style="width: 1rem; height: 1rem;" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
   <g fill="currentColor" stroke="currentColor">
     <line fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" x1="5.75" x2="9" y1="11.25" y2="11.25"/>
     <line fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" x1="5.75" x2="12.25" y1="8.25" y2="8.25"/>
@@ -282,14 +282,14 @@ export function createDragGhostElement({
   const ghostContainer = document.createElement('div');
   ghostContainer.id = 'file-tree-item';
   ghostContainer.className =
-    'fixed top-[-1000px] left-[-1000px] bg-zinc-100 dark:bg-zinc-700 border-2 border-zinc-200 dark:border-zinc-650 px-2 py-1 rounded-md text-[13px] shadow-sm pointer-events-none z-[9999] max-w-[250px] max-h-[300px] overflow-visible';
+    'fixed top-[-1000px] left-[-1000px] bg-zinc-100 dark:bg-zinc-700 border-2 border-zinc-200 dark:border-zinc-650 px-2 py-1 rounded-md text-[0.8125rem] shadow-sm pointer-events-none z-[9999] max-w-[15.625rem] max-h-[18.75rem] overflow-visible';
 
   const selections = sidebarSelection.selections;
   const draggedCount = selections.size;
 
   const countBadge = document.createElement('div');
   countBadge.className =
-    'absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] rounded-full text-white text-[11px] font-semibold flex items-center justify-center shadow';
+    'absolute -top-1.5 -right-1.5 min-w-[1.125rem] h-[1.125rem] rounded-full text-white text-[0.6875rem] font-semibold flex items-center justify-center shadow';
   countBadge.style.backgroundColor = 'var(--accent-color)';
   countBadge.textContent = String(draggedCount);
   ghostContainer.appendChild(countBadge);
