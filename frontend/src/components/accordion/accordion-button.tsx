@@ -40,7 +40,7 @@ export function AccordionButton({
         initial={{ rotateZ: isOpen ? 180 : 0 }}
         animate={{ rotateZ: isOpen ? 180 : 0 }}
       >
-        <ChevronDown strokeWidth="2.5px" className="will-change-transform" />
+        <ChevronDown strokeWidth={2.5} className="will-change-transform" />
       </motion.span>
     </button>
   );

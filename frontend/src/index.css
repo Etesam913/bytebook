@@ -505,8 +505,14 @@ textarea,
   @apply bg-zinc-50! dark:bg-zinc-800! text-zinc-900 dark:text-zinc-200 border-zinc-200! dark:border-zinc-750! py-2 px-3 shadow-lg border! font-mono text-xs max-h-[30vh] max-w-[60vw] overflow-y-auto;
 }
 
+.cm-tooltip-autocomplete,
+.cm-tooltip-autocomplete > ul,
+.cm-tooltip-autocomplete > ul > li {
+  font-family: var(--code-block-font-family) !important;
+}
+
 .cm-tooltip-autocomplete {
-  @apply bg-zinc-50/85! dark:bg-zinc-800/95! text-zinc-900 dark:text-zinc-200 border-zinc-200! dark:border-zinc-750! rounded-lg! py-1.5 px-1 shadow-lg border!;
+  @apply bg-zinc-50! dark:bg-zinc-800! text-zinc-900 dark:text-zinc-200 border-zinc-200! dark:border-zinc-750! rounded-lg! py-1.5 px-1 shadow-lg border! text-xs;
 }
 
 .cm-tooltip-autocomplete > ul > li {
@@ -518,7 +524,7 @@ textarea,
 }
 /* The signature that shows to the right of the completion label */
 .cm-completionDetail {
-  @apply text-[0.65rem] text-zinc-400;
+  @apply text-[0.6rem] text-zinc-400;
 }
 
 .cm-tooltip-autocomplete
@@ -528,25 +534,12 @@ textarea,
   @apply text-zinc-50;
 }
 
-/* Adding some icons to the completion list */
-.cm-tooltip-autocomplete .cm-completionIcon-path::before {
-  content: '𝐩';
+.cm-tooltip-autocomplete .cm-completionIcon {
+  display: none;
 }
 
 .cm-activeLine {
   border-radius: 0.2rem;
-}
-
-.cm-tooltip-autocomplete .cm-completionIcon-statement::before {
-  content: '𝑺';
-}
-
-.cm-tooltip-autocomplete .cm-completionIcon-instance::before {
-  content: '𝐢';
-}
-
-.cm-tooltip-autocomplete .cm-completionIcon-module::before {
-  content: '𝐦';
 }
 
 /* Makes sure that the code block does not overlap with the traffic lights when in fullscreen mode */

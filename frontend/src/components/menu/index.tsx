@@ -35,7 +35,7 @@ export function AppMenuPopover({
       {...props}
       className={({ isEntering, isExiting }) =>
         cn(
-          'rounded-md border-[0.078125rem] border-zinc-300 bg-zinc-50 shadow-xl dark:border-zinc-600 dark:bg-zinc-700 overflow-hidden',
+          'rounded-xl border-[0.078125rem] border-zinc-300 bg-zinc-50/95 shadow-xl dark:border-zinc-600 dark:bg-zinc-700/92.5 overflow-hidden',
           // CSS opacity transition keeps Popover mounted during exit
           'transition-opacity',
           (isEntering || isExiting) && 'duration-500',
@@ -87,7 +87,7 @@ export function AppMenuItem({
       {...props}
       className={({ isFocused, isSelected }) =>
         cn(
-          'outline-hidden focus-visible:ring-0 rounded-md w-full px-1.5 py-0.5 text-left whitespace-nowrap text-nowrap text-ellipsis overflow-hidden flex cursor-default',
+          'outline-hidden focus-visible:ring-0 rounded-lg w-full px-2 py-0.5 text-left whitespace-nowrap text-nowrap text-ellipsis overflow-hidden flex cursor-default',
           isFocused && 'bg-(--accent-color) text-white',
           !isFocused && isSelected && 'bg-zinc-150 dark:bg-zinc-600',
           typeof className === 'string' ? className : undefined

@@ -160,9 +160,9 @@ export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
             >
               <ChevronDown
                 className="text-zinc-500 dark:text-zinc-300 will-change-transform"
-                strokeWidth="3.5px"
-                width="0.5625rem"
-                height="0.5625rem"
+                strokeWidth={3.5}
+                width={9}
+                height={9}
               />
             </motion.div>
           </>

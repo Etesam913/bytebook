@@ -42,7 +42,7 @@ export function LinkedMentions({ filePath }: { filePath: FilePath }) {
                 isExpanded ? 'rotate-0' : '-rotate-90'
               )}
             >
-              <ChevronDown width="0.75rem" height="0.75rem" strokeWidth="2.5" />
+              <ChevronDown width={12} height={12} strokeWidth={2.5} />
             </span>
             <span>
               Linked mentions

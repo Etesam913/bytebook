@@ -1,15 +1,15 @@
 export function ChevronDown({
-  width = '0.8rem',
-  height = '0.8rem',
+  width = 13,
+  height = 13,
   fill = 'currentColor',
   className,
-  strokeWidth = '1.5',
+  strokeWidth = 1.5,
 }: {
-  width?: string;
-  height?: string;
+  width?: number;
+  height?: number;
   fill?: string;
   className?: string;
-  strokeWidth?: string;
+  strokeWidth?: number;
 }) {
   return (
     <svg

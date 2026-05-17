@@ -18,7 +18,7 @@ function DisclosureChevron() {
       className="ml-auto"
       animate={{ rotateZ: isExpanded ? 180 : 0 }}
     >
-      <ChevronDown strokeWidth="2.5px" className="will-change-transform" />
+      <ChevronDown strokeWidth={2.5} className="will-change-transform" />
     </motion.span>
   );
 }

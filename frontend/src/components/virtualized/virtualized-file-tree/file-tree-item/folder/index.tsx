@@ -436,7 +436,7 @@ export function FileTreeFolderItem({
                         <PaperclipPlus width="1.0625rem" height="1.0625rem" />
                       }
                     >
-                      Add attachments
+                      Add Attachments
                     </MenuItemLabel>
                   ),
                   value: 'add-attachments',

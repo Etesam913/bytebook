@@ -69,7 +69,7 @@ export function Dropdown({
     >
       <Button
         className={cn(
-          'relative w-fit text-sm flex items-center rounded-md gap-1.5 border-[1.25px] border-zinc-300 bg-zinc-50 px-2 py-0.5 text-left dark:border-zinc-600 dark:bg-zinc-700 aria-expanded:bg-zinc-100 dark:aria-expanded:bg-zinc-600 whitespace-nowrap outline-hidden',
+          'relative w-fit text-sm flex items-center rounded-lg gap-1.5 border-[1.25px] border-zinc-300 bg-zinc-50 px-2 py-0.5 text-left dark:border-zinc-600 dark:bg-zinc-700 aria-expanded:bg-zinc-100 dark:aria-expanded:bg-zinc-600 whitespace-nowrap outline-hidden',
           buttonClassName,
           className,
           disabled && 'pointer-events-none opacity-50'
@@ -83,7 +83,7 @@ export function Dropdown({
               animate={{ rotateZ: isPressed ? 180 : 0 }}
               aria-hidden="true"
             >
-              <ChevronDown strokeWidth="2.8px" />
+              <ChevronDown strokeWidth={2.8} />
             </motion.span>
           </>
         )}
@@ -97,7 +97,7 @@ export function Dropdown({
               textValue={item.value}
               className={({ isFocused, isSelected }) =>
                 cn(
-                  'outline-hidden focus-visible:ring-0 rounded-md w-full px-1.5 py-0.5 text-left whitespace-nowrap text-nowrap text-ellipsis overflow-hidden flex cursor-default',
+                  'outline-hidden focus-visible:ring-0 rounded-lg w-full px-2.5 py-0.5 text-left whitespace-nowrap text-nowrap text-ellipsis overflow-hidden flex cursor-default',
                   isFocused && 'bg-(--accent-color) text-white',
                   !isFocused && isSelected && 'bg-zinc-150 dark:bg-zinc-600'
                 )
