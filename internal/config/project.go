@@ -118,14 +118,23 @@ func CreateProjectDirectories(projectPath string) error {
 	return nil
 }
 
+type SidebarVisibilitySettings struct {
+	HidePinned        bool `json:"hidePinned"`
+	HideRecent        bool `json:"hideRecent"`
+	HideKernels       bool `json:"hideKernels"`
+	HideTags          bool `json:"hideTags"`
+	HideSavedSearches bool `json:"hideSavedSearches"`
+}
+
 type AppearanceProjectSettingsJson struct {
-	Theme                    string `json:"theme"`
-	AccentColor              string `json:"accentColor"`
-	NoteWidth                string `json:"noteWidth"`
-	UiFontFamily             string `json:"uiFontFamily"`
-	EditorFontFamily         string `json:"editorFontFamily"`
-	EditorFontSize           int    `json:"editorFontSize"`
-	ShowEmptyLinePlaceholder bool   `json:"showEmptyLinePlaceholder"`
+	Theme                    string                    `json:"theme"`
+	AccentColor              string                    `json:"accentColor"`
+	NoteWidth                string                    `json:"noteWidth"`
+	UiFontFamily             string                    `json:"uiFontFamily"`
+	EditorFontFamily         string                    `json:"editorFontFamily"`
+	EditorFontSize           int                       `json:"editorFontSize"`
+	ShowEmptyLinePlaceholder bool                      `json:"showEmptyLinePlaceholder"`
+	SidebarVisibility        SidebarVisibilitySettings `json:"sidebarVisibility"`
 }
 
 type CodeProjectSettingsJson struct {
@@ -160,6 +169,7 @@ func GetProjectSettings(projectPath string) (ProjectSettingsJson, error) {
 			EditorFontFamily:         "",
 			EditorFontSize:           DefaultEditorFontSize,
 			ShowEmptyLinePlaceholder: true,
+			SidebarVisibility:        SidebarVisibilitySettings{},
 		},
 		Code: CodeProjectSettingsJson{
 			CodeBlockVimMode:      false,

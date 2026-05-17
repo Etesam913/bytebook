@@ -13,6 +13,7 @@ import {
   fileSidebarOpenStateAtom,
   isFullscreenAtom,
   MIN_FLEX_WEIGHT,
+  projectSettingsAtom,
   SIDEBAR_PANEL_KEYS,
   type SidebarFlexWeights,
   type SidebarPanelKey,
@@ -66,6 +67,8 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
   const scaledWidth = useMotionTemplate`calc(${width}px * var(--ui-scale))`;
 
   const openState = useAtomValue(fileSidebarOpenStateAtom);
+  const sidebarVisibility =
+    useAtomValue(projectSettingsAtom).appearance.sidebarVisibility;
   const storedWeightsRef = useRef<SidebarFlexWeights>(loadStoredWeights());
   const sw = storedWeightsRef.current;
 
@@ -131,31 +134,41 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
               flexWeightMVs={flexWeightMVs}
               storedWeightsRef={storedWeightsRef}
             />
-            <PinnedAccordion
-              containerRef={panelContainerRef}
-              flexWeightMVs={flexWeightMVs}
-              storedWeightsRef={storedWeightsRef}
-            />
-            <RecentAccordion
-              containerRef={panelContainerRef}
-              flexWeightMVs={flexWeightMVs}
-              storedWeightsRef={storedWeightsRef}
-            />
-            <MyKernelsAccordion
-              containerRef={panelContainerRef}
-              flexWeightMVs={flexWeightMVs}
-              storedWeightsRef={storedWeightsRef}
-            />
-            <MyTagsAccordion
-              containerRef={panelContainerRef}
-              flexWeightMVs={flexWeightMVs}
-              storedWeightsRef={storedWeightsRef}
-            />
-            <MySavedSearchesAccordion
-              containerRef={panelContainerRef}
-              flexWeightMVs={flexWeightMVs}
-              storedWeightsRef={storedWeightsRef}
-            />
+            {!sidebarVisibility.hidePinned && (
+              <PinnedAccordion
+                containerRef={panelContainerRef}
+                flexWeightMVs={flexWeightMVs}
+                storedWeightsRef={storedWeightsRef}
+              />
+            )}
+            {!sidebarVisibility.hideRecent && (
+              <RecentAccordion
+                containerRef={panelContainerRef}
+                flexWeightMVs={flexWeightMVs}
+                storedWeightsRef={storedWeightsRef}
+              />
+            )}
+            {!sidebarVisibility.hideKernels && (
+              <MyKernelsAccordion
+                containerRef={panelContainerRef}
+                flexWeightMVs={flexWeightMVs}
+                storedWeightsRef={storedWeightsRef}
+              />
+            )}
+            {!sidebarVisibility.hideTags && (
+              <MyTagsAccordion
+                containerRef={panelContainerRef}
+                flexWeightMVs={flexWeightMVs}
+                storedWeightsRef={storedWeightsRef}
+              />
+            )}
+            {!sidebarVisibility.hideSavedSearches && (
+              <MySavedSearchesAccordion
+                containerRef={panelContainerRef}
+                flexWeightMVs={flexWeightMVs}
+                storedWeightsRef={storedWeightsRef}
+              />
+            )}
           </section>
         </Activity>
         <Activity mode={isSearchSidebar ? 'visible' : 'hidden'}>

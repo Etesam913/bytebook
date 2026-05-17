@@ -105,6 +105,14 @@ function validateProjectSettingsWrapper(data: ProjectSettingsJson) {
       uiFontFamily: data.appearance.uiFontFamily ?? DEFAULT_UI_FONT_FAMILY,
       theme,
       noteWidth,
+      sidebarVisibility: {
+        hidePinned: data.appearance.sidebarVisibility?.hidePinned ?? false,
+        hideRecent: data.appearance.sidebarVisibility?.hideRecent ?? false,
+        hideKernels: data.appearance.sidebarVisibility?.hideKernels ?? false,
+        hideTags: data.appearance.sidebarVisibility?.hideTags ?? false,
+        hideSavedSearches:
+          data.appearance.sidebarVisibility?.hideSavedSearches ?? false,
+      },
     },
     code: {
       ...data.code,

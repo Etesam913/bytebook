@@ -51,14 +51,23 @@ export type BackendQueryDataType = {
   message: string;
 };
 
+export type SidebarVisibility = {
+  hidePinned: boolean;
+  hideRecent: boolean;
+  hideKernels: boolean;
+  hideTags: boolean;
+  hideSavedSearches: boolean;
+};
+
 type AppearanceSettings = Omit<
   AppearanceProjectSettingsJson,
-  'theme' | 'noteWidth'
+  'theme' | 'noteWidth' | 'sidebarVisibility'
 > & {
   theme: 'light' | 'dark' | 'system';
   noteWidth: 'fullWidth' | 'readability';
   editorFontSize: number;
   showEmptyLinePlaceholder: boolean;
+  sidebarVisibility: SidebarVisibility;
 };
 
 export type ProjectSettings = Omit<

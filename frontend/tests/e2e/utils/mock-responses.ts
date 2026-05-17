@@ -100,6 +100,13 @@ export const MOCK_PROJECT_SETTINGS_RESPONSE = {
       editorFontSize: 14,
       editorFontFamily: '',
       showEmptyLinePlaceholder: true,
+      sidebarVisibility: {
+        hidePinned: false,
+        hideRecent: false,
+        hideKernels: false,
+        hideTags: false,
+        hideSavedSearches: false,
+      },
     },
     code: {
       codeBlockVimMode: false,

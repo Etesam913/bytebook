@@ -78,6 +78,13 @@ export const projectSettingsAtom = atom<ProjectSettings>({
     editorFontSize: DEFAULT_EDITOR_FONT_SIZE,
     editorFontFamily: '',
     showEmptyLinePlaceholder: true,
+    sidebarVisibility: {
+      hidePinned: false,
+      hideRecent: false,
+      hideKernels: false,
+      hideTags: false,
+      hideSavedSearches: false,
+    },
   },
   code: {
     codeBlockVimMode: false,
