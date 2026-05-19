@@ -27,6 +27,7 @@ import {
 } from './hooks/routes';
 import { EditorWrapper } from './components/virtualized/virtualized-file-tree/editor-wrapper';
 import { VirtualizedFileTreeDebugView } from './components/virtualized/virtualized-file-tree/debug-view';
+import { RouteDebugView } from './components/route-debug-view';
 import { useCreateEvents } from './components/virtualized/virtualized-file-tree/hooks/use-create-events';
 import { useDeleteEvents } from './components/virtualized/virtualized-file-tree/hooks/use-delete-events';
 import { useRenameEvents } from './components/virtualized/virtualized-file-tree/hooks/use-rename-events';
@@ -97,7 +98,10 @@ function App() {
       <LoadingModal />
       <Toaster richColors theme="system" />
       {import.meta.env.DEV && !isE2ETestEnvironment() && (
-        <VirtualizedFileTreeDebugView />
+        <>
+          <VirtualizedFileTreeDebugView />
+          <RouteDebugView />
+        </>
       )}
       <Activity mode={isFileMaximized ? 'hidden' : 'visible'}>
         <FileSidebar width={fileSidebarWidth} />
