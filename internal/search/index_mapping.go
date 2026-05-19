@@ -320,11 +320,6 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 // It defines field mappings for all the fields in AttachmentBleveDocument to enable
 // proper indexing and searching of attachment metadata.
 func createAttachmentDocumentMapping() *mapping.DocumentMapping {
-	// Set store = true for folder
-	storedKeywordMapping := bleve.NewTextFieldMapping()
-	storedKeywordMapping.Analyzer = "keyword"
-	storedKeywordMapping.Store = true
-
 	keywordTextFieldMapping := bleve.NewTextFieldMapping()
 	keywordTextFieldMapping.Analyzer = "keyword"
 
@@ -340,7 +335,11 @@ func createAttachmentDocumentMapping() *mapping.DocumentMapping {
 	attachmentFileNameFieldMapping.Analyzer = FilenameAnalyzer
 	attachmentFileNameFieldMapping.Store = true
 
-	documentMapping.AddFieldMappingsAt(FieldFolder, storedKeywordMapping)
+	attachmentFolderFieldMapping := bleve.NewTextFieldMapping()
+	attachmentFolderFieldMapping.Analyzer = FilenameAnalyzer
+	attachmentFolderFieldMapping.Store = true
+
+	documentMapping.AddFieldMappingsAt(FieldFolder, attachmentFolderFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldFileName, attachmentFileNameFieldMapping)
 	// FieldFileNameLC removed - using FieldFileName for both search and display
 	documentMapping.AddFieldMappingsAt(FieldFileExtension, keywordTextFieldMapping)

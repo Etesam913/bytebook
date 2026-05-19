@@ -105,6 +105,27 @@ func TestDeleteFoldersFromIndex(t *testing.T) {
 		assert.NotNil(t, doc2)
 	})
 
+	t.Run("should delete attachments from mixed case folders", func(t *testing.T) {
+		params := createTestParams(t)
+		folderPath := filepath.Join(params.ProjectPath, "notes", "Foo", "Bar")
+		require.NoError(t, os.MkdirAll(folderPath, 0755))
+		require.NoError(t, os.WriteFile(filepath.Join(folderPath, "image.png"), []byte("image"), 0644))
+		require.NoError(t, search.IndexAllFiles(params.ProjectPath, rawIndex(params)))
+
+		docID := filepath.Join("Foo", "Bar", "image.png")
+		doc, err := rawIndex(params).Document(docID)
+		require.NoError(t, err)
+		require.NotNil(t, doc)
+
+		deleteFoldersFromIndex(params, []map[string]string{
+			{"folderPath": filepath.Join("Foo", "Bar")},
+		})
+
+		doc, err = rawIndex(params).Document(docID)
+		require.NoError(t, err)
+		assert.Nil(t, doc)
+	})
+
 	t.Run("should skip invalid entries and keep other folders intact", func(t *testing.T) {
 		params := createTestParams(t)
 		createMarkdownNoteInFolder(t, params.ProjectPath, "folder1", "one.md", "# one")

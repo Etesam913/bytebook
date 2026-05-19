@@ -97,18 +97,21 @@ func addFoldersToIndex(params EventParams, data []map[string]string) {
 }
 
 // createFolderAndDescendantsQuery builds a query that matches documents in the
-// given folder AND any nested subfolders. It combines an exact TermQuery with a
-// PrefixQuery for "<folder>/" so that deleting "parent" also catches "parent/child".
+// given folder AND any nested subfolders. Folder fields are normalized to
+// lowercase by the index analyzer.
 func createFolderAndDescendantsQuery(folderPath string) query.Query {
 	lower := strings.ToLower(folderPath)
 
+	folderQuery := bleve.NewDisjunctionQuery()
 	exactQuery := bleve.NewTermQuery(lower)
 	exactQuery.SetField(search.FieldFolder)
+	folderQuery.AddQuery(exactQuery)
 
 	prefixQuery := bleve.NewPrefixQuery(lower + "/")
 	prefixQuery.SetField(search.FieldFolder)
+	folderQuery.AddQuery(prefixQuery)
 
-	return bleve.NewDisjunctionQuery(exactQuery, prefixQuery)
+	return folderQuery
 }
 
 func deleteFoldersFromIndex(params EventParams, data []map[string]string) {
