@@ -410,3 +410,50 @@ export function applyParentFolderUpdates({
     filePathToTreeDataId: updatedFilePathToTreeDataId,
   };
 }
+
+// Mutates the file tree data structure to reflect rename or move operations.
+// Resolves path remappings, node updates, and re-sorts parent folders atomically.
+// Used by both active Wails event handlers and optimistic mutation triggers.
+export function renameOrMoveNodes({
+  fileTreeData,
+  entries,
+  mode,
+}: {
+  fileTreeData: FileTreeData;
+  entries: { oldPath: string; newPath: string }[];
+  mode: 'file' | 'folder';
+}): {
+  nextFileTreeData: FileTreeData;
+  needsTopLevelInvalidation: boolean;
+} {
+  const renameUpdates = buildRenameUpdates({
+    entries,
+    fileTreeData,
+    isValidNode:
+      mode === 'folder'
+        ? (node) => isTreeNodeAFolder(node)
+        : (node) => !isTreeNodeAFolder(node),
+  });
+
+  if (renameUpdates.pathRemappings.size === 0) {
+    return { nextFileTreeData: fileTreeData, needsTopLevelInvalidation: false };
+  }
+
+  const remapped = applyPathRemappings({
+    fileTreeData,
+    pathRemappings: renameUpdates.pathRemappings,
+    nodeUpdates: renameUpdates.nodeUpdates,
+    mode,
+  });
+
+  const nextFileTreeData = applyParentFolderUpdates({
+    treeData: remapped.treeData,
+    filePathToTreeDataId: remapped.filePathToTreeDataId,
+    parentFolderUpdates: renameUpdates.parentFolderUpdates,
+  });
+
+  return {
+    nextFileTreeData,
+    needsTopLevelInvalidation: renameUpdates.needsTopLevelInvalidation,
+  };
+}

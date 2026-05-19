@@ -165,9 +165,8 @@ func handleFolderRenameEvent(params EventParams, event *application.CustomEvent)
 		return
 	}
 
-	renameFoldersInIndex(params, data)
-
-	// Update markdown files to fix internal links and media references for each rename
+	// Update markdown files before re-indexing so the new folder's indexed links
+	// reflect the rewritten file contents immediately.
 	for _, eventData := range data {
 		oldFolderPath, oldExists := eventData["oldFolderPath"]
 		newFolderPath, newExists := eventData["newFolderPath"]
@@ -187,6 +186,8 @@ func handleFolderRenameEvent(params EventParams, event *application.CustomEvent)
 
 		updateMarkdownFilesForFolderRename(params.ProjectPath, oldFolderPath, newFolderPath)
 	}
+
+	renameFoldersInIndex(params, data)
 }
 
 func renameFoldersInIndex(params EventParams, data []map[string]string) {

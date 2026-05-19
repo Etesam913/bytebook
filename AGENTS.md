@@ -105,3 +105,4 @@ flowchart LR
 - Prefer **small, surgical diffs**; avoid drive-by refactors.
 - Keep event names in `internal/util/events.go` as the source of truth.
 - If you change backend services, ensure generated bindings stay in sync (Wails binding generation).
+- In the frontend TypeScript code, prefer regular function comments (standard `//` line comments) instead of JSDoc comments.

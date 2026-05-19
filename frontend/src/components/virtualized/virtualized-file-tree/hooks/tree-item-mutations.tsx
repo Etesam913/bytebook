@@ -32,11 +32,7 @@ import {
   getParentNodeFromPath,
   isTreeNodeAFolder,
 } from '../utils/file-tree-utils';
-import {
-  applyParentFolderUpdates,
-  applyPathRemappings,
-  buildRenameUpdates,
-} from '../utils/rename-node';
+import { renameOrMoveNodes } from '../utils/rename-node';
 
 /**
  * A mutation hook for adding new tree items (folders or notes) to the file tree.
@@ -197,28 +193,14 @@ export function useRenameTreeItemMutation() {
       let needsTopLevelInvalidation = false;
 
       setFileTreeData((prev) => {
-        const renameUpdates = buildRenameUpdates({
-          entries: [{ oldPath, newPath }],
-          fileTreeData: prev,
-          isValidNode:
-            args.itemType === 'folder'
-              ? (node) => isTreeNodeAFolder(node)
-              : undefined,
-        });
-        needsTopLevelInvalidation = renameUpdates.needsTopLevelInvalidation;
-        if (renameUpdates.pathRemappings.size === 0) return prev;
-
-        const remapped = applyPathRemappings({
-          fileTreeData: prev,
-          pathRemappings: renameUpdates.pathRemappings,
-          nodeUpdates: renameUpdates.nodeUpdates,
-          mode: args.itemType,
-        });
-        return applyParentFolderUpdates({
-          treeData: remapped.treeData,
-          filePathToTreeDataId: remapped.filePathToTreeDataId,
-          parentFolderUpdates: renameUpdates.parentFolderUpdates,
-        });
+        const { nextFileTreeData, needsTopLevelInvalidation: topLevel } =
+          renameOrMoveNodes({
+            fileTreeData: prev,
+            entries: [{ oldPath, newPath }],
+            mode: args.itemType,
+          });
+        needsTopLevelInvalidation = topLevel;
+        return nextFileTreeData;
       });
 
       if (needsTopLevelInvalidation) {
@@ -252,7 +234,10 @@ export function useRenameTreeItemMutation() {
  */
 export function useMoveTreeItemsMutation() {
   const fileTreeData = useAtomValue(fileTreeDataAtom);
+  const setFileTreeData = useSetAtom(fileTreeDataAtom);
   const { selections } = useAtomValue(sidebarSelectionAtom);
+  const queryClient = useQueryClient();
+  const store = useStore();
 
   return useMutation({
     mutationFn: async (newFolder: string) => {
@@ -287,10 +272,69 @@ export function useMoveTreeItemsMutation() {
         selectedItems.push(item);
       }
 
-      const itemPaths = selectedItems.map((item) => item.path);
-      const res = await MoveItemsToFolder(itemPaths, newFolder);
-      if (!res.success) {
-        throw new QueryError(res.message);
+      if (selectedItems.length === 0) return;
+
+      const previousFileTreeData = store.get(fileTreeDataAtom);
+      let needsTopLevelInvalidation = false;
+
+      const foldersToMove = selectedItems
+        .filter(isTreeNodeAFolder)
+        .map((item) => ({
+          oldPath: item.path,
+          newPath: newFolder === '' ? item.name : `${newFolder}/${item.name}`,
+        }));
+
+      const filesToMove = selectedItems
+        .filter((item) => !isTreeNodeAFolder(item))
+        .map((item) => ({
+          oldPath: item.path,
+          newPath: newFolder === '' ? item.name : `${newFolder}/${item.name}`,
+        }));
+
+      setFileTreeData((prev) => {
+        let currentTreeData = prev;
+
+        // Process folder moves
+        if (foldersToMove.length > 0) {
+          const { nextFileTreeData, needsTopLevelInvalidation: topLevel } =
+            renameOrMoveNodes({
+              fileTreeData: currentTreeData,
+              entries: foldersToMove,
+              mode: 'folder',
+            });
+          currentTreeData = nextFileTreeData;
+          if (topLevel) needsTopLevelInvalidation = true;
+        }
+
+        // Process file moves
+        if (filesToMove.length > 0) {
+          const { nextFileTreeData, needsTopLevelInvalidation: topLevel } =
+            renameOrMoveNodes({
+              fileTreeData: currentTreeData,
+              entries: filesToMove,
+              mode: 'file',
+            });
+          currentTreeData = nextFileTreeData;
+          if (topLevel) needsTopLevelInvalidation = true;
+        }
+
+        return currentTreeData;
+      });
+
+      if (needsTopLevelInvalidation) {
+        void queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
+      }
+      void queryClient.invalidateQueries({ queryKey: ['folder-children'] });
+
+      try {
+        const itemPaths = selectedItems.map((item) => item.path);
+        const res = await MoveItemsToFolder(itemPaths, newFolder);
+        if (!res.success) {
+          throw new QueryError(res.message);
+        }
+      } catch (err) {
+        setFileTreeData(previousFileTreeData);
+        throw err;
       }
     },
   });

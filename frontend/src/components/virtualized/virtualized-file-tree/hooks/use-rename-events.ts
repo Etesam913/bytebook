@@ -11,13 +11,8 @@ import { FILE_RENAME, FOLDER_RENAME } from '../../../../utils/events';
 import { createFilePath, createFolderPath } from '../../../../utils/path';
 import { logger } from '../../../../utils/logging';
 import { routeUrls } from '../../../../utils/routes';
-import { isTreeNodeAFolder } from '../utils/file-tree-utils';
+import { renameOrMoveNodes } from '../utils/rename-node';
 import { queryKeys } from '../../../../utils/query-keys';
-import {
-  applyParentFolderUpdates,
-  applyPathRemappings,
-  buildRenameUpdates,
-} from '../utils/rename-node';
 
 /** Normalizes a raw folder path string into its canonical form via `createFolderPath`. */
 function normalizeFolderPath(path: string): string | null {
@@ -94,39 +89,14 @@ export function useRenameEvents() {
 
     // --- Phase 1: atomic tree update ---
     setFileTreeData((prev) => {
-      // Build rename metadata from the *current* (pre-rename) tree state.
-      // This captures original names for pagination boundary checks.
-      const renameUpdates = buildRenameUpdates({
-        entries,
-        fileTreeData: prev,
-        // For folder renames, skip any node that isn't actually a folder
-        isValidNode:
-          mode === 'folder' ? (node) => isTreeNodeAFolder(node) : undefined,
-      });
-
-      needsTopLevelInvalidation = renameUpdates.needsTopLevelInvalidation;
-
-      if (renameUpdates.pathRemappings.size === 0) {
-        return prev;
-      }
-
-      // Step 1: Remap old→new in the path-to-id index (+ subtree for folders)
-      // and patch each renamed node's name, path, and parentId
-      const remapped = applyPathRemappings({
-        fileTreeData: prev,
-        pathRemappings: renameUpdates.pathRemappings,
-        nodeUpdates: renameUpdates.nodeUpdates,
-        mode,
-      });
-
-      // Step 2: Re-sort parent children lists and enforce pagination boundaries
-      const afterParentUpdates = applyParentFolderUpdates({
-        treeData: remapped.treeData,
-        filePathToTreeDataId: remapped.filePathToTreeDataId,
-        parentFolderUpdates: renameUpdates.parentFolderUpdates,
-      });
-
-      return afterParentUpdates;
+      const { nextFileTreeData, needsTopLevelInvalidation: topLevel } =
+        renameOrMoveNodes({
+          fileTreeData: prev,
+          entries,
+          mode,
+        });
+      needsTopLevelInvalidation = topLevel;
+      return nextFileTreeData;
     });
 
     // --- Phase 2: query invalidation ---

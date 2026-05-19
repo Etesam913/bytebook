@@ -135,13 +135,13 @@ func main() {
 
 func newAppLogger() *slog.Logger {
 	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelError,
+		Level: slog.LevelInfo,
 	})
 	logger := slog.New(handler)
 
 	slog.SetDefault(logger)
 	log.SetFlags(0)
-	log.SetOutput(slog.NewLogLogger(handler, slog.LevelError).Writer())
+	log.SetOutput(slog.NewLogLogger(handler, slog.LevelInfo).Writer())
 
 	return logger
 }
