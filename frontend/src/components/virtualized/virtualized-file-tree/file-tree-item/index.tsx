@@ -13,8 +13,10 @@ import { CreateFolder } from '../create-folder';
 
 export function FileTreeItem({
   dataItem,
+  virtualizedData,
 }: {
   dataItem: VirtualizedFileTreeItem;
+  virtualizedData: VirtualizedFileTreeItem[];
 }) {
   const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
   const { mutate: fetchFolderChildren } = useFetchFolderChildrenMutation();
@@ -44,5 +46,10 @@ export function FileTreeItem({
   // After the LOAD_MORE_TYPE check, dataItem is guaranteed to be FlattenedFileOrFolder
   const flattenedDataItem = dataItem;
 
-  return <FileTreeItemContainer dataItem={flattenedDataItem} />;
+  return (
+    <FileTreeItemContainer
+      dataItem={flattenedDataItem}
+      virtualizedData={virtualizedData}
+    />
+  );
 }

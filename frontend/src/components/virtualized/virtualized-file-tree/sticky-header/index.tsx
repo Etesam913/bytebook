@@ -85,7 +85,10 @@ export function StickyHeader({
           data-file-tree-sticky-item
           className="overflow-hidden px-2"
         >
-          <FileTreeItem dataItem={stickyItem} />
+          <FileTreeItem
+            dataItem={stickyItem}
+            virtualizedData={flattenedTopLevelData}
+          />
         </div>
       ))}
     </header>

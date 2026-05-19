@@ -32,6 +32,9 @@ import { fileTreeDataAtom } from '../../../../atoms';
 import { useContextMenuItems } from '../../../context-menu/items';
 import { RenderNoteIcon } from '../../../../icons/render-note-icon';
 import { FileBan } from '../../../../icons/file-ban';
+import { MotionButton } from '../../../buttons';
+import { motion } from 'motion/react';
+import { easingFunctions } from '../../../../animations';
 
 export function FileTreeFileItem({
   dataItem,
@@ -233,7 +236,10 @@ export function FileTreeFileItem({
   }
 
   return (
-    <button
+    <motion.button
+      layout="position"
+      layoutId={`file-tree-item-${dataItem.id}`}
+      transition={{ ease: easingFunctions['ease-out-cubic'] }}
       ref={buttonRef}
       role="treeitem"
       aria-level={dataItem.level + 1}
@@ -371,12 +377,12 @@ export function FileTreeFileItem({
         });
       }}
       className={cn(
-        'flex items-center w-full relative rounded-md py-0.25 focus:outline-2 focus:outline-(--accent-color) focus:-outline-offset-2',
+        'flex overflow-hidden items-center w-full relative rounded-md py-0.25 focus:outline-2 focus:outline-(--accent-color) focus:-outline-offset-2',
         isContextMenuTarget &&
           'outline-2 outline-(--accent-color) -outline-offset-2'
       )}
     >
       {innerContent}
-    </button>
+    </motion.button>
   );
 }

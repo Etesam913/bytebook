@@ -48,6 +48,7 @@ import { LoadingSpinner } from '../../../../loading-spinner';
 import { motion } from 'motion/react';
 import { createFolderPath } from '../../../../../utils/path';
 import { useFolderPathFromRoute } from '../../../../../hooks/routes';
+import { easingFunctions } from '../../../../../animations';
 
 export function FileTreeFolderItem({
   dataItem,
@@ -294,7 +295,12 @@ export function FileTreeFolderItem({
   }
 
   return (
-    <div className="w-full">
+    <motion.div
+      layout="position"
+      layoutId={`file-tree-item-${dataItem.id}`}
+      transition={{ ease: easingFunctions['ease-out-cubic'] }}
+      className="w-full"
+    >
       <button
         ref={buttonRef}
         data-file-drop-target
@@ -305,7 +311,7 @@ export function FileTreeFolderItem({
         aria-selected={isSelectedFromSidebarClick || isSelectedFromRoute}
         draggable={true}
         className={cn(
-          'flex items-center w-full relative rounded-md py-0.25 focus:outline-2 focus:outline-(--accent-color) focus:-outline-offset-2 file-tree-drop-target',
+          'flex overflow-hidden items-center w-full relative rounded-md py-0.25 focus:outline-2 focus:outline-(--accent-color) focus:-outline-offset-2 file-tree-drop-target',
           isContextMenuTarget &&
             'outline-2 outline-(--accent-color) -outline-offset-2'
         )}
@@ -489,6 +495,6 @@ export function FileTreeFolderItem({
         {innerContent}
       </button>
       {inlineInput}
-    </div>
+    </motion.div>
   );
 }

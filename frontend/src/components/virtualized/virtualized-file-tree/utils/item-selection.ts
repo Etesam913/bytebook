@@ -1,4 +1,9 @@
-import type { FileOrFolder, FlattenedFileOrFolder } from '../types';
+import type {
+  FileOrFolder,
+  FlattenedFileOrFolder,
+  VirtualizedFileTreeItem,
+} from '../types';
+import { CREATE_FOLDER_TYPE, LOAD_MORE_TYPE } from '../types';
 import { isTreeNodeAFile, isTreeNodeAFolder } from './file-tree-utils';
 import { createFilePath, createFolderPath } from '../../../../utils/path';
 import {
@@ -140,11 +145,11 @@ function getAnchorAfterRemoval({
  * @returns An object containing the new selections set, or null if the operation is invalid
  */
 export function computeShiftClickSelections({
-  fileOrFolderMap,
+  virtualizedData,
   dataItem,
   anchorSelectionKey,
 }: {
-  fileOrFolderMap: Map<string, FileOrFolder>;
+  virtualizedData: VirtualizedFileTreeItem[];
   dataItem: FlattenedFileOrFolder;
   anchorSelectionKey: string;
 }): { selections: Set<string> } | null {
@@ -152,24 +157,11 @@ export function computeShiftClickSelections({
   if (!anchorSelectionId) {
     return null;
   }
-  const anchorSelectionItem = fileOrFolderMap.get(anchorSelectionId);
 
-  // You cannot select across parents using shift click
-  if (
-    !anchorSelectionItem ||
-    !dataItem.parentId ||
-    anchorSelectionItem.parentId !== dataItem.parentId
-  ) {
-    return null;
-  }
-
-  const parentFolder = fileOrFolderMap.get(dataItem.parentId);
-  if (!parentFolder || !isTreeNodeAFolder(parentFolder)) {
-    return null;
-  }
-
-  const startIndex = parentFolder.childrenIds.indexOf(anchorSelectionItem.id);
-  const endIndex = parentFolder.childrenIds.indexOf(dataItem.id);
+  const startIndex = virtualizedData.findIndex(
+    (item) => item.id === anchorSelectionId
+  );
+  const endIndex = virtualizedData.findIndex((item) => item.id === dataItem.id);
   if (startIndex === -1 || endIndex === -1) {
     return null;
   }
@@ -179,11 +171,16 @@ export function computeShiftClickSelections({
 
   const updatedSelections = new Set<string>();
 
-  // Go through the range and select each file or folder in the range
+  // Go through the visible flattened range and select each file or folder.
   for (let index = rangeStart; index <= rangeEnd; index += 1) {
-    const childId = parentFolder.childrenIds[index];
-    const childItem = fileOrFolderMap.get(childId);
-    if (!childItem) continue;
+    const childItem = virtualizedData[index];
+    if (
+      !childItem ||
+      childItem.type === CREATE_FOLDER_TYPE ||
+      childItem.type === LOAD_MORE_TYPE
+    ) {
+      continue;
+    }
 
     const childPath = isTreeNodeAFile(childItem)
       ? createFilePath(childItem.path)

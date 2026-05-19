@@ -1,6 +1,6 @@
 import { useAtom, useAtomValue } from 'jotai';
 import { useFetchFolderChildrenMutation } from '../hooks/open-folder';
-import { FlattenedFileOrFolder } from '../types';
+import type { FlattenedFileOrFolder, VirtualizedFileTreeItem } from '../types';
 import { isTreeNodeAFile, isTreeNodeAFolder } from '../utils/file-tree-utils';
 import { fileTreeDataAtom } from '../../../../atoms';
 import { MouseEvent } from 'react';
@@ -27,8 +27,10 @@ import {
  */
 export function FileTreeItemContainer({
   dataItem,
+  virtualizedData,
 }: {
   dataItem: FlattenedFileOrFolder;
+  virtualizedData: VirtualizedFileTreeItem[];
 }) {
   const { mutate: fetchFolderChildren, isPending: isFetchPending } =
     useFetchFolderChildrenMutation();
@@ -71,7 +73,7 @@ export function FileTreeItemContainer({
     }
 
     const result = computeShiftClickSelections({
-      fileOrFolderMap,
+      virtualizedData,
       dataItem,
       anchorSelectionKey,
     });

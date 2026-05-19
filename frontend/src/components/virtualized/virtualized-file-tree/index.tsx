@@ -93,7 +93,7 @@ export function VirtualizedFileTree({
           );
         }}
       >
-        <FileTreeItem dataItem={dataItem} />
+        <FileTreeItem dataItem={dataItem} virtualizedData={virtualizedData} />
       </div>
     );
   }
