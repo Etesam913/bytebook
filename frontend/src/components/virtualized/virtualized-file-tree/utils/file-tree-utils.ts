@@ -8,6 +8,7 @@ import type {
 import { FILE_TYPE, FOLDER_TYPE, LOAD_MORE_TYPE } from '../types';
 import type { FileTreeData, ReadonlyFileTreeData } from '../../../../atoms';
 import { splitPathSegments } from '../../../../utils/path';
+import { getSelectionValue } from '../../../../utils/selection';
 
 /**
  * Calculates the padding-left (indent) value for a file tree item based on its level.
@@ -382,10 +383,51 @@ export function isItemAlreadyInDropDestination({
   if (!dropTargetId) return false;
   const dropTarget = fileOrFolderMap.get(dropTargetId);
   if (!dropTarget) return false;
-  const destinationParentId = isTreeNodeAFolder(dropTarget)
-    ? dropTarget.id
-    : dropTarget.parentId;
+  const destinationParentId = getDropDestinationParentId(dropTarget);
   return itemParentId === destinationParentId;
+}
+
+/**
+ * Returns the parent folder id that a tree-row drop would move selected items
+ * into. Dropping on a folder targets that folder; dropping on a file targets
+ * the file's parent folder.
+ */
+export function getDropDestinationParentId(
+  dropTarget: FileOrFolder
+): string | null {
+  return isTreeNodeAFolder(dropTarget) ? dropTarget.id : dropTarget.parentId;
+}
+
+/**
+ * A drop is valid only when at least one selected item would actually move.
+ * If every selected item already lives directly inside the destination folder,
+ * dropping there is a no-op and should not be accepted or highlighted.
+ */
+export function canSelectionMoveToDropTarget({
+  fileOrFolderMap,
+  selectionKeys,
+  dropTargetId,
+}: {
+  fileOrFolderMap: ReadonlyMap<string, FileOrFolder>;
+  selectionKeys: Iterable<string>;
+  dropTargetId: string;
+}): boolean {
+  const dropTarget = fileOrFolderMap.get(dropTargetId);
+  if (!dropTarget) return false;
+
+  const destinationParentId = getDropDestinationParentId(dropTarget);
+  for (const selectionKey of selectionKeys) {
+    const itemId = getSelectionValue(selectionKey);
+    if (!itemId || itemId === destinationParentId) continue;
+
+    const item = fileOrFolderMap.get(itemId);
+    if (!item) continue;
+    if (item.parentId !== destinationParentId) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**

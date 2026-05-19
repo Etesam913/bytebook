@@ -29,6 +29,7 @@ import {
   type FetchFolderChildrenArgs,
 } from './hooks';
 import {
+  canSelectionMoveToDropTarget,
   getFileTreeItemIndent,
   hasLoadedChildren,
   isItemAlreadyInDropDestination,
@@ -318,8 +319,23 @@ export function FileTreeFolderItem({
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         onDragOver={(e) => {
-          e.preventDefault();
           e.stopPropagation();
+          const canDrop = canSelectionMoveToDropTarget({
+            fileOrFolderMap,
+            selectionKeys: sidebarSelection.selections,
+            dropTargetId: dataItem.id,
+          });
+          if (!canDrop) {
+            e.dataTransfer.dropEffect = 'none';
+            setIsDraggedOver(false);
+            setActiveDropTargetId((currentId) =>
+              currentId === dataItem.id ? null : currentId
+            );
+            setDragHighlightIds(new Set());
+            return;
+          }
+
+          e.preventDefault();
           setIsDraggedOver(true);
           setActiveDropTargetId(dataItem.id);
           setDragHighlightIds(new Set());
@@ -337,6 +353,16 @@ export function FileTreeFolderItem({
           e.stopPropagation();
           setIsDraggedOver(false);
           setActiveDropTargetId(null);
+          if (
+            !canSelectionMoveToDropTarget({
+              fileOrFolderMap,
+              selectionKeys: sidebarSelection.selections,
+              dropTargetId: dataItem.id,
+            })
+          ) {
+            e.dataTransfer.dropEffect = 'none';
+            return;
+          }
           void moveItemsToFolder(dataItem.path);
         }}
         onKeyDown={(e) => {

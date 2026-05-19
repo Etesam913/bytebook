@@ -20,6 +20,7 @@ import {
   useRenameTreeItemMutation,
 } from '../hooks/tree-item-mutations';
 import {
+  canSelectionMoveToDropTarget,
   getDragHighlightIds,
   getFileTreeItemIndent,
   isItemAlreadyInDropDestination,
@@ -27,12 +28,10 @@ import {
 import { getContextMenuSelectionItems } from '../utils/item-selection';
 import { handleFileTreeDragEnd, handleFileTreeDragStart } from '../utils/drag';
 import { draggedGhostElementAtom } from '../../../editor/atoms';
-import { getSelectionValue } from '../../../../utils/selection';
 import { fileTreeDataAtom } from '../../../../atoms';
 import { useContextMenuItems } from '../../../context-menu/items';
 import { RenderNoteIcon } from '../../../../icons/render-note-icon';
 import { FileBan } from '../../../../icons/file-ban';
-import { MotionButton } from '../../../buttons';
 import { motion } from 'motion/react';
 import { easingFunctions } from '../../../../animations';
 
@@ -245,40 +244,33 @@ export function FileTreeFileItem({
       aria-level={dataItem.level + 1}
       aria-selected={isSelectedFromSidebarClick || isSelectedFromRoute}
       draggable={true}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
+      onDragStartCapture={handleDragStart}
+      onDragEndCapture={handleDragEnd}
       onDragEnter={() => {
-        setActiveDropTargetId(dataItem.id);
-        const allAreSiblings = [...sidebarSelection.selections].every(
-          (selectionKey) => {
-            const itemId = getSelectionValue(selectionKey);
-            if (!itemId) return false;
-            const item = fileOrFolderMap.get(itemId);
-            return item?.parentId === dataItem.parentId;
-          }
-        );
-
+        const canDrop = canSelectionMoveToDropTarget({
+          fileOrFolderMap,
+          selectionKeys: sidebarSelection.selections,
+          dropTargetId: dataItem.id,
+        });
+        setActiveDropTargetId(canDrop ? dataItem.id : null);
         setDragHighlightIds(
-          allAreSiblings
-            ? new Set()
-            : getDragHighlightIds({
+          canDrop
+            ? getDragHighlightIds({
                 fileOrFolderMap,
                 parentId: dataItem.parentId,
               })
+            : new Set()
         );
       }}
       onDragOver={(e) => {
         e.stopPropagation();
-        const dropWouldMoveSomething = [...sidebarSelection.selections].some(
-          // Only the case when the element that is selected is not the sibling of this target file
-          (selectionKey) => {
-            const itemId = getSelectionValue(selectionKey);
-            if (!itemId) return false;
-            const item = fileOrFolderMap.get(itemId);
-            return item != null && item.parentId !== dataItem.parentId;
-          }
-        );
-        if (dropWouldMoveSomething) {
+        if (
+          canSelectionMoveToDropTarget({
+            fileOrFolderMap,
+            selectionKeys: sidebarSelection.selections,
+            dropTargetId: dataItem.id,
+          })
+        ) {
           // Prevent drag over allow for drop event to happen later
           e.preventDefault();
         }
@@ -295,6 +287,16 @@ export function FileTreeFileItem({
         e.stopPropagation();
         setActiveDropTargetId(null);
         setDragHighlightIds(new Set());
+        if (
+          !canSelectionMoveToDropTarget({
+            fileOrFolderMap,
+            selectionKeys: sidebarSelection.selections,
+            dropTargetId: dataItem.id,
+          })
+        ) {
+          e.dataTransfer.dropEffect = 'none';
+          return;
+        }
         void moveItemsToFolder(parentFolderPath);
       }}
       onKeyDown={(e) => {
