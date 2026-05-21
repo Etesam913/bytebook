@@ -23,6 +23,7 @@ import {
 } from '../../../../context-menu/items';
 import { cn } from '../../../../../utils/string-formatting';
 import { fileTreeDataAtom } from '../../../../../atoms';
+import { useSpringLoadedFolder } from '../../hooks/use-spring-loaded-folder';
 import {
   useFileTreeFolderAddActions,
   useFileTreeFolderRenameActions,
@@ -97,6 +98,11 @@ export function FileTreeFolderItem({
     resetRenameTreeItem,
   } = useFileTreeFolderRenameActions({
     dataItem,
+  });
+
+  const { triggerSpringLoad, cancelSpringLoad } = useSpringLoadedFolder({
+    dataItem,
+    fetchFolderChildren,
   });
 
   useEffect(() => {
@@ -332,6 +338,7 @@ export function FileTreeFolderItem({
               currentId === dataItem.id ? null : currentId
             );
             setDragHighlightIds(new Set());
+            cancelSpringLoad();
             return;
           }
 
@@ -339,6 +346,8 @@ export function FileTreeFolderItem({
           setIsDraggedOver(true);
           setActiveDropTargetId(dataItem.id);
           setDragHighlightIds(new Set());
+
+          triggerSpringLoad();
         }}
         onDragLeave={(e) => {
           e.preventDefault();
@@ -347,12 +356,14 @@ export function FileTreeFolderItem({
           setActiveDropTargetId((currentId) =>
             currentId === dataItem.id ? null : currentId
           );
+          cancelSpringLoad();
         }}
         onDrop={(e) => {
           e.preventDefault();
           e.stopPropagation();
           setIsDraggedOver(false);
           setActiveDropTargetId(null);
+          cancelSpringLoad();
           if (
             !canSelectionMoveToDropTarget({
               fileOrFolderMap,
