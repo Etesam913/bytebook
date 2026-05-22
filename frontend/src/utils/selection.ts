@@ -179,6 +179,7 @@ export function handleKeyNavigation(e: KeyboardEvent) {
     }
   }
 }
+// Handles Escape key in the editor: exits maximized mode or moves focus to the selected note button.
 /**
  * Handles escape key behavior in the editor, toggling maximized state and managing focus.
  * @param e - The keyboard event
@@ -214,6 +215,7 @@ export const FILE_SELECTION_PREFIX = 'file';
 
 export type SelectableItem = FileOrFolderPath & { id: string };
 
+// Derives the sidebar selection set key for a selectable file or folder item.
 /**
  * Each element in the sidebar selection set is a string as that allows for easy lookup and removal
  * This function creates a key for the selection set from a SelectableItems object

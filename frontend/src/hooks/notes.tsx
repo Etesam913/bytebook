@@ -210,6 +210,7 @@ export function usePinPathMutation() {
   });
 }
 
+// Renames a note file on disk from an old path to a new path and reports errors via the provided setter.
 export function useRenameFileMutation() {
   return useMutation({
     mutationFn: async ({

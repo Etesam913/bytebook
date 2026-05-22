@@ -14,6 +14,7 @@ type HoverTooltipData = {
   message: string;
 };
 
+// Returns a CodeMirror hover tooltip extension that sends inspect requests to the kernel and displays type/documentation info on hover.
 export function useInspectTooltip({
   language,
   id,

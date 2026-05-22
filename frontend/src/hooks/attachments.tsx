@@ -6,6 +6,7 @@ import { backendQueryAtom } from '../atoms';
 import { insertAttachmentFromFile } from '../components/editor/utils/toolbar';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 
+// Opens a file picker and inserts the selected file as an attachment at the current editor selection position.
 export function useAttachmentsMutation({
   folder,
   editor,

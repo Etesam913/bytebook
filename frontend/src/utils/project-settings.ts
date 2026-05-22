@@ -39,6 +39,7 @@ export function validateProjectSettings(settings: {
   };
 }
 
+// Clamps and rounds a font size value to the allowed editor range, returning the default if invalid.
 export function validateEditorFontSize(fontSize: unknown): number {
   if (typeof fontSize === 'number' && Number.isFinite(fontSize)) {
     return Math.min(

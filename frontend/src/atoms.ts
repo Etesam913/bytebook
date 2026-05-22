@@ -37,7 +37,7 @@ function atomWithLogging<T>(name: string, initialValue: T) {
     }
   );
 }
-// Most recent sidebar items
+// Reads the most recent sidebar items from localStorage and converts stored path strings to typed path objects.
 const initializeMostRecentItems = (): FileOrFolderPath[] => {
   const stored = JSON.parse(
     localStorage.getItem('mostRecentItems') ?? '[]'
@@ -52,6 +52,7 @@ const mostRecentItemsBaseAtom = atom<FileOrFolderPath[]>(
   initializeMostRecentItems()
 );
 
+// Stores the list of recently visited files and folders; persists to localStorage on every write.
 export const mostRecentItemsAtom = atom<
   FileOrFolderPath[],
   [FileOrFolderPath[] | ((prev: FileOrFolderPath[]) => FileOrFolderPath[])],
@@ -67,6 +68,7 @@ export const mostRecentItemsAtom = atom<
   }
 );
 
+// Holds the current project settings including appearance, code preferences, pinned notes, and project path.
 export const projectSettingsAtom = atom<ProjectSettings>({
   pinnedNotes: new Set<string>([]),
   projectPath: '',
@@ -102,6 +104,7 @@ export type SidebarSelectionState = {
   anchorSelection: string | null;
 };
 
+// Tracks the currently selected items in the sidebar and the anchor item used for range selections.
 export const sidebarSelectionAtom = atomWithLogging<SidebarSelectionState>(
   'sidebarSelectionAtom',
   {
@@ -120,6 +123,7 @@ export type ReadonlyFileTreeData = {
   readonly filePathToTreeDataId: ReadonlyMap<string, string>;
 };
 
+// Holds the virtualized file tree data including the node map and a reverse lookup from file path to tree node ID.
 export const fileTreeDataAtom = atomWithLogging<FileTreeData>(
   'fileTreeDataAtom',
   {
@@ -140,15 +144,20 @@ export const dragHighlightIdsAtom = atom<Set<string>>(new Set<string>());
  */
 export const activeDropTargetIdAtom = atom<string | null>(null);
 
+// Reflects whether the application is currently rendering in dark mode.
 export const isDarkModeOnAtom = atom<boolean>(false);
 
 // Editor UI state atoms
+// Controls whether the editor toolbar is currently disabled (e.g., when the editor is not focused).
 export const isToolbarDisabledAtom = atom<boolean>(false);
 
+// Tracks whether the current file/note is displayed in maximized (full-area) mode, hiding the sidebar.
 export const isFileMaximizedAtom = atom<boolean>(false);
 
+// Tracks whether the application window is in native fullscreen mode.
 export const isFullscreenAtom = atom<boolean>(false);
 
+// Holds the state for the global modal dialog, including its title, content, and submit handler.
 export const dialogDataAtom = atom<DialogDataType>({
   isOpen: false,
   title: '',
@@ -158,11 +167,13 @@ export const dialogDataAtom = atom<DialogDataType>({
   isPending: false,
 });
 
+// Represents a pending backend operation shown in the loading modal, with a loading flag and status message.
 export const backendQueryAtom = atom<BackendQueryDataType>({
   isLoading: false,
   message: '',
 });
 
+// Holds the state for the right-click context menu, including its visibility, position, items, and target element.
 export const contextMenuDataAtom = atom<ContextMenuData>({
   isShowing: false,
   items: [],
@@ -198,6 +209,7 @@ const EMPTY_KERNEL_INSTANCES_BY_LANGUAGE: Record<
   java: [],
 };
 
+// Derived atom that groups all active kernel instances by their programming language.
 export const kernelInstancesByLanguageAtom = atom((get) =>
   Object.values(get(kernelInstancesAtom)).reduce((grouped, inst) => {
     grouped[inst.language].push(inst);
@@ -226,7 +238,7 @@ export const kernelInstanceForNoteAtomFamily = atomFamily(
   (a, b) => a.noteId === b.noteId && a.language === b.language
 );
 
-// Sidebar panel keys and types
+// All valid sidebar panel key names used to identify accordion sections.
 export const SIDEBAR_PANEL_KEYS = [
   'files',
   'pinned',
@@ -238,7 +250,7 @@ export const SIDEBAR_PANEL_KEYS = [
 
 export type SidebarPanelKey = (typeof SIDEBAR_PANEL_KEYS)[number];
 
-// File sidebar accordion open state
+// Maps each sidebar panel key to whether its accordion section is currently expanded.
 type FileSidebarOpenState = Record<SidebarPanelKey, boolean>;
 
 const defaultFileSidebarOpenState: FileSidebarOpenState = {
@@ -295,6 +307,7 @@ const fileSidebarOpenStateBaseAtom = atom<FileSidebarOpenState>(
   initializeFileSidebarOpenState()
 );
 
+// Stores which sidebar accordion panels are open or closed; persists to localStorage on every write.
 export const fileSidebarOpenStateAtom = atom<
   FileSidebarOpenState,
   [FileSidebarOpenStateUpdate],
@@ -310,11 +323,12 @@ export const fileSidebarOpenStateAtom = atom<
   }
 );
 
-// Sidebar panel flex weights
+// The minimum flex weight a sidebar panel can be resized to, preventing it from collapsing entirely.
 export const MIN_FLEX_WEIGHT = 0.2;
 
 export type SidebarFlexWeights = Record<SidebarPanelKey, number>;
 
+// Default flex weight values for each sidebar panel, used when no saved state exists.
 export const DEFAULT_SIDEBAR_FLEX_WEIGHTS: SidebarFlexWeights = {
   files: 1.5,
   pinned: 1,

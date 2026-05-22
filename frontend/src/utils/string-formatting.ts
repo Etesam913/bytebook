@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+// Merges Tailwind CSS class names, resolving conflicts via tailwind-merge.
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -92,6 +93,7 @@ export function isInternalLink(url: string) {
 
 export const NAME_CHARS = /^[^<>:"/\\|?*]+$/;
 
+// Extracts the tag name from a selection range string in "tag:tagName" format.
 // Will be in tag:tagName format
 export function getTagNameFromSelectionRange(tagSetValue: string) {
   const indexOfPrefix = tagSetValue.indexOf('tag:');
@@ -234,6 +236,7 @@ export function unescapeFileContentFromMarkdown(escaped: string): string {
   return unescaped;
 }
 
+// Formats an ISO date string as either a relative human-readable string or a yyyy-mm-dd date.
 export function formatDate(
   isoString: string,
   format: 'relative' | 'yyyy-mm-dd'

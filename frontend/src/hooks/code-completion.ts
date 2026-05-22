@@ -289,6 +289,7 @@ function buildCompletionSource({
   };
 }
 
+// Returns a CodeMirror extension that merges LSP and kernel completions and listens for kernel complete-reply events to resolve pending completion promises.
 export function useCompletionExtension({
   language,
   noteId,

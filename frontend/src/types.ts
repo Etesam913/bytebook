@@ -5,8 +5,10 @@ import {
 } from '../bindings/github.com/etesam913/bytebook/internal/config/models';
 import { RangeSelection } from 'lexical';
 
+// Supported image file extensions that can be displayed as inline attachments in notes.
 export const IMAGE_FILE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'gif'];
 
+// Supported video file extensions that can be embedded as inline attachments in notes.
 export const VIDEO_FILE_EXTENSIONS = ['mov', 'mp4', 'm4v', 'webm'];
 
 export type EditorBlockTypes = string | undefined;
@@ -89,6 +91,7 @@ export type ContextMenuData = {
 export type KernelStatus = 'busy' | 'idle' | 'starting';
 export type CodeBlockStatus = KernelStatus | 'queueing';
 export type KernelHeartbeatStatus = 'success' | 'failure' | 'idle';
+// Enum-like constant mapping language display keys to their canonical string values used throughout the app.
 export const LANGUAGES = {
   PYTHON: 'python',
   GO: 'go',
@@ -118,14 +121,17 @@ const allLanguages = [
   LANGUAGES.TEXT,
 ] as const;
 
+// Set of all supported language values including text, used for O(1) membership checks.
 export const allLanguagesSet = new Set<Languages>(allLanguages);
 
+// Set of languages that support Jupyter kernel execution, excluding the plain text language.
 export const languagesWithKernelsSet = new Set<LanguagesWithKernels>(
   allLanguages.filter(
     (language): language is LanguagesWithKernels => language !== LANGUAGES.TEXT
   )
 );
 
+// Type guard that checks whether an unknown value is one of the recognized language strings.
 export function isValidKernelLanguage(key: unknown): key is Languages {
   return typeof key === 'string' && allLanguagesSet.has(key as Languages);
 }

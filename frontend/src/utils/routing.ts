@@ -1,3 +1,4 @@
+// Prevents the browser's default backspace-to-navigate-back behavior when focus is outside an editable element.
 export function disableBackspaceNavigation() {
   document.addEventListener('keydown', (e) => {
     const activeElement = document.activeElement;

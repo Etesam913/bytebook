@@ -22,6 +22,7 @@ interface ComboboxItemProps {
   'data-combobox-item': number;
 }
 
+// Manages keyboard navigation, focus, and ARIA attributes for an accessible combobox widget backed by a listbox.
 export function useCombobox({
   itemCount,
   listboxId: providedListboxId,

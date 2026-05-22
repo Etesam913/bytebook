@@ -56,6 +56,7 @@ const SearchContentArea = lazy(() =>
 
 disableBackspaceNavigation();
 
+// Root application component that sets up global event listeners, routing, sidebar, and modal/context-menu overlays.
 function App() {
   const fileSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
   const notesSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);

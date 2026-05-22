@@ -272,6 +272,7 @@ function updateCodeBlock(
   });
 }
 
+// Listens for kernel status messages and updates the matching code block's status and duration in the editor.
 export function useCodeBlockStatus(editor: LexicalEditor) {
   useWailsEvent(CODE_BLOCK_STATUS, (body) => {
     logger.event(CODE_BLOCK_STATUS);
@@ -288,6 +289,7 @@ export function useCodeBlockStatus(editor: LexicalEditor) {
   });
 }
 
+// Listens for execute_result messages and writes the execution output into the matching code block node.
 export function useCodeBlockExecuteResult(editor: LexicalEditor) {
   useWailsEvent(CODE_BLOCK_EXECUTE_RESULT, (body) => {
     logger.event(CODE_BLOCK_EXECUTE_RESULT);
@@ -311,6 +313,7 @@ export function useCodeBlockExecuteResult(editor: LexicalEditor) {
   });
 }
 
+// Listens for execute_input messages and updates the execution count on the matching code block node.
 export function useCodeBlockExecuteInput(editor: LexicalEditor) {
   useWailsEvent(CODE_BLOCK_EXECUTE_INPUT, (body) => {
     logger.event(CODE_BLOCK_EXECUTE_INPUT);
@@ -331,6 +334,7 @@ export function useCodeBlockExecuteInput(editor: LexicalEditor) {
   });
 }
 
+// Listens for stream messages (stdout/stderr) and appends the text to the matching code block's stream result.
 export function useCodeBlockStream(editor: LexicalEditor) {
   useWailsEvent(CODE_BLOCK_STREAM, (body) => {
     logger.event(CODE_BLOCK_STREAM);
@@ -351,6 +355,7 @@ export function useCodeBlockStream(editor: LexicalEditor) {
   });
 }
 
+// Listens for iopub error messages and sets the traceback/error output on the matching code block node.
 export function useCodeBlockIOPubError(editor: LexicalEditor) {
   useWailsEvent(CODE_BLOCK_IOPUB_ERROR, (body) => {
     logger.event(CODE_BLOCK_IOPUB_ERROR, body);
@@ -384,6 +389,7 @@ export function useCodeBlockIOPubError(editor: LexicalEditor) {
   });
 }
 
+// Listens for display_data messages and sets rich display output (e.g. images, HTML) on the matching code block node.
 export function useCodeBlockDisplayData(editor: LexicalEditor) {
   useWailsEvent(CODE_BLOCK_DISPLAY_DATA, (body) => {
     const data = body.data as {
@@ -402,6 +408,7 @@ export function useCodeBlockDisplayData(editor: LexicalEditor) {
   });
 }
 
+// Listens for input_request messages from the kernel and sets a prompt on the matching code block so the user can type a response.
 export function useCodeBlockInputRequest(editor: LexicalEditor) {
   useWailsEvent(CODE_BLOCK_INPUT_REQUEST, (body) => {
     logger.event(CODE_BLOCK_INPUT_REQUEST, body);
@@ -428,6 +435,7 @@ export function useCodeBlockInputRequest(editor: LexicalEditor) {
   });
 }
 
+// Sends a user-typed input reply to the kernel in response to an input_request prompt.
 export function useSendInputReplyMutation(
   codeBlockId: string,
   kernelInstanceId: string | null
@@ -508,6 +516,7 @@ export function useSendExecuteRequestMutation({
   });
 }
 
+// Sends an interrupt request to the kernel bound to a code block, stopping any running execution.
 export function useSendInterruptRequestMutation(onSuccess?: () => void) {
   const instances = useAtomValue(kernelInstancesAtom);
   return useMutation({

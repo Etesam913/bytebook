@@ -1,5 +1,6 @@
 import type { Easing } from 'motion/react';
 
+// Returns Motion animation variants for a button with configurable hover, tap, and focus scale values; returns empty object when disabled.
 export function getDefaultButtonVariants(params?: {
   disabled?: boolean;
   whileHover?: number;
@@ -28,6 +29,7 @@ export function getDefaultButtonVariants(params?: {
   };
 }
 
+// Named cubic-bezier easing curves (ease-in, ease-out, ease-in-out variants) for use with Motion animations.
 export const easingFunctions: Record<string, Easing> = {
   'ease-in-quad': [0.55, 0.085, 0.68, 0.53],
   'ease-in-cubic': [0.55, 0.055, 0.675, 0.19],

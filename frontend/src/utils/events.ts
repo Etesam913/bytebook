@@ -56,6 +56,7 @@ export const CODE_BLOCK_INPUT_REQUEST = 'code:code-block:input_request';
 export const CODE_BLOCK_INSPECT_REPLY = 'code:code-block:inspect_reply';
 export const CODE_BLOCK_COMPLETE_REPLY = 'code:code-block:complete_reply';
 
+// Returns true if the Wails event was emitted by the current window.
 export async function isEventInCurrentWindow(data: WailsEvent) {
   const windowName = await Window.Name();
   if (windowName !== data.sender) return false;

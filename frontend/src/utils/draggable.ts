@@ -2,6 +2,7 @@ function stopSelect(e: Event) {
   e.preventDefault();
 }
 
+// Attaches document-level mousemove/mouseup listeners to drive a drag interaction, invoking the given callbacks.
 export function dragItem(
   onDragCallback: (e: MouseEvent) => void,
   onDragEndCallback?: (e: MouseEvent) => void
@@ -31,6 +32,7 @@ export function dragItem(
  */
 export const DRAG_GHOST_EXCLUDE_ATTR = 'data-drag-ghost-exclude';
 
+// Clones an HTML element into a styled drag ghost, stripping selection highlights and excluded children.
 export function createGhostElementFromHtmlElement({
   element,
   classNames = ['dragging', 'drag-grid'],
@@ -74,6 +76,7 @@ export function createGhostElementFromHtmlElement({
   return ghostElement;
 }
 
+// Throttles a function so it fires immediately then at most once per wait interval, trailing calls are coalesced.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const throttle = <T extends (...args: any[]) => any>(
   fn: T,

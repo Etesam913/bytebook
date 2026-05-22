@@ -8,6 +8,7 @@ export const DEFAULT_SONNER_OPTIONS = {
 
 export const MAX_SIDEBAR_WIDTH = 500;
 
+// Delays invoking a function until after the specified wait period has elapsed since the last call.
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 export const debounce = (fn: Function, ms = 300) => {
   let timeoutId: ReturnType<typeof setTimeout>;
