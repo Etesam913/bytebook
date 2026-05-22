@@ -5,6 +5,9 @@ import { isEventInCurrentWindow, TOGGLE_SIDEBAR } from '../../../utils/events';
 import { LegacyAnimationControls } from 'motion';
 import { easingFunctions } from '../../../animations';
 import { logger } from '../../../utils/logging';
+import { createLeadingThrottle } from '../../../utils/general';
+
+const throttleSidebarToggle = createLeadingThrottle(250);
 
 /**
  * Hook that listens for the "sidebar:toggle" event and toggles the isFileMaximizedAtom.
@@ -18,6 +21,7 @@ export function useToggleSidebarEvent(
   useWailsEvent(TOGGLE_SIDEBAR, (data: WailsEvent) => {
     void (async () => {
       if (!(await isEventInCurrentWindow(data))) return;
+      if (!throttleSidebarToggle('sidebar')) return;
       logger.event('sidebar:toggle');
       setIsFileMaximized((prev) => {
         void animationControls.start({
