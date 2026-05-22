@@ -28,9 +28,11 @@ import {
 export function FileTreeItemContainer({
   dataItem,
   virtualizedData,
+  isSticky,
 }: {
   dataItem: FlattenedFileOrFolder;
   virtualizedData: VirtualizedFileTreeItem[];
+  isSticky?: boolean;
 }) {
   const { mutate: fetchFolderChildren, isPending: isFetchPending } =
     useFetchFolderChildrenMutation();
@@ -46,9 +48,9 @@ export function FileTreeItemContainer({
 
   const selectionKey = path
     ? getKeyForSidebarSelection({
-        ...path,
-        id: dataItem.id,
-      })
+      ...path,
+      id: dataItem.id,
+    })
     : null;
 
   const isSelectedFromSidebarClick = selectionKey
@@ -166,6 +168,7 @@ export function FileTreeItemContainer({
           addItemToSidebarSelection={addItemToSidebarSelection}
           isSelectedFromSidebarClick={isSelectedFromSidebarClick}
           isFetchPending={isFetchPending}
+          isSticky={isSticky}
         />
       ) : (
         <FileTreeFileItem
@@ -173,6 +176,7 @@ export function FileTreeItemContainer({
           onSelectionClick={handleSelectionClick}
           addItemToSidebarSelection={addItemToSidebarSelection}
           isSelectedFromSidebarClick={isSelectedFromSidebarClick}
+          isSticky={isSticky}
         />
       )}
     </>

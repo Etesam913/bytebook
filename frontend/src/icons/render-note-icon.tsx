@@ -6,41 +6,44 @@ import { PDFIcon } from './pdf-icon';
 import { VideoIcon } from './video';
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '../types';
 import { FilePath } from '../utils/path';
+import { cn } from '../utils/string-formatting';
 
 export function RenderNoteIcon({
   filePath,
   activeNotePath,
   size,
+  className,
 }: {
   filePath: FilePath;
   activeNotePath?: FilePath;
   size?: 'sm';
+  className?: string;
 }) {
   const iconSize = size === 'sm' ? '1rem' : '1.25rem';
+  const combinedClassName = cn(
+    'pointer-events-none min-w-4 min-h-4',
+    className
+  );
 
   if (filePath.extension === 'md') {
     if (activeNotePath && filePath.equals(activeNotePath)) {
       return (
         <FilePen
-          className={'pointer-events-none min-w-4 min-h-4'}
+          className={combinedClassName}
           height={iconSize}
           width={iconSize}
         />
       );
     }
     return (
-      <Note
-        className={'pointer-events-none min-w-4 min-h-4'}
-        height={iconSize}
-        width={iconSize}
-      />
+      <Note className={combinedClassName} height={iconSize} width={iconSize} />
     );
   }
 
   if (filePath.extension === 'pdf') {
     return (
       <PDFIcon
-        className={'pointer-events-none min-w-4 min-h-4'}
+        className={combinedClassName}
         height={iconSize}
         width={iconSize}
       />
@@ -50,7 +53,7 @@ export function RenderNoteIcon({
   if (IMAGE_FILE_EXTENSIONS.includes(filePath.extension)) {
     return (
       <ImageIcon
-        className={'pointer-events-none min-w-4 min-h-4'}
+        className={combinedClassName}
         height={iconSize}
         width={iconSize}
       />
@@ -60,7 +63,7 @@ export function RenderNoteIcon({
   if (VIDEO_FILE_EXTENSIONS.includes(filePath.extension)) {
     return (
       <VideoIcon
-        className={'pointer-events-none min-w-4 min-h-4'}
+        className={combinedClassName}
         height={iconSize}
         width={iconSize}
       />
@@ -68,10 +71,6 @@ export function RenderNoteIcon({
   }
 
   return (
-    <FileBan
-      className={'pointer-events-none min-w-4 min-h-4'}
-      height={iconSize}
-      width={iconSize}
-    />
+    <FileBan className={combinedClassName} height={iconSize} width={iconSize} />
   );
 }

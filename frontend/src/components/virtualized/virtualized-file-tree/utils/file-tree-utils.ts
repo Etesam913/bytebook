@@ -485,3 +485,52 @@ export function getDragHighlightIds({
 
   return ids;
 }
+
+export const OPENED_FOLDER_ROW_ANIMATION_DURATION = 0.22;
+export const OPENED_FOLDER_ROW_STAGGER = 0.01;
+export const OPENED_FOLDER_ROW_MAX_STAGGERED_ROWS = 10;
+
+/**
+ * Builds a map of descendant row IDs to stagger positions for folders that
+ * were recently opened.
+ */
+export function getFolderOpenAnimationRows({
+  currentData,
+  parentFolderIds,
+}: {
+  currentData: VirtualizedFileTreeItem[];
+  parentFolderIds: Set<string>;
+}) {
+  const rowAnimationIndices = new Map<string, number>();
+
+  if (parentFolderIds.size === 0) {
+    return rowAnimationIndices;
+  }
+
+  for (const parentFolderId of parentFolderIds) {
+    // Find the open folder in the flattened list, then walk forward until the
+    // subtree ends.
+    const parentIndex = currentData.findIndex(
+      (item) => item.id === parentFolderId
+    );
+    const parentItem = currentData[parentIndex];
+
+    if (parentIndex === -1 || !isTreeNodeAFolder(parentItem)) continue;
+
+    let animationIndex = 0;
+    for (
+      let descendantIndex = parentIndex + 1;
+      descendantIndex < currentData.length;
+      descendantIndex++
+    ) {
+      const descendant = currentData[descendantIndex];
+      if (descendant.level <= parentItem.level) break;
+      if (rowAnimationIndices.has(descendant.id)) continue;
+
+      rowAnimationIndices.set(descendant.id, animationIndex);
+      animationIndex++;
+    }
+  }
+
+  return rowAnimationIndices;
+}

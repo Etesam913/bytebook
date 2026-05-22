@@ -40,11 +40,13 @@ export function FileTreeFileItem({
   onSelectionClick,
   addItemToSidebarSelection,
   isSelectedFromSidebarClick,
+  isSticky,
 }: {
   dataItem: FlattenedFileOrFolder;
   onSelectionClick: (e: MouseEvent) => void;
   addItemToSidebarSelection: () => SidebarSelectionState | null;
   isSelectedFromSidebarClick: boolean;
+  isSticky?: boolean;
 }) {
   const filePathFromRoute = useFilePathFromRoute();
   const [contextMenuData, setContextMenuData] = useAtom(contextMenuDataAtom);
@@ -168,23 +170,31 @@ export function FileTreeFileItem({
       className={cn(
         'rounded-md flex items-center gap-2 py-1 pr-2 overflow-hidden w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
         !hasDragHighlight &&
-          !shouldMuteSelection &&
-          isSelectedFromRoute &&
-          'bg-zinc-150 dark:bg-zinc-600 text-(--accent-color)',
+        !shouldMuteSelection &&
+        isSelectedFromRoute &&
+        'bg-zinc-150 dark:bg-zinc-600 text-(--accent-color)',
         !hasDragHighlight &&
-          !shouldMuteSelection &&
-          isSelectedFromSidebarClick &&
-          'bg-(--accent-color)! text-white!',
+        !shouldMuteSelection &&
+        isSelectedFromSidebarClick &&
+        'bg-(--accent-color)! text-white!',
         shouldMuteSelection &&
-          'bg-zinc-200 text-zinc-500 hover:bg-zinc-200 focus:bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:focus:bg-zinc-700',
+        'bg-zinc-200 text-zinc-500 hover:bg-zinc-200 focus:bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:focus:bg-zinc-700',
         hasDragHighlight &&
-          'bg-(--accent-color)/25 hover:bg-(--accent-color)/25 dark:hover:bg-(--accent-color)/25 focus:bg-(--accent-color)/25 dark:focus:bg-(--accent-color)/25'
+        'bg-(--accent-color)/25 hover:bg-(--accent-color)/25 dark:hover:bg-(--accent-color)/25 focus:bg-(--accent-color)/25 dark:focus:bg-(--accent-color)/25'
       )}
     >
       {filePath ? (
-        <RenderNoteIcon filePath={filePath} size="sm" />
+        <RenderNoteIcon
+          filePath={filePath}
+          size="sm"
+          className="will-change-transform"
+        />
       ) : (
-        <FileBan className="min-w-4 min-h-4" height="1rem" width="1rem" />
+        <FileBan
+          className="min-w-4 min-h-4 will-change-transform"
+          height="1rem"
+          width="1rem"
+        />
       )}
       <InlineTreeItemInput
         dataItem={dataItem}
@@ -236,8 +246,8 @@ export function FileTreeFileItem({
 
   return (
     <motion.button
-      layout="position"
-      layoutId={`file-tree-item-${dataItem.id}`}
+      layout={isSticky ? undefined : 'position'}
+      layoutId={isSticky ? undefined : `file-tree-item-${dataItem.id}`}
       transition={{ ease: easingFunctions['ease-out-cubic'] }}
       ref={buttonRef}
       role="treeitem"
@@ -256,9 +266,9 @@ export function FileTreeFileItem({
         setDragHighlightIds(
           canDrop
             ? getDragHighlightIds({
-                fileOrFolderMap,
-                parentId: dataItem.parentId,
-              })
+              fileOrFolderMap,
+              parentId: dataItem.parentId,
+            })
             : new Set()
         );
       }}
@@ -352,24 +362,24 @@ export function FileTreeFileItem({
               : []),
             ...(!hasFolderSelection && selectedFiles.length > 0
               ? [
-                  pin({
-                    paths: selectedFiles.map((item) => item.path),
-                    shouldPin: shouldPinSelectedFiles,
-                    kind: 'note',
-                  }),
-                ]
+                pin({
+                  paths: selectedFiles.map((item) => item.path),
+                  shouldPin: shouldPinSelectedFiles,
+                  kind: 'note',
+                }),
+              ]
               : []),
             ...(!hasFolderSelection &&
-            selectedFilePaths.length > 0 &&
-            selectedFolderForTags !== null
+              selectedFilePaths.length > 0 &&
+              selectedFolderForTags !== null
               ? [
-                  editTags({
-                    folder: selectedFolderForTags,
-                    selectionRange: new Set(
-                      selectedFilePaths.map((path) => `note:${path.note}`)
-                    ),
-                  }),
-                ]
+                editTags({
+                  folder: selectedFolderForTags,
+                  selectionRange: new Set(
+                    selectedFilePaths.map((path) => `note:${path.note}`)
+                  ),
+                }),
+              ]
               : []),
             ...(!isMultiSelection ? [rename({ onRename: enterEditMode })] : []),
             moveToTrash({
@@ -381,7 +391,7 @@ export function FileTreeFileItem({
       className={cn(
         'flex overflow-hidden items-center w-full relative rounded-md py-0.25 focus:outline-2 focus:outline-(--accent-color) focus:-outline-offset-2',
         isContextMenuTarget &&
-          'outline-2 outline-(--accent-color) -outline-offset-2'
+        'outline-2 outline-(--accent-color) -outline-offset-2'
       )}
     >
       {innerContent}

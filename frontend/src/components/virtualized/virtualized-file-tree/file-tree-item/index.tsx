@@ -14,9 +14,11 @@ import { CreateFolder } from '../create-folder';
 export function FileTreeItem({
   dataItem,
   virtualizedData,
+  isSticky,
 }: {
   dataItem: VirtualizedFileTreeItem;
   virtualizedData: VirtualizedFileTreeItem[];
+  isSticky?: boolean;
 }) {
   const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
   const { mutate: fetchFolderChildren } = useFetchFolderChildrenMutation();
@@ -50,6 +52,7 @@ export function FileTreeItem({
     <FileTreeItemContainer
       dataItem={flattenedDataItem}
       virtualizedData={virtualizedData}
+      isSticky={isSticky}
     />
   );
 }
