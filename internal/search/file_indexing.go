@@ -97,6 +97,9 @@ func IndexDiscoveredFiles(projectPath string, filePaths []string, bleveIndex ble
 	go func() {
 		defer close(jobs)
 		for _, filePath := range filePaths {
+			if shouldSkipIndexedPath(projectPath, filePath) {
+				continue
+			}
 			job, err := buildDocumentJob(projectPath, filePath)
 			if err != nil {
 				log.Printf("Error building indexing job for %s: %v", filePath, err)
@@ -186,7 +189,7 @@ func populateJobs(folders []os.DirEntry, notesPath string, jobs chan<- DocumentJ
 				return err
 			}
 
-			// Skip hidden files and directories (names starting with '.')
+			// Skip hidden files, sidecars, and hidden directories.
 			if strings.HasPrefix(d.Name(), ".") {
 				if d.IsDir() {
 					return filepath.SkipDir
@@ -219,6 +222,23 @@ func populateJobs(folders []os.DirEntry, notesPath string, jobs chan<- DocumentJ
 	}
 
 	return nil
+}
+
+func shouldSkipIndexedPath(projectPath, filePath string) bool {
+	notesPath := filepath.Join(projectPath, "notes")
+	relativePath, err := filepath.Rel(notesPath, filePath)
+	if err != nil {
+		return true
+	}
+	// filepath.Rel returns paths beginning with ".." for files outside the
+	// project notes directory; the dotted-part check skips those paths and
+	// hidden sidecar files.
+	for _, pathPart := range strings.Split(relativePath, string(filepath.Separator)) {
+		if strings.HasPrefix(pathPart, ".") {
+			return true
+		}
+	}
+	return false
 }
 
 // startWorker processes jobs from the jobs channel, reads the file contents,

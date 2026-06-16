@@ -7,6 +7,7 @@ import type {
 } from '../types';
 import { FILE_TYPE, FOLDER_TYPE, LOAD_MORE_TYPE } from '../types';
 import type { FileTreeData, ReadonlyFileTreeData } from '../../../../atoms';
+import { splitPathSegments } from '../../../../utils/path';
 
 /**
  * Calculates the padding-left (indent) value for a file tree item based on its level.
@@ -283,7 +284,7 @@ export function getParentNodeFromPath(
   fileTreeData: FileTreeData,
   path: string
 ): Folder | null {
-  const segments = path.split('/').filter(Boolean);
+  const segments = splitPathSegments(path);
   if (segments.length <= 1) {
     return null;
   }
@@ -301,7 +302,7 @@ export function getParentNodeFromPath(
  * Example: "a/b/c.md" -> ["a", "a/b"]
  */
 export function getAncestorFolderPathsFromFilePath(filePath: string): string[] {
-  const normalized = filePath.split('/').filter(Boolean);
+  const normalized = splitPathSegments(filePath);
   if (normalized.length <= 1) {
     return [];
   }

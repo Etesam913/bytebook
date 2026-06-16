@@ -5,9 +5,7 @@ import {
   projectSettingsAtom,
   fileSidebarOpenStateAtom,
 } from '../../atoms';
-import { usePinPathMutation } from '../../hooks/notes';
 import { PinTack2 } from '../../icons/pin-tack-2';
-import { PinTackSlash } from '../../icons/pin-tack-slash';
 import { Folder as FolderIcon } from '../../icons/folder';
 import { AccordionButton } from '../accordion/accordion-button';
 import { AccordionItem } from '../accordion/accordion-item';
@@ -15,15 +13,13 @@ import { VirtualizedListAccordion } from '../virtualized/virtualized-list/accord
 import {
   createFilePath,
   createFolderPath,
-  type FilePath,
-  type FolderPath,
+  type FileOrFolderPath,
 } from '../../utils/path';
 import { Tooltip } from '../tooltip';
 import { SidebarAccordionPanel } from './sidebar-accordion-panel';
+import { useContextMenuItems } from '../context-menu/items';
 import type { SidebarFlexWeights } from '../../atoms';
 import type { FlexWeightMVs } from './index';
-
-type PinnedItem = FilePath | FolderPath;
 
 export function PinnedAccordion({
   containerRef,
@@ -39,22 +35,25 @@ export function PinnedAccordion({
 
   const projectSettings = useAtomValue(projectSettingsAtom);
   const pinnedNotes = projectSettings.pinnedNotes;
-  const pinnedItems = [...pinnedNotes].reduce<PinnedItem[]>((acc, path) => {
-    const filePath = createFilePath(path);
-    if (filePath) {
-      acc.push(filePath);
+  const pinnedItems = [...pinnedNotes].reduce<FileOrFolderPath[]>(
+    (acc, path) => {
+      const filePath = createFilePath(path);
+      if (filePath) {
+        acc.push(filePath);
+        return acc;
+      }
+
+      const folderPath = createFolderPath(path);
+      if (folderPath) {
+        acc.push(folderPath);
+      }
+
       return acc;
-    }
-
-    const folderPath = createFolderPath(path);
-    if (folderPath) {
-      acc.push(folderPath);
-    }
-
-    return acc;
-  }, []);
+    },
+    []
+  );
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
-  const { mutate: pinOrUnpinPath } = usePinPathMutation();
+  const { pin } = useContextMenuItems();
 
   return (
     <SidebarAccordionPanel
@@ -84,7 +83,7 @@ export function PinnedAccordion({
         />
       }
     >
-      <VirtualizedListAccordion<PinnedItem>
+      <VirtualizedListAccordion<FileOrFolderPath>
         contentType="pinned-note"
         layoutId="pinned-notes"
         data={pinnedItems}
@@ -104,8 +103,6 @@ export function PinnedAccordion({
         renderItem={({ dataItem: pinnedItem }) => {
           const itemName =
             pinnedItem.type === 'folder' ? pinnedItem.folder : pinnedItem.note;
-          const unpinLabel =
-            pinnedItem.type === 'folder' ? 'Unpin Folder' : 'Unpin Note';
           const destinationUrl =
             pinnedItem.type === 'folder'
               ? pinnedItem.encodedFolderUrl
@@ -122,24 +119,12 @@ export function PinnedAccordion({
                       isShowing: true,
                       targetId: null,
                       items: [
-                        {
-                          label: (
-                            <span className="flex items-center gap-1.5">
-                              <PinTackSlash
-                                width="1.0625rem"
-                                height="1.0625rem"
-                                className="will-change-transform"
-                              />
-                              {unpinLabel}
-                            </span>
-                          ),
-                          value: 'unpin-note',
-                          onChange: () =>
-                            pinOrUnpinPath({
-                              path: pinnedItem.fullPath,
-                              shouldPin: false,
-                            }),
-                        },
+                        pin({
+                          paths: [pinnedItem.fullPath],
+                          shouldPin: false,
+                          kind:
+                            pinnedItem.type === 'folder' ? 'folder' : 'note',
+                        }),
                       ],
                     });
                   }}

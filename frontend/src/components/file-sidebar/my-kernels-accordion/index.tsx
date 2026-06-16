@@ -3,31 +3,22 @@ import type { RefObject } from 'react';
 import { useRoute } from 'wouter';
 import { VirtualizedListAccordion } from '../../virtualized/virtualized-list/accordion';
 import { AccordionButton } from '../../accordion/accordion-button';
-import {
-  useKernelHeartbeat,
-  useKernelShutdown,
-  useKernelStatus,
-} from '../../../hooks/code';
-import {
-  isValidKernelLanguage,
-  KernelsData,
-  languagesWithKernelsSet,
-} from '../../../types';
+import { isValidKernelLanguage, languagesWithKernelsSet } from '../../../types';
 import {
   routeUrls,
   type KernelWithFilesRouteParams,
 } from '../../../utils/routes';
 import { KernelAccordionButton } from './kernel-accordion-button';
-import { Tooltip } from '../../tooltip';
-import { fileSidebarOpenStateAtom } from '../../../atoms';
-import { kernelsDataAtom } from '../../../atoms';
+import {
+  fileSidebarOpenStateAtom,
+  kernelInstancesByLanguageAtom,
+} from '../../../atoms';
 import { SquareTerminal } from '../../../icons/square-terminal';
 import { PythonLogo } from '../../../icons/python-logo';
 import { GolangLogo } from '../../../icons/golang-logo';
 import { JavascriptLogo } from '../../../icons/javascript-logo';
 import { JavaLogo } from '../../../icons/java-logo';
-import { Languages } from '../../../types';
-import { KernelHeartbeat } from './kernel-heartbeat';
+import { Languages, LanguagesWithKernels } from '../../../types';
 import { SidebarAccordionPanel } from '../sidebar-accordion-panel';
 import type { SidebarFlexWeights } from '../../../atoms';
 import type { FlexWeightMVs } from '../index';
@@ -58,34 +49,6 @@ export function getKernelIcon(kernel: Languages, size: string = '1.125rem') {
   }
 }
 
-function KernelTooltipContent({ kernelsData }: { kernelsData: KernelsData }) {
-  const activeKernels = [...languagesWithKernelsSet].filter(
-    (kernel) => kernelsData[kernel].heartbeat === 'success'
-  );
-
-  if (activeKernels.length === 0) {
-    return <div className="text-sm">No active kernels</div>;
-  }
-
-  return (
-    <div className="space-y-1">
-      <div className="text-sm font-medium mb-2">Active Kernels</div>
-      {activeKernels.map((kernel) => (
-        <div key={kernel} className="flex items-center gap-2 text-sm">
-          {getKernelIcon(kernel, '1rem')}
-          <KernelHeartbeat
-            status={kernelsData[kernel].status}
-            heartbeat={kernelsData[kernel].heartbeat}
-            isBlinking={false}
-            className="h-2 w-2"
-          />
-          <span className="capitalize">{kernel}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export function MyKernelsAccordion({
   containerRef,
   flexWeightMVs,
@@ -101,11 +64,7 @@ export function MyKernelsAccordion({
     routeUrls.patterns.KERNELS_WITH_FILES
   );
   const kernelNameFromUrl = params?.kernelName;
-  const kernelsData = useAtomValue(kernelsDataAtom);
-
-  useKernelStatus();
-  useKernelHeartbeat();
-  useKernelShutdown();
+  const byLanguage = useAtomValue(kernelInstancesByLanguageAtom);
 
   return (
     <SidebarAccordionPanel
@@ -115,29 +74,24 @@ export function MyKernelsAccordion({
       flexWeightMVs={flexWeightMVs}
       storedWeightsRef={storedWeightsRef}
       trigger={
-        <Tooltip
-          content={<KernelTooltipContent kernelsData={kernelsData} />}
-          placement="right"
-        >
-          <AccordionButton
-            data-testid="kernels-accordion"
-            isOpen={isOpen}
-            onClick={() =>
-              setOpenState((prev) => ({
-                ...prev,
-                kernels: !prev.kernels,
-              }))
-            }
-            icon={
-              <SquareTerminal
-                width="1.25rem"
-                height="1.25rem"
-                className="will-change-transform"
-              />
-            }
-            title={'Kernels'}
-          />
-        </Tooltip>
+        <AccordionButton
+          data-testid="kernels-accordion"
+          isOpen={isOpen}
+          onClick={() =>
+            setOpenState((prev) => ({
+              ...prev,
+              kernels: !prev.kernels,
+            }))
+          }
+          icon={
+            <SquareTerminal
+              width="1.25rem"
+              height="1.25rem"
+              className="will-change-transform"
+            />
+          }
+          title={'Kernels'}
+        />
       }
     >
       <VirtualizedListAccordion<Languages>
@@ -158,6 +112,9 @@ export function MyKernelsAccordion({
             <KernelAccordionButton
               kernelName={kernelName}
               kernelNameFromUrl={kernelNameFromUrl}
+              instanceCount={
+                byLanguage[kernelName as LanguagesWithKernels]?.length ?? 0
+              }
             />
           );
         }}

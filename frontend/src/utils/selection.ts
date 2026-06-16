@@ -1,5 +1,5 @@
 import type { Dispatch, KeyboardEvent, SetStateAction } from 'react';
-import { FilePath, FolderPath } from './path';
+import type { FileOrFolderPath } from './path';
 import { SidebarContentType } from '../types';
 import type { SidebarSelectionState } from '../atoms';
 
@@ -212,7 +212,7 @@ export function handleEditorEscape(
 }
 export const FILE_SELECTION_PREFIX = 'file';
 
-export type SelectableItem = (FilePath | FolderPath) & { id: string };
+export type SelectableItem = FileOrFolderPath & { id: string };
 
 /**
  * Each element in the sidebar selection set is a string as that allows for easy lookup and removal

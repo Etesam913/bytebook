@@ -1,8 +1,7 @@
-import { type RefObject } from 'react';
 import type { Key } from 'react-aria-components';
 import { Button } from 'react-aria-components';
+import { UNSAFE_PortalProvider } from '@react-aria/overlays';
 import { MotionIconButton } from '../buttons';
-import { getDefaultButtonVariants } from '../../animations';
 import { Duplicate2 } from '../../icons/duplicate-2';
 import { Maximize } from '../../icons/maximize';
 import { Minimize } from '../../icons/minimize';
@@ -11,36 +10,42 @@ import { SquareTerminal } from '../../icons/square-terminal';
 import { Subtitles } from '../../icons/subtitles';
 import { AppMenu, AppMenuItem, AppMenuPopover, AppMenuTrigger } from '../menu';
 import { Tooltip } from '../tooltip';
-import type { CodeMirrorRef } from './types';
-import { languagesWithKernelsSet, type Languages } from '../../types';
+import { PlayButton } from './play-button';
+import type {
+  CodeBlockExecutionProps,
+  CodeBlockIdentityProps,
+  CodeBlockShellProps,
+} from './types';
+import { languagesWithKernelsSet } from '../../types';
 import { routeUrls } from '../../utils/routes';
 import { navigate } from 'wouter/use-browser-location';
 import { Trash } from '../../icons/trash';
 import { removeDecoratorNode } from '../../utils/commands';
-import type { LexicalEditor } from 'lexical';
 import { cn } from '../../utils/string-formatting';
 
 export function CodeActions({
-  editor,
-  codeMirrorInstance,
-  isExpanded,
-  setIsExpanded,
-  hideResults,
-  setHideResults,
-  language,
-  nodeKey,
-  dialogRef,
+  identity,
+  execution,
+  shell,
+  isSelected,
 }: {
-  editor: LexicalEditor;
-  codeMirrorInstance: CodeMirrorRef;
-  isExpanded: boolean;
-  setIsExpanded: (value: boolean) => void;
-  hideResults: boolean;
-  setHideResults: (value: boolean) => void;
-  language: Languages;
-  nodeKey: string;
-  dialogRef?: RefObject<HTMLDialogElement | null>;
+  identity: CodeBlockIdentityProps;
+  execution: CodeBlockExecutionProps;
+  shell: CodeBlockShellProps;
+  isSelected?: boolean;
 }) {
+  const {
+    lexicalEditor,
+    codeMirrorInstance,
+    isExpanded,
+    setIsExpanded,
+    hideResults,
+    setHideResults,
+    dialogRef,
+  } = shell;
+  const { id, nodeKey, language } = identity;
+  const { status, setStatus, kernelInstanceId } = execution;
+
   const canShowKernelInfo =
     language !== 'text' && languagesWithKernelsSet.has(language);
 
@@ -52,6 +57,19 @@ export function CodeActions({
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
           <Duplicate2 height="1.125rem" width="1.125rem" /> Copy Code
+        </span>
+      ),
+    },
+    {
+      id: isExpanded ? 'minimize' : 'maximize',
+      label: (
+        <span className="flex items-center gap-1.5 will-change-transform">
+          {isExpanded ? (
+            <Minimize height="1.125rem" width="1.125rem" />
+          ) : (
+            <Maximize height="1.125rem" width="1.125rem" />
+          )}
+          {isExpanded ? 'Minimize' : 'Maximize'}
         </span>
       ),
     },
@@ -109,8 +127,16 @@ export function CodeActions({
         setHideResults(false);
         break;
       }
+      case 'maximize': {
+        setIsExpanded(true);
+        break;
+      }
+      case 'minimize': {
+        setIsExpanded(false);
+        break;
+      }
       case 'delete': {
-        editor.update(() => {
+        lexicalEditor.update(() => {
           removeDecoratorNode(nodeKey);
         });
         break;
@@ -121,54 +147,43 @@ export function CodeActions({
   return (
     <div
       className={cn(
-        'absolute flex gap-1 -top-5 right-2.5 z-10 p-1 border border-zinc-200 dark:border-zinc-600 rounded-md shadow-lg bg-white dark:bg-zinc-750',
-        isExpanded && 'top-2 right-2'
+        'absolute flex gap-1 z-10 p-1 border border-zinc-200 dark:border-zinc-600 rounded-md shadow-lg bg-white dark:bg-zinc-750',
+        isExpanded ? 'top-2 right-2' : '-top-5 right-1.5',
+        'group-hover:opacity-100 focus-within:opacity-100 has-[[aria-expanded=true]]:opacity-100 transition-opacity',
+        isSelected ? 'opacity-100' : 'opacity-0'
       )}
     >
-      {hideResults && (
-        <Tooltip content="Delete" placement="bottom" root={tooltipRoot}>
-          <MotionIconButton
-            onClick={() => {
-              editor.update(() => {
-                removeDecoratorNode(nodeKey);
-              });
-            }}
-          >
-            <Trash
+      {!hideResults && language !== 'text' && (
+        <PlayButton
+          codeBlockId={id}
+          codeMirrorInstance={codeMirrorInstance}
+          language={language}
+          status={status}
+          setStatus={setStatus}
+          isExpanded={isExpanded}
+          dialogRef={dialogRef}
+          kernelInstanceId={kernelInstanceId}
+        />
+      )}
+      {isExpanded && (
+        <Tooltip content="Minimize" placement="bottom" root={tooltipRoot}>
+          <MotionIconButton onClick={() => setIsExpanded(false)}>
+            <Minimize
               className="will-change-transform"
-              height="1.1875rem"
-              width="1.1875rem"
+              height="1.125rem"
+              width="1.125rem"
             />
           </MotionIconButton>
         </Tooltip>
       )}
-      <Tooltip
-        content={isExpanded ? 'Minimize' : 'Maximize'}
-        placement="top"
-        root={tooltipRoot}
-      >
-        <MotionIconButton
-          {...getDefaultButtonVariants({
-            disabled: false,
-            whileHover: 1.05,
-            whileTap: 0.975,
-            whileFocus: 1.05,
-          })}
-          onClick={() => {
-            setIsExpanded(!isExpanded);
-          }}
-        >
-          {isExpanded ? <Minimize /> : <Maximize />}
-        </MotionIconButton>
-      </Tooltip>
       <AppMenuTrigger>
         <Tooltip
-          content="Code settings"
+          content="More actions"
           placement={isExpanded ? 'bottom' : 'top'}
           root={tooltipRoot}
         >
           <Button
-            aria-label="Code block settings menu"
+            aria-label="More actions"
             className={({ isHovered, isPressed }) =>
               cn(
                 'bg-transparent border-0 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md h-auto p-1.5 disabled:opacity-30 will-change-transform outline-hidden transition-transform',
@@ -180,15 +195,31 @@ export function CodeActions({
             <HorizontalDots height="1.125rem" width="1.125rem" />
           </Button>
         </Tooltip>
-        <AppMenuPopover className="w-48">
-          <AppMenu onAction={handleAction}>
-            {items.map((item) => (
-              <AppMenuItem key={item.id} id={item.id}>
-                {item.label}
-              </AppMenuItem>
-            ))}
-          </AppMenu>
-        </AppMenuPopover>
+        {isExpanded && dialogRef ? (
+          <UNSAFE_PortalProvider
+            getContainer={() => dialogRef.current ?? document.body}
+          >
+            <AppMenuPopover className="w-48" placement="bottom end">
+              <AppMenu onAction={handleAction}>
+                {items.map((item) => (
+                  <AppMenuItem key={item.id} id={item.id}>
+                    {item.label}
+                  </AppMenuItem>
+                ))}
+              </AppMenu>
+            </AppMenuPopover>
+          </UNSAFE_PortalProvider>
+        ) : (
+          <AppMenuPopover className="w-48" placement="bottom end">
+            <AppMenu onAction={handleAction}>
+              {items.map((item) => (
+                <AppMenuItem key={item.id} id={item.id}>
+                  {item.label}
+                </AppMenuItem>
+              ))}
+            </AppMenu>
+          </AppMenuPopover>
+        )}
       </AppMenuTrigger>
     </div>
   );

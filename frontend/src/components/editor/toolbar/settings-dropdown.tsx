@@ -9,8 +9,10 @@ import {
   isFullscreenAtom,
   projectSettingsAtom,
 } from '../../../atoms';
-import { useMoveToTrashMutation } from '../../../hooks/notes';
-import { useRevealInFinderMutation } from '../../../hooks/code';
+import {
+  useMoveToTrashMutation,
+  useRevealInFinderMutation,
+} from '../../../hooks/notes';
 import { createFilePath } from '../../../utils/path';
 import { ROUTE_PATTERNS } from '../../../utils/routes';
 import { useEditTagsFormMutation } from '../../../hooks/tags';
@@ -166,10 +168,7 @@ export function SettingsDropdown({
       case 'reveal-in-finder': {
         const filePath = createFilePath(`${folder}/${note}.md`);
         if (filePath) {
-          revealInFinder({
-            path: `notes/${filePath.fullPath}`,
-            shouldPrefixWithProjectPath: true,
-          });
+          revealInFinder({ path: filePath });
         }
         break;
       }

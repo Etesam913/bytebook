@@ -38,20 +38,24 @@ var Events = struct {
 	TagsUpdate        string
 	TagsIndexUpdate   string
 	SavedSearchUpdate string
+	CodeResultsUpdate string
 
-	// Kernel/Code events
-	KernelShutdownReply    string
-	KernelLaunchSuccess    string
-	KernelLaunchError      string
+	// Kernel instance events (per-instance, not per-language)
+	KernelInstanceCreated     string
+	KernelInstanceShutdown    string
+	KernelInstanceStatus      string
+	KernelInstanceHeartbeat   string
+	KernelInstanceLaunchError string
+	KernelInstanceExited      string
+
+	// Code block events (scoped by messageId, unchanged)
 	CodeBlockStream        string
 	CodeBlockExecuteResult string
 	CodeBlockDisplayData   string
 	CodeBlockExecuteInput  string
-	KernelStatus           string
 	CodeBlockStatus        string
 	CodeBlockIopubError    string
 	CodeBlockInputRequest  string
-	KernelHeartbeat        string
 }{
 	// File events
 	FileCreate: "file:create",
@@ -90,20 +94,24 @@ var Events = struct {
 	TagsUpdate:        "tags:update",
 	TagsIndexUpdate:   "tags:index_update",
 	SavedSearchUpdate: "saved-search:update",
+	CodeResultsUpdate: "code-results:update",
 
-	// Kernel/Code events
-	KernelShutdownReply:    "code:kernel:shutdown_reply",
-	KernelLaunchSuccess:    "kernel:launch-success",
-	KernelLaunchError:      "kernel:launch-error",
+	// Kernel instance events
+	KernelInstanceCreated:     "kernel:instance:created",
+	KernelInstanceShutdown:    "kernel:instance:shutdown",
+	KernelInstanceStatus:      "kernel:instance:status",
+	KernelInstanceHeartbeat:   "kernel:instance:heartbeat",
+	KernelInstanceLaunchError: "kernel:instance:launch_error",
+	KernelInstanceExited:      "kernel:instance:exited",
+
+	// Code block events
 	CodeBlockStream:        "code:code-block:stream",
 	CodeBlockExecuteResult: "code:code-block:execute_result",
 	CodeBlockDisplayData:   "code:code-block:display_data",
 	CodeBlockExecuteInput:  "code:code-block:execute_input",
-	KernelStatus:           "code:kernel:status",
 	CodeBlockStatus:        "code:code-block:status",
 	CodeBlockIopubError:    "code:code-block:iopub_error",
 	CodeBlockInputRequest:  "code:code-block:input_request",
-	KernelHeartbeat:        "code:kernel:heartbeat",
 }
 
 // A map of folderAndNoteNames to tags

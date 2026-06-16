@@ -1,6 +1,6 @@
 import { useAtomValue } from 'jotai/react';
 import { useParams } from 'wouter';
-import { kernelsDataAtom } from '../../atoms';
+import { kernelInstancesByLanguageAtom } from '../../atoms';
 import { PythonLogo } from '../../icons/python-logo';
 import { GolangLogo } from '../../icons/golang-logo';
 import { SquareTerminal } from '../../icons/square-terminal';
@@ -9,7 +9,8 @@ import { KernelStatusCard } from './kernel-status-card';
 import { KernelInfoCard } from './kernel-info-card';
 import { KernelErrorCard } from './kernel-error-card';
 import { KernelQuickstart } from './kernel-quickstart';
-import type { Languages, LanguagesWithKernels } from '../../types';
+import type { LanguagesWithKernels } from '../../types';
+import { isValidKernelLanguage } from '../../types';
 import { JavascriptLogo } from '../../icons/javascript-logo';
 import { JavaLogo } from '../../icons/java-logo';
 
@@ -30,7 +31,6 @@ const KERNEL_CONFIGS: Record<LanguagesWithKernels, KernelConfig> = {
     executable: 'go',
     icon: <GolangLogo height="2rem" width="2rem" />,
   },
-  // Future kernels can be added here:
   javascript: {
     displayName: 'Javascript',
     executable: 'deno',
@@ -45,17 +45,13 @@ const KERNEL_CONFIGS: Record<LanguagesWithKernels, KernelConfig> = {
 
 export function KernelInfo() {
   const { kernelName } = useParams<{ kernelName: string }>();
-  const kernelsData = useAtomValue(kernelsDataAtom);
+  const byLanguage = useAtomValue(kernelInstancesByLanguageAtom);
 
-  // Get supported kernels from both config and atom data
-  const supportedKernels = Object.keys(KERNEL_CONFIGS);
-  const availableKernels = Object.keys(kernelsData);
-
-  // Kernel must be both configured and available in kernelsData
   const isValidKernel =
     kernelName &&
-    supportedKernels.includes(kernelName) &&
-    availableKernels.includes(kernelName);
+    isValidKernelLanguage(kernelName) &&
+    kernelName !== 'text' &&
+    kernelName in KERNEL_CONFIGS;
 
   if (!isValidKernel) {
     return (
@@ -74,7 +70,7 @@ export function KernelInfo() {
               The requested kernel &quot;{kernelName}&quot; is not available.
             </p>
             <p className="text-zinc-500 dark:text-zinc-400 mt-2 text-sm">
-              Supported kernels: {supportedKernels.join(', ')}
+              Supported kernels: {Object.keys(KERNEL_CONFIGS).join(', ')}
             </p>
           </div>
         </div>
@@ -82,53 +78,50 @@ export function KernelInfo() {
     );
   }
 
-  const kernelData = kernelsData[kernelName as LanguagesWithKernels];
-  const kernelConfig = KERNEL_CONFIGS[kernelName as LanguagesWithKernels];
-
-  const getKernelIcon = (kernel: string) => {
-    return (
-      KERNEL_CONFIGS[kernel as LanguagesWithKernels]?.icon || (
-        <SquareTerminal height="2rem" width="2rem" />
-      )
-    );
-  };
+  const language = kernelName as LanguagesWithKernels;
+  const kernelConfig = KERNEL_CONFIGS[language];
+  const instances = byLanguage[language] ?? [];
+  const errorInstances = instances.filter((i) => i.errorMessage);
 
   return (
     <div className="h-full overflow-y-auto overflow-x-hidden">
       <div className="flex flex-col p-6 w-full max-w-220 mx-auto">
-        {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          {getKernelIcon(kernelName)}
+          {kernelConfig.icon}
           <div>
             <h1 className="text-3xl font-bold text-zinc-800 dark:text-zinc-200 capitalize">
               {kernelConfig.displayName} Kernel
             </h1>
             <p className="text-zinc-600 dark:text-zinc-400 mt-1">
-              Kernel information and status
+              {instances.length} active instance
+              {instances.length === 1 ? '' : 's'} (max 3 per language)
             </p>
           </div>
         </div>
 
-        {/* Status Section */}
-        <div className="mb-8">
-          <KernelStatusCard
-            language={kernelName as Languages}
-            status={kernelData.status}
-            heartbeat={kernelData.heartbeat}
-          />
-        </div>
-
-        {/* Error Message Section */}
-        {kernelData.errorMessage && (
-          <KernelErrorCard errorMessage={kernelData.errorMessage} />
+        {instances.length === 0 ? (
+          <div className="bg-white dark:bg-zinc-750 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700 mb-8 text-zinc-500 dark:text-zinc-400">
+            {`No ${kernelConfig.displayName} kernels are running. A kernel is launched the first time you execute a code block in a note.`}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4 mb-8">
+            {instances.map((instance) => (
+              <KernelStatusCard key={instance.id} instance={instance} />
+            ))}
+          </div>
         )}
 
-        {/* Kernel Info Section */}
-        <KernelInfoCard language={kernelName as Languages} />
+        {errorInstances.map((instance) => (
+          <KernelErrorCard
+            key={`err-${instance.id}`}
+            errorMessage={instance.errorMessage ?? ''}
+          />
+        ))}
 
-        {/* Quickstart Section */}
+        <KernelInfoCard language={language} />
+
         <div className="mt-8">
-          <KernelQuickstart language={kernelName as Languages} />
+          <KernelQuickstart language={language} />
         </div>
       </div>
     </div>

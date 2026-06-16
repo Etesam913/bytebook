@@ -16,13 +16,8 @@ type KernelJson struct {
 	Language    string   `json:"language"`
 }
 
-type LanguageToKernelConnectionInfo struct {
-	Python     KernelConnectionInfo `json:"python"`
-	Go         KernelConnectionInfo `json:"go"`
-	Javascript KernelConnectionInfo `json:"javascript"`
-	Java       KernelConnectionInfo `json:"java"`
-}
-
+// KernelConnectionInfo is the on-disk representation of a Jupyter kernel connection file.
+// It is generated per-instance at runtime by the kernel_manager.
 type KernelConnectionInfo struct {
 	Language        string `json:"language"`
 	DisplayName     string `json:"display_name"`
@@ -37,13 +32,10 @@ type KernelConnectionInfo struct {
 	IP              string `json:"ip"`
 }
 
-// getPythonKernel creates or reads a Python kernel configuration file in the project's code directory.
-// It returns a kernelJson struct containing the Python kernel configuration.
-// The configuration includes the command to launch the Python kernel and its display name.
+// getPythonKernel creates or reads a Python kernel configuration file.
 func getPythonKernel(projectPath string) (KernelJson, error) {
 	pathToPythonKernel := filepath.Join(projectPath, "code", "python-kernel.json")
-
-	pythonKernelValue, err := util.ReadOrCreateJSON(pathToPythonKernel, KernelJson{
+	return util.ReadOrCreateJSON(pathToPythonKernel, KernelJson{
 		Argv: []string{
 			"python3",
 			"-m",
@@ -54,22 +46,16 @@ func getPythonKernel(projectPath string) (KernelJson, error) {
 		DisplayName: "Python 3",
 		Language:    "python",
 	})
-
-	return pythonKernelValue, err
 }
 
-// getGolangKernel creates or reads a Golang kernel configuration file in the project's code directory.
-// It returns a kernelJson struct containing the Golang kernel configuration.
-// The function attempts to locate the gonb executable in the system PATH, falling back to just "gonb" if not found.
+// getGolangKernel creates or reads a Golang kernel configuration file.
 func getGolangKernel(projectPath string) (KernelJson, error) {
 	pathToGoKernel := filepath.Join(projectPath, "code", "go-kernel.json")
-
 	gonbPath, err := exec.LookPath("gonb")
 	if err != nil {
-		gonbPath = "gonb" // Fallback to just the name if not found in PATH
+		gonbPath = "gonb"
 	}
-
-	goKernelValue, err := util.ReadOrCreateJSON(pathToGoKernel, KernelJson{
+	return util.ReadOrCreateJSON(pathToGoKernel, KernelJson{
 		Argv: []string{
 			gonbPath,
 			"--kernel",
@@ -79,22 +65,16 @@ func getGolangKernel(projectPath string) (KernelJson, error) {
 		DisplayName: "Go (gonb)",
 		Language:    "go",
 	})
-
-	return goKernelValue, err
 }
 
-// getJavascriptKernel creates or reads a JavaScript (Deno) kernel configuration file in the project's code directory.
-// It returns a KernelJson struct containing the JavaScript kernel configuration.
-// The function attempts to locate the deno executable in the system PATH, falling back to just "deno" if not found.
+// getJavascriptKernel creates or reads a JavaScript (Deno) kernel configuration file.
 func getJavascriptKernel(projectPath string) (KernelJson, error) {
 	pathToJavascriptKernel := filepath.Join(projectPath, "code", "javascript-kernel.json")
-
 	denoPath, err := exec.LookPath("deno")
 	if err != nil {
-		denoPath = "deno" // Fallback to just the name if not found in PATH
+		denoPath = "deno"
 	}
-
-	javascriptKernelValue, err := util.ReadOrCreateJSON(pathToJavascriptKernel, KernelJson{
+	return util.ReadOrCreateJSON(pathToJavascriptKernel, KernelJson{
 		Argv: []string{
 			denoPath,
 			"jupyter",
@@ -105,21 +85,17 @@ func getJavascriptKernel(projectPath string) (KernelJson, error) {
 		DisplayName: "Deno",
 		Language:    "javascript",
 	})
-
-	return javascriptKernelValue, err
 }
 
 func getJavaKernel(projectPath string) (KernelJson, error) {
 	pathToJavaKernel := filepath.Join(projectPath, "code", "java-kernel.json")
-	// The resource dir is where the jjava.jar file is located.
 	pathToJavaResourceDir := filepath.Join(projectPath, "code", "java-resource")
 	if _, err := os.Stat(pathToJavaResourceDir); os.IsNotExist(err) {
 		if err := os.MkdirAll(pathToJavaResourceDir, 0755); err != nil {
 			return KernelJson{}, fmt.Errorf("couldn't mkdir: %w", err)
 		}
 	}
-
-	javaKernelValue, err := util.ReadOrCreateJSON(pathToJavaKernel, KernelJson{
+	return util.ReadOrCreateJSON(pathToJavaKernel, KernelJson{
 		Argv: []string{
 			"java",
 			"-jar",
@@ -130,8 +106,6 @@ func getJavaKernel(projectPath string) (KernelJson, error) {
 		DisplayName: "Java (jjava)",
 		Language:    "java",
 	})
-
-	return javaKernelValue, err
 }
 
 type AllKernels struct {
@@ -141,178 +115,34 @@ type AllKernels struct {
 	Java       KernelJson
 }
 
-// GetAllKernels retrieves configurations for all supported kernels (Python and Golang).
-// It returns an AllKernels struct containing the kernel configurations for each language.
-// If an error occurs while retrieving any kernel configuration, it returns the error.
+// GetAllKernels retrieves configurations for all supported kernel descriptors.
 func GetAllKernels(projectPath string) (AllKernels, error) {
-	allKernels := AllKernels{}
-
+	all := AllKernels{}
 	pythonKernelValue, err := getPythonKernel(projectPath)
 	if err != nil {
-		return allKernels, err
+		return all, err
 	}
-
 	golangKernelValue, err := getGolangKernel(projectPath)
 	if err != nil {
-		return allKernels, err
+		return all, err
 	}
-
 	javascriptKernelValue, err := getJavascriptKernel(projectPath)
 	if err != nil {
-		return allKernels, err
+		return all, err
 	}
-
 	javaKernelValue, err := getJavaKernel(projectPath)
 	if err != nil {
-		return allKernels, err
+		return all, err
 	}
-
-	allKernels.Python = pythonKernelValue
-	allKernels.Go = golangKernelValue
-	allKernels.Javascript = javascriptKernelValue
-	allKernels.Java = javaKernelValue
-
-	return allKernels, nil
+	all.Python = pythonKernelValue
+	all.Go = golangKernelValue
+	all.Javascript = javascriptKernelValue
+	all.Java = javaKernelValue
+	return all, nil
 }
 
-// getKernelConnectionInfo creates or reads a kernel connection configuration file for the specified language.
-// It sets up connection ports starting from the provided basePort and returns a KernelConnectionInfo struct.
-// The connection information includes ports for shell, IOPub, stdin, control, and heartbeat channels.
-func getKernelConnectionInfo(projectPath, language string, basePort int) (KernelConnectionInfo, error) {
-	connectionInfo := KernelConnectionInfo{
-		Language:        language,
-		DisplayName:     language,
-		ShellPort:       basePort,
-		IOPubPort:       basePort + 1,
-		StdinPort:       basePort + 2,
-		ControlPort:     basePort + 3,
-		HBPort:          basePort + 4,
-		IP:              "127.0.0.1",
-		Key:             "abc123",
-		Transport:       "tcp",
-		SignatureScheme: "hmac-sha256",
-	}
-
-	filename := fmt.Sprintf("%s-connection.json", language)
-	pathToConnectionFile := filepath.Join(projectPath, "code", filename)
-	validatedConnectionInfo, err := util.ReadOrCreateJSON(pathToConnectionFile, connectionInfo)
-	if err != nil {
-		return validatedConnectionInfo, err
-	}
-
-	return validatedConnectionInfo, nil
-}
-
-// getPythonConnectionInfo retrieves connection information for the Python kernel.
-// It uses a base port of 55321 for the Python kernel connections.
-func getPythonConnectionInfo(projectPath string) (KernelConnectionInfo, error) {
-	return getKernelConnectionInfo(projectPath, "python", 55321)
-}
-
-// getGolangConnectionInfo retrieves connection information for the Golang kernel.
-// It uses a base port of 55326 for the Golang kernel connections.
-func getGolangConnectionInfo(projectPath string) (KernelConnectionInfo, error) {
-	return getKernelConnectionInfo(projectPath, "go", 55326)
-}
-
-// getJavascriptConnectionInfo retrieves connection information for the Javascript kernel.
-// It uses a base port of 55331 for the Javascript kernel connections.
-func getJavascriptConnectionInfo(projectPath string) (KernelConnectionInfo, error) {
-	return getKernelConnectionInfo(projectPath, "javascript", 55331)
-}
-
-// getJavaConnectionInfo retrieves connection information for the Java kernel.
-// It uses a base port of 55336 for the Java kernel connections.
-func getJavaConnectionInfo(projectPath string) (KernelConnectionInfo, error) {
-	return getKernelConnectionInfo(projectPath, "java", 55336)
-}
-
-// GetAllConnectionInfo retrieves connection information for all supported kernels.
-// It returns a LanguageToKernelConnectionInfo struct containing connection information for Python and Golang kernels.
-// If an error occurs while retrieving connection information for any kernel, it returns the error.
-func GetAllConnectionInfo(projectPath string) (LanguageToKernelConnectionInfo, error) {
-	validatedPythonConnectionInfo, err := getPythonConnectionInfo(projectPath)
-	if err != nil {
-		return LanguageToKernelConnectionInfo{}, err
-	}
-
-	validatedGolangConnectionInfo, err := getGolangConnectionInfo(projectPath)
-	if err != nil {
-		return LanguageToKernelConnectionInfo{}, err
-	}
-
-	validatedJavascriptConnectionInfo, err := getJavascriptConnectionInfo(projectPath)
-	if err != nil {
-		return LanguageToKernelConnectionInfo{}, err
-	}
-
-	validatedJavaConnectionInfo, err := getJavaConnectionInfo(projectPath)
-	if err != nil {
-		return LanguageToKernelConnectionInfo{}, err
-	}
-
-	return LanguageToKernelConnectionInfo{
-		Python:     validatedPythonConnectionInfo,
-		Go:         validatedGolangConnectionInfo,
-		Javascript: validatedJavascriptConnectionInfo,
-		Java:       validatedJavaConnectionInfo,
-	}, nil
-}
-
-// GetConnectionInfoFromLanguage retrieves connection information for a specific language kernel.
-// It validates that the language is supported and returns the appropriate KernelConnectionInfo.
-// If the language is not supported or the connection information is empty, it returns an error.
-func GetConnectionInfoFromLanguage(projectPath string, language string) (KernelConnectionInfo, error) {
-	if !util.IsSupportedLanguage(language) {
-		return KernelConnectionInfo{}, fmt.Errorf("unsupported language: %s", language)
-	}
-
-	switch language {
-	case "python":
-		pythonConnectionInfo, err := getPythonConnectionInfo(projectPath)
-		if err != nil {
-			return KernelConnectionInfo{}, err
-		}
-		if pythonConnectionInfo == (KernelConnectionInfo{}) {
-			return KernelConnectionInfo{}, fmt.Errorf("python connection info is empty")
-		}
-		return pythonConnectionInfo, nil
-	case "go":
-		golangConnectionInfo, err := getGolangConnectionInfo(projectPath)
-		if err != nil {
-			return KernelConnectionInfo{}, err
-		}
-		if golangConnectionInfo == (KernelConnectionInfo{}) {
-			return KernelConnectionInfo{}, fmt.Errorf("golang connection info is empty")
-		}
-		return golangConnectionInfo, nil
-	case "javascript":
-		javascriptConnectionInfo, err := getJavascriptConnectionInfo(projectPath)
-		if err != nil {
-			return KernelConnectionInfo{}, err
-		}
-		if javascriptConnectionInfo == (KernelConnectionInfo{}) {
-			return KernelConnectionInfo{}, fmt.Errorf("javascript connection info is empty")
-		}
-		return javascriptConnectionInfo, nil
-	case "java":
-		javaConnectionInfo, err := getJavaConnectionInfo(projectPath)
-		if err != nil {
-			return KernelConnectionInfo{}, err
-		}
-		if javaConnectionInfo == (KernelConnectionInfo{}) {
-			return KernelConnectionInfo{}, fmt.Errorf("java connection info is empty")
-		}
-		return javaConnectionInfo, nil
-	default:
-		return KernelConnectionInfo{}, fmt.Errorf("unsupported language: %s", language)
-	}
-}
-
-//	GetPythonVirtualEnvironments returns a list of paths to Python virtual environments found in the project's
-//
-// code directory and any custom virtual environment paths specified in project settings. It scans the code
-// directory for standard virtual environments and combines those with user-configured custom paths.
+// GetPythonVirtualEnvironments scans the code directory for Python virtual environments
+// and combines the results with any user-configured custom paths.
 func GetPythonVirtualEnvironments(projectPath string, customPythonVenvPaths []string) ([]string, error) {
 	pathToCodeFolder := filepath.Join(projectPath, "code")
 	entries, err := os.ReadDir(pathToCodeFolder)

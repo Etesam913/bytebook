@@ -1,15 +1,16 @@
 import { atom } from 'jotai';
+import { atomFamily } from 'jotai-family';
 import {
   type BackendQueryDataType,
   type ContextMenuData,
   type DialogDataType,
-  KernelsData,
+  type KernelInstanceData,
+  type LanguagesWithKernels,
   type ProjectSettings,
 } from './types';
 import type { FileOrFolder } from './components/virtualized/virtualized-file-tree/types';
 import {
-  type FilePath,
-  type FolderPath,
+  type FileOrFolderPath,
   createFilePath,
   createFolderPath,
 } from './utils/path';
@@ -36,26 +37,33 @@ function atomWithLogging<T>(name: string, initialValue: T) {
     }
   );
 }
-type RecentItem = FilePath | FolderPath;
-
 // Most recent sidebar items
-const initializeMostRecentItems = (): RecentItem[] => {
+const initializeMostRecentItems = (): FileOrFolderPath[] => {
   const stored = JSON.parse(
     localStorage.getItem('mostRecentItems') ?? '[]'
   ) as string[];
   return stored
     .map((path) => createFilePath(path) ?? createFolderPath(path))
-    .filter((path): path is RecentItem => path !== null);
+    .filter((path): path is FileOrFolderPath => path !== null);
 };
 
-export const mostRecentItemsAtom = atom(
-  initializeMostRecentItems(),
-  (get, set, update: RecentItem[] | ((prev: RecentItem[]) => RecentItem[])) => {
-    const prev = get(mostRecentItemsAtom);
+/** Inner atom so the derived atom's write does not call `get(self)`. */
+const mostRecentItemsBaseAtom = atom<FileOrFolderPath[]>(
+  initializeMostRecentItems()
+);
+
+export const mostRecentItemsAtom = atom<
+  FileOrFolderPath[],
+  [FileOrFolderPath[] | ((prev: FileOrFolderPath[]) => FileOrFolderPath[])],
+  void
+>(
+  (get) => get(mostRecentItemsBaseAtom),
+  (get, set, update) => {
+    const prev = get(mostRecentItemsBaseAtom);
     const payload = typeof update === 'function' ? update(prev) : update;
     const stringPaths = payload.map((filePath) => filePath.fullPath);
     localStorage.setItem('mostRecentItems', JSON.stringify(stringPaths));
-    set(mostRecentItemsAtom, payload);
+    set(mostRecentItemsBaseAtom, payload);
   }
 );
 
@@ -154,38 +162,63 @@ export const contextMenuDataAtom = atom<ContextMenuData>({
   targetId: null,
 });
 
-export const loadingToastIdsAtom = atom<Map<string, string | number>>(
-  new Map()
-);
-
 export type TrashRestoreInfo = {
   originalPath: string;
   trashedPath: string;
   isFolder: boolean;
+  relatedItems: TrashRestoreInfo[] | undefined;
 };
 
-export const kernelsDataAtom = atom<KernelsData>({
-  python: {
-    status: 'idle',
-    heartbeat: 'idle',
-    errorMessage: null,
-  },
-  go: {
-    status: 'idle',
-    heartbeat: 'idle',
-    errorMessage: null,
-  },
-  javascript: {
-    status: 'idle',
-    heartbeat: 'idle',
-    errorMessage: null,
-  },
-  java: {
-    status: 'idle',
-    heartbeat: 'idle',
-    errorMessage: null,
-  },
-});
+/**
+ * Map of kernel instance id -> instance data. The backend KernelManager owns
+ * the authoritative state and emits kernel:instance:* events whenever an
+ * instance is created, updates status/heartbeat, or shuts down.
+ */
+export const kernelInstancesAtom = atom<Record<string, KernelInstanceData>>({});
+
+/**
+ * Derived: instances grouped by language.
+ */
+const EMPTY_KERNEL_INSTANCES_BY_LANGUAGE: Record<
+  LanguagesWithKernels,
+  KernelInstanceData[]
+> = {
+  python: [],
+  go: [],
+  javascript: [],
+  java: [],
+};
+
+export const kernelInstancesByLanguageAtom = atom((get) =>
+  Object.values(get(kernelInstancesAtom)).reduce(
+    (grouped, inst) => {
+      grouped[inst.language].push(inst);
+      return grouped;
+    },
+    structuredClone(EMPTY_KERNEL_INSTANCES_BY_LANGUAGE)
+  )
+);
+
+/**
+ * Derived: the instance for a given (noteId, language), or null if none exists.
+ *
+ * `atomFamily` memoizes a parameterized atom: each unique (noteId, language)
+ * pair returns the same atom instance, so subscribers re-render only when
+ * their specific kernel instance changes — not on every kernelInstancesAtom
+ * mutation. The equality fn dedupes the param object by value, not reference.
+ */
+export const kernelInstanceForNoteAtomFamily = atomFamily(
+  ({ noteId, language }: { noteId: string; language: LanguagesWithKernels }) =>
+    atom((get) => {
+      const all = get(kernelInstancesAtom);
+      return (
+        Object.values(all).find(
+          (i) => i.noteId === noteId && i.language === language
+        ) ?? null
+      );
+    }),
+  (a, b) => a.noteId === b.noteId && a.language === b.language
+);
 
 // Sidebar panel keys and types
 export const SIDEBAR_PANEL_KEYS = [

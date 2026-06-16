@@ -1,4 +1,12 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
 import type { CodeMirrorRef } from './types';
 import { Loader } from '../../icons/loader';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
@@ -44,24 +52,26 @@ export function Code({
   executionCount,
   durationText,
   executionId,
+  kernelInstanceId,
 }: {
   id: string;
   code: string;
-  setCode: (newCode: string) => void;
+  setCode: Dispatch<SetStateAction<string>>;
   status: CodeBlockStatus;
-  setStatus: (newStatus: CodeBlockStatus) => void;
+  setStatus: Dispatch<SetStateAction<CodeBlockStatus>>;
   language: Languages;
   nodeKey: string;
   isCreatedNow: boolean;
   lastExecutedResult: string | null;
-  setLastExecutedResult: (lastExecutedResult: string) => void;
+  setLastExecutedResult: Dispatch<SetStateAction<string>>;
   hideResults: boolean;
-  setHideResults: (hideResults: boolean) => void;
+  setHideResults: Dispatch<SetStateAction<boolean>>;
   isWaitingForInput: boolean;
-  setIsWaitingForInput: (isWaitingForInput: boolean) => void;
+  setIsWaitingForInput: Dispatch<SetStateAction<boolean>>;
   executionCount: number;
   durationText: string;
   executionId: string;
+  kernelInstanceId: string | null;
 }) {
   const [codeMirrorInstance, setCodeMirrorInstance] =
     useState<CodeMirrorRef>(null);
@@ -82,6 +92,27 @@ export function Code({
     }
   }, [isExpanded]);
 
+  const shellProps = {
+    lexicalEditor,
+    codeMirrorInstance,
+    setCodeMirrorInstance,
+    isExpanded,
+    setIsExpanded,
+    hideResults,
+    setHideResults,
+    dialogRef,
+    isCreatedNow,
+  };
+
+  const identityProps = { id, nodeKey, language };
+  const editorDocumentProps = { code, setCode };
+  const executionProps = {
+    status,
+    setStatus,
+    executionId,
+    kernelInstanceId,
+  };
+
   const codeContent = (
     <Suspense
       fallback={
@@ -89,51 +120,35 @@ export function Code({
       }
     >
       <CodeActions
-        editor={lexicalEditor}
-        codeMirrorInstance={codeMirrorInstance}
-        isExpanded={isExpanded}
-        setIsExpanded={setIsExpanded}
-        hideResults={hideResults}
-        setHideResults={setHideResults}
-        language={language}
-        nodeKey={nodeKey}
-        dialogRef={dialogRef}
+        identity={identityProps}
+        execution={executionProps}
+        shell={shellProps}
+        isSelected={isSelected}
       />
       <CodeMirrorEditor
-        nodeKey={nodeKey}
-        lexicalEditor={lexicalEditor}
-        codeMirrorInstance={codeMirrorInstance}
-        setCodeMirrorInstance={setCodeMirrorInstance}
-        code={code}
-        setCode={setCode}
-        id={id}
-        language={language}
-        isCreatedNow={isCreatedNow}
-        isExpanded={isExpanded}
-        status={status}
-        setStatus={setStatus}
-        executionId={executionId}
-        hideResults={hideResults}
-        dialogRef={dialogRef}
+        identity={identityProps}
+        editorDocument={editorDocumentProps}
+        execution={executionProps}
+        shell={shellProps}
       />
       {lastExecutedResult !== null && !hideResults && (
         <CodeResult
-          id={id}
-          language={language}
-          lastExecutedResult={lastExecutedResult}
-          setLastExecutedResult={setLastExecutedResult}
-          isExpanded={isExpanded}
-          status={status}
-          isWaitingForInput={isWaitingForInput}
-          setIsWaitingForInput={setIsWaitingForInput}
-          codeMirrorInstance={codeMirrorInstance}
+          identity={identityProps}
+          execution={executionProps}
+          shell={shellProps}
+          output={{
+            lastExecutedResult,
+            setLastExecutedResult,
+            isWaitingForInput,
+            setIsWaitingForInput,
+          }}
         />
       )}
     </Suspense>
   );
 
   return (
-    <div className="flex gap-2 items-center relative">
+    <div className="group flex gap-2 items-center relative">
       <dialog
         ref={dialogRef}
         id="code-dialog"
@@ -183,7 +198,7 @@ export function Code({
           data-interactable="true"
           data-node-key={nodeKey}
           className={cn(
-            'relative w-full rounded-md border-2 grow cm-background border-zinc-150 dark:border-zinc-750',
+            'relative w-full rounded-md border-2 cm-background border-zinc-150 dark:border-zinc-750',
             isSelected && 'border-(--accent-color)!'
           )}
         >

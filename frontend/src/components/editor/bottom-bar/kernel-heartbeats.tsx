@@ -35,15 +35,15 @@ export function KernelHeartbeats() {
         });
 
         setLanguagesPresentInNote(tempLanguagesPresentInNote);
-        // Manages interrupting ongoing requests for deleted code nodes
+        // Interrupt any in-flight execution belonging to a deleted code block.
         mutationsMap.forEach((mutation, nodeKey) => {
           if (mutation === 'destroyed') {
             prevEditorState.read(() => {
               const codeNode = $getNodeByKey(nodeKey) as CodeNode | undefined;
               if (codeNode) {
                 interruptExecution({
+                  kernelInstanceId: codeNode.getKernelInstanceId(),
                   codeBlockId: codeNode.getId(),
-                  codeBlockLanguage: codeNode.getLanguage(),
                   newExecutionId: '',
                 });
               }

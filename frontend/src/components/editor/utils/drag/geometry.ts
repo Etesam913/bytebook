@@ -47,7 +47,7 @@ export class Point {
   }
 }
 
-function isPoint(x: unknown): x is Point {
+export function isPoint(x: unknown): x is Point {
   return x instanceof Point;
 }
 

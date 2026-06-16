@@ -3,8 +3,8 @@ package events
 import (
 	"log"
 
-	"github.com/blevesearch/bleve/v2"
 	"github.com/etesam913/bytebook/internal/ingest"
+	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -12,7 +12,7 @@ import (
 type EventParams struct {
 	App               *application.App
 	ProjectPath       string
-	Index             *bleve.Index
+	Index             *search.IndexHolder
 	ImportCoordinator *ingest.BulkImportCoordinator
 }
 

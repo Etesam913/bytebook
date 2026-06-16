@@ -8,10 +8,8 @@ import { FolderOpen } from '../../icons/folder-open';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { dialogDataAtom, projectSettingsAtom } from '../../atoms';
 import { PythonVenvDialog } from '../../components/editor/python-venv-dialog';
-import {
-  usePythonVenvSubmitMutation,
-  useRevealInFinderMutation,
-} from '../../hooks/code';
+import { usePythonVenvSubmitMutation } from '../../hooks/code';
+import { RevealFolderOrFileInFinder } from '../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { ReactNode } from 'react';
 import { Browser } from '@wailsio/runtime';
 
@@ -28,7 +26,6 @@ export function KernelQuickstart({ language }: { language: Languages }) {
   const setDialogData = useSetAtom(dialogDataAtom);
   const { mutateAsync: submitPythonVenv } =
     usePythonVenvSubmitMutation(projectSettings);
-  const { mutate: revealInFinder } = useRevealInFinderMutation();
 
   const renderPythonQuickstart = () => (
     <div className="flex flex-col gap-6">
@@ -262,12 +259,12 @@ export function KernelQuickstart({ language }: { language: Languages }) {
           and the <span className="font-mono">jjava.jar</span> file to the{' '}
           <button
             className="app-link"
-            onClick={() =>
-              revealInFinder({
-                path: `${projectSettings.projectPath}/code/java-resource`,
-                shouldPrefixWithProjectPath: false,
-              })
-            }
+            onClick={() => {
+              void RevealFolderOrFileInFinder(
+                `${projectSettings.projectPath}/code/java-resource`,
+                false
+              );
+            }}
           >
             java-resource/
           </button>{' '}

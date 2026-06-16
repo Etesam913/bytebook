@@ -178,6 +178,7 @@ func TestPopulateJobs(t *testing.T) {
 		writeFilesRelative(t, notesDir, map[string]string{
 			filepath.Join("folder1", "visible.md"):             "# Visible",
 			filepath.Join("folder1", ".hidden-file.md"):        "# Hidden file",
+			filepath.Join("folder1", ".visible.json"):          `{"codeResults":{"version":1,"codeBlocks":[]}}`,
 			filepath.Join("folder1", ".hidden-dir", "deep.md"): "# In hidden dir",
 			filepath.Join(".hidden-top", "note.md"):            "# In hidden top-level folder",
 		})
@@ -290,4 +291,28 @@ func TestIndexAllFiles(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, deepAttachmentDoc)
 	})
+}
+
+func TestIndexDiscoveredFilesSkipsHiddenSidecars(t *testing.T) {
+	projectDir, notesDir := setupTempNotesDir(t)
+	index := createTempIndex(t, projectDir)
+	defer index.Close()
+
+	writeFilesRelative(t, notesDir, map[string]string{
+		filepath.Join("folder", "note.md"):    "# Visible",
+		filepath.Join("folder", ".note.json"): `{"codeResults":{"version":1,"codeBlocks":[{"codeBlockId":"block","resultHtml":"secret"}]}}`,
+	})
+
+	require.NoError(t, IndexDiscoveredFiles(projectDir, []string{
+		filepath.Join(notesDir, "folder", "note.md"),
+		filepath.Join(notesDir, "folder", ".note.json"),
+	}, index, 1))
+
+	noteDoc, err := index.Document(filepath.Join("folder", "note.md"))
+	require.NoError(t, err)
+	assert.NotNil(t, noteDoc)
+
+	sidecarDoc, err := index.Document(filepath.Join("folder", ".note.json"))
+	require.NoError(t, err)
+	assert.Nil(t, sidecarDoc)
 }

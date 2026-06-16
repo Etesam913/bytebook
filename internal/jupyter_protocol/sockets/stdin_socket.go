@@ -1,13 +1,11 @@
 package sockets
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
-	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/pebbe/zmq4"
@@ -24,50 +22,42 @@ type InputRequestEvent struct {
 	Password  bool   `json:"password"`
 }
 
-func CreateStdinSocket(language string) *stdinSocket {
-	stdinSocketDealer, err := zmq4.NewSocket(zmq4.Type(zmq4.DEALER))
+func createStdinSocket(p CreateParams) *stdinSocket {
+	sock, err := zmq4.NewSocket(zmq4.Type(zmq4.DEALER))
 	if err != nil {
 		log.Print("Could not create stdin socket:", err)
-		return &stdinSocket{socket: nil}
+		return nil
 	}
-	// the identity of the stdin socket has to be the same as the identity
-	// of the shell socket. This is required to be set on the stdin socket
-	// as it receives messages from the kernel via the shell socket.
-	if err := stdinSocketDealer.SetIdentity("current-session"); err != nil {
-		log.Fatalf("could not set ZMQ IDENTITY: %v", err)
+	// Stdin socket identity must match the shell socket so the kernel can route to us.
+	if err := sock.SetIdentity("current-session"); err != nil {
+		log.Printf("could not set ZMQ IDENTITY: %v", err)
+		_ = sock.Close()
+		return nil
 	}
-	return &stdinSocket{socket: stdinSocketDealer}
+	return &stdinSocket{socket: sock}
 }
 
-func (s *stdinSocket) Get() *zmq4.Socket {
-	return s.socket
-}
-
-func (s *stdinSocket) Listen(
-	stdinSocketDealer *zmq4.Socket,
-	connectionInfo config.KernelConnectionInfo,
-	ctx context.Context,
-) {
-	if stdinSocketDealer == nil {
+func (s *stdinSocket) Listen(p CreateParams) {
+	if s.socket == nil {
 		log.Println("📥 Stdin socket is nil, cannot listen")
 		return
 	}
-	defer stdinSocketDealer.Close()
+	defer s.socket.Close()
 	app := application.Get()
 
-	stdinAddress := fmt.Sprintf("tcp://%s:%d", connectionInfo.IP, connectionInfo.StdinPort)
-	if err := stdinSocketDealer.Connect(stdinAddress); err != nil {
-		log.Fatal("Could not connect 📥 stdin socket dealer to port:", err)
+	stdinAddress := fmt.Sprintf("tcp://%s:%d", p.ConnectionInfo.IP, p.ConnectionInfo.StdinPort)
+	if err := s.socket.Connect(stdinAddress); err != nil {
+		log.Printf("Could not connect 📥 stdin socket: %v", err)
+		return
 	}
 
 	for {
 		select {
-		case <-ctx.Done():
-			stdinSocketDealer.Close()
+		case <-p.Ctx.Done():
 			log.Println("🛑 Stdin socket listener received context cancellation")
 			return
 		default:
-			envelope, err := stdinSocketDealer.RecvMessageBytes(zmq4.Flag(zmq4.DONTWAIT))
+			envelope, err := s.socket.RecvMessageBytes(zmq4.Flag(zmq4.DONTWAIT))
 			if err != nil {
 				if strings.Contains(err.Error(), "resource temporarily unavailable") {
 					time.Sleep(50 * time.Millisecond)
@@ -77,45 +67,25 @@ func (s *stdinSocket) Listen(
 				continue
 			}
 
-			identities, msg, signature, err := jupyter_protocol.ParseMultipartMessage(envelope)
+			_, msg, _, err := jupyter_protocol.ParseMultipartMessage(envelope)
 			if err != nil {
 				log.Println("📥 Error parsing message:", err)
 				continue
 			}
 
-			log.Println("📥 stdin socket identities:", identities)
-			log.Println("📥 stdin socket signature:", signature)
-			log.Println("📥 stdin socket parent header:", msg.ParentHeader)
-			log.Println("📥 stdin socket message type:", msg.Header.MsgType)
-			log.Println("📥 stdin socket content:", msg.Content)
-
-			switch msg.Header.MsgType {
-			case StdinSocket.InputRequest:
+			if msg.Header.MsgType == StdinSocket.InputRequest {
 				msgId, ok := msg.ParentHeader["msg_id"].(string)
 				if !ok {
-					log.Printf("⚠️ Invalid message ID type: %v (type: %T)", msg.ParentHeader["msg_id"], msg.ParentHeader["msg_id"])
 					continue
 				}
-
-				prompt, promptOk := msg.Content["prompt"].(string)
-				if !promptOk {
-					log.Printf("⚠️ Invalid prompt type: %v (type: %T)", msg.Content["prompt"], msg.Content["prompt"])
-					prompt = "Input: "
+				prompt, _ := msg.Content["prompt"].(string)
+				password, _ := msg.Content["password"].(bool)
+				if app != nil {
+					app.Event.EmitEvent(&application.CustomEvent{
+						Name: util.Events.CodeBlockInputRequest,
+						Data: InputRequestEvent{MessageId: msgId, Prompt: prompt, Password: password},
+					})
 				}
-
-				password, passwordOk := msg.Content["password"].(bool)
-				if !passwordOk {
-					password = false
-				}
-
-				app.Event.EmitEvent(&application.CustomEvent{
-					Name: util.Events.CodeBlockInputRequest,
-					Data: InputRequestEvent{
-						MessageId: msgId,
-						Prompt:    prompt,
-						Password:  password,
-					},
-				})
 			}
 		}
 	}

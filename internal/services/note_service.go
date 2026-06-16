@@ -6,14 +6,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/blevesearch/bleve/v2"
 	"github.com/etesam913/bytebook/internal/config"
+	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/etesam913/bytebook/internal/util"
 )
 
 type NoteService struct {
 	ProjectPath string
-	SearchIndex *bleve.Index
 }
 
 // RenameFile renames a file or folder from oldFolderNotePath to newFolderNotePath.
@@ -68,7 +67,7 @@ func (n *NoteService) RenameFile(oldFolderNotePath string, newFolderNotePath str
 		}
 		return config.BackendResponseWithData[string]{
 			Success: false,
-			Message: fmt.Sprintf("A %s with the new name already exists", itemType),
+			Message: fmt.Sprintf("A %s with that name already exists", itemType),
 			Data:    "",
 		}
 	}
@@ -86,6 +85,32 @@ func (n *NoteService) RenameFile(oldFolderNotePath string, newFolderNotePath str
 		}
 	}
 
+	if !isDir && filepath.Ext(oldPath) == ".md" {
+		oldSidecarPath := notes.ConstructCodeResultsSidecarPath(oldPath)
+		if sidecarExists, err := util.FileOrFolderExists(oldSidecarPath); err != nil {
+			return config.BackendResponseWithData[string]{
+				Success: false,
+				Message: err.Error(),
+				Data:    "",
+			}
+		} else if sidecarExists {
+			newSidecarPath := notes.ConstructCodeResultsSidecarPath(newPath)
+			if newSidecarExists, err := util.FileOrFolderExists(newSidecarPath); err != nil {
+				return config.BackendResponseWithData[string]{
+					Success: false,
+					Message: err.Error(),
+					Data:    "",
+				}
+			} else if newSidecarExists {
+				return config.BackendResponseWithData[string]{
+					Success: false,
+					Message: "Code results sidecar already exists at destination",
+					Data:    "",
+				}
+			}
+		}
+	}
+
 	// Rename the file or folder
 	err = os.Rename(oldPath, newPath)
 	if err != nil {
@@ -93,6 +118,16 @@ func (n *NoteService) RenameFile(oldFolderNotePath string, newFolderNotePath str
 			Success: false,
 			Message: err.Error(),
 			Data:    "",
+		}
+	}
+
+	if !isDir && filepath.Ext(oldPath) == ".md" {
+		if err := notes.MoveCodeResultsSidecar(oldPath, newPath); err != nil {
+			return config.BackendResponseWithData[string]{
+				Success: false,
+				Message: err.Error(),
+				Data:    "",
+			}
 		}
 	}
 
@@ -130,6 +165,39 @@ func (n *NoteService) GetNoteMarkdown(path string) config.BackendResponseWithDat
 	}
 }
 
+// GetNoteMarkdownWithCodeResults reads markdown and its Bytebook code-result sidecar.
+func (n *NoteService) GetNoteMarkdownWithCodeResults(path string) config.BackendResponseWithData[notes.NoteMarkdownWithCodeResults] {
+	noteFilePath, err := util.SafeJoin(n.ProjectPath, path)
+	if err != nil {
+		return config.BackendResponseWithData[notes.NoteMarkdownWithCodeResults]{Success: false, Message: err.Error()}
+	}
+
+	noteContent, err := os.ReadFile(noteFilePath)
+	if err != nil {
+		return config.BackendResponseWithData[notes.NoteMarkdownWithCodeResults]{
+			Success: false,
+			Message: err.Error(),
+		}
+	}
+
+	codeResults, err := notes.ReadCodeResultsSidecar(noteFilePath)
+	if err != nil {
+		return config.BackendResponseWithData[notes.NoteMarkdownWithCodeResults]{
+			Success: false,
+			Message: err.Error(),
+		}
+	}
+
+	return config.BackendResponseWithData[notes.NoteMarkdownWithCodeResults]{
+		Success: true,
+		Message: "Successfully retrieved note markdown and code results",
+		Data: notes.NoteMarkdownWithCodeResults{
+			Markdown:    string(noteContent),
+			CodeResults: codeResults,
+		},
+	}
+}
+
 // SetNoteMarkdown writes the provided markdown string to the note file specified by folderName and noteTitle.
 // Returns a BackendResponseWithData indicating success or failure.
 func (n *NoteService) SetNoteMarkdown(
@@ -155,6 +223,45 @@ func (n *NoteService) SetNoteMarkdown(
 	return config.BackendResponseWithData[string]{
 		Success: true,
 		Message: "Successfully set note markdown",
+		Data:    "",
+	}
+}
+
+// SetNoteMarkdownWithCodeResults writes markdown and stores code results in a hidden sidecar.
+func (n *NoteService) SetNoteMarkdownWithCodeResults(
+	folderName string,
+	noteTitle string,
+	markdown string,
+	codeResults notes.CodeResultsSidecar,
+) config.BackendResponseWithData[string] {
+	noteName := fmt.Sprintf("%s.md", noteTitle)
+	noteFilePath, err := util.SafeJoin(filepath.Join(n.ProjectPath, "notes"), filepath.Join(folderName, noteName))
+	if err != nil {
+		return config.BackendResponseWithData[string]{Success: false, Message: err.Error(), Data: ""}
+	}
+
+	err = os.WriteFile(noteFilePath, []byte(markdown), 0644)
+	if err != nil {
+		return config.BackendResponseWithData[string]{
+			Success: false,
+			Message: err.Error(),
+			Data:    "",
+		}
+	}
+
+	// The file watcher can see the markdown write, but it cannot access the
+	// new in-memory code results payload, so the sidecar must be updated here.
+	if err := notes.WriteCodeResultsSidecar(noteFilePath, codeResults); err != nil {
+		return config.BackendResponseWithData[string]{
+			Success: false,
+			Message: err.Error(),
+			Data:    "",
+		}
+	}
+
+	return config.BackendResponseWithData[string]{
+		Success: true,
+		Message: "Successfully set note markdown and code results",
 		Data:    "",
 	}
 }
@@ -233,7 +340,7 @@ func (n *NoteService) MoveToTrash(folderAndNotes []string) config.BackendRespons
 		return config.BackendResponseWithData[[]util.TrashRestoreInfo]{
 			Success: false,
 			Message: err.Error(),
-			Data:    nil,
+			Data:    []util.TrashRestoreInfo{},
 		}
 	}
 	return config.BackendResponseWithData[[]util.TrashRestoreInfo]{
@@ -323,6 +430,12 @@ func (n *NoteService) MoveNoteToFolder(notePaths []string, newFolder string) con
 		fullPathWithNewFolder, err := util.SafeJoin(notesRoot, filepath.Join(newFolder, filepath.Base(pathToNote)))
 		if err != nil {
 			failedNoteNames = append(failedNoteNames, pathToNote)
+			continue
+		}
+		if filepath.Ext(fullPathToNote) == ".md" {
+			if err := moveMarkdownNoteWithSidecar(fullPathToNote, fullPathWithNewFolder); err != nil {
+				failedNoteNames = append(failedNoteNames, pathToNote)
+			}
 			continue
 		}
 		if err := util.MoveFile(fullPathToNote, fullPathWithNewFolder); err != nil {

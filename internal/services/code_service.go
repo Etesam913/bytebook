@@ -2,499 +2,161 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"log"
-	"path/filepath"
-	"sync"
-	"time"
 
 	"github.com/etesam913/bytebook/internal/config"
-	"github.com/etesam913/bytebook/internal/jupyter_protocol"
-	"github.com/etesam913/bytebook/internal/jupyter_protocol/sockets"
+	"github.com/etesam913/bytebook/internal/kernel_manager"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
+// CodeService is the RPC surface exposed to the frontend for kernel and code-block operations.
+// All kernel state lives on the manager; the service is a thin adapter.
 type CodeService struct {
-	ProjectPath                    string
-	PythonSockets                  sockets.LanguageSockets
-	GoSockets                      sockets.LanguageSockets
-	JavascriptSockets              sockets.LanguageSockets
-	JavaSockets                    sockets.LanguageSockets
-	LanguageToKernelConnectionInfo config.LanguageToKernelConnectionInfo
-	AllKernels                     config.AllKernels
+	ProjectPath string
+	Manager     *kernel_manager.KernelManager
 }
 
-func (c *CodeService) getLanguageSockets(language string) *sockets.LanguageSockets {
-	switch language {
-	case "python":
-		return &c.PythonSockets
-	case "go":
-		return &c.GoSockets
-	case "javascript":
-		return &c.JavascriptSockets
-	case "java":
-		return &c.JavaSockets
-	default:
-		return nil
-	}
+// SendExecuteRequestResponse carries the resolved kernel instance id back to the
+// frontend so subsequent control calls (interrupt, shutdown) can target it directly.
+type SendExecuteRequestResponse struct {
+	KernelInstanceID string `json:"kernelInstanceId"`
 }
 
-func (c *CodeService) SendExecuteRequest(codeBlockId, executionId, language, code string) config.BackendResponseWithoutData {
+// SendExecuteRequest resolves (language, noteId) to a kernel instance (creating it if
+// needed, evicting LRU idle if at the per-language cap), then sends the execute_request.
+func (c *CodeService) SendExecuteRequest(noteID, codeBlockID, executionID, language, code string) config.BackendResponseWithData[SendExecuteRequestResponse] {
 	projectSettings, err := config.GetProjectSettings(c.ProjectPath)
 	if err != nil {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: "Failed to get project settings. Please check if the settings.json file exists.",
-		}
+		return errResp[SendExecuteRequestResponse]("Failed to get project settings. Please check if the settings.json file exists.")
 	}
 
-	if !util.IsVirtualEnv(projectSettings.Code.PythonVenvPath) {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: "A virtual environment is not set. A virtual environment can be configured in the \"Code Block\" section of the settings.",
-		}
+	if language == "python" && !util.IsVirtualEnv(projectSettings.Code.PythonVenvPath) {
+		return errResp[SendExecuteRequestResponse]("A virtual environment is not set. A virtual environment can be configured in the \"Code Block\" section of the settings.")
 	}
 
-	sockets := c.getLanguageSockets(language)
-	if sockets == nil || sockets.ShellSocketDealer == nil || sockets.IOPubSocketSubscriber == nil || sockets.HeartbeatSocketReq == nil {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: "Coding sockets are not initialized. Try turning on the kernel by using the language button at the bottom of the editor.",
-		}
-	}
+	venvPath := projectSettings.Code.PythonVenvPath
 
-	isHeartBeating := sockets.HeartbeatState.GetHeartbeatStatus()
-
-	if !isHeartBeating {
-		response := c.CreateSocketsAndListen(language)
-		if !response.Success {
-			return response
-		}
-		// Refresh sockets after (re)creation
-		sockets = c.getLanguageSockets(language)
-	}
-
-	err = jupyter_protocol.SendExecuteRequest(
-		sockets.ShellSocketDealer,
-		jupyter_protocol.ExecuteMessageParams{
-			MessageParams: jupyter_protocol.MessageParams{
-				MessageID: fmt.Sprintf("%s|%s", codeBlockId, executionId),
-				SessionID: "current-session",
-			},
-			Code: code,
-		},
-	)
-
+	inst, err := c.Manager.GetOrCreate(context.Background(), language, noteID, venvPath)
 	if err != nil {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: fmt.Sprintf("Failed to send execute request: %v", err),
+		if errors.Is(err, kernel_manager.ErrNoIdleKernelToEvict) {
+			return errResp[SendExecuteRequestResponse](fmt.Sprintf("Stop another %s kernel to start this one.", language))
 		}
+		return errResp[SendExecuteRequestResponse](err.Error())
 	}
 
-	return config.BackendResponseWithoutData{
+	if err := inst.SendExecute(codeBlockID, executionID, code); err != nil {
+		return errResp[SendExecuteRequestResponse](fmt.Sprintf("Failed to send execute request: %v", err))
+	}
+	inst.MarkActivity()
+
+	return config.BackendResponseWithData[SendExecuteRequestResponse]{
 		Success: true,
 		Message: "Execute request sent successfully",
+		Data:    SendExecuteRequestResponse{KernelInstanceID: inst.ID()},
 	}
 }
 
-// SendShutdownMessage sends a shutdown request to the kernel with an option to restart
-func (c *CodeService) SendShutdownMessage(language string, restart bool) config.BackendResponseWithoutData {
-	sockets := c.getLanguageSockets(language)
-	if sockets == nil || sockets.ControlSocketDealer == nil {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: "Control socket is not initialized. Unable to shut down kernel.",
-		}
-	}
-
-	isHeartBeating := sockets.HeartbeatState.GetHeartbeatStatus()
-	if !isHeartBeating {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: "The kernel is not running. No need to shut it down.",
-		}
-	}
-
-	err := jupyter_protocol.SendShutdownMessage(
-		sockets.ControlSocketDealer,
-		jupyter_protocol.ShutdownMessageParams{
-			MessageParams: jupyter_protocol.MessageParams{
-				MessageID: fmt.Sprintf("shutdown-%d", time.Now().UnixNano()),
-				SessionID: "current-session",
-			},
-			Restart: restart,
-		},
-	)
-
+// EnsureKernel launches a kernel for (language, noteId) without sending an execute_request.
+// Used by the "Turn on kernel" button on code blocks.
+func (c *CodeService) EnsureKernel(noteID, language string) config.BackendResponseWithData[SendExecuteRequestResponse] {
+	projectSettings, err := config.GetProjectSettings(c.ProjectPath)
 	if err != nil {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: fmt.Sprintf("Failed to send shutdown request: %v", err),
-		}
+		return errResp[SendExecuteRequestResponse]("Failed to retrieve project settings.")
+	}
+	if language == "python" && !util.IsVirtualEnv(projectSettings.Code.PythonVenvPath) {
+		return errResp[SendExecuteRequestResponse]("A virtual environment is not set. A virtual environment can be configured in the \"Code Block\" section of the settings.")
 	}
 
-	return config.BackendResponseWithoutData{
-		Success: true,
-		Message: fmt.Sprintf("Kernel shutdown request sent successfully (restart: %v)", restart),
-	}
-}
-
-// SendInterruptRequest sends an interrupt request to the kernel to stop the currently executing code
-func (c *CodeService) SendInterruptRequest(language, codeBlockId, executionId string) config.BackendResponseWithoutData {
-	sockets := c.getLanguageSockets(language)
-	if sockets == nil || sockets.ControlSocketDealer == nil {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: "Control socket is not initialized. Unable to interrupt kernel.",
-		}
-	}
-
-	isHeartBeating := sockets.HeartbeatState.GetHeartbeatStatus()
-	if !isHeartBeating {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: "The kernel is not running. No execution to interrupt.",
-		}
-	}
-
-	err := jupyter_protocol.SendInterruptMessage(
-		sockets.ControlSocketDealer,
-		jupyter_protocol.MessageParams{
-			MessageID: fmt.Sprintf("%s|%s", codeBlockId, executionId),
-			SessionID: "current-session",
-		},
-	)
-
+	inst, err := c.Manager.GetOrCreate(context.Background(), language, noteID, projectSettings.Code.PythonVenvPath)
 	if err != nil {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: fmt.Sprintf("Failed to send interrupt request: %v", err),
+		if errors.Is(err, kernel_manager.ErrNoIdleKernelToEvict) {
+			return errResp[SendExecuteRequestResponse](fmt.Sprintf("Stop another %s kernel to start this one.", language))
 		}
+		return errResp[SendExecuteRequestResponse](err.Error())
 	}
-
-	return config.BackendResponseWithoutData{
+	return config.BackendResponseWithData[SendExecuteRequestResponse]{
 		Success: true,
-		Message: "Kernel interrupt request sent successfully",
+		Message: "Kernel ready",
+		Data:    SendExecuteRequestResponse{KernelInstanceID: inst.ID()},
 	}
 }
 
-// SendInputReply sends an input_reply message to the kernel.
-func (c *CodeService) SendInputReply(language, codeBlockId, executionId, value string) config.BackendResponseWithoutData {
-	sockets := c.getLanguageSockets(language)
-	if sockets == nil || sockets.ShellSocketDealer == nil || sockets.StdinSocketDealer == nil {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: "Stdin socket is not initialized. Unable to send input reply.",
-		}
+// ShutdownKernel shuts down a specific kernel instance.
+func (c *CodeService) ShutdownKernel(kernelInstanceID string, restart bool) config.BackendResponseWithoutData {
+	if err := c.Manager.Shutdown(kernelInstanceID, restart); err != nil {
+		return config.BackendResponseWithoutData{Success: false, Message: err.Error()}
 	}
-
-	// It's good practice to check if the kernel is actually running,
-	// though input_reply is usually in response to an input_request from an active kernel.
-	isHeartBeating := sockets.HeartbeatState.GetHeartbeatStatus()
-	if !isHeartBeating {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: "The kernel is not running. Cannot send input reply.",
-		}
-	}
-
-	err := jupyter_protocol.SendInputReplyMessage(
-		sockets.StdinSocketDealer,
-		jupyter_protocol.InputReplyMessageParams{
-			MessageParams: jupyter_protocol.MessageParams{
-				MessageID: fmt.Sprintf("%s|%s", codeBlockId, executionId),
-				SessionID: "current-session",
-			},
-			Value: value,
-		},
-	)
-
-	if err != nil {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: fmt.Sprintf("Failed to send input reply: %v", err),
-		}
-	}
-
-	return config.BackendResponseWithoutData{
-		Success: true,
-		Message: "Input reply sent successfully",
-	}
+	return config.BackendResponseWithoutData{Success: true, Message: "Kernel shutdown requested"}
 }
 
-type SendCompleteRequestResponse struct {
-	MessageId *string `json:"messageId"`
+// ShutdownKernelsByLanguage shuts down every kernel of the given language.
+func (c *CodeService) ShutdownKernelsByLanguage(language string) config.BackendResponseWithoutData {
+	c.Manager.ShutdownAllByLanguage(language)
+	return config.BackendResponseWithoutData{Success: true, Message: fmt.Sprintf("All %s kernels shut down", language)}
 }
 
-// SendCompleteRequest sends a complete_request message to the kernel.
-func (c *CodeService) SendCompleteRequest(language, codeBlockId, executionId, code string, cursorPos int) config.BackendResponseWithData[SendCompleteRequestResponse] {
-	sockets := c.getLanguageSockets(language)
-	if sockets == nil || sockets.ShellSocketDealer == nil {
-		return config.BackendResponseWithData[SendCompleteRequestResponse]{
-			Success: false,
-			Message: "Shell socket is not initialized. Unable to send completion request.",
-			Data:    SendCompleteRequestResponse{},
-		}
+// SendInterruptRequest sends an interrupt_request to the named instance.
+func (c *CodeService) SendInterruptRequest(kernelInstanceID, codeBlockID, executionID string) config.BackendResponseWithoutData {
+	inst := c.Manager.GetByID(kernelInstanceID)
+	if inst == nil {
+		return config.BackendResponseWithoutData{Success: false, Message: "Kernel instance not found"}
 	}
-
-	isHeartBeating := sockets.HeartbeatState.GetHeartbeatStatus()
-	if !isHeartBeating {
-		return config.BackendResponseWithData[SendCompleteRequestResponse]{
-			Success: false,
-			Message: "The kernel is not running. Cannot send completion request.",
-			Data:    SendCompleteRequestResponse{},
-		}
+	if !inst.IsHeartbeating() {
+		return config.BackendResponseWithoutData{Success: false, Message: "Kernel is not running."}
 	}
-
-	messageId := fmt.Sprintf("%s|%s", codeBlockId, executionId)
-	err := jupyter_protocol.SendCompleteRequest(
-		sockets.ShellSocketDealer,
-		jupyter_protocol.CompleteRequestParams{
-			MessageParams: jupyter_protocol.MessageParams{
-				MessageID: messageId,
-				SessionID: "current-session",
-			},
-			Code:      code,
-			CursorPos: cursorPos,
-		},
-	)
-
-	if err != nil {
-		return config.BackendResponseWithData[SendCompleteRequestResponse]{
-			Success: false,
-			Message: fmt.Sprintf("Failed to send completion request: %v", err),
-			Data:    SendCompleteRequestResponse{},
-		}
+	if err := inst.SendInterrupt(codeBlockID, executionID); err != nil {
+		return config.BackendResponseWithoutData{Success: false, Message: err.Error()}
 	}
+	return config.BackendResponseWithoutData{Success: true, Message: "Interrupt sent"}
+}
 
-	return config.BackendResponseWithData[SendCompleteRequestResponse]{
-		Success: true,
-		Message: "Completion request sent successfully",
-		Data: SendCompleteRequestResponse{
-			MessageId: &messageId,
-		},
+// SendInputReply forwards a user-supplied input value to the kernel's stdin socket.
+func (c *CodeService) SendInputReply(kernelInstanceID, codeBlockID, executionID, value string) config.BackendResponseWithoutData {
+	inst := c.Manager.GetByID(kernelInstanceID)
+	if inst == nil {
+		return config.BackendResponseWithoutData{Success: false, Message: "Kernel instance not found"}
 	}
+	if !inst.IsHeartbeating() {
+		return config.BackendResponseWithoutData{Success: false, Message: "Kernel is not running."}
+	}
+	if err := inst.SendInputReply(codeBlockID, executionID, value); err != nil {
+		return config.BackendResponseWithoutData{Success: false, Message: err.Error()}
+	}
+	return config.BackendResponseWithoutData{Success: true, Message: "Input reply sent"}
 }
 
 type SendInspectRequestResponse struct {
 	MessageId *string `json:"messageId"`
 }
 
-// SendInspectRequest sends an inspect_request message to the kernel.
-func (c *CodeService) SendInspectRequest(language, codeBlockId, executionId, code string, cursorPos, detailLevel int) config.BackendResponseWithData[SendInspectRequestResponse] {
-	sockets := c.getLanguageSockets(language)
-	if sockets == nil || sockets.ShellSocketDealer == nil {
-		return config.BackendResponseWithData[SendInspectRequestResponse]{
-			Success: false,
-			Message: "Shell socket is not initialized. Unable to send inspection request.",
-			Data:    SendInspectRequestResponse{},
-		}
+// SendInspectRequest sends an inspect_request to the named instance.
+func (c *CodeService) SendInspectRequest(kernelInstanceID, codeBlockID, executionID, code string, cursorPos, detailLevel int) config.BackendResponseWithData[SendInspectRequestResponse] {
+	inst := c.Manager.GetByID(kernelInstanceID)
+	if inst == nil {
+		return errResp[SendInspectRequestResponse]("Kernel instance not found")
 	}
-
-	isHeartBeating := sockets.HeartbeatState.GetHeartbeatStatus()
-	if !isHeartBeating {
-		return config.BackendResponseWithData[SendInspectRequestResponse]{
-			Success: false,
-			Message: "The kernel is not running. Cannot send inspection request.",
-			Data:    SendInspectRequestResponse{},
-		}
+	if !inst.IsHeartbeating() {
+		return errResp[SendInspectRequestResponse]("Kernel is not running.")
 	}
-
-	// Generate a unique messageId by adding a timestamp to avoid duplicate signatures
-	messageId := fmt.Sprintf("%s|%s|inspect_%d", codeBlockId, executionId, time.Now().UnixNano())
-
-	err := jupyter_protocol.SendInspectRequest(
-		sockets.ShellSocketDealer,
-		jupyter_protocol.InspectRequestParams{
-			MessageParams: jupyter_protocol.MessageParams{
-				MessageID: messageId,
-				SessionID: "current-session",
-			},
-			Code:        code,
-			CursorPos:   cursorPos,
-			DetailLevel: detailLevel,
-		},
-	)
-
+	messageID, err := inst.SendInspect(codeBlockID, executionID, code, cursorPos, detailLevel)
 	if err != nil {
-		return config.BackendResponseWithData[SendInspectRequestResponse]{
-			Success: false,
-			Message: fmt.Sprintf("Failed to send inspection request: %v", err),
-			Data:    SendInspectRequestResponse{},
-		}
+		return errResp[SendInspectRequestResponse](err.Error())
 	}
-
 	return config.BackendResponseWithData[SendInspectRequestResponse]{
 		Success: true,
-		Message: "Inspection request sent successfully",
-		Data: SendInspectRequestResponse{
-			MessageId: &messageId,
-		},
+		Message: "Inspection request sent",
+		Data:    SendInspectRequestResponse{MessageId: &messageID},
 	}
 }
 
-// IsKernelAvailable returns true if the kernel sockets are initialized
-// and the heartbeat is currently active.
-func (c *CodeService) IsKernelAvailable(language string) bool {
-	sockets := c.getLanguageSockets(language)
-	if sockets == nil || sockets.ShellSocketDealer == nil || sockets.IOPubSocketSubscriber == nil || sockets.ControlSocketDealer == nil || sockets.HeartbeatSocketReq == nil {
-		return false
-	}
-	return sockets.HeartbeatState.GetHeartbeatStatus()
-}
-
-func (c *CodeService) CreateSocketsAndListen(language string) config.BackendResponseWithoutData {
-	projectSettings, err := config.GetProjectSettings(c.ProjectPath)
-	if err != nil {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: "Failed to retrieve project settings. Check if settings.json exists.",
-		}
-	}
-	venvPath := ""
-	if language == "python" {
-		venvPath = projectSettings.Code.PythonVenvPath
-
-		if !util.IsVirtualEnv(venvPath) {
-			return config.BackendResponseWithoutData{
-				Success: false,
-				Message: "A virtual environment is not set. A virtual environment can be configured in the \"Code Block\" section of the settings.",
-			}
-		}
-	}
-
-	connectionInfo, err := config.GetConnectionInfoFromLanguage(c.ProjectPath, language)
-	if err != nil {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: err.Error(),
-		}
-	}
-
-	socketsStruct := c.getLanguageSockets(language)
-	if socketsStruct == nil {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: "Unknown language for sockets",
-		}
-	}
-
-	// Function to create sockets and update CodeService properties
-	createAndUpdateSockets := func() (*sockets.SocketSet, error) {
-		codeServiceUpdater := sockets.CodeServiceUpdater(c)
-		createdSockets, err := sockets.CreateSockets(
-			socketsStruct.ShellSocketDealer,
-			socketsStruct.IOPubSocketSubscriber,
-			socketsStruct.HeartbeatSocketReq,
-			socketsStruct.ControlSocketDealer,
-			socketsStruct.StdinSocketDealer,
-			language,
-			connectionInfo,
-			socketsStruct.Context,
-			socketsStruct.Cancel,
-			codeServiceUpdater,
-			&socketsStruct.HeartbeatState,
-		)
-
-		if err != nil {
-			return nil, err
-		}
-
-		// Update socket properties for the selected language
-		socketsStruct.ShellSocketDealer = createdSockets.ShellSocketDealer
-		socketsStruct.IOPubSocketSubscriber = createdSockets.IOPubSocketSubscriber
-		socketsStruct.HeartbeatSocketReq = createdSockets.HeartbeatSocketReq
-		socketsStruct.ControlSocketDealer = createdSockets.ControlSocketDealer
-		socketsStruct.StdinSocketDealer = createdSockets.StdinSocketDealer
-
-		return createdSockets, nil
-	}
-
-	if util.IsPortInUse(connectionInfo.ShellPort) {
-		_, err := createAndUpdateSockets()
-		if err != nil {
-			return config.BackendResponseWithoutData{
-				Success: false,
-				Message: err.Error(),
-			}
-		}
-
-		return config.BackendResponseWithoutData{
-			Success: true,
-			Message: fmt.Sprintf(
-				"Something is already running on the port: %d",
-				connectionInfo.ShellPort,
-			),
-		}
-	}
-
-	pathToConnectionFile := filepath.Join(c.ProjectPath, "code", fmt.Sprintf("%s-connection.json", language))
-	if fileExists, _ := util.FileOrFolderExists(pathToConnectionFile); !fileExists {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: fmt.Sprintf("Connection file for %s not found", language),
-		}
-	}
-
-	var argv []string
-
-	switch language {
-	case "python":
-		argv = c.AllKernels.Python.Argv
-	case "go":
-		argv = c.AllKernels.Go.Argv
-	case "javascript":
-		argv = c.AllKernels.Javascript.Argv
-	case "java":
-		argv = c.AllKernels.Java.Argv
-	default:
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: "Couldn't get launch command for language",
-		}
-	}
-
-	// Start up the kernel
-	err = jupyter_protocol.LaunchKernel(
-		argv,
-		pathToConnectionFile,
-		language,
-		venvPath,
-	)
-
-	if err != nil {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: fmt.Sprintf("Failed to launch kernel: %v", err),
-		}
-	}
-
-	log.Println("🟩 launched kernel")
-
-	_, err = createAndUpdateSockets()
-	if err != nil {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: err.Error(),
-		}
-	}
-
-	app := application.Get()
-	if app != nil {
-		app.Event.EmitEvent(&application.CustomEvent{
-			Name: util.Events.KernelLaunchSuccess,
-			Data: jupyter_protocol.KernelLaunchEvent{
-				Language: language,
-				Data:     "",
-			},
-		})
-	}
-
-	return config.BackendResponseWithoutData{
+// ListKernels returns snapshots of every live kernel instance.
+func (c *CodeService) ListKernels() config.BackendResponseWithData[[]kernel_manager.KernelInstanceSnapshot] {
+	return config.BackendResponseWithData[[]kernel_manager.KernelInstanceSnapshot]{
 		Success: true,
-		Message: "Sockets created and listening...",
+		Message: "Kernels listed",
+		Data:    c.Manager.List(),
 	}
 }
 
@@ -502,11 +164,7 @@ func (c *CodeService) CreateSocketsAndListen(language string) config.BackendResp
 func (c *CodeService) GetPythonVirtualEnvironments() config.BackendResponseWithData[[]string] {
 	projectSettings, err := config.GetProjectSettings(c.ProjectPath)
 	if err != nil {
-		return config.BackendResponseWithData[[]string]{
-			Success: false,
-			Message: "Failed to retrieve project settings",
-			Data:    []string{},
-		}
+		return errResp[[]string]("Failed to retrieve project settings")
 	}
 
 	virtualEnvironmentPaths, err := config.GetPythonVirtualEnvironments(
@@ -514,11 +172,7 @@ func (c *CodeService) GetPythonVirtualEnvironments() config.BackendResponseWithD
 		projectSettings.Code.CustomPythonVenvPaths,
 	)
 	if err != nil {
-		return config.BackendResponseWithData[[]string]{
-			Success: false,
-			Message: err.Error(),
-			Data:    []string{},
-		}
+		return errResp[[]string](err.Error())
 	}
 	return config.BackendResponseWithData[[]string]{
 		Success: true,
@@ -526,6 +180,7 @@ func (c *CodeService) GetPythonVirtualEnvironments() config.BackendResponseWithD
 		Data:    virtualEnvironmentPaths,
 	}
 }
+
 func (c *CodeService) IsPathAValidVirtualEnvironment(path string) config.BackendResponseWithoutData {
 	if path == "" {
 		return config.BackendResponseWithoutData{
@@ -533,14 +188,12 @@ func (c *CodeService) IsPathAValidVirtualEnvironment(path string) config.Backend
 			Message: "The provided path is empty. Please provide a valid path to a virtual environment.",
 		}
 	}
-
 	if util.IsVirtualEnv(path) {
 		return config.BackendResponseWithoutData{
 			Success: true,
 			Message: fmt.Sprintf("%s is a valid virtual environment", path),
 		}
 	}
-
 	return config.BackendResponseWithoutData{
 		Success: false,
 		Message: fmt.Sprintf("%s is not a valid virtual environment as a pyvenv.cfg could not be found", path),
@@ -551,11 +204,7 @@ func (c *CodeService) IsPathAValidVirtualEnvironment(path string) config.Backend
 func (c *CodeService) ChooseCustomVirtualEnvironmentPath() config.BackendResponseWithData[string] {
 	app := application.Get()
 	if app == nil || app.Dialog == nil {
-		return config.BackendResponseWithData[string]{
-			Success: false,
-			Data:    "",
-			Message: "Application not initialized",
-		}
+		return errResp[string]("Application not initialized")
 	}
 
 	localFilePath, err := app.Dialog.OpenFile().
@@ -564,11 +213,7 @@ func (c *CodeService) ChooseCustomVirtualEnvironmentPath() config.BackendRespons
 		PromptForSingleSelection()
 
 	if err != nil {
-		return config.BackendResponseWithData[string]{
-			Success: false,
-			Data:    "",
-			Message: "Failed to open file dialog",
-		}
+		return errResp[string]("Failed to open file dialog")
 	}
 
 	return config.BackendResponseWithData[string]{
@@ -578,93 +223,35 @@ func (c *CodeService) ChooseCustomVirtualEnvironmentPath() config.BackendRespons
 	}
 }
 
-func (c *CodeService) ResetCodeServiceProperties(language string) *sockets.LanguageSockets {
-	switch language {
-	case "python":
-		// Reset Python context and sockets
-		newKernelCtx, newKernelCtxCancel := context.WithCancel(context.Background())
-		c.PythonSockets = sockets.LanguageSockets{
-			ShellSocketDealer:     nil,
-			IOPubSocketSubscriber: nil,
-			ControlSocketDealer:   nil,
-			HeartbeatSocketReq:    nil,
-			StdinSocketDealer:     nil,
-			HeartbeatState: jupyter_protocol.KernelHeartbeatState{
-				Mutex:  sync.RWMutex{},
-				Status: false,
-			},
-			Context: newKernelCtx,
-			Cancel:  newKernelCtxCancel,
-		}
-		return &c.PythonSockets
-	case "go":
-		// Reset Go context and sockets
-		newKernelCtx, newKernelCtxCancel := context.WithCancel(context.Background())
-		c.GoSockets = sockets.LanguageSockets{
-			ShellSocketDealer:     nil,
-			IOPubSocketSubscriber: nil,
-			ControlSocketDealer:   nil,
-			HeartbeatSocketReq:    nil,
-			StdinSocketDealer:     nil,
-			HeartbeatState: jupyter_protocol.KernelHeartbeatState{
-				Mutex:  sync.RWMutex{},
-				Status: false,
-			},
-			Context: newKernelCtx,
-			Cancel:  newKernelCtxCancel,
-		}
-		return &c.GoSockets
-	case "javascript":
-		// Reset JavaScript context and sockets
-		newKernelCtx, newKernelCtxCancel := context.WithCancel(context.Background())
-		c.JavascriptSockets = sockets.LanguageSockets{
-			ShellSocketDealer:     nil,
-			IOPubSocketSubscriber: nil,
-			ControlSocketDealer:   nil,
-			HeartbeatSocketReq:    nil,
-			StdinSocketDealer:     nil,
-			HeartbeatState: jupyter_protocol.KernelHeartbeatState{
-				Mutex:  sync.RWMutex{},
-				Status: false,
-			},
-			Context: newKernelCtx,
-			Cancel:  newKernelCtxCancel,
-		}
-		return &c.JavascriptSockets
-	case "java":
-		// Reset Java context and sockets
-		newKernelCtx, newKernelCtxCancel := context.WithCancel(context.Background())
-		c.JavaSockets = sockets.LanguageSockets{
-			ShellSocketDealer:     nil,
-			IOPubSocketSubscriber: nil,
-			ControlSocketDealer:   nil,
-			HeartbeatSocketReq:    nil,
-			StdinSocketDealer:     nil,
-			HeartbeatState: jupyter_protocol.KernelHeartbeatState{
-				Mutex:  sync.RWMutex{},
-				Status: false,
-			},
-			Context: newKernelCtx,
-			Cancel:  newKernelCtxCancel,
-		}
-		return &c.JavaSockets
+// GetKernelDescriptor returns the static kernel.json descriptor for a language.
+// The frontend uses this to display launch commands and other static info.
+func (c *CodeService) GetKernelDescriptor(language string) config.BackendResponseWithData[*config.KernelJson] {
+	all, err := config.GetAllKernels(c.ProjectPath)
+	if err != nil {
+		return errResp[*config.KernelJson](err.Error())
 	}
-	return nil
-}
-
-func (c *CodeService) GetKernelInfoByLanguage(language string) *config.KernelJson {
+	var k *config.KernelJson
 	switch language {
 	case "python":
-		return &c.AllKernels.Python
+		k = &all.Python
 	case "go":
-		return &c.AllKernels.Go
+		k = &all.Go
 	case "javascript":
-		return &c.AllKernels.Javascript
+		k = &all.Javascript
 	case "java":
-		return &c.AllKernels.Java
+		k = &all.Java
 	default:
-		return nil
+		return errResp[*config.KernelJson]("Unsupported language")
+	}
+	return config.BackendResponseWithData[*config.KernelJson]{
+		Success: true,
+		Message: "Kernel descriptor retrieved",
+		Data:    k,
 	}
 }
 
-var _ sockets.CodeServiceUpdater = (*CodeService)(nil)
+// errResp constructs a typed BackendResponseWithData error result with a zero-value Data.
+func errResp[T any](msg string) config.BackendResponseWithData[T] {
+	var zero T
+	return config.BackendResponseWithData[T]{Success: false, Message: msg, Data: zero}
+}

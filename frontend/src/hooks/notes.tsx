@@ -21,10 +21,13 @@ import { projectSettingsAtom, type TrashRestoreInfo } from '../atoms';
 import { CUSTOM_TRANSFORMERS } from '../components/editor/transformers';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
-import { getContentTypeAndValueFromSelectionRangeValue } from '../utils/string-formatting';
-import { FilePath } from '../utils/path';
+import {
+  createFilePath,
+  type FileOrFolderPath,
+  type FilePath,
+} from '../utils/path';
 import { useWailsEvent } from './events';
-import { FILE_WRITE } from '../utils/events';
+import { CODE_RESULTS_UPDATE, FILE_WRITE } from '../utils/events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
 import type { Frontmatter } from '../types';
 import { $convertFromMarkdownString } from '@lexical/markdown';
@@ -35,6 +38,7 @@ import {
 } from '../components/virtualized/virtualized-file-tree/utils/delete-node';
 import { fileTreeDataAtom } from '../atoms';
 import { useFilePathFromRoute, useFolderPathFromRoute } from './routes';
+import { applyCodeResultsSidecar } from '../components/editor/utils/code-results';
 
 const noteQueries = {
   doesNoteExist: (filePath: FilePath | null) =>
@@ -47,45 +51,20 @@ const noteQueries = {
     }),
 };
 
-/** Custom hook to handle revealing folders in Finder */
-export function useNoteRevealInFinderMutation() {
+/**
+ * Reveals a single file or folder inside the project's `notes/` directory in
+ * the system file manager. Accepts a typed `FilePath`/`FolderPath` so callers
+ * cannot accidentally point at arbitrary disk paths.
+ */
+export function useRevealInFinderMutation() {
   return useMutation({
-    // The main function that handles revealing folders in Finder
-    mutationFn: async ({
-      selectionRange,
-      folder,
-    }: {
-      selectionRange: Set<string>;
-      folder: string;
-    }) => {
-      // Limit the number of folders to reveal to 5
-      const selectedNotes = [...selectionRange].slice(0, 5);
-      // Reveal each selected folder in Finder
-      const res = await Promise.all(
-        selectedNotes.map(async (selectionRangeValue) => {
-          const { value: note } =
-            getContentTypeAndValueFromSelectionRangeValue(selectionRangeValue);
-          return await RevealFolderOrFileInFinder(
-            `notes/${folder}/${note}`,
-            true
-          );
-        })
+    mutationFn: async ({ path }: { path: FileOrFolderPath }) => {
+      const res = await RevealFolderOrFileInFinder(
+        `notes/${path.fullPath}`,
+        true
       );
-      const failedNotes: string[] = [];
-
-      res.forEach((r, i) => {
-        if (!r.success) {
-          const { value: note } = getContentTypeAndValueFromSelectionRangeValue(
-            selectedNotes[i]
-          );
-          failedNotes.push(note);
-        }
-      });
-
-      if (failedNotes.length > 0) {
-        throw new QueryError(
-          `Failed to reveal ${failedNotes.join(', ')} in finder`
-        );
+      if (!res.success) {
+        throw new QueryError(res.message);
       }
     },
   });
@@ -318,6 +297,29 @@ export function useNoteWriteEvent({
         }
       }
     })();
+  });
+
+  useWailsEvent(CODE_RESULTS_UPDATE, (e) => {
+    const data = e.data as {
+      filePath: string;
+      codeResults?: Parameters<typeof applyCodeResultsSidecar>[0];
+    };
+    const filePath = createFilePath(data.filePath);
+
+    if (
+      !filePath ||
+      filePath.folder !== folder ||
+      filePath.noteWithoutExtension !== note
+    ) {
+      return;
+    }
+
+    editor.update(
+      () => {
+        applyCodeResultsSidecar(data.codeResults);
+      },
+      { tag: 'note:write-from-external' }
+    );
   });
 }
 
