@@ -47,7 +47,10 @@ test.describe('Editor', () => {
     // Mock note markdown
     await mockBinding(
       context,
-      { file: SERVICE_FILES.NOTE_SERVICE, method: 'GetNoteMarkdown' },
+      {
+        file: SERVICE_FILES.NOTE_SERVICE,
+        method: 'GetNoteMarkdownWithCodeResults',
+      },
       MOCK_NOTE_MARKDOWN_RESPONSE
     );
   });
@@ -114,7 +117,10 @@ test.describe('Editor', () => {
 
       await mockBinding(
         context,
-        { file: SERVICE_FILES.NOTE_SERVICE, method: 'GetNoteMarkdown' },
+        {
+          file: SERVICE_FILES.NOTE_SERVICE,
+          method: 'GetNoteMarkdownWithCodeResults',
+        },
         FAILURE_RESPONSE
       );
 
@@ -129,13 +135,19 @@ test.describe('Editor', () => {
     const SELECTABLE_MARKDOWN_RESPONSE = {
       success: true,
       message: '',
-      data: '# Sample Note\n\nThis is some selectable text for testing.',
+      data: {
+        markdown: '# Sample Note\n\nThis is some selectable text for testing.',
+        codeResults: { version: 1, codeBlocks: [] },
+      },
     };
 
     test.beforeEach(async ({ context }) => {
       await mockBinding(
         context,
-        { file: SERVICE_FILES.NOTE_SERVICE, method: 'GetNoteMarkdown' },
+        {
+          file: SERVICE_FILES.NOTE_SERVICE,
+          method: 'GetNoteMarkdownWithCodeResults',
+        },
         SELECTABLE_MARKDOWN_RESPONSE
       );
     });

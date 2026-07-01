@@ -121,7 +121,10 @@ export const MOCK_NOTE_EXISTS_RESPONSE = true;
 export const MOCK_NOTE_MARKDOWN_RESPONSE = {
   success: true,
   message: '',
-  data: '# Sample Note\n\nThis is sample markdown content.',
+  data: {
+    markdown: '# Sample Note\n\nThis is sample markdown content.',
+    codeResults: { version: 1, codeBlocks: [] },
+  },
 };
 
 /**

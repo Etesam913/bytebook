@@ -142,29 +142,6 @@ func (n *NoteService) RenameFile(oldFolderNotePath string, newFolderNotePath str
 	}
 }
 
-// GetNoteMarkdown reads and returns the markdown content of a note at the given path (relative to project root).
-// Returns a BackendResponseWithData containing the markdown string or an error message.
-func (n *NoteService) GetNoteMarkdown(path string) config.BackendResponseWithData[string] {
-	noteFilePath, err := util.SafeJoin(n.ProjectPath, path)
-	if err != nil {
-		return config.BackendResponseWithData[string]{Success: false, Message: err.Error(), Data: ""}
-	}
-
-	noteContent, err := os.ReadFile(noteFilePath)
-	if err != nil {
-		return config.BackendResponseWithData[string]{
-			Success: false,
-			Message: err.Error(),
-			Data:    "",
-		}
-	}
-	return config.BackendResponseWithData[string]{
-		Success: true,
-		Message: "Successfully Retrieved Note Markdown",
-		Data:    string(noteContent),
-	}
-}
-
 // GetNoteMarkdownWithCodeResults reads markdown and its Bytebook code-result sidecar.
 func (n *NoteService) GetNoteMarkdownWithCodeResults(path string) config.BackendResponseWithData[sidecar.NoteWithCodeResults] {
 	noteFilePath, err := util.SafeJoin(n.ProjectPath, path)

@@ -43,7 +43,10 @@ test.describe('Markdown rendering', () => {
     // Mock note markdown
     await mockBinding(
       context,
-      { file: SERVICE_FILES.NOTE_SERVICE, method: 'GetNoteMarkdown' },
+      {
+        file: SERVICE_FILES.NOTE_SERVICE,
+        method: 'GetNoteMarkdownWithCodeResults',
+      },
       MOCK_NOTE_MARKDOWN_RESPONSE
     );
   });
@@ -52,12 +55,19 @@ test.describe('Markdown rendering', () => {
     const HEADING_MARKDOWN_RESPONSE = {
       success: true,
       message: '',
-      data: '# Heading 1\n\n## Heading 2\n\n### Heading 3\n\nParagraph text.',
+      data: {
+        markdown:
+          '# Heading 1\n\n## Heading 2\n\n### Heading 3\n\nParagraph text.',
+        codeResults: { version: 1, codeBlocks: [] },
+      },
     };
 
     await mockBinding(
       context,
-      { file: SERVICE_FILES.NOTE_SERVICE, method: 'GetNoteMarkdown' },
+      {
+        file: SERVICE_FILES.NOTE_SERVICE,
+        method: 'GetNoteMarkdownWithCodeResults',
+      },
       HEADING_MARKDOWN_RESPONSE
     );
 
@@ -76,23 +86,29 @@ test.describe('Markdown rendering', () => {
     const LIST_MARKDOWN_RESPONSE = {
       success: true,
       message: '',
-      data: [
-        '# List Example',
-        '',
-        '- Item 1',
-        '- Item 2',
-        '',
-        '1. First',
-        '2. Second',
-        '',
-        '- [ ] Unchecked item',
-        '- [x] Checked item',
-      ].join('\n'),
+      data: {
+        markdown: [
+          '# List Example',
+          '',
+          '- Item 1',
+          '- Item 2',
+          '',
+          '1. First',
+          '2. Second',
+          '',
+          '- [ ] Unchecked item',
+          '- [x] Checked item',
+        ].join('\n'),
+        codeResults: { version: 1, codeBlocks: [] },
+      },
     };
 
     await mockBinding(
       context,
-      { file: SERVICE_FILES.NOTE_SERVICE, method: 'GetNoteMarkdown' },
+      {
+        file: SERVICE_FILES.NOTE_SERVICE,
+        method: 'GetNoteMarkdownWithCodeResults',
+      },
       LIST_MARKDOWN_RESPONSE
     );
 
@@ -119,12 +135,19 @@ test.describe('Markdown rendering', () => {
     const FORMATTED_MARKDOWN_RESPONSE = {
       success: true,
       message: '',
-      data: '# Formatting\n\nThis has **bold text** and *italic text* and ***bold italic***.',
+      data: {
+        markdown:
+          '# Formatting\n\nThis has **bold text** and *italic text* and ***bold italic***.',
+        codeResults: { version: 1, codeBlocks: [] },
+      },
     };
 
     await mockBinding(
       context,
-      { file: SERVICE_FILES.NOTE_SERVICE, method: 'GetNoteMarkdown' },
+      {
+        file: SERVICE_FILES.NOTE_SERVICE,
+        method: 'GetNoteMarkdownWithCodeResults',
+      },
       FORMATTED_MARKDOWN_RESPONSE
     );
 
@@ -145,12 +168,19 @@ test.describe('Markdown rendering', () => {
     const STRIKETHROUGH_MARKDOWN_RESPONSE = {
       success: true,
       message: '',
-      data: '# Strikethrough Example\n\nThis has ~~strikethrough text~~ in it.',
+      data: {
+        markdown:
+          '# Strikethrough Example\n\nThis has ~~strikethrough text~~ in it.',
+        codeResults: { version: 1, codeBlocks: [] },
+      },
     };
 
     await mockBinding(
       context,
-      { file: SERVICE_FILES.NOTE_SERVICE, method: 'GetNoteMarkdown' },
+      {
+        file: SERVICE_FILES.NOTE_SERVICE,
+        method: 'GetNoteMarkdownWithCodeResults',
+      },
       STRIKETHROUGH_MARKDOWN_RESPONSE
     );
 
@@ -169,12 +199,19 @@ test.describe('Markdown rendering', () => {
     const BLOCKQUOTE_MARKDOWN_RESPONSE = {
       success: true,
       message: '',
-      data: '# Quote Example\n\n> This is a blockquote\n> with multiple lines',
+      data: {
+        markdown:
+          '# Quote Example\n\n> This is a blockquote\n> with multiple lines',
+        codeResults: { version: 1, codeBlocks: [] },
+      },
     };
 
     await mockBinding(
       context,
-      { file: SERVICE_FILES.NOTE_SERVICE, method: 'GetNoteMarkdown' },
+      {
+        file: SERVICE_FILES.NOTE_SERVICE,
+        method: 'GetNoteMarkdownWithCodeResults',
+      },
       BLOCKQUOTE_MARKDOWN_RESPONSE
     );
 

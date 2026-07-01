@@ -93,7 +93,10 @@ test.describe('Saved Search Page', () => {
 
     await mockBinding(
       context,
-      { file: SERVICE_FILES.NOTE_SERVICE, method: 'GetNoteMarkdown' },
+      {
+        file: SERVICE_FILES.NOTE_SERVICE,
+        method: 'GetNoteMarkdownWithCodeResults',
+      },
       MOCK_NOTE_MARKDOWN_RESPONSE
     );
 

@@ -21,7 +21,7 @@ const NOTE_PATH = '/notes/Economics%20Notes/Supply%20and%20Demand.md';
 const EMPTY_NOTE_MARKDOWN = {
   success: true,
   message: '',
-  data: '',
+  data: { markdown: '', codeResults: { version: 1, codeBlocks: [] } },
 };
 
 test.describe('Editor content insertion', () => {
@@ -51,7 +51,10 @@ test.describe('Editor content insertion', () => {
     );
     await mockBinding(
       context,
-      { file: SERVICE_FILES.NOTE_SERVICE, method: 'GetNoteMarkdown' },
+      {
+        file: SERVICE_FILES.NOTE_SERVICE,
+        method: 'GetNoteMarkdownWithCodeResults',
+      },
       EMPTY_NOTE_MARKDOWN
     );
   });

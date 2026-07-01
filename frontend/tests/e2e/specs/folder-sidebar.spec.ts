@@ -375,8 +375,18 @@ test.describe('File Sidebar', () => {
       );
       await mockBinding(
         context,
-        { file: SERVICE_FILES.NOTE_SERVICE, method: 'GetNoteMarkdown' },
-        { success: true, message: '', data: '# Supply and Demand' }
+        {
+          file: SERVICE_FILES.NOTE_SERVICE,
+          method: 'GetNoteMarkdownWithCodeResults',
+        },
+        {
+          success: true,
+          message: '',
+          data: {
+            markdown: '# Supply and Demand',
+            codeResults: { version: 1, codeBlocks: [] },
+          },
+        }
       );
       await mockBinding(
         context,
