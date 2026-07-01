@@ -48,9 +48,9 @@ export function FileTreeItemContainer({
 
   const selectionKey = path
     ? getKeyForSidebarSelection({
-      ...path,
-      id: dataItem.id,
-    })
+        ...path,
+        id: dataItem.id,
+      })
     : null;
 
   const isSelectedFromSidebarClick = selectionKey

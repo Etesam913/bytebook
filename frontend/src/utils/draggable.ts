@@ -30,7 +30,7 @@ export function dragItem(
  * Use it on accent outlines, selection highlights, floating tooltips, popovers,
  * etc. that should not appear in the drag image.
  */
-export const DRAG_GHOST_EXCLUDE_ATTR = 'data-drag-ghost-exclude';
+const DRAG_GHOST_EXCLUDE_ATTR = 'data-drag-ghost-exclude';
 
 // Clones an HTML element into a styled drag ghost, stripping selection highlights and excluded children.
 export function createGhostElementFromHtmlElement({

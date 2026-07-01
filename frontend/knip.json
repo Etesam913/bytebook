@@ -8,5 +8,6 @@
     "tests/e2e/utils/service-files.ts",
     "tests/e2e/utils/wails-events.ts",
     "src/test/setup.ts"
-  ]
+  ],
+  "ignoreExportsUsedInFile": true
 }

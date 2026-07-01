@@ -12,7 +12,6 @@ import { logger } from '../../../../utils/logging';
 import { useSetAtom, useStore } from 'jotai';
 import { applyInitialLoad, applyLoadMore } from './open-folder';
 import { GetChildrenOfFolderBasedOnPath } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
-import { useFolderOpenAnimationActions } from './use-folder-open-animation';
 
 /**
  * Extracts the last segment (file or folder name) from a path.
@@ -32,7 +31,6 @@ function getNameFromPath(path: string): string {
 export function useRevealRoutePath() {
   const store = useStore();
   const setFileTreeData = useSetAtom(fileTreeDataAtom);
-  const { triggerFolderOpenAnimation } = useFolderOpenAnimationActions();
 
   return useMutation({
     mutationFn: async (targetPath: string): Promise<boolean> => {

@@ -64,7 +64,7 @@ type RenameEntry = {
  * The `fileTreeData` parameter should be the current (pre-rename) state so that
  * original names are captured correctly for pagination boundary checks.
  */
-export function buildRenameUpdates({
+function buildRenameUpdates({
   entries,
   fileTreeData,
   isValidNode,
@@ -179,7 +179,7 @@ export function buildRenameUpdates({
  * In 'file' mode, updates only the file entry. If the new path collides with an
  * existing different node, the duplicate is removed first.
  */
-export function applyPathRemappings({
+function applyPathRemappings({
   fileTreeData,
   pathRemappings,
   nodeUpdates,
@@ -319,7 +319,7 @@ function removeSubtreeFromMaps(
  * - Cross-parent moves (node added to a new parent via `addChildIds`)
  * - Same-parent renames (node stays but its new name may push it past the boundary)
  */
-export function applyParentFolderUpdates({
+function applyParentFolderUpdates({
   treeData,
   filePathToTreeDataId,
   parentFolderUpdates,

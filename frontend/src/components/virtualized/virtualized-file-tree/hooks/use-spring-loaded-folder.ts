@@ -5,7 +5,6 @@ import { setFolderOpen } from './open-folder';
 import { hasLoadedChildren } from '../utils/file-tree-utils';
 import type { Folder } from '../types';
 import type { FetchFolderChildrenArgs } from '../file-tree-item/folder/hooks';
-import { useFolderOpenAnimationActions } from './use-folder-open-animation';
 
 // Implements spring-loaded folder behavior during drag-and-drop. When dragging over a
 // closed folder, starts a 600ms timer to auto-expand it and fetch children if needed.
@@ -19,7 +18,6 @@ export function useSpringLoadedFolder({
 }) {
   const setFileTreeData = useSetAtom(fileTreeDataAtom);
   const dragOverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { triggerFolderOpenAnimation } = useFolderOpenAnimationActions();
 
   useEffect(() => {
     // Handle cleanup to ensure there are no stale timeouts if the component unmounts while a timer is active.

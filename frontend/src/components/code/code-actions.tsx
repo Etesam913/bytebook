@@ -21,7 +21,7 @@ import { navigate } from 'wouter/use-browser-location';
 import { Trash } from '../../icons/trash';
 import { removeDecoratorNode } from '../../utils/commands';
 import { cn } from '../../utils/string-formatting';
-import { UNSAFE_PortalProvider } from 'react-aria/PortalProvider';
+import { UNSAFE_PortalProvider } from '@react-aria/overlays';
 
 export function CodeActions({
   identity,

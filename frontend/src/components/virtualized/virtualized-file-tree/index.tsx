@@ -21,11 +21,8 @@ import {
   isFileTreeBlankAreaClickTarget,
   getFolderOpenAnimationRows,
   OPENED_FOLDER_ROW_ANIMATION_DURATION,
-  OPENED_FOLDER_ROW_STAGGER,
-  OPENED_FOLDER_ROW_MAX_STAGGERED_ROWS,
 } from './utils/file-tree-utils';
 import { useFolderOpenAnimationParentIds } from './hooks/use-folder-open-animation';
-import { easingFunctions } from '../../../animations';
 
 const INITIAL_VISIBLE_RANGE: ListRange = { startIndex: 0, endIndex: -1 };
 
@@ -153,7 +150,7 @@ export function VirtualizedFileTree({
         rangeChanged={(range) => {
           setVisibleRange((previousRange) =>
             previousRange.startIndex === range.startIndex &&
-              previousRange.endIndex === range.endIndex
+            previousRange.endIndex === range.endIndex
               ? previousRange
               : range
           );
@@ -170,7 +167,7 @@ export function VirtualizedFileTree({
           height: 0,
           flexGrow: 1,
         }}
-        totalListHeightChanged={() => { }}
+        totalListHeightChanged={() => {}}
         itemContent={renderItem}
       />
     </div>

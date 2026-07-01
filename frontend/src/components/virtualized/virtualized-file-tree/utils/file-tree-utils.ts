@@ -392,9 +392,7 @@ export function isItemAlreadyInDropDestination({
  * into. Dropping on a folder targets that folder; dropping on a file targets
  * the file's parent folder.
  */
-export function getDropDestinationParentId(
-  dropTarget: FileOrFolder
-): string | null {
+function getDropDestinationParentId(dropTarget: FileOrFolder): string | null {
   return isTreeNodeAFolder(dropTarget) ? dropTarget.id : dropTarget.parentId;
 }
 

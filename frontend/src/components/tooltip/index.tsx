@@ -6,7 +6,7 @@ import {
   TooltipTrigger,
 } from 'react-aria-components/Tooltip';
 import { cn } from '../../utils/string-formatting';
-import { UNSAFE_PortalProvider } from 'react-aria/PortalProvider';
+import { UNSAFE_PortalProvider } from '@react-aria/overlays';
 
 type Placement = 'top' | 'bottom' | 'left' | 'right';
 
