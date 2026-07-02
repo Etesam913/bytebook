@@ -2,13 +2,27 @@ import { type RefObject, useEffect, useRef } from 'react';
 import { VirtuosoHandle } from 'react-virtuoso';
 
 /**
+ * Checks if a child element is fully visible within its parent scrolling container.
+ */
+function isElementFullyVisible(item: HTMLElement, scroller: HTMLElement): boolean {
+  const itemRect = item.getBoundingClientRect();
+  const scrollerRect = scroller.getBoundingClientRect();
+
+  const TOLERANCE = 4; // 4px tolerance for subpixel rendering and borders
+  const isAbove = itemRect.top < scrollerRect.top - TOLERANCE;
+  const isBelow = itemRect.bottom > scrollerRect.bottom + TOLERANCE;
+
+  return !isAbove && !isBelow;
+}
+
+/**
  * useSmartScroll is a custom React hook intended for use with virtualized lists (such as react-virtuoso).
  * It provides:
  * - A ref to be attached to the Virtuoso component.
  * - A callback to keep track of the currently rendered item range.
  * - A method to scroll to a particular index only if it is not currently visible.
  */
-export function useSmartScroll() {
+export function useSmartScroll(scrollElementRef?: RefObject<HTMLElement | null>) {
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const rangeRef = useRef({ startIndex: 0, endIndex: 0 });
 
@@ -21,12 +35,22 @@ export function useSmartScroll() {
     const { startIndex, endIndex } = rangeRef.current;
 
     // Check if the index is outside the current rendered range
-    const isVisible = index >= startIndex && index <= endIndex;
+    let isVisible = index >= startIndex && index <= endIndex;
+
+    // If it is within the rendered range, double check if it's fully visible in the DOM
+    if (isVisible && scrollElementRef?.current) {
+      const itemElement = scrollElementRef.current.querySelector<HTMLElement>(
+        `[data-item-index="${index}"]`
+      );
+      if (itemElement && !isElementFullyVisible(itemElement, scrollElementRef.current)) {
+        isVisible = false;
+      }
+    }
 
     if (!isVisible && virtuosoRef.current) {
       setTimeout(() => {
         if (!virtuosoRef.current) return;
-        virtuosoRef.current.scrollToIndex({
+        virtuosoRef.current.scrollIntoView({
           index,
         });
       }, 100);

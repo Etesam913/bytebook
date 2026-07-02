@@ -112,7 +112,7 @@ export function VirtualizedList<T>({
     }));
   };
   const { virtuosoRef, onRangeChanged, scrollToIndexIfHidden } =
-    useSmartScroll();
+    useSmartScroll(internalListRef);
   useImperativeHandle(ref, () => ({ scrollToIndexIfHidden }), [
     scrollToIndexIfHidden,
   ]);
