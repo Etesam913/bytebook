@@ -20,7 +20,7 @@ import {
   type SearchRouteParams,
 } from './utils/routes';
 import { RouteFallback } from './components/route-fallback';
-import { useZoom, useFullscreen, useWindowReload } from './hooks/resize';
+import { useZoom, useFullscreen } from './hooks/resize';
 import {
   useRestoreLastVisitedOnLaunch,
   useSyncFileMaximizedWithRoute,
@@ -73,7 +73,6 @@ function App() {
   useKernelInstanceEvents();
   useZoom();
   useFullscreen();
-  useWindowReload();
   useRestoreLastVisitedOnLaunch();
   useSyncFileMaximizedWithRoute();
 
@@ -129,7 +128,7 @@ function App() {
             )}
           </Route>
 
-          <Route path="/notes/*">
+          <Route path={routeUrls.patterns.NOTES}>
             <EditorWrapper />
           </Route>
 
@@ -160,7 +159,7 @@ function App() {
             )}
           </Route>
 
-          <Route path={'*'}>
+          <Route path={routeUrls.patterns.CATCH_ALL}>
             <NotFound />
           </Route>
         </Switch>

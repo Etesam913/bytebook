@@ -333,7 +333,12 @@ export async function insertAttachmentFromFile({
   editorSelection: BaseSelection | null;
 }) {
   try {
-    const { success, message, paths } = await AddAttachments(folder);
+    const { success, message, data } = await AddAttachments(folder);
+    if (!success) {
+      toast.error(message);
+      return;
+    }
+    const paths = data ?? [];
     if (paths.length === 0) return;
 
     // Goes through all the files and add them to the editor
@@ -346,7 +351,6 @@ export async function insertAttachmentFromFile({
         $setSelection(editorSelection.clone());
         editor.dispatchCommand(INSERT_FILES_COMMAND, payloads);
       }
-      if (!success) toast.error(message);
     });
   } catch (e: unknown) {
     if (e instanceof Error) {

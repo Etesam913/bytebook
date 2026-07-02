@@ -46,15 +46,6 @@ type stderrReader interface {
 // ID returns the unique identifier for this kernel instance.
 func (i *KernelInstance) ID() string { return i.id }
 
-// Language returns the programming language this kernel runs.
-func (i *KernelInstance) Language() string { return i.language }
-
-// NoteID returns the note this kernel is bound to.
-func (i *KernelInstance) NoteID() string { return i.scopeID }
-
-// ScopeType returns the kernel's scope type (currently always "note").
-func (i *KernelInstance) ScopeType() string { return i.scopeType }
-
 // IsIdle reports whether the kernel has no in-flight executions and an empty queue.
 // The heartbeat must also be alive — a dead kernel is not "idle" for eviction purposes.
 func (i *KernelInstance) IsIdle() bool {

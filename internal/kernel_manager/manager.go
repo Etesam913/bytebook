@@ -76,13 +76,6 @@ func New(projectPath string, allKernels config.AllKernels) *KernelManager {
 	}
 }
 
-// Get returns the existing instance for (language, noteID) or nil if none exists.
-func (m *KernelManager) Get(language, noteID string) *KernelInstance {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	return m.byLangNote[langNoteKey{language: language, noteID: noteID}]
-}
-
 // GetByID returns the instance with the given id or nil.
 func (m *KernelManager) GetByID(id string) *KernelInstance {
 	m.mu.Lock()
@@ -99,13 +92,6 @@ func (m *KernelManager) List() []KernelInstanceSnapshot {
 		out = append(out, inst.Snapshot())
 	}
 	return out
-}
-
-// MarkActivity bumps lastActivityAt on the named instance.
-func (m *KernelManager) MarkActivity(id string) {
-	if inst := m.GetByID(id); inst != nil {
-		inst.MarkActivity()
-	}
 }
 
 // GetOrCreate returns an existing kernel for (language, noteID), or launches a new one.

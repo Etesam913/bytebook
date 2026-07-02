@@ -84,13 +84,7 @@ export function useRoutePathFocus({
     void revealRoutePathAsync(routeTargetPath).then((success) => {
       if (success) {
         setPendingScrollPath(routeTargetPath);
-        return;
       }
-      // await queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
-      // const retrySuccess = await revealRoutePathAsync(routeTargetPath);
-      // if (retrySuccess) {
-      //   setPendingScrollPath(routeTargetPath);
-      // }
     });
   }, [routeTargetPath, isSuccess]);
 

@@ -18,20 +18,12 @@ var Events = struct {
 	ZoomReset           string
 	SettingsOpen        string
 	SearchNote          string
-	NewNoteMenu         string
-	FolderCreateMenu    string
 	Fullscreen          string
-	WindowReload        string
 	ToggleSidebar       string
 	SidebarFilesOpen    string
 	SidebarSearchOpen   string
 	FileTreeContentDrop string
 	EditorContentDrop   string
-
-	// Context Menu events
-	ContextMenuRename    string
-	ContextMenuAddFolder string
-	ContextMenuAddNote   string
 
 	// File watcher events
 	SettingsUpdate    string
@@ -76,20 +68,12 @@ var Events = struct {
 	ZoomReset:           "zoom:reset",
 	SettingsOpen:        "settings:open",
 	SearchNote:          "search:note",
-	NewNoteMenu:         "note:create-dialog",
-	FolderCreateMenu:    "folder:create-dialog",
 	Fullscreen:          "window:fullscreen",
-	WindowReload:        "window:reload",
 	ToggleSidebar:       "sidebar:toggle",
 	SidebarFilesOpen:    "sidebar:files:open",
 	SidebarSearchOpen:   "sidebar:search:open",
 	FileTreeContentDrop: "file-tree:content-drop",
 	EditorContentDrop:   "editor:content-drop",
-
-	// Context Menu events
-	ContextMenuRename:    "context-menu:rename",
-	ContextMenuAddFolder: "context-menu:add-folder",
-	ContextMenuAddNote:   "context-menu:add-note",
 
 	// File watcher events
 	SettingsUpdate:    "settings:update",

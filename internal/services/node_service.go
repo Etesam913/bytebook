@@ -3,18 +3,13 @@ package services
 import (
 	"path/filepath"
 
+	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 type NodeService struct {
 	ProjectPath string
-}
-
-type AttachmentResponse struct {
-	Success bool     `json:"success"`
-	Message string   `json:"message"`
-	Paths   []string `json:"paths"`
 }
 
 // Copies the files from the selected folder to the project folder and returns the file paths
@@ -47,10 +42,10 @@ func addFilePathsToProject(projectPath string, filePaths []string, folderPath st
 	return newFilePaths, nil
 }
 
-func (n *NodeService) AddAttachments(folder string) AttachmentResponse {
+func (n *NodeService) AddAttachments(folder string) config.BackendResponseWithData[[]string] {
 	app := application.Get()
 	if app == nil || app.Dialog == nil {
-		return AttachmentResponse{Success: false, Message: "Application not initialized", Paths: []string{}}
+		return config.BackendResponseWithData[[]string]{Success: false, Message: "Application not initialized", Data: []string{}}
 	}
 
 	localFilePaths, err := app.Dialog.OpenFile().
@@ -58,18 +53,18 @@ func (n *NodeService) AddAttachments(folder string) AttachmentResponse {
 		CanChooseDirectories(false).
 		PromptForMultipleSelection()
 	if err != nil {
-		return AttachmentResponse{Success: false, Message: err.Error(), Paths: []string{}}
+		return config.BackendResponseWithData[[]string]{Success: false, Message: err.Error(), Data: []string{}}
 	}
 
 	return n.AddAttachmentsFromPaths(folder, localFilePaths)
 }
 
 // AddAttachmentsFromPaths copies local files into the requested notes folder.
-func (n *NodeService) AddAttachmentsFromPaths(folder string, filePaths []string) AttachmentResponse {
+func (n *NodeService) AddAttachmentsFromPaths(folder string, filePaths []string) config.BackendResponseWithData[[]string] {
 	fileServerPaths, err := addFilePathsToProject(n.ProjectPath, filePaths, folder)
 	if err != nil {
-		return AttachmentResponse{Success: false, Message: err.Error(), Paths: fileServerPaths}
+		return config.BackendResponseWithData[[]string]{Success: false, Message: err.Error(), Data: fileServerPaths}
 	}
 
-	return AttachmentResponse{Success: true, Message: "", Paths: fileServerPaths}
+	return config.BackendResponseWithData[[]string]{Success: true, Message: "", Data: fileServerPaths}
 }

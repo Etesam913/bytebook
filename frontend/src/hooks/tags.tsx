@@ -12,7 +12,7 @@ import { QueryError } from '../utils/query';
 import { queryKeys } from '../utils/query-keys';
 import { Dispatch, SetStateAction } from 'react';
 import { getSelectionValue } from '../utils/selection';
-import { useFilePathFromRoute } from './routes';
+import { createFilePath } from '../utils/path';
 
 /**
  * Handles the `tags-folder:create`, "tags-folder:delete", and "tags:update" events.
@@ -20,17 +20,17 @@ import { useFilePathFromRoute } from './routes';
 
 export function useTagEvents() {
   const queryClient = useQueryClient();
-  const filePath = useFilePathFromRoute();
 
   useWailsEvent(TAGS_INDEX_UPDATE, () => {
     logger.event(TAGS_INDEX_UPDATE);
 
     void queryClient.invalidateQueries({ queryKey: queryKeys.tagsAll() });
-    if (filePath) {
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.notesTags([filePath.fullPath]),
-      });
-    }
+    // Prefix invalidation: notes-tags queries are keyed by an array of paths
+    // (possibly multiple, e.g. the edit-tag dialog), so a single-path key
+    // would never partial-match them.
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.notesTagsAll(),
+    });
   });
 }
 
@@ -97,9 +97,10 @@ export function useEditTagsFormMutation() {
           (formData.get('tag-names-to-remove') as string) ?? '[]'
         ) as string[];
 
-        const filePaths = [...selectionRange].map((entry) => {
+        const filePaths = [...selectionRange].flatMap((entry) => {
           const note = getSelectionValue(entry) ?? entry;
-          return `${folder}/${note}`;
+          const filePath = createFilePath(`${folder}/${note}`);
+          return filePath ? [filePath.fullPath] : [];
         });
 
         const res = await SetTagsOnNotes(
@@ -139,7 +140,7 @@ export function useDeleteTagFromNoteMutation(filePath: string) {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.notesTags([filePath]),
+        queryKey: queryKeys.notesTagsAll(),
       });
     },
   });

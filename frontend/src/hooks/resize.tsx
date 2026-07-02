@@ -1,12 +1,6 @@
 import { useSetAtom } from 'jotai/react';
 import { useWailsEvent, WailsEvent } from './events';
-import {
-  ZOOM_IN,
-  ZOOM_OUT,
-  ZOOM_RESET,
-  FULLSCREEN,
-  WINDOW_RELOAD,
-} from '../utils/events';
+import { ZOOM_IN, ZOOM_OUT, ZOOM_RESET, FULLSCREEN } from '../utils/events';
 import { logger } from '../utils/logging';
 import { isFullscreenAtom } from '../atoms';
 import { useEffect, useRef } from 'react';
@@ -107,25 +101,3 @@ export function useFullscreen() {
     setIsFullscreen(isFullscreen);
   });
 }
-
-/**
- * Hook to listen for window reload events from the backend menu
- * and trigger a page reload.
- */
-export function useWindowReload() {
-  useWailsEvent(WINDOW_RELOAD, () => {
-    // Only refresh the window that currently has focus
-    if (document.hasFocus()) {
-      window.location.reload();
-    }
-  });
-}
-
-// export function useResizeState(): ResizeState {
-//   const [isResizing, setIsResizing] = useState(false);
-
-//   return {
-//     isResizing,
-//     setIsResizing,
-//   };
-// }

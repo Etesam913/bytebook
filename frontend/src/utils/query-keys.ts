@@ -12,6 +12,7 @@
 export const queryKeys = {
   // File tree
   topLevelFiles: () => ['top-level-files'] as const,
+  folderChildrenAll: () => ['folder-children'] as const,
   folderChildren: (folderFullPath: string) =>
     ['folder-children', folderFullPath] as const,
   file: (src: string) => ['file', src] as const,
@@ -19,12 +20,11 @@ export const queryKeys = {
   // Notes
   doesNoteExist: (fullPath: string) => ['does-note-exist', fullPath] as const,
   noteMarkdown: (path: string) => ['note-markdown', path] as const,
-  notePreview: (folder: string, note: string) =>
-    ['note-preview', folder, note] as const,
   linkedMentions: (fullPath: string) => ['linked-mentions', fullPath] as const,
 
   // Tags
   tagsAll: () => ['get-tags'] as const,
+  notesTagsAll: () => ['notes-tags'] as const,
   notesTags: (paths: string[]) => ['notes-tags', paths] as const,
 
   // Search

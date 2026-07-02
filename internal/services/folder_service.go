@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/etesam913/bytebook/internal/config"
+	"github.com/etesam913/bytebook/internal/util"
 )
 
 type FolderService struct {
@@ -13,7 +14,14 @@ type FolderService struct {
 }
 
 func (f *FolderService) AddFolder(folderName string) config.BackendResponseWithData[[]string] {
-	pathToFolder := filepath.Join(f.ProjectPath, "notes", folderName)
+	pathToFolder, err := util.SafeJoin(filepath.Join(f.ProjectPath, "notes"), folderName)
+	if err != nil {
+		return config.BackendResponseWithData[[]string]{
+			Success: false,
+			Message: fmt.Sprintf("Invalid folder name: %s", folderName),
+			Data:    []string{},
+		}
+	}
 
 	info, err := os.Stat(pathToFolder)
 	if err == nil {
@@ -48,7 +56,24 @@ func (f *FolderService) AddFolder(folderName string) config.BackendResponseWithD
 // Updates the folder name
 func (f *FolderService) RenameFolder(oldFolderName string, newFolderName string) config.BackendResponseWithData[[]string] {
 	folderBase := filepath.Join(f.ProjectPath, "notes")
-	info, err := os.Stat(filepath.Join(folderBase, newFolderName))
+	pathToOldFolder, err := util.SafeJoin(folderBase, oldFolderName)
+	if err != nil {
+		return config.BackendResponseWithData[[]string]{
+			Success: false,
+			Message: fmt.Sprintf("Invalid folder name: %s", oldFolderName),
+			Data:    []string{},
+		}
+	}
+	pathToNewFolder, err := util.SafeJoin(folderBase, newFolderName)
+	if err != nil {
+		return config.BackendResponseWithData[[]string]{
+			Success: false,
+			Message: fmt.Sprintf("Invalid folder name: %s", newFolderName),
+			Data:    []string{},
+		}
+	}
+
+	info, err := os.Stat(pathToNewFolder)
 
 	if err == nil && info.IsDir() {
 		return config.BackendResponseWithData[[]string]{
@@ -61,10 +86,7 @@ func (f *FolderService) RenameFolder(oldFolderName string, newFolderName string)
 		}
 	}
 
-	err = os.Rename(
-		filepath.Join(folderBase, oldFolderName),
-		filepath.Join(folderBase, newFolderName),
-	)
+	err = os.Rename(pathToOldFolder, pathToNewFolder)
 	if err != nil {
 		return config.BackendResponseWithData[[]string]{
 			Success: false,

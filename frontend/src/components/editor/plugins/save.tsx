@@ -10,7 +10,8 @@ import {
   createCommand,
 } from 'lexical';
 import { type Dispatch, type SetStateAction, useEffect } from 'react';
-import { useAtom } from 'jotai';
+import { useStore } from 'jotai';
+import { toast } from 'sonner';
 import { SetNoteMarkdownWithCodeResults } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
 import { CUSTOM_TRANSFORMERS } from '../transformers';
 import { replaceFrontMatter, parseFrontMatter } from '../utils/note-metadata';
@@ -37,24 +38,21 @@ export function SavePlugin({
   filePath: FilePath;
   setFrontmatter: Dispatch<SetStateAction<Frontmatter>>;
 }) {
-  const [previousMarkdownWithFrontmatter, setPreviousMarkdownWithFrontmatter] =
-    useAtom(previousMarkdownAtom);
+  const store = useStore();
   const [editor] = useLexicalComposerContext();
   const queryClient = useQueryClient();
 
   async function saveMarkdownContent(markdownWithFrontmatter: string) {
-    const decodedFolder = filePath.folder;
-    const decodedNote = filePath.noteWithoutExtension;
     const codeResults = collectCodeResultsSidecar();
-    await SetNoteMarkdownWithCodeResults(
-      decodedFolder,
-      decodedNote,
+    const res = await SetNoteMarkdownWithCodeResults(
+      filePath.folder,
+      filePath.noteWithoutExtension,
       markdownWithFrontmatter,
       codeResults
     );
-    await queryClient.invalidateQueries({
-      queryKey: queryKeys.notePreview(decodedFolder, decodedNote),
-    });
+    if (!res.success) {
+      toast.error(`Failed to save note: ${res.message}`);
+    }
   }
   // Register a command to save markdown content
   // This effect runs once when the component mounts and sets up the command
@@ -74,7 +72,7 @@ export function SavePlugin({
           let frontmatterCopy = payload?.newFrontmatter;
           if (!frontmatterCopy) {
             const { frontMatter: existingFrontmatter } = parseFrontMatter(
-              previousMarkdownWithFrontmatter
+              store.get(previousMarkdownAtom)
             );
             frontmatterCopy = {
               ...existingFrontmatter,
@@ -102,7 +100,7 @@ export function SavePlugin({
 
           setFrontmatter(frontmatterCopy);
           void saveMarkdownContent(markdownWithFrontmatter);
-          setPreviousMarkdownWithFrontmatter(markdownWithFrontmatter);
+          store.set(previousMarkdownAtom, markdownWithFrontmatter);
 
           return true;
         },
@@ -142,14 +140,7 @@ export function SavePlugin({
         COMMAND_PRIORITY_LOW
       )
     );
-  }, [
-    editor,
-    filePath,
-    setFrontmatter,
-    CUSTOM_TRANSFORMERS,
-    previousMarkdownWithFrontmatter,
-    queryClient,
-  ]);
+  }, [editor, filePath, setFrontmatter, queryClient, store]);
 
   return null;
 }

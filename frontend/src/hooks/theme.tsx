@@ -15,7 +15,8 @@ export function useThemeSetting() {
   const projectSettings = useAtomValue(projectSettingsAtom);
   const projectSettingsLoaded = useAtomValue(projectSettingsLoadedAtom);
   const setIsDarkModeOn = useSetAtom(isDarkModeOnAtom);
-  // Memoize the handler to ensure the same reference is used
+  // The listener is added and removed within the same effect closure, so the
+  // handler doesn't need a stable identity across renders.
   const handleColorSchemeChange = (event: MediaQueryListEvent) =>
     addColorSchemeClassToBody(event.matches, setIsDarkModeOn);
 

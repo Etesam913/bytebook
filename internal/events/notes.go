@@ -95,12 +95,12 @@ func addCreatedNotesToIndex(params EventParams, data []map[string]string) {
 		folder, ok := note["folder"]
 		if !ok {
 			log.Println("Note created event data missing folder")
-			return
+			continue
 		}
 		noteName, ok := note["note"]
 		if !ok {
 			log.Println("Note created event data missing note")
-			return
+			continue
 		}
 
 		notePath := filepath.Join(folder, noteName)
@@ -341,22 +341,27 @@ func updateNotesInIndex(params EventParams, data []map[string]string) {
 		}
 
 		notePath := filepath.Join(folder, noteName)
-		noteFilePath := filepath.Join(params.ProjectPath, "notes", notePath)
 
-		// Read the markdown content from the file
-		markdown, err := os.ReadFile(noteFilePath)
-		if err != nil {
-			log.Printf("Error reading note file %s: %v", noteFilePath, err)
-			continue
+		// The file watcher already read the note when it emitted the event, so
+		// prefer the markdown from the payload and only fall back to disk.
+		markdown, ok := note["markdown"]
+		if !ok {
+			noteFilePath := filepath.Join(params.ProjectPath, "notes", notePath)
+			content, err := os.ReadFile(noteFilePath)
+			if err != nil {
+				log.Printf("Error reading note file %s: %v", noteFilePath, err)
+				continue
+			}
+			markdown = string(content)
 		}
 
 		bleveMarkdownDocument := search.CreateMarkdownNoteBleveDocument(
-			string(markdown),
+			markdown,
 			folder,
 			noteName,
 		)
 
-		err = idx.Index(notePath, bleveMarkdownDocument)
+		err := idx.Index(notePath, bleveMarkdownDocument)
 		if err != nil {
 			log.Printf("Error indexing note %s: %v", notePath, err)
 		}

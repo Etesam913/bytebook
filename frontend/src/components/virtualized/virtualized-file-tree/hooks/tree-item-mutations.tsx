@@ -277,19 +277,18 @@ export function useMoveTreeItemsMutation() {
       const previousFileTreeData = store.get(fileTreeDataAtom);
       let needsTopLevelInvalidation = false;
 
+      const toMoveEntry = (item: FileOrFolder) => ({
+        oldPath: item.path,
+        newPath: newFolder === '' ? item.name : `${newFolder}/${item.name}`,
+      });
+
       const foldersToMove = selectedItems
         .filter(isTreeNodeAFolder)
-        .map((item) => ({
-          oldPath: item.path,
-          newPath: newFolder === '' ? item.name : `${newFolder}/${item.name}`,
-        }));
+        .map(toMoveEntry);
 
       const filesToMove = selectedItems
         .filter((item) => !isTreeNodeAFolder(item))
-        .map((item) => ({
-          oldPath: item.path,
-          newPath: newFolder === '' ? item.name : `${newFolder}/${item.name}`,
-        }));
+        .map(toMoveEntry);
 
       setFileTreeData((prev) => {
         let currentTreeData = prev;
@@ -321,11 +320,6 @@ export function useMoveTreeItemsMutation() {
         return currentTreeData;
       });
 
-      if (needsTopLevelInvalidation) {
-        void queryClient.invalidateQueries({ queryKey: ['top-level-files'] });
-      }
-      void queryClient.invalidateQueries({ queryKey: ['folder-children'] });
-
       try {
         const itemPaths = selectedItems.map((item) => item.path);
         const res = await MoveItemsToFolder(itemPaths, newFolder);
@@ -335,6 +329,17 @@ export function useMoveTreeItemsMutation() {
       } catch (err) {
         setFileTreeData(previousFileTreeData);
         throw err;
+      } finally {
+        // Refetch after the backend settles — on failure this re-syncs the
+        // query caches with the rolled-back tree.
+        if (needsTopLevelInvalidation) {
+          void queryClient.invalidateQueries({
+            queryKey: queryKeys.topLevelFiles(),
+          });
+        }
+        void queryClient.invalidateQueries({
+          queryKey: queryKeys.folderChildrenAll(),
+        });
       }
     },
   });
@@ -390,7 +395,7 @@ export function useAddDroppedFilesToFolderMutation() {
       if (!res.success) {
         throw new QueryError(res.message);
       }
-      return res.paths ?? [];
+      return res.data ?? [];
     },
   });
 }

@@ -485,8 +485,6 @@ export function getDragHighlightIds({
 }
 
 export const OPENED_FOLDER_ROW_ANIMATION_DURATION = 0.22;
-export const OPENED_FOLDER_ROW_STAGGER = 0.01;
-export const OPENED_FOLDER_ROW_MAX_STAGGERED_ROWS = 10;
 
 /**
  * Builds a map of descendant row IDs to stagger positions for folders that

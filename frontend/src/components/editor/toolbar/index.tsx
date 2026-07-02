@@ -91,7 +91,6 @@ export function Toolbar({
   >([]);
 
   const isFileMaximized = useAtomValue(isFileMaximizedAtom);
-  // const [isNodeSelection, setIsNodeSelection] = useState(false);
   const [noteSelection, setNoteSelection] = useAtom(noteSelectionAtom);
   const [canRedo, setCanRedo] = useState(false);
   const [canUndo, setCanUndo] = useState(false);

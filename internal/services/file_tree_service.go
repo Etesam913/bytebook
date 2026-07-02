@@ -78,11 +78,19 @@ func (f *FileTreeService) MoveItemsToFolder(itemPaths []string, newFolder string
 	// to just the top-most entries so we only issue one rename per subtree.
 	normalizedItemPaths := util.DedupeDescendantPaths(itemPaths)
 
+	notesBase := filepath.Join(f.ProjectPath, "notes")
 	failedItemNames := []string{}
 	for _, pathToItem := range normalizedItemPaths {
-		fullPathToItem := filepath.Join(f.ProjectPath, "notes", pathToItem)
-		fullPathWithNewFolder := filepath.Join(f.ProjectPath, "notes", newFolder, filepath.Base(pathToItem))
-		var err error
+		fullPathToItem, err := util.SafeJoin(notesBase, pathToItem)
+		if err != nil {
+			failedItemNames = append(failedItemNames, pathToItem)
+			continue
+		}
+		fullPathWithNewFolder, err := util.SafeJoin(notesBase, filepath.Join(newFolder, filepath.Base(pathToItem)))
+		if err != nil {
+			failedItemNames = append(failedItemNames, pathToItem)
+			continue
+		}
 		if strings.EqualFold(filepath.Ext(pathToItem), ".md") {
 			err = moveMarkdownNoteWithSidecar(fullPathToItem, fullPathWithNewFolder)
 		} else {

@@ -8,6 +8,7 @@ import { DialogErrorText } from '../../../components/dialog';
 import { TagSearchInput } from './tag-search-input';
 import { SelectedTagsDisplay } from './selected-tags-display';
 import { TagSelectionList } from './tag-selection-list';
+import { createFilePath } from '../../../utils/path';
 
 /**
  * Dialog body for editing tags across one or more selected notes. Renders the
@@ -39,9 +40,10 @@ export function EditTagDialogChildren({
   // Getting the notes that were selected to open this dialog
   const selectedFilePaths = [...selectionRange]
     .filter((selectionRangeEntry) => selectionRangeEntry.startsWith('note:'))
-    .map((selectionRangeEntry) => {
+    .flatMap((selectionRangeEntry) => {
       const note = selectionRangeEntry.split(':')[1];
-      return `${folder}/${note}`;
+      const filePath = createFilePath(`${folder}/${note}`);
+      return filePath ? [filePath.fullPath] : [];
     });
 
   const totalSelectedNotes = selectedFilePaths.length;

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/notes/sidecar"
@@ -175,35 +174,6 @@ func (n *NoteService) GetNoteMarkdownWithCodeResults(path string) config.Backend
 	}
 }
 
-// SetNoteMarkdown writes the provided markdown string to the note file specified by folderName and noteTitle.
-// Returns a BackendResponseWithData indicating success or failure.
-func (n *NoteService) SetNoteMarkdown(
-	folderName string,
-	noteTitle string,
-	markdown string,
-) config.BackendResponseWithData[string] {
-	noteName := fmt.Sprintf("%s.md", noteTitle)
-	noteFilePath, err := util.SafeJoin(filepath.Join(n.ProjectPath, "notes"), filepath.Join(folderName, noteName))
-	if err != nil {
-		return config.BackendResponseWithData[string]{Success: false, Message: err.Error(), Data: ""}
-	}
-
-	err = os.WriteFile(noteFilePath, []byte(markdown), 0644)
-	if err != nil {
-		return config.BackendResponseWithData[string]{
-			Success: false,
-			Message: err.Error(),
-			Data:    "",
-		}
-	}
-
-	return config.BackendResponseWithData[string]{
-		Success: true,
-		Message: "Successfully set note markdown",
-		Data:    "",
-	}
-}
-
 // SetNoteMarkdownWithCodeResults writes markdown and stores code results in a hidden sidecar.
 func (n *NoteService) SetNoteMarkdownWithCodeResults(
 	folderName string,
@@ -282,33 +252,6 @@ func (n *NoteService) AddNoteToFolder(folderName string, noteName string) config
 	}
 }
 
-// ValidateMostRecentNotes takes a slice of note paths (in the form "folder/note.ext") and returns only those
-// that currently exist in the notes directory in the same format.
-// Used to filter out recently used notes that have been deleted or moved.
-func (n *NoteService) ValidateMostRecentNotes(paths []string) []string {
-	var validPaths []string
-	notesRoot := filepath.Join(n.ProjectPath, "notes")
-
-	for _, path := range paths {
-		pathParts := strings.Split(path, "/")
-		if len(pathParts) != 2 {
-			// Invalid path format
-			continue
-		}
-
-		notePath, err := util.SafeJoin(notesRoot, filepath.Join(pathParts[0], pathParts[1]))
-		if err != nil {
-			continue
-		}
-
-		exists, err := util.FileOrFolderExists(notePath)
-		if exists && err == nil {
-			validPaths = append(validPaths, path)
-		}
-	}
-	return validPaths
-}
-
 // MoveToTrash moves the specified folders and notes to the trash directory.
 // It returns restore metadata for app-level undo support.
 func (n *NoteService) MoveToTrash(folderAndNotes []string) config.BackendResponseWithData[[]util.TrashRestoreInfo] {
@@ -343,15 +286,9 @@ func (n *NoteService) RestoreFromTrash(restoreItems []util.TrashRestoreInfo) con
 	}
 }
 
-// RevealNoteInFinder reveals the specified note in the Finder.
-// Parameters:
-//
-//	folderName: The name of the folder containing the note.
-//	noteName: The name of the note to be revealed.
-//
-// Returns:
-//
-//	A BackendResponseWithoutData indicating the success or failure of the operation.
+// RevealFolderOrFileInFinder reveals the given folder or file in the Finder.
+// When shouldPrefixWithProjectPath is true, pathToFolderOrFile is treated as
+// relative to the project directory; otherwise it is used as-is.
 func (n *NoteService) RevealFolderOrFileInFinder(
 	pathToFolderOrFile string,
 	shouldPrefixWithProjectPath bool,
@@ -389,54 +326,6 @@ func (n *NoteService) RevealFolderOrFileInFinder(
 		Success: true,
 		Message: "",
 	}
-}
-
-// MoveNoteToFolder moves one or more notes to a new folder within the notes directory.
-// It takes a slice of note paths relative to the notes directory and the name of the destination folder.
-// If any notes fail to move, their names will be included in an error message.
-// Returns a BackendResponseWithoutData indicating success or failure of the operation.
-func (n *NoteService) MoveNoteToFolder(notePaths []string, newFolder string) config.BackendResponseWithoutData {
-	failedNoteNames := []string{}
-	notesRoot := filepath.Join(n.ProjectPath, "notes")
-	for _, pathToNote := range notePaths {
-		fullPathToNote, err := util.SafeJoin(notesRoot, pathToNote)
-		if err != nil {
-			failedNoteNames = append(failedNoteNames, pathToNote)
-			continue
-		}
-		fullPathWithNewFolder, err := util.SafeJoin(notesRoot, filepath.Join(newFolder, filepath.Base(pathToNote)))
-		if err != nil {
-			failedNoteNames = append(failedNoteNames, pathToNote)
-			continue
-		}
-		if filepath.Ext(fullPathToNote) == ".md" {
-			if err := moveMarkdownNoteWithSidecar(fullPathToNote, fullPathWithNewFolder); err != nil {
-				failedNoteNames = append(failedNoteNames, pathToNote)
-			}
-			continue
-		}
-		if err := util.MoveFile(fullPathToNote, fullPathWithNewFolder); err != nil {
-			failedNoteNames = append(failedNoteNames, pathToNote)
-		}
-	}
-
-	if len(failedNoteNames) > 0 {
-		return config.BackendResponseWithoutData{
-			Success: false,
-			Message: fmt.Sprintf(
-				"Failed to move %s into %s", util.FormatStringListForErrorMessage(failedNoteNames, 3), newFolder,
-			),
-		}
-	}
-
-	return config.BackendResponseWithoutData{Success: true, Message: ""}
-}
-
-type NotePreviewData struct {
-	FirstLine     string `json:"firstLine"`
-	FirstImageSrc string `json:"firstImageSrc"`
-	Size          int64  `json:"size"`
-	LastUpdated   string `json:"lastUpdated"`
 }
 
 // DoesNoteExist checks if a note exists at the given path relative to the project's notes directory.

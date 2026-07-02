@@ -123,9 +123,12 @@ func (t *TagsService) GetTagsForNotes(
 
 // Calls search.GetTags() to get all tags from the search index.
 func (t *TagsService) GetTags() config.BackendResponseWithData[[]string] {
-	idx := t.Index.RLock()
-	tags, err := search.GetTags(idx)
-	t.Index.RUnlock()
+	var tags []string
+	err := t.Index.Read(func(idx bleve.Index) error {
+		var err error
+		tags, err = search.GetTags(idx)
+		return err
+	})
 	if err != nil {
 		return config.BackendResponseWithData[[]string]{
 			Success: false,
@@ -166,9 +169,12 @@ func (t *TagsService) DeleteTags(tagsToDelete []string) config.BackendResponseWi
 	searchRequest.Size = TAGS_SEARCH_LIMIT
 	searchRequest.Fields = []string{search.FieldFolder, search.FieldFileName}
 
-	idx := t.Index.RLock()
-	searchResult, err := idx.Search(searchRequest)
-	t.Index.RUnlock()
+	var searchResult *bleve.SearchResult
+	err := t.Index.Read(func(idx bleve.Index) error {
+		var err error
+		searchResult, err = idx.Search(searchRequest)
+		return err
+	})
 	if err != nil {
 		return config.BackendResponseWithoutData{
 			Success: false,
