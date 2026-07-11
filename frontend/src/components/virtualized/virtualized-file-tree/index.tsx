@@ -161,7 +161,8 @@ export function VirtualizedFileTree({
             ref.current = element;
           }
         }}
-        overscan={20}
+        increaseViewportBy={{ top: 400, bottom: 400 }}
+        defaultItemHeight={30}
         computeItemKey={(_, item) => item.id}
         style={{
           height: 0,

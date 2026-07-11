@@ -199,6 +199,18 @@ export function computeShiftClickSelections({
 }
 
 /**
+ * Computes the selection state for an unmodified click on a file tree item.
+ * A normal click replaces the existing tree selection and becomes the anchor
+ * for a subsequent shift-click range.
+ */
+export function computeDefaultClickSelection(selectionKey: string) {
+  return {
+    selections: new Set([selectionKey]),
+    anchorSelection: selectionKey,
+  };
+}
+
+/**
  * Computes the new sidebar selection state for meta-click (cmd+click) behavior.
  * If the file is already selected, it will be un-selected and the anchor will be updated.
  * If the file is not selected, this function returns null (the caller should add it to selection).

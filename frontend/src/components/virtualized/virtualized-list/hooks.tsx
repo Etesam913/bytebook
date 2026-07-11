@@ -4,7 +4,10 @@ import { VirtuosoHandle } from 'react-virtuoso';
 /**
  * Checks if a child element is fully visible within its parent scrolling container.
  */
-function isElementFullyVisible(item: HTMLElement, scroller: HTMLElement): boolean {
+function isElementFullyVisible(
+  item: HTMLElement,
+  scroller: HTMLElement
+): boolean {
   const itemRect = item.getBoundingClientRect();
   const scrollerRect = scroller.getBoundingClientRect();
 
@@ -22,7 +25,9 @@ function isElementFullyVisible(item: HTMLElement, scroller: HTMLElement): boolea
  * - A callback to keep track of the currently rendered item range.
  * - A method to scroll to a particular index only if it is not currently visible.
  */
-export function useSmartScroll(scrollElementRef?: RefObject<HTMLElement | null>) {
+export function useSmartScroll(
+  scrollElementRef?: RefObject<HTMLElement | null>
+) {
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const rangeRef = useRef({ startIndex: 0, endIndex: 0 });
 
@@ -42,7 +47,10 @@ export function useSmartScroll(scrollElementRef?: RefObject<HTMLElement | null>)
       const itemElement = scrollElementRef.current.querySelector<HTMLElement>(
         `[data-item-index="${index}"]`
       );
-      if (itemElement && !isElementFullyVisible(itemElement, scrollElementRef.current)) {
+      if (
+        itemElement &&
+        !isElementFullyVisible(itemElement, scrollElementRef.current)
+      ) {
         isVisible = false;
       }
     }

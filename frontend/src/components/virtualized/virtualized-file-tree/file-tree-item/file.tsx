@@ -10,7 +10,6 @@ import {
   type SidebarSelectionState,
 } from '../../../../atoms';
 import { isTreeNodeAFile, isTreeNodeAFolder } from '../utils/file-tree-utils';
-import { useFilePathFromRoute } from '../../../../hooks/routes';
 import { createFilePath } from '../../../../utils/path';
 import { cn } from '../../../../utils/string-formatting';
 import type { FlattenedFileOrFolder } from '../types';
@@ -40,15 +39,16 @@ export function FileTreeFileItem({
   onSelectionClick,
   addItemToSidebarSelection,
   isSelectedFromSidebarClick,
+  isSelected,
   isSticky,
 }: {
   dataItem: FlattenedFileOrFolder;
   onSelectionClick: (e: MouseEvent) => void;
   addItemToSidebarSelection: () => SidebarSelectionState | null;
   isSelectedFromSidebarClick: boolean;
+  isSelected: boolean;
   isSticky?: boolean;
 }) {
-  const filePathFromRoute = useFilePathFromRoute();
   const [contextMenuData, setContextMenuData] = useAtom(contextMenuDataAtom);
   const [activeDropTargetId, setActiveDropTargetId] = useAtom(
     activeDropTargetIdAtom
@@ -131,11 +131,6 @@ export function FileTreeFileItem({
   const parentFolderPath =
     parentFolder && isTreeNodeAFolder(parentFolder) ? parentFolder.path : '';
 
-  const isSelectedFromRoute =
-    filePath !== null &&
-    filePathFromRoute !== null &&
-    filePathFromRoute.equals(filePath);
-
   function handleClick(e: MouseEvent) {
     // Stop propagation for modifier clicks to prevent parent handlers from clearing selection
     if (e.shiftKey || e.metaKey || e.ctrlKey) {
@@ -171,12 +166,8 @@ export function FileTreeFileItem({
         'rounded-md flex items-center gap-2 py-1 pr-2 overflow-hidden w-full hover:bg-zinc-100 dark:hover:bg-zinc-650 focus:bg-zinc-100 dark:focus:bg-zinc-650',
         !hasDragHighlight &&
           !shouldMuteSelection &&
-          isSelectedFromRoute &&
-          'bg-zinc-150 dark:bg-zinc-600 text-(--accent-color)',
-        !hasDragHighlight &&
-          !shouldMuteSelection &&
-          isSelectedFromSidebarClick &&
-          'bg-(--accent-color)! text-white!',
+          isSelected &&
+          'file-tree-item-selected',
         shouldMuteSelection &&
           'bg-zinc-200 text-zinc-500 hover:bg-zinc-200 focus:bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:focus:bg-zinc-700',
         hasDragHighlight &&
@@ -252,7 +243,7 @@ export function FileTreeFileItem({
       ref={buttonRef}
       role="treeitem"
       aria-level={dataItem.level + 1}
-      aria-selected={isSelectedFromSidebarClick || isSelectedFromRoute}
+      aria-selected={isSelected}
       draggable={true}
       onDragStartCapture={handleDragStart}
       onDragEndCapture={handleDragEnd}

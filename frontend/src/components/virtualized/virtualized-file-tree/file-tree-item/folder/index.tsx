@@ -49,7 +49,6 @@ import {
 import { LoadingSpinner } from '../../../../loading-spinner';
 import { motion } from 'motion/react';
 import { createFolderPath } from '../../../../../utils/path';
-import { useFolderPathFromRoute } from '../../../../../hooks/routes';
 import { easingFunctions } from '../../../../../animations';
 import { useFolderOpenAnimationActions } from '../../hooks/use-folder-open-animation';
 
@@ -59,6 +58,7 @@ export function FileTreeFolderItem({
   onSelectionClick,
   addItemToSidebarSelection,
   isSelectedFromSidebarClick,
+  isSelected,
   isFetchPending,
   isSticky,
 }: {
@@ -67,6 +67,7 @@ export function FileTreeFolderItem({
   onSelectionClick: (e: MouseEvent) => void;
   addItemToSidebarSelection: () => SidebarSelectionState | null;
   isSelectedFromSidebarClick: boolean;
+  isSelected: boolean;
   isFetchPending: boolean;
   isSticky?: boolean;
 }) {
@@ -87,7 +88,6 @@ export function FileTreeFolderItem({
   const sidebarSelection = useAtomValue(sidebarSelectionAtom);
   const setSidebarSelection = useSetAtom(sidebarSelectionAtom);
   const setDraggedGhostElement = useSetAtom(draggedGhostElementAtom);
-  const folderPathFromRoute = useFolderPathFromRoute();
   const paddingLeft = getFileTreeItemIndent(dataItem.level);
   const { revealInFinder, pin, rename, moveToTrash } = useContextMenuItems();
   const { mutate: addFolderAttachments } = useAddFolderAttachmentsMutation();
@@ -125,10 +125,6 @@ export function FileTreeFolderItem({
     resetAddTreeItem,
   } = useFileTreeFolderAddActions({ dataItem });
   const resolvedFolderPath = createFolderPath(dataItem.path);
-  const isSelectedFromRoute =
-    folderPathFromRoute && resolvedFolderPath
-      ? folderPathFromRoute.equals(resolvedFolderPath)
-      : false;
 
   function handleClick(e: MouseEvent) {
     if (!isTreeNodeAFolder(dataItem)) {
@@ -189,11 +185,11 @@ export function FileTreeFolderItem({
           !hasDragHighlight &&
             !isDraggedOver &&
             !shouldMuteSelection &&
-            isSelectedFromRoute &&
-            'bg-zinc-150 dark:bg-zinc-600 text-(--accent-color)',
+            isSelected &&
+            'file-tree-item-selected',
           !hasDragHighlight &&
             !shouldMuteSelection &&
-            (isSelectedFromSidebarClick || isDraggedOver) &&
+            isDraggedOver &&
             'bg-(--accent-color)! text-white!',
           shouldMuteSelection &&
             'bg-zinc-200 text-zinc-500 hover:bg-zinc-200 focus:bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:focus:bg-zinc-700',
@@ -322,7 +318,7 @@ export function FileTreeFolderItem({
         role="treeitem"
         aria-expanded={dataItem.isOpen}
         aria-level={dataItem.level + 1}
-        aria-selected={isSelectedFromSidebarClick || isSelectedFromRoute}
+        aria-selected={isSelected}
         draggable={true}
         className={cn(
           'flex overflow-hidden items-center w-full relative rounded-md py-0.25 focus:outline-2 focus:outline-(--accent-color) focus:-outline-offset-2 file-tree-drop-target',

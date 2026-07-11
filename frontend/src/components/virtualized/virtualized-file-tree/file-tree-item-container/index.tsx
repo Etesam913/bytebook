@@ -7,12 +7,17 @@ import { MouseEvent } from 'react';
 import { FileTreeFileItem } from '../file-tree-item/file';
 import { FileTreeFolderItem } from '../file-tree-item/folder';
 import { createFilePath, createFolderPath } from '../../../../utils/path';
+import {
+  useFilePathFromRoute,
+  useFolderPathFromRoute,
+} from '../../../../hooks/routes';
 import { useAddToSidebarSelection } from '../../../../hooks/selection';
 import {
   SelectableItem,
   getKeyForSidebarSelection,
 } from '../../../../utils/selection';
 import {
+  computeDefaultClickSelection,
   computeMetaClickState,
   computeShiftClickSelections,
 } from '../utils/item-selection';
@@ -41,6 +46,8 @@ export function FileTreeItemContainer({
   // Compute selection key and path for the data item
   const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
   const [sidebarSelection, setSidebarSelection] = useAtom(sidebarSelectionAtom);
+  const filePathFromRoute = useFilePathFromRoute();
+  const folderPathFromRoute = useFolderPathFromRoute();
 
   const path = isTreeNodeAFile(dataItem)
     ? createFilePath(dataItem.path)
@@ -56,6 +63,27 @@ export function FileTreeItemContainer({
   const isSelectedFromSidebarClick = selectionKey
     ? sidebarSelection.selections.has(selectionKey)
     : false;
+  const hasFileTreeSelection = [...sidebarSelection.selections].some((key) =>
+    key.startsWith('file:')
+  );
+  const itemFilePath = isTreeNodeAFile(dataItem)
+    ? createFilePath(dataItem.path)
+    : null;
+  const itemFolderPath = isTreeNodeAFile(dataItem)
+    ? null
+    : createFolderPath(dataItem.path);
+  const isSelectedFromRoute =
+    (itemFilePath !== null &&
+      filePathFromRoute !== null &&
+      filePathFromRoute.equals(itemFilePath)) ||
+    (itemFolderPath !== null &&
+      folderPathFromRoute !== null &&
+      folderPathFromRoute.equals(itemFolderPath));
+  // A route reached outside the tree is a selection fallback. Once the user
+  // explicitly selects tree rows, avoid highlighting a separate route row.
+  const isSelected =
+    isSelectedFromSidebarClick ||
+    (!hasFileTreeSelection && isSelectedFromRoute);
 
   /**
    * Handles shift-click behavior for multi-selection by selecting a range of items
@@ -130,11 +158,7 @@ export function FileTreeItemContainer({
    */
   function handleDefaultClick() {
     if (!selectionKey) return;
-    setSidebarSelection((prev) => ({
-      ...prev,
-      selections: new Set([]),
-      anchorSelection: selectionKey,
-    }));
+    setSidebarSelection(() => computeDefaultClickSelection(selectionKey));
   }
 
   function handleSelectionClick(e: MouseEvent) {
@@ -167,6 +191,7 @@ export function FileTreeItemContainer({
           onSelectionClick={handleSelectionClick}
           addItemToSidebarSelection={addItemToSidebarSelection}
           isSelectedFromSidebarClick={isSelectedFromSidebarClick}
+          isSelected={isSelected}
           isFetchPending={isFetchPending}
           isSticky={isSticky}
         />
@@ -176,6 +201,7 @@ export function FileTreeItemContainer({
           onSelectionClick={handleSelectionClick}
           addItemToSidebarSelection={addItemToSidebarSelection}
           isSelectedFromSidebarClick={isSelectedFromSidebarClick}
+          isSelected={isSelected}
           isSticky={isSticky}
         />
       )}

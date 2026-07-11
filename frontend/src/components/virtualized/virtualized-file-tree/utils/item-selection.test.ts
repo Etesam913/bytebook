@@ -1,6 +1,9 @@
 import '../../../../test/setup';
 import { describe, expect, it } from 'bun:test';
-import { computeShiftClickSelections } from './item-selection';
+import {
+  computeDefaultClickSelection,
+  computeShiftClickSelections,
+} from './item-selection';
 import {
   CREATE_FOLDER_TYPE,
   FILE_TYPE,
@@ -117,5 +120,14 @@ describe('computeShiftClickSelections', () => {
     expect(result?.selections).toEqual(
       new Set(['file:folder-a', 'file:note-b'])
     );
+  });
+});
+
+describe('computeDefaultClickSelection', () => {
+  it('replaces selection with the clicked item and uses it as the range anchor', () => {
+    expect(computeDefaultClickSelection('file:note-a')).toEqual({
+      selections: new Set(['file:note-a']),
+      anchorSelection: 'file:note-a',
+    });
   });
 });
