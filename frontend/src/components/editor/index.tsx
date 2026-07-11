@@ -183,27 +183,29 @@ export function NotesEditor({
               <RichTextPlugin
                 placeholder={null}
                 contentEditable={
-                  <ContentEditable
-                    onContextMenu={(e) => e.stopPropagation()}
-                    onKeyDown={(e) => {
-                      handleEditorEscape(
-                        e,
-                        isFileMaximized,
-                        setIsFileMaximized
-                      );
-                      setDraggableBlockElement(null);
-                    }}
-                    id="content-editable-editor"
-                    className="flex-1"
-                    spellCheck
-                    autoCorrect="on"
-                    onClick={(e) => {
-                      // Clicks should not propagate to the editor when something is being dragged
-                      if (draggedGhostElement) {
-                        e.stopPropagation();
-                      }
-                    }}
-                  />
+                  <div className="flex-1">
+                    <ContentEditable
+                      onContextMenu={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => {
+                        handleEditorEscape(
+                          e,
+                          isFileMaximized,
+                          setIsFileMaximized
+                        );
+                        setDraggableBlockElement(null);
+                      }}
+                      id="content-editable-editor"
+                      className="min-h-full"
+                      spellCheck
+                      autoCorrect="on"
+                      onClick={(e) => {
+                        // Clicks should not propagate to the editor when something is being dragged
+                        if (draggedGhostElement) {
+                          e.stopPropagation();
+                        }
+                      }}
+                    />
+                  </div>
                 }
                 ErrorBoundary={LexicalErrorBoundary}
               />

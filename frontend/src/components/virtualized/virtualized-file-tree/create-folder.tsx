@@ -4,7 +4,7 @@ import { getDefaultButtonVariants } from '../../../animations';
 import { InlineTreeItemInput } from './file-tree-item/inline-tree-item-input';
 import { Folder as FolderIcon } from '../../../icons/folder';
 import { useFileTreeFolderAddActions } from './file-tree-item/folder/hooks';
-import { FOLDER_TYPE, type Folder } from './types';
+import { FOLDER_TYPE } from './types';
 import { getFileTreeItemIndent } from './utils/file-tree-utils';
 
 export function CreateFolder() {
@@ -16,18 +16,6 @@ export function CreateFolder() {
     onAddSave,
     resetAddTreeItem,
   } = useFileTreeFolderAddActions({ dataItem: null });
-
-  const newFolderPlaceholder: Folder = {
-    id: 'new-folder-input',
-    path: '',
-    name: '',
-    parentId: null,
-    type: FOLDER_TYPE,
-    childrenIds: [],
-    childrenCursor: null,
-    hasMoreChildren: false,
-    isOpen: false,
-  };
 
   return (
     <div className="flex flex-col gap-1 text-sm">
@@ -66,7 +54,6 @@ export function CreateFolder() {
               strokeWidth={1.75}
             />
             <InlineTreeItemInput
-              dataItem={newFolderPlaceholder}
               defaultValue=""
               isEditing={true}
               errorText={addErrorText}

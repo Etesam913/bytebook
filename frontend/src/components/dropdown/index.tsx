@@ -111,20 +111,21 @@ export function Dropdown({
     </Select>
   );
 
-  if (!disabledTooltipContent) {
+  if (!disabled || !disabledTooltipContent) {
     return dropdown;
   }
 
   return (
     <Tooltip
       content={disabledTooltipContent}
-      disabled={!disabled}
       delay={{ open: 450 }}
     >
       <span
         className="inline-flex"
-        tabIndex={disabled ? 0 : undefined}
-        aria-label={disabled && ariaLabel ? ariaLabel : undefined}
+        tabIndex={0}
+        role="button"
+        aria-disabled
+        aria-label={ariaLabel}
       >
         {dropdown}
       </span>

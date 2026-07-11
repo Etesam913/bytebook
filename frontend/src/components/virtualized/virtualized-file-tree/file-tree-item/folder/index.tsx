@@ -51,6 +51,7 @@ import { motion } from 'motion/react';
 import { createFolderPath } from '../../../../../utils/path';
 import { easingFunctions } from '../../../../../animations';
 import { useFolderOpenAnimationActions } from '../../hooks/use-folder-open-animation';
+import { Tooltip } from '../../../../tooltip';
 
 export function FileTreeFolderItem({
   dataItem,
@@ -213,7 +214,6 @@ export function FileTreeFolderItem({
           />
         )}
         <InlineTreeItemInput
-          dataItem={dataItem}
           defaultValue={dataItem.name}
           isEditing={isEditing}
           errorText={renameErrorText}
@@ -260,7 +260,6 @@ export function FileTreeFolderItem({
             />
           )}
           <InlineTreeItemInput
-            dataItem={dataItem}
             defaultValue=""
             isEditing={true}
             errorText={addErrorText}
@@ -311,231 +310,240 @@ export function FileTreeFolderItem({
       transition={{ ease: easingFunctions['ease-out-cubic'] }}
       className="w-full"
     >
-      <button
-        ref={buttonRef}
-        data-file-drop-target
-        id={dataItem.id}
-        role="treeitem"
-        aria-expanded={dataItem.isOpen}
-        aria-level={dataItem.level + 1}
-        aria-selected={isSelected}
-        draggable={true}
-        className={cn(
-          'flex overflow-hidden items-center w-full relative rounded-md py-0.25 focus:outline-2 focus:outline-(--accent-color) focus:-outline-offset-2 file-tree-drop-target',
-          isContextMenuTarget &&
-            'outline-2 outline-(--accent-color) -outline-offset-2'
-        )}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        onDragOver={(e) => {
-          e.stopPropagation();
-          const canDrop = canSelectionMoveToDropTarget({
-            fileOrFolderMap,
-            selectionKeys: sidebarSelection.selections,
-            dropTargetId: dataItem.id,
-          });
-          if (!canDrop) {
-            e.dataTransfer.dropEffect = 'none';
+      <Tooltip
+        content={dataItem.name}
+        placement="right"
+        withArrow={false}
+        delay={{ open: 1000, close: 100 }}
+      >
+        <button
+          ref={buttonRef}
+          data-file-drop-target
+          id={dataItem.id}
+          role="treeitem"
+          aria-expanded={dataItem.isOpen}
+          aria-level={dataItem.level + 1}
+          aria-selected={isSelected}
+          draggable={true}
+          className={cn(
+            'flex overflow-hidden items-center w-full relative rounded-md py-0.25 focus:outline-2 focus:outline-(--accent-color) focus:-outline-offset-2 file-tree-drop-target',
+            isContextMenuTarget &&
+              'outline-2 outline-(--accent-color) -outline-offset-2'
+          )}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragOver={(e) => {
+            e.stopPropagation();
+            const canDrop = canSelectionMoveToDropTarget({
+              fileOrFolderMap,
+              selectionKeys: sidebarSelection.selections,
+              dropTargetId: dataItem.id,
+            });
+            if (!canDrop) {
+              e.dataTransfer.dropEffect = 'none';
+              setIsDraggedOver(false);
+              setActiveDropTargetId((currentId) =>
+                currentId === dataItem.id ? null : currentId
+              );
+              setDragHighlightIds(new Set());
+              cancelSpringLoad();
+              return;
+            }
+
+            e.preventDefault();
+            setIsDraggedOver(true);
+            setActiveDropTargetId(dataItem.id);
+            setDragHighlightIds(new Set());
+
+            triggerSpringLoad();
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
             setIsDraggedOver(false);
             setActiveDropTargetId((currentId) =>
               currentId === dataItem.id ? null : currentId
             );
-            setDragHighlightIds(new Set());
             cancelSpringLoad();
-            return;
-          }
-
-          e.preventDefault();
-          setIsDraggedOver(true);
-          setActiveDropTargetId(dataItem.id);
-          setDragHighlightIds(new Set());
-
-          triggerSpringLoad();
-        }}
-        onDragLeave={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          setIsDraggedOver(false);
-          setActiveDropTargetId((currentId) =>
-            currentId === dataItem.id ? null : currentId
-          );
-          cancelSpringLoad();
-        }}
-        onDrop={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          setIsDraggedOver(false);
-          setActiveDropTargetId(null);
-          cancelSpringLoad();
-          if (
-            !canSelectionMoveToDropTarget({
-              fileOrFolderMap,
-              selectionKeys: sidebarSelection.selections,
-              dropTargetId: dataItem.id,
-            })
-          ) {
-            e.dataTransfer.dropEffect = 'none';
-            return;
-          }
-          void moveItemsToFolder(dataItem.path);
-        }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
+          }}
+          onDrop={(e) => {
             e.preventDefault();
-            setAddingType(null);
-            resetRenameTreeItem();
-            setIsEditing(true);
-          }
-        }}
-        onClick={handleClick}
-        onContextMenu={(e) => {
-          if (!isTreeNodeAFolder(dataItem)) return;
+            e.stopPropagation();
+            setIsDraggedOver(false);
+            setActiveDropTargetId(null);
+            cancelSpringLoad();
+            if (
+              !canSelectionMoveToDropTarget({
+                fileOrFolderMap,
+                selectionKeys: sidebarSelection.selections,
+                dropTargetId: dataItem.id,
+              })
+            ) {
+              e.dataTransfer.dropEffect = 'none';
+              return;
+            }
+            void moveItemsToFolder(dataItem.path);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              setAddingType(null);
+              resetRenameTreeItem();
+              setIsEditing(true);
+            }
+          }}
+          onClick={handleClick}
+          onContextMenu={(e) => {
+            if (!isTreeNodeAFolder(dataItem)) return;
 
-          e.preventDefault();
-          const { selectedItems } = getContextMenuSelectionItems({
-            currentItem: dataItem,
-            sidebarSelections: sidebarSelection.selections,
-            fileOrFolderMap,
-          });
-          const isMultiSelection = selectedItems.length > 1;
-          const selectedFolders = selectedItems.filter((item) =>
-            isTreeNodeAFolder(item)
-          );
-          const shouldPinSelectedFolders = selectedFolders.some(
-            (item) => !projectSettings.pinnedNotes.has(item.path)
-          );
+            e.preventDefault();
+            const { selectedItems } = getContextMenuSelectionItems({
+              currentItem: dataItem,
+              sidebarSelections: sidebarSelection.selections,
+              fileOrFolderMap,
+            });
+            const isMultiSelection = selectedItems.length > 1;
+            const selectedFolders = selectedItems.filter((item) =>
+              isTreeNodeAFolder(item)
+            );
+            const shouldPinSelectedFolders = selectedFolders.some(
+              (item) => !projectSettings.pinnedNotes.has(item.path)
+            );
 
-          const folderPathForReveal = !isMultiSelection
-            ? createFolderPath(dataItem.path)
-            : null;
+            const folderPathForReveal = !isMultiSelection
+              ? createFolderPath(dataItem.path)
+              : null;
 
-          const addFolderOption = !isMultiSelection
-            ? [
-                {
-                  label: (
-                    <MenuItemLabel
-                      icon={<FolderPen width="1.0625rem" height="1.0625rem" />}
-                    >
-                      Create Folder
-                    </MenuItemLabel>
-                  ),
-                  value: 'create-folder',
-                  onChange: () => {
-                    if (!dataItem.isOpen) {
-                      triggerFolderOpenAnimation(dataItem.id);
-                      setFolderOpen({
-                        setFileTreeData,
-                        folderId: dataItem.id,
-                        isOpen: true,
-                      });
-                      if (!hasLoadedChildren(dataItem)) {
-                        fetchFolderChildren({
-                          pathToFolder: dataItem.path,
+            const addFolderOption = !isMultiSelection
+              ? [
+                  {
+                    label: (
+                      <MenuItemLabel
+                        icon={
+                          <FolderPen width="1.0625rem" height="1.0625rem" />
+                        }
+                      >
+                        Create Folder
+                      </MenuItemLabel>
+                    ),
+                    value: 'create-folder',
+                    onChange: () => {
+                      if (!dataItem.isOpen) {
+                        triggerFolderOpenAnimation(dataItem.id);
+                        setFolderOpen({
+                          setFileTreeData,
                           folderId: dataItem.id,
+                          isOpen: true,
                         });
+                        if (!hasLoadedChildren(dataItem)) {
+                          fetchFolderChildren({
+                            pathToFolder: dataItem.path,
+                            folderId: dataItem.id,
+                          });
+                        }
                       }
-                    }
-                    resetAddTreeItem();
-                    setAddingType(FOLDER_TYPE);
+                      resetAddTreeItem();
+                      setAddingType(FOLDER_TYPE);
+                    },
                   },
-                },
-              ]
-            : [];
+                ]
+              : [];
 
-          const addNoteOption = !isMultiSelection
-            ? [
-                {
-                  label: (
-                    <MenuItemLabel
-                      icon={<Blog width="1.0625rem" height="1.0625rem" />}
-                    >
-                      Create Note
-                    </MenuItemLabel>
-                  ),
-                  value: 'create-note',
-                  onChange: () => {
-                    if (!dataItem.isOpen) {
-                      triggerFolderOpenAnimation(dataItem.id);
-                      setFolderOpen({
-                        setFileTreeData,
-                        folderId: dataItem.id,
-                        isOpen: true,
-                      });
-                      if (!hasLoadedChildren(dataItem)) {
-                        fetchFolderChildren({
-                          pathToFolder: dataItem.path,
+            const addNoteOption = !isMultiSelection
+              ? [
+                  {
+                    label: (
+                      <MenuItemLabel
+                        icon={<Blog width="1.0625rem" height="1.0625rem" />}
+                      >
+                        Create Note
+                      </MenuItemLabel>
+                    ),
+                    value: 'create-note',
+                    onChange: () => {
+                      if (!dataItem.isOpen) {
+                        triggerFolderOpenAnimation(dataItem.id);
+                        setFolderOpen({
+                          setFileTreeData,
                           folderId: dataItem.id,
+                          isOpen: true,
                         });
+                        if (!hasLoadedChildren(dataItem)) {
+                          fetchFolderChildren({
+                            pathToFolder: dataItem.path,
+                            folderId: dataItem.id,
+                          });
+                        }
                       }
-                    }
-                    resetAddTreeItem();
-                    setAddingType(FILE_TYPE);
+                      resetAddTreeItem();
+                      setAddingType(FILE_TYPE);
+                    },
                   },
-                },
-              ]
-            : [];
+                ]
+              : [];
 
-          const addAttachmentsOption = !isMultiSelection
-            ? [
-                {
-                  label: (
-                    <MenuItemLabel
-                      icon={
-                        <PaperclipPlus width="1.0625rem" height="1.0625rem" />
-                      }
-                    >
-                      Add Attachments
-                    </MenuItemLabel>
-                  ),
-                  value: 'add-attachments',
-                  onChange: () => {
-                    addFolderAttachments(dataItem.path);
+            const addAttachmentsOption = !isMultiSelection
+              ? [
+                  {
+                    label: (
+                      <MenuItemLabel
+                        icon={
+                          <PaperclipPlus width="1.0625rem" height="1.0625rem" />
+                        }
+                      >
+                        Add Attachments
+                      </MenuItemLabel>
+                    ),
+                    value: 'add-attachments',
+                    onChange: () => {
+                      addFolderAttachments(dataItem.path);
+                    },
                   },
-                },
-              ]
-            : [];
+                ]
+              : [];
 
-          setContextMenuData({
-            x: e.clientX,
-            y: e.clientY,
-            isShowing: true,
-            targetId: dataItem.id,
-            items: [
-              ...(folderPathForReveal
-                ? [revealInFinder({ path: folderPathForReveal })]
-                : []),
-              ...addFolderOption,
-              ...addNoteOption,
-              ...(!isMultiSelection
-                ? [
-                    rename({
-                      onRename: () => {
-                        setAddingType(null);
-                        resetRenameTreeItem();
-                        setIsEditing(true);
-                      },
-                    }),
-                  ]
-                : []),
-              ...addAttachmentsOption,
-              ...(selectedFolders.length > 0
-                ? [
-                    pin({
-                      paths: selectedFolders.map((item) => item.path),
-                      shouldPin: shouldPinSelectedFolders,
-                      kind: 'folder',
-                    }),
-                  ]
-                : []),
-              moveToTrash({
-                paths: selectedItems.map((item) => item.path),
-              }),
-            ],
-          });
-        }}
-      >
-        {innerContent}
-      </button>
+            setContextMenuData({
+              x: e.clientX,
+              y: e.clientY,
+              isShowing: true,
+              targetId: dataItem.id,
+              items: [
+                ...(folderPathForReveal
+                  ? [revealInFinder({ path: folderPathForReveal })]
+                  : []),
+                ...addFolderOption,
+                ...addNoteOption,
+                ...(!isMultiSelection
+                  ? [
+                      rename({
+                        onRename: () => {
+                          setAddingType(null);
+                          resetRenameTreeItem();
+                          setIsEditing(true);
+                        },
+                      }),
+                    ]
+                  : []),
+                ...addAttachmentsOption,
+                ...(selectedFolders.length > 0
+                  ? [
+                      pin({
+                        paths: selectedFolders.map((item) => item.path),
+                        shouldPin: shouldPinSelectedFolders,
+                        kind: 'folder',
+                      }),
+                    ]
+                  : []),
+                moveToTrash({
+                  paths: selectedItems.map((item) => item.path),
+                }),
+              ],
+            });
+          }}
+        >
+          {innerContent}
+        </button>
+      </Tooltip>
       {inlineInput}
     </motion.div>
   );

@@ -15,7 +15,6 @@ import {
   createFolderPath,
   type FileOrFolderPath,
 } from '../../utils/path';
-import { Tooltip } from '../tooltip';
 import { SidebarAccordionPanel } from './sidebar-accordion-panel';
 import { useContextMenuItems } from '../context-menu/items';
 import type { SidebarFlexWeights } from '../../atoms';
@@ -109,41 +108,37 @@ export function PinnedAccordion({
               : pinnedItem.encodedFileUrl;
 
           return (
-            <Tooltip placement="right" content={pinnedItem.fullPath}>
-              <div className="w-full min-w-0">
-                <AccordionItem
-                  onContextMenu={(e) => {
-                    setContextMenuData({
-                      x: e.clientX,
-                      y: e.clientY,
-                      isShowing: true,
-                      targetId: null,
-                      items: [
-                        pin({
-                          paths: [pinnedItem.fullPath],
-                          shouldPin: false,
-                          kind:
-                            pinnedItem.type === 'folder' ? 'folder' : 'note',
-                        }),
-                      ],
-                    });
-                  }}
-                  key={pinnedItem.fullPath}
-                  to={destinationUrl}
-                  itemName={itemName}
-                  icon={
-                    pinnedItem.type === 'folder' ? (
-                      <FolderIcon
-                        className="min-w-4 min-h-4 will-change-transform"
-                        height="1rem"
-                        width="1rem"
-                        strokeWidth={1.75}
-                      />
-                    ) : undefined
-                  }
-                />
-              </div>
-            </Tooltip>
+            <AccordionItem
+              onContextMenu={(e) => {
+                setContextMenuData({
+                  x: e.clientX,
+                  y: e.clientY,
+                  isShowing: true,
+                  targetId: null,
+                  items: [
+                    pin({
+                      paths: [pinnedItem.fullPath],
+                      shouldPin: false,
+                      kind: pinnedItem.type === 'folder' ? 'folder' : 'note',
+                    }),
+                  ],
+                });
+              }}
+              key={pinnedItem.fullPath}
+              to={destinationUrl}
+              itemName={itemName}
+              tooltipContent={pinnedItem.fullPath}
+              icon={
+                pinnedItem.type === 'folder' ? (
+                  <FolderIcon
+                    className="min-w-4 min-h-4 will-change-transform"
+                    height="1rem"
+                    width="1rem"
+                    strokeWidth={1.75}
+                  />
+                ) : undefined
+              }
+            />
           );
         }}
       />

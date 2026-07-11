@@ -13,7 +13,6 @@ import { CodeResult } from './code-result';
 import { languageDisplayConfig } from './language-config';
 import { useNodeInNodeSelection } from '../../hooks/lexical';
 import { SelectionHighlight } from '../selection-highlight';
-import { Tooltip } from '../tooltip';
 
 const CodeMirrorEditor = lazy(() =>
   import('./codemirror-editor').then((module) => ({
@@ -236,16 +235,14 @@ export function Code({
   );
   const languageDisplay = languageDisplayConfig[language];
 
-  const languageIconTooltip = (
-    <Tooltip
-      content={languageDisplay.label}
-      placement="top"
-      root={isExpanded ? dialogRef : undefined}
+  const languageIcon = (
+    <span
+      className="w-fit"
+      aria-label={languageDisplay.label}
+      title={languageDisplay.label}
     >
-      <span className="w-fit" aria-label={languageDisplay.label}>
-        {languageDisplay.icon}
-      </span>
-    </Tooltip>
+      {languageDisplay.icon}
+    </span>
   );
 
   const codeEditor = (
@@ -260,7 +257,7 @@ export function Code({
       />
       {!isExpanded && (
         <div className="absolute inset-y-1 right-1 translate-x-16 space-y-1 text-zinc-400 w-12 flex flex-col justify-between">
-          {languageIconTooltip}
+          {languageIcon}
           <motion.div
             layout="position"
             className="font-mono text-xs leading-tight"
@@ -311,7 +308,7 @@ export function Code({
           {codeEditor}
         </div>
         <div className="flex justify-between w-12 shrink-0 flex-col items-center border-l border-l-zinc-200 pt-5 pb-3 text-zinc-400 dark:border-l-zinc-700">
-          <div>{languageIconTooltip}</div>
+          <div>{languageIcon}</div>
           <div
             className="font-mono text-xs leading-tight text-center"
             style={{ fontFamily: 'var(--code-block-font-family)' }}

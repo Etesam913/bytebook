@@ -214,7 +214,12 @@ export function SettingsDropdown({
   return (
     <div className="ml-auto flex flex-col">
       <AppMenuTrigger>
-        <Tooltip content="Note settings" placement="left" delay={{ open: 50 }}>
+        <Tooltip
+          content="Note settings"
+          placement="left"
+          delay={{ open: 50 }}
+          disabled={isToolbarDisabled}
+        >
           <Button
             aria-label="Note settings menu"
             isDisabled={isToolbarDisabled}

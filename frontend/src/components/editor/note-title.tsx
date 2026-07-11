@@ -71,7 +71,6 @@ export function NoteTitle({ filePath }: { filePath: FilePath }) {
             });
           }
         }}
-        pattern={NAME_CHARS.source}
         maxLength={50}
         required
       />

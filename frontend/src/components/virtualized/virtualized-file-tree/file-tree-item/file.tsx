@@ -33,6 +33,7 @@ import { RenderNoteIcon } from '../../../../icons/render-note-icon';
 import { FileBan } from '../../../../icons/file-ban';
 import { motion } from 'motion/react';
 import { easingFunctions } from '../../../../animations';
+import { Tooltip } from '../../../tooltip';
 
 export function FileTreeFileItem({
   dataItem,
@@ -188,7 +189,6 @@ export function FileTreeFileItem({
         />
       )}
       <InlineTreeItemInput
-        dataItem={dataItem}
         defaultValue={nameWithoutExtension}
         isEditing={isEditing}
         errorText={
@@ -235,7 +235,7 @@ export function FileTreeFileItem({
     setDragHighlightIds(new Set());
   }
 
-  return (
+  const treeItemButton = (
     <motion.button
       layout={isSticky ? undefined : 'position'}
       layoutId={isSticky ? undefined : `file-tree-item-${dataItem.id}`}
@@ -387,5 +387,16 @@ export function FileTreeFileItem({
     >
       {innerContent}
     </motion.button>
+  );
+
+  return (
+    <Tooltip
+      content={dataItem.name}
+      placement="right"
+      withArrow={false}
+      delay={{ open: 1000, close: 100 }}
+    >
+      {treeItemButton}
+    </Tooltip>
   );
 }

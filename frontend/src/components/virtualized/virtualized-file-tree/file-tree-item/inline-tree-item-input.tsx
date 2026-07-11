@@ -1,9 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { File, Folder } from '../types';
-import { Tooltip } from '../../../tooltip';
 
 export function InlineTreeItemInput({
-  dataItem,
   defaultValue,
   isEditing,
   errorText,
@@ -12,7 +9,6 @@ export function InlineTreeItemInput({
   extension,
   placeholder,
 }: {
-  dataItem: File | Folder;
   defaultValue: string;
   isEditing: boolean;
   errorText: string;
@@ -77,17 +73,10 @@ export function InlineTreeItemInput({
           )}
         </div>
       ) : (
-        <Tooltip
-          content={dataItem.name}
-          placement="right"
-          withArrow={false}
-          delay={{ open: 1000, close: 100 }}
-        >
-          <span className="truncate min-w-0 flex">
-            <span className="truncate">{defaultValue}</span>
-            {extension && <span className="shrink-0">.{extension}</span>}
-          </span>
-        </Tooltip>
+        <span className="truncate min-w-0 flex">
+          <span className="truncate">{defaultValue}</span>
+          {extension && <span className="shrink-0">.{extension}</span>}
+        </span>
       )}
     </>
   );
