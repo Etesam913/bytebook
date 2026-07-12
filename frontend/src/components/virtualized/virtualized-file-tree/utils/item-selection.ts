@@ -211,6 +211,22 @@ export function computeDefaultClickSelection(selectionKey: string) {
 }
 
 /**
+ * Resolves the items affected by a drag, matching Finder selection behavior.
+ * Dragging a selected item preserves the current selection, while dragging an
+ * unselected item replaces it with that item alone.
+ */
+export function computeDragStartSelection(
+  selectionKey: string,
+  currentSelection: SidebarSelectionState
+): SidebarSelectionState {
+  if (currentSelection.selections.has(selectionKey)) {
+    return currentSelection;
+  }
+
+  return computeDefaultClickSelection(selectionKey);
+}
+
+/**
  * Computes the new sidebar selection state for meta-click (cmd+click) behavior.
  * If the file is already selected, it will be un-selected and the anchor will be updated.
  * If the file is not selected, this function returns null (the caller should add it to selection).

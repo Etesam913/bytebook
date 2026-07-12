@@ -2,6 +2,7 @@ import '../../../../test/setup';
 import { describe, expect, it } from 'bun:test';
 import {
   computeDefaultClickSelection,
+  computeDragStartSelection,
   computeShiftClickSelections,
 } from './item-selection';
 import {
@@ -128,6 +129,28 @@ describe('computeDefaultClickSelection', () => {
     expect(computeDefaultClickSelection('file:note-a')).toEqual({
       selections: new Set(['file:note-a']),
       anchorSelection: 'file:note-a',
+    });
+  });
+});
+
+describe('computeDragStartSelection', () => {
+  const currentSelection = {
+    selections: new Set(['file:note-a', 'file:note-b']),
+    anchorSelection: 'file:note-a',
+  };
+
+  it('preserves the selection when dragging a selected item', () => {
+    expect(computeDragStartSelection('file:note-b', currentSelection)).toBe(
+      currentSelection
+    );
+  });
+
+  it('selects only the dragged item when it was not selected', () => {
+    expect(
+      computeDragStartSelection('file:note-c', currentSelection)
+    ).toEqual({
+      selections: new Set(['file:note-c']),
+      anchorSelection: 'file:note-c',
     });
   });
 });

@@ -18,6 +18,7 @@ import {
 } from '../../../../utils/selection';
 import {
   computeDefaultClickSelection,
+  computeDragStartSelection,
   computeMetaClickState,
   computeShiftClickSelections,
 } from '../utils/item-selection';
@@ -174,12 +175,16 @@ export function FileTreeItemContainer({
   }
 
   function addItemToSidebarSelection(): SidebarSelectionState | null {
-    if (!selectionKey || !path) return null;
-    const selectableItem: SelectableItem = {
-      ...path,
-      id: dataItem.id,
-    };
-    return addToSidebarSelection(selectableItem);
+    if (!selectionKey) return null;
+
+    const dragSelection = computeDragStartSelection(
+      selectionKey,
+      sidebarSelection
+    );
+    if (dragSelection !== sidebarSelection) {
+      setSidebarSelection(dragSelection);
+    }
+    return dragSelection;
   }
 
   return (
