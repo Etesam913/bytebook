@@ -5,7 +5,6 @@ import (
 	"math/rand"
 
 	"github.com/etesam913/bytebook/internal/util"
-	"github.com/leaanthony/u"
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
 )
@@ -25,7 +24,7 @@ func CreateWindow(app *application.App, url string, backgroundColor application.
 			InvisibleTitleBarHeight: 35,
 			TitleBar:                application.MacTitleBarHiddenInsetUnified,
 			WebviewPreferences: application.MacWebviewPreferences{
-				FullscreenEnabled: u.True,
+				FullscreenEnabled: application.Enabled,
 			},
 		},
 		BackgroundColour:   backgroundColor,

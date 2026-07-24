@@ -1,5 +1,4 @@
 import {
-  useEffect,
   useRef,
   type ReactElement,
   type ReactNode,
@@ -41,45 +40,6 @@ export function Tooltip({
   const openDelay = typeof delay === 'number' ? delay : (delay.open ?? 250);
   const closeDelay = typeof delay === 'number' ? 0 : (delay.close ?? 0);
   const triggerRef = useRef<HTMLElement>(null);
-
-  // #region DEBUG
-  useEffect(() => {
-    const element = triggerRef.current;
-    if (!element) return;
-
-    const componentType = children.type as {
-      displayName?: string;
-      name?: string;
-    };
-    const childType =
-      typeof children.type === 'string'
-        ? children.type
-        : componentType.displayName || componentType.name || 'anonymous';
-    void fetch('http://localhost:9876/ingest', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        hypothesis: '[DEBUG H1-H3]',
-        message: 'Tooltip trigger mounted',
-        data: {
-          childType,
-          content: typeof content === 'string' ? content : 'non-text content',
-          tagName: element.tagName,
-          role: element.getAttribute('role'),
-          tabIndex: element.tabIndex,
-          disabled:
-            element instanceof HTMLButtonElement ||
-            element instanceof HTMLInputElement ||
-            element instanceof HTMLSelectElement ||
-            element instanceof HTMLTextAreaElement
-              ? element.disabled
-              : false,
-          ariaDisabled: element.getAttribute('aria-disabled'),
-        },
-      }),
-    });
-  }, [children, content]);
-  // #endregion DEBUG
 
   const trigger = (
     <TooltipTrigger
