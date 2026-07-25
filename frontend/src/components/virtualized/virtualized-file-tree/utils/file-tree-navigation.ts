@@ -223,8 +223,8 @@ export function handleFileTreeKeyDown(
   }
 
   if (isSpace) {
-    event.preventDefault();
     if (currentIndex === null || Number.isNaN(currentIndex)) return;
+    event.preventDefault();
     const wrapper = getItemWrapper(context, currentIndex);
     const focusTarget = wrapper?.querySelector<HTMLButtonElement>('button');
     focusTarget?.click();

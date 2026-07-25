@@ -6,7 +6,6 @@ import {
   computeShiftClickSelections,
 } from './item-selection';
 import {
-  CREATE_FOLDER_TYPE,
   FILE_TYPE,
   FOLDER_TYPE,
   LOAD_MORE_TYPE,
@@ -17,7 +16,6 @@ import {
 describe('computeShiftClickSelections', () => {
   it('selects the visible flattened range including open folder descendants', () => {
     const virtualizedData: VirtualizedFileTreeItem[] = [
-      { id: 'create-folder', type: CREATE_FOLDER_TYPE, level: 0 },
       {
         id: 'note-a',
         type: FILE_TYPE,
@@ -35,6 +33,7 @@ describe('computeShiftClickSelections', () => {
         childrenIds: ['note-b-1', 'note-b-2'],
         childrenCursor: null,
         hasMoreChildren: false,
+        childrenLoaded: true,
         isOpen: true,
         level: 0,
       },
@@ -66,7 +65,7 @@ describe('computeShiftClickSelections', () => {
 
     const result = computeShiftClickSelections({
       virtualizedData,
-      dataItem: virtualizedData[5] as FlattenedFileOrFolder,
+      dataItem: virtualizedData[4] as FlattenedFileOrFolder,
       anchorSelectionKey: 'file:note-a',
     });
 
@@ -92,6 +91,7 @@ describe('computeShiftClickSelections', () => {
         childrenIds: ['note-a'],
         childrenCursor: 'next',
         hasMoreChildren: true,
+        childrenLoaded: true,
         isOpen: true,
         level: 0,
       },
@@ -146,9 +146,7 @@ describe('computeDragStartSelection', () => {
   });
 
   it('selects only the dragged item when it was not selected', () => {
-    expect(
-      computeDragStartSelection('file:note-c', currentSelection)
-    ).toEqual({
+    expect(computeDragStartSelection('file:note-c', currentSelection)).toEqual({
       selections: new Set(['file:note-c']),
       anchorSelection: 'file:note-c',
     });

@@ -1,15 +1,10 @@
 import { useAtomValue } from 'jotai';
 import { useFetchFolderChildrenMutation } from '../hooks/open-folder';
-import {
-  CREATE_FOLDER_TYPE,
-  LOAD_MORE_TYPE,
-  VirtualizedFileTreeItem,
-} from '../types';
+import { LOAD_MORE_TYPE, VirtualizedFileTreeItem } from '../types';
 import { isTreeNodeAFolder } from '../utils/file-tree-utils';
 import { fileTreeDataAtom } from '../../../../atoms';
 import { LoadMoreRow } from './load-more-row';
 import { FileTreeItemContainer } from '../file-tree-item-container';
-import { CreateFolder } from '../create-folder';
 
 export function FileTreeItem({
   dataItem,
@@ -20,39 +15,40 @@ export function FileTreeItem({
   virtualizedData: VirtualizedFileTreeItem[];
   isSticky?: boolean;
 }) {
-  const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
-  const { mutate: fetchFolderChildren } = useFetchFolderChildrenMutation();
-
-  if (dataItem.type === CREATE_FOLDER_TYPE) {
-    return <CreateFolder />;
-  }
-
   if (dataItem.type === LOAD_MORE_TYPE) {
-    const parentFolder = fileOrFolderMap.get(dataItem.parentId);
-    return (
-      <LoadMoreRow
-        level={dataItem.level}
-        onLoadMore={() => {
-          if (parentFolder && isTreeNodeAFolder(parentFolder)) {
-            fetchFolderChildren({
-              pathToFolder: parentFolder.path,
-              folderId: parentFolder.id,
-              isLoadMore: true,
-            });
-          }
-        }}
-      />
-    );
+    return <LoadMoreFileTreeItem dataItem={dataItem} />;
   }
-
-  // After the LOAD_MORE_TYPE check, dataItem is guaranteed to be FlattenedFileOrFolder
-  const flattenedDataItem = dataItem;
 
   return (
     <FileTreeItemContainer
-      dataItem={flattenedDataItem}
+      dataItem={dataItem}
       virtualizedData={virtualizedData}
       isSticky={isSticky}
+    />
+  );
+}
+
+function LoadMoreFileTreeItem({
+  dataItem,
+}: {
+  dataItem: Extract<VirtualizedFileTreeItem, { type: typeof LOAD_MORE_TYPE }>;
+}) {
+  const { treeData: fileOrFolderMap } = useAtomValue(fileTreeDataAtom);
+  const { mutate: fetchFolderChildren } = useFetchFolderChildrenMutation();
+  const parentFolder = fileOrFolderMap.get(dataItem.parentId);
+
+  return (
+    <LoadMoreRow
+      level={dataItem.level}
+      onLoadMore={() => {
+        if (parentFolder && isTreeNodeAFolder(parentFolder)) {
+          fetchFolderChildren({
+            pathToFolder: parentFolder.path,
+            folderId: parentFolder.id,
+            isLoadMore: true,
+          });
+        }
+      }}
     />
   );
 }

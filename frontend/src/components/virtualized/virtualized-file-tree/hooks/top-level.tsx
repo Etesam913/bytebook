@@ -7,13 +7,7 @@ import {
   reconcileTopLevelFileTreeMap,
   transformFileTreeForVirtualizedList,
 } from '../utils/file-tree-utils';
-import {
-  CREATE_FOLDER_TYPE,
-  CreateFolderItem,
-  FILE_TYPE,
-  FOLDER_TYPE,
-  type FileOrFolder,
-} from '../types';
+import { FILE_TYPE, FOLDER_TYPE, type FileOrFolder } from '../types';
 import { useAtom } from 'jotai';
 import { queryKeys } from '../../../../utils/query-keys';
 
@@ -54,6 +48,7 @@ function useTopLevelFileOrFoldersQuery() {
               childrenIds: [],
               childrenCursor: null,
               hasMoreChildren: false,
+              childrenLoaded: false,
               isOpen: false,
               parentId: null,
             });
@@ -65,13 +60,6 @@ function useTopLevelFileOrFoldersQuery() {
     },
   });
 }
-
-// Represents the button to create a folder at the top of the file tree
-const CREATE_FOLDER_ITEM: CreateFolderItem = {
-  id: 'create-folder',
-  type: CREATE_FOLDER_TYPE,
-  level: 0,
-};
 
 /**
  * Fetches the top-level folders from on mount
@@ -100,10 +88,9 @@ export function useTopLevelFileOrFolders() {
     setFileTreeData((prev) => reconcileTopLevelFileTreeMap(prev, data));
   }, [isSuccess, data]);
 
-  const virtualizedData = [
-    CREATE_FOLDER_ITEM,
-    ...transformFileTreeForVirtualizedList(fileTreeData.treeData),
-  ];
+  const virtualizedData = transformFileTreeForVirtualizedList(
+    fileTreeData.treeData
+  );
 
   return { topLevelFolderOrFilesQuery, virtualizedData };
 }

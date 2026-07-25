@@ -1,5 +1,5 @@
 import { useAtom, useSetAtom, useAtomValue } from 'jotai';
-import { MouseEvent, DragEvent, useState, useEffect, useRef } from 'react';
+import { MouseEvent, DragEvent, useState } from 'react';
 import { navigate } from 'wouter/use-browser-location';
 import { Folder as FolderIcon } from '../../../../../icons/folder';
 import { FolderOpen } from '../../../../../icons/folder-open';
@@ -27,7 +27,6 @@ import { useSpringLoadedFolder } from '../../hooks/use-spring-loaded-folder';
 import {
   useFileTreeFolderAddActions,
   useFileTreeFolderRenameActions,
-  type FetchFolderChildrenArgs,
 } from './hooks';
 import {
   canSelectionMoveToDropTarget,
@@ -52,30 +51,27 @@ import { createFolderPath } from '../../../../../utils/path';
 import { easingFunctions } from '../../../../../animations';
 import { useFolderOpenAnimationActions } from '../../hooks/use-folder-open-animation';
 import { Tooltip } from '../../../../tooltip';
+import { useFetchFolderChildrenMutation } from '../../hooks/open-folder';
+import { useTreeItemEditFocus } from '../../hooks/use-tree-item-edit-focus';
 
 export function FileTreeFolderItem({
   dataItem,
-  fetchFolderChildren,
   onSelectionClick,
   addItemToSidebarSelection,
   isSelectedFromSidebarClick,
   isSelected,
-  isFetchPending,
   isSticky,
 }: {
   dataItem: Folder & { level: number };
-  fetchFolderChildren: (args: FetchFolderChildrenArgs) => void;
   onSelectionClick: (e: MouseEvent) => void;
   addItemToSidebarSelection: () => SidebarSelectionState | null;
   isSelectedFromSidebarClick: boolean;
   isSelected: boolean;
-  isFetchPending: boolean;
   isSticky?: boolean;
 }) {
+  const { mutate: fetchFolderChildren, isPending: isFetchPending } =
+    useFetchFolderChildrenMutation();
   const [isDraggedOver, setIsDraggedOver] = useState(false);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  // Tracks whether the rename input was previously active so focus can return to the row button.
-  const wasEditingRef = useRef(false);
 
   const [contextMenuData, setContextMenuData] = useAtom(contextMenuDataAtom);
   const [activeDropTargetId, setActiveDropTargetId] = useAtom(
@@ -104,18 +100,12 @@ export function FileTreeFolderItem({
   } = useFileTreeFolderRenameActions({
     dataItem,
   });
+  const buttonRef = useTreeItemEditFocus(isEditing);
 
   const { triggerSpringLoad, cancelSpringLoad } = useSpringLoadedFolder({
     dataItem,
     fetchFolderChildren,
   });
-
-  useEffect(() => {
-    if (wasEditingRef.current && !isEditing) {
-      buttonRef.current?.focus();
-    }
-    wasEditingRef.current = isEditing;
-  }, [isEditing]);
 
   const {
     addingType,

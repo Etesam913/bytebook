@@ -1,10 +1,6 @@
 import type { ListRange } from 'react-virtuoso';
 import { FileTreeItem } from '../file-tree-item';
-import {
-  CREATE_FOLDER_TYPE,
-  LOAD_MORE_TYPE,
-  type VirtualizedFileTreeItem,
-} from '../types';
+import { LOAD_MORE_TYPE, type VirtualizedFileTreeItem } from '../types';
 import { isTreeNodeAFolder } from '../utils/file-tree-utils';
 import { fileTreeDataAtom } from '../../../../atoms';
 import { useAtomValue } from 'jotai';
@@ -39,10 +35,7 @@ export function StickyHeader({
     const nextStickyElementIds = new Set<string>();
 
     for (const visibleItem of visibleItems) {
-      if (
-        visibleItem.type === CREATE_FOLDER_TYPE ||
-        visibleItem.type === LOAD_MORE_TYPE
-      ) {
+      if (visibleItem.type === LOAD_MORE_TYPE) {
         continue;
       }
 

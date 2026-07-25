@@ -4,23 +4,18 @@ import type { FileOrFolder as BackendFileOrFolder } from '../../../../../binding
 import type { FileTreeData } from '../../../../atoms';
 import { QueryError } from '../../../../utils/query';
 import { fileTreeDataAtom } from '../../../../atoms';
-import type { FileOrFolder } from '../types';
 import { FILE_TYPE, FOLDER_TYPE } from '../types';
 import { isTreeNodeAFolder } from '../utils/file-tree-utils';
 import type { SetStateAction } from 'jotai';
 import { useSetAtom, useStore } from 'jotai';
 import { Dispatch, useRef } from 'react';
-
-type TreeMaps = {
-  treeData: Map<string, FileOrFolder>;
-  filePathToTreeDataId: Map<string, string>;
-};
+import { cloneFileTreeData } from '../utils/file-tree-state';
 
 /** Inserts a backend entry into the tree and path maps. */
 function insertEntry(
   entry: BackendFileOrFolder,
   parentId: string,
-  maps: TreeMaps
+  maps: FileTreeData
 ) {
   maps.filePathToTreeDataId.set(entry.path, entry.id);
 
@@ -45,6 +40,7 @@ function insertEntry(
         childrenIds: entry.childrenIds,
         childrenCursor: null,
         hasMoreChildren: false,
+        childrenLoaded: false,
         isOpen: false,
       });
       break;
@@ -57,7 +53,7 @@ function updateParentFolder(
   childrenIds: string[],
   hasMore: boolean,
   nextCursor: string,
-  maps: TreeMaps
+  maps: FileTreeData
 ) {
   const folder = maps.treeData.get(folderId);
   if (folder && isTreeNodeAFolder(folder)) {
@@ -66,6 +62,7 @@ function updateParentFolder(
       childrenIds,
       hasMoreChildren: hasMore,
       childrenCursor: hasMore ? nextCursor : null,
+      childrenLoaded: true,
     });
   }
 }
@@ -82,7 +79,7 @@ export function applyLoadMore({
   items: BackendFileOrFolder[];
   hasMore: boolean;
   nextCursor: string;
-  maps: TreeMaps;
+  maps: FileTreeData;
 }) {
   const existingFolder = maps.treeData.get(folderId);
   const childrenIds: string[] =
@@ -110,7 +107,7 @@ export function applyLoadMore({
 function removeStaleChildren(
   folderId: string,
   returnedPaths: Set<string>,
-  maps: TreeMaps
+  maps: FileTreeData
 ) {
   const existingFolder = maps.treeData.get(folderId);
   if (!existingFolder || !isTreeNodeAFolder(existingFolder)) return;
@@ -140,7 +137,7 @@ export function applyInitialLoad({
   items: BackendFileOrFolder[];
   hasMore: boolean;
   nextCursor: string;
-  maps: TreeMaps;
+  maps: FileTreeData;
 }) {
   const returnedPaths = new Set(items.map((entry) => entry.path));
 
@@ -239,10 +236,7 @@ export function useFetchFolderChildrenMutation(options?: {
         setFileTreeData((prev: FileTreeData) => {
           if (!res.data) return prev;
 
-          const maps: TreeMaps = {
-            treeData: new Map(prev.treeData),
-            filePathToTreeDataId: new Map(prev.filePathToTreeDataId),
-          };
+          const maps = cloneFileTreeData(prev);
           const items = res.data.items ?? [];
 
           if (isLoadMore) {

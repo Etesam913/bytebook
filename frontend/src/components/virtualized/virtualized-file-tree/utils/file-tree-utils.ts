@@ -9,6 +9,8 @@ import { FILE_TYPE, FOLDER_TYPE, LOAD_MORE_TYPE } from '../types';
 import type { FileTreeData, ReadonlyFileTreeData } from '../../../../atoms';
 import { splitPathSegments } from '../../../../utils/path';
 import { getSelectionValue } from '../../../../utils/selection';
+import { cloneFileTreeData, removeSubtree } from './file-tree-state';
+import type { ListRange } from 'react-virtuoso';
 
 /**
  * Calculates the padding-left (indent) value for a file tree item based on its level.
@@ -26,6 +28,13 @@ export function isFileTreeBlankAreaClickTarget(target: EventTarget | null) {
     !element?.closest('[data-file-tree-index]') &&
     !element?.closest('[data-file-tree-sticky-item]')
   );
+}
+
+export function isFileTreeIndexVisible(
+  index: number,
+  visibleRange: ListRange
+): boolean {
+  return index >= visibleRange.startIndex && index <= visibleRange.endIndex;
 }
 
 /**
@@ -105,53 +114,13 @@ export function transformFileTreeForVirtualizedList(
 }
 
 /**
- * This function performs a depth-first traversal starting from the given root ID,
- * deleting each node it encounters. For folders, it first removes all children
- * before removing the folder itself.
- *
- * @example
- * const tree: FileTreeData = {
- *   treeData: new Map([
- *     ['id1', { id: 'id1', path: 'Projects', name: 'Projects', type: 'folder', childrenIds: ['id2'], parentId: null, isOpen: true }],
- *     ['id2', { id: 'id2', path: 'Projects/App.ts', name: 'App.ts', type: 'file', parentId: 'id1' }]
- *   ]),
- *   filePathToTreeDataId: new Map([['Projects', 'id1'], ['Projects/App.ts', 'id2']])
- * };
- *
- * removeSubtree(tree, 'id1');
- * // Both 'id1' and its child 'id2' are removed from treeData and the path index.
- * // tree.treeData.size === 0
- *
- * @param fileTreeData - The file tree state object containing the maps to update.
- * @param folderIdToRemove - The unique ID of the file or folder to start removal from.
- */
-function removeSubtree(
-  fileTreeData: FileTreeData,
-  folderIdToRemove: string
-): void {
-  const { treeData, filePathToTreeDataId } = fileTreeData;
-  const root = treeData.get(folderIdToRemove);
-  if (!root) return;
-
-  if (isTreeNodeAFolder(root)) {
-    for (const childId of root.childrenIds) {
-      removeSubtree(fileTreeData, childId);
-    }
-  }
-
-  // Remove from both maps to keep in sync
-  filePathToTreeDataId.delete(root.path);
-  treeData.delete(folderIdToRemove);
-}
-
-/**
  * Reconciles the existing file tree state with new top-level data from the backend.
  *
  * This function updates the map by removing top-level items that no longer exist
  * in the new data (including their subtrees), and merging new data while preserving
- * existing folder state such as `isOpen`, `childrenIds`, `childrenCursor`,
- * and `hasMoreChildren` for folders that already exist in the map. Paths are
- * used to match prior nodes when IDs change between fetches.
+ * existing folder state such as `isOpen`, child loading state, and pagination
+ * for folders that already exist in the map. Paths are used to match prior
+ * nodes when IDs change between fetches.
  *
  * @example
  * const previousTree: FileTreeData = {
@@ -181,14 +150,9 @@ export function reconcileTopLevelFileTreeMap(
   newData: FileOrFolder[]
 ): FileTreeData {
   const newPaths = new Set(newData.map((item) => item.path));
-  const newTreeDataMap = new Map(previousFileTreeData.treeData);
-  const newFilePathToTreeDataMap = new Map(
-    previousFileTreeData.filePathToTreeDataId
-  );
-  const newFileTreeData: FileTreeData = {
-    treeData: newTreeDataMap,
-    filePathToTreeDataId: newFilePathToTreeDataMap,
-  };
+  const newFileTreeData = cloneFileTreeData(previousFileTreeData);
+  const newTreeDataMap = newFileTreeData.treeData;
+  const newFilePathToTreeDataMap = newFileTreeData.filePathToTreeDataId;
 
   for (const [id, node] of previousFileTreeData.treeData) {
     // Remove top level folders and all of their children (subtrees) that are not in the updated data
@@ -218,7 +182,13 @@ export function reconcileTopLevelFileTreeMap(
 
       // If the node exists in the previous data and is a folder, then use its properties to maintain state
       // Otherwise, use the new node's default properties
-      const { isOpen, childrenIds, childrenCursor, hasMoreChildren } =
+      const {
+        isOpen,
+        childrenIds,
+        childrenCursor,
+        hasMoreChildren,
+        childrenLoaded,
+      } =
         nodeInPreviousData && isPreviousNodeFolder ? nodeInPreviousData : node;
 
       newTreeDataMap.set(stableId, {
@@ -228,6 +198,7 @@ export function reconcileTopLevelFileTreeMap(
         childrenIds,
         childrenCursor,
         hasMoreChildren,
+        childrenLoaded,
       });
     } else {
       newTreeDataMap.set(stableId, { ...node, id: stableId });
@@ -359,11 +330,7 @@ export function isTreeNodeAFolder(
 
 /** Returns true if a folder has already had its children fetched from the backend. */
 export function hasLoadedChildren(folder: Folder): boolean {
-  return (
-    folder.childrenIds.length > 0 ||
-    folder.childrenCursor !== null ||
-    folder.hasMoreChildren
-  );
+  return folder.childrenLoaded;
 }
 
 /**

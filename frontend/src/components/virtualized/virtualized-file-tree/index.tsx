@@ -23,8 +23,16 @@ import {
   OPENED_FOLDER_ROW_ANIMATION_DURATION,
 } from './utils/file-tree-utils';
 import { useFolderOpenAnimationParentIds } from './hooks/use-folder-open-animation';
+import { CreateFolder } from './create-folder';
 
 const INITIAL_VISIBLE_RANGE: ListRange = { startIndex: 0, endIndex: -1 };
+const VIRTUOSO_COMPONENTS = {
+  Header: function FileTreeHeader() {
+    return (
+      <CreateFolder />
+    );
+  },
+};
 
 export function VirtualizedFileTree({
   ref,
@@ -146,11 +154,12 @@ export function VirtualizedFileTree({
       />
       <Virtuoso
         ref={virtuosoRef}
+        components={VIRTUOSO_COMPONENTS}
         data={virtualizedData}
         rangeChanged={(range) => {
           setVisibleRange((previousRange) =>
             previousRange.startIndex === range.startIndex &&
-            previousRange.endIndex === range.endIndex
+              previousRange.endIndex === range.endIndex
               ? previousRange
               : range
           );
@@ -168,7 +177,7 @@ export function VirtualizedFileTree({
           height: 0,
           flexGrow: 1,
         }}
-        totalListHeightChanged={() => {}}
+        totalListHeightChanged={() => { }}
         itemContent={renderItem}
       />
     </div>

@@ -1,7 +1,6 @@
 import { RefObject, useEffect, useState } from 'react';
 import type { ListRange, VirtuosoHandle } from 'react-virtuoso';
 import { type VirtualizedFileTreeItem } from '../types';
-import { isTreeNodeAFile, isTreeNodeAFolder } from '../utils/file-tree-utils';
 import { fileTreeDataAtom } from '../../../../atoms';
 import { useRevealRoutePath } from './use-reveal-route-path';
 import { useAtomValue } from 'jotai';
@@ -9,6 +8,8 @@ import {
   useFilePathFromRoute,
   useFolderPathFromRoute,
 } from '../../../../hooks/routes';
+import { isFileTreeIndexVisible } from '../utils/file-tree-utils';
+
 /**
  * Coordinates route-driven reveal and scrolling behavior for the virtualized tree.
  *
@@ -49,28 +50,15 @@ export function useRoutePathFocus({
       return;
     }
 
-    const visibleItems = virtualizedData.slice(
-      visibleRange.startIndex,
-      visibleRange.endIndex
-    );
-
-    const isCurrentRouteVisible = visibleItems.some(
-      (item) =>
-        (isTreeNodeAFile(item) || isTreeNodeAFolder(item)) &&
-        item.path === routeTargetPath
-    );
-
-    // No folder needs to be expanded or revealed if the current route is already visible
-    if (isCurrentRouteVisible) {
-      return;
-    }
-
-    // If the current route is already in virtualizedData, then scroll it into view immediately
     const targetId = fileTreeData.filePathToTreeDataId.get(routeTargetPath);
     if (targetId) {
       const targetItemIndex = virtualizedData.findIndex(
         (item) => item.id === targetId
       );
+      if (isFileTreeIndexVisible(targetItemIndex, visibleRange)) {
+        return;
+      }
+
       if (targetItemIndex !== -1) {
         virtuosoRef.current?.scrollIntoView({
           index: targetItemIndex,

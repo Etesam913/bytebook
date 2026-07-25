@@ -1,5 +1,4 @@
 import { useAtom, useAtomValue } from 'jotai';
-import { useFetchFolderChildrenMutation } from '../hooks/open-folder';
 import type { FlattenedFileOrFolder, VirtualizedFileTreeItem } from '../types';
 import { isTreeNodeAFile, isTreeNodeAFolder } from '../utils/file-tree-utils';
 import { fileTreeDataAtom } from '../../../../atoms';
@@ -40,8 +39,6 @@ export function FileTreeItemContainer({
   virtualizedData: VirtualizedFileTreeItem[];
   isSticky?: boolean;
 }) {
-  const { mutate: fetchFolderChildren, isPending: isFetchPending } =
-    useFetchFolderChildrenMutation();
   const addToSidebarSelection = useAddToSidebarSelection();
 
   // Compute selection key and path for the data item
@@ -192,12 +189,10 @@ export function FileTreeItemContainer({
       {isTreeNodeAFolder(dataItem) ? (
         <FileTreeFolderItem
           dataItem={dataItem}
-          fetchFolderChildren={fetchFolderChildren}
           onSelectionClick={handleSelectionClick}
           addItemToSidebarSelection={addItemToSidebarSelection}
           isSelectedFromSidebarClick={isSelectedFromSidebarClick}
           isSelected={isSelected}
-          isFetchPending={isFetchPending}
           isSticky={isSticky}
         />
       ) : (

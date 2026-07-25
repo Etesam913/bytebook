@@ -1,7 +1,16 @@
 import '../../../../test/setup';
 import { describe, expect, it } from 'bun:test';
-import { canSelectionMoveToDropTarget } from './file-tree-utils';
-import { FILE_TYPE, FOLDER_TYPE, type FileOrFolder } from '../types';
+import {
+  canSelectionMoveToDropTarget,
+  hasLoadedChildren,
+  isFileTreeIndexVisible,
+} from './file-tree-utils';
+import {
+  FILE_TYPE,
+  FOLDER_TYPE,
+  type FileOrFolder,
+  type Folder,
+} from '../types';
 
 const fileOrFolderMap = new Map<string, FileOrFolder>([
   [
@@ -15,6 +24,7 @@ const fileOrFolderMap = new Map<string, FileOrFolder>([
       childrenIds: ['note-a-1', 'note-a-2'],
       childrenCursor: null,
       hasMoreChildren: false,
+      childrenLoaded: true,
       isOpen: true,
     },
   ],
@@ -29,6 +39,7 @@ const fileOrFolderMap = new Map<string, FileOrFolder>([
       childrenIds: ['note-b-1'],
       childrenCursor: null,
       hasMoreChildren: false,
+      childrenLoaded: true,
       isOpen: true,
     },
   ],
@@ -93,5 +104,42 @@ describe('canSelectionMoveToDropTarget', () => {
         dropTargetId: 'note-a-2',
       })
     ).toBe(false);
+  });
+});
+
+describe('hasLoadedChildren', () => {
+  const emptyFolder: Folder = {
+    id: 'empty-folder',
+    type: FOLDER_TYPE,
+    name: 'Empty',
+    path: 'Empty',
+    parentId: null,
+    childrenIds: [],
+    childrenCursor: null,
+    hasMoreChildren: false,
+    childrenLoaded: false,
+    isOpen: false,
+  };
+
+  it('distinguishes an unfetched folder from a fetched empty folder', () => {
+    expect(hasLoadedChildren(emptyFolder)).toBe(false);
+    expect(hasLoadedChildren({ ...emptyFolder, childrenLoaded: true })).toBe(
+      true
+    );
+  });
+});
+
+describe('isFileTreeIndexVisible', () => {
+  const visibleRange = { startIndex: 3, endIndex: 7 };
+
+  it('includes both visible range boundaries', () => {
+    expect(isFileTreeIndexVisible(3, visibleRange)).toBe(true);
+    expect(isFileTreeIndexVisible(7, visibleRange)).toBe(true);
+  });
+
+  it('rejects indexes outside the visible range', () => {
+    expect(isFileTreeIndexVisible(2, visibleRange)).toBe(false);
+    expect(isFileTreeIndexVisible(8, visibleRange)).toBe(false);
+    expect(isFileTreeIndexVisible(-1, visibleRange)).toBe(false);
   });
 });

@@ -130,6 +130,7 @@ export function insertCreatedNodeIntoFileTree(
       id: newlyCreatedNodeId,
       parentId: parent.id,
       hasMoreChildren: false,
+      childrenLoaded: true,
       isOpen: false,
       childrenCursor: '',
     });

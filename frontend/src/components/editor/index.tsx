@@ -149,7 +149,7 @@ export function NotesEditor({
             className={cn(
               'py-6 px-14 flex flex-col w-full min-w-72 flex-1',
               projectSettings.appearance.noteWidth === 'readability' &&
-                'max-w-225 mx-auto'
+              'max-w-225 mx-auto'
             )}
           >
             <div
@@ -244,7 +244,7 @@ export function NotesEditor({
               />
               <FocusPlugin />
               <LinkMatcherPlugin />
-              <InlineTreeViewPlugin />
+              {/* <InlineTreeViewPlugin /> */}
             </div>
             <Tags filePath={filePath} />
             <LinkedMentions filePath={filePath} />

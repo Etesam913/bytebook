@@ -265,7 +265,7 @@ function serializeNode({
     return `${indent}- file "${node.name}" id=${node.id} path=${node.path} parentId=${node.parentId ?? 'null'}${markerText}`;
   }
 
-  const header = `${indent}- folder "${node.name}" id=${node.id} path=${node.path} parentId=${node.parentId ?? 'null'} isOpen=${node.isOpen} hasMoreChildren=${node.hasMoreChildren} childrenCursor=${node.childrenCursor ?? 'null'} childrenIds=[${node.childrenIds.join(',')}]${markerText}`;
+  const header = `${indent}- folder "${node.name}" id=${node.id} path=${node.path} parentId=${node.parentId ?? 'null'} isOpen=${node.isOpen} childrenLoaded=${node.childrenLoaded} hasMoreChildren=${node.hasMoreChildren} childrenCursor=${node.childrenCursor ?? 'null'} childrenIds=[${node.childrenIds.join(',')}]${markerText}`;
 
   const childLines: string[] = [];
   for (const childId of node.childrenIds) {

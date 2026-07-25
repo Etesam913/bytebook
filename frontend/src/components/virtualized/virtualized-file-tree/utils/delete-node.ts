@@ -5,37 +5,8 @@ import {
   getParentNodeFromPath,
   getTreeNodeFromPath,
   isTreeNodeAFile,
-  isTreeNodeAFolder,
 } from './file-tree-utils';
-
-/**
- * Recursively removes a node and all its descendants from the provided maps.
- * Unlike `removeSubtree`, this works on standalone maps rather than a FileTreeData object.
- */
-function removeSubtreeFromMaps(
-  treeData: Map<string, FileOrFolder>,
-  filePathToTreeDataId: Map<string, string>,
-  nodeId: string,
-  removedIds: Set<string>
-): void {
-  const node = treeData.get(nodeId);
-  if (!node) return;
-
-  if (isTreeNodeAFolder(node)) {
-    for (const childId of node.childrenIds) {
-      removeSubtreeFromMaps(
-        treeData,
-        filePathToTreeDataId,
-        childId,
-        removedIds
-      );
-    }
-  }
-
-  filePathToTreeDataId.delete(node.path);
-  treeData.delete(nodeId);
-  removedIds.add(nodeId);
-}
+import { cloneFileTreeData, removeSubtree } from './file-tree-state';
 
 /**
  * Immutably removes a deleted node (and its subtree) from the file tree.
@@ -50,30 +21,21 @@ function removeDeletedNodeFromFileTree(
   const nodeId = prev.filePathToTreeDataId.get(path);
   if (!nodeId) return null;
 
-  const newTreeData = new Map(prev.treeData);
-  const newFilePathToTreeDataId = new Map(prev.filePathToTreeDataId);
+  const next = cloneFileTreeData(prev);
 
   // Remove from parent's childrenIds
   const parent = getParentNodeFromPath(prev, path);
   if (parent) {
-    newTreeData.set(parent.id, {
+    next.treeData.set(parent.id, {
       ...parent,
       childrenIds: parent.childrenIds.filter((id) => id !== nodeId),
     });
   }
 
   // Remove the node and its subtree
-  removeSubtreeFromMaps(
-    newTreeData,
-    newFilePathToTreeDataId,
-    nodeId,
-    removedIds
-  );
+  removeSubtree(next, nodeId, removedIds);
 
-  return {
-    treeData: newTreeData,
-    filePathToTreeDataId: newFilePathToTreeDataId,
-  };
+  return next;
 }
 
 /**

@@ -1,5 +1,5 @@
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
-import { MouseEvent, useState, useEffect, useRef, DragEvent } from 'react';
+import { MouseEvent, useState, DragEvent } from 'react';
 import { navigate } from 'wouter/use-browser-location';
 import {
   activeDropTargetIdAtom,
@@ -34,6 +34,7 @@ import { FileBan } from '../../../../icons/file-ban';
 import { motion } from 'motion/react';
 import { easingFunctions } from '../../../../animations';
 import { Tooltip } from '../../../tooltip';
+import { useTreeItemEditFocus } from '../hooks/use-tree-item-edit-focus';
 
 export function FileTreeFileItem({
   dataItem,
@@ -62,16 +63,7 @@ export function FileTreeFileItem({
   const setDraggedGhostElement = useSetAtom(draggedGhostElementAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const [isEditing, setIsEditing] = useState(false);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  // Tracks whether the rename input was previously active so focus can return to the row button.
-  const wasEditingRef = useRef(false);
-
-  useEffect(() => {
-    if (wasEditingRef.current && !isEditing) {
-      buttonRef.current?.focus();
-    }
-    wasEditingRef.current = isEditing;
-  }, [isEditing]);
+  const buttonRef = useTreeItemEditFocus(isEditing);
 
   const { revealInFinder, pin, editTags, rename, moveToTrash } =
     useContextMenuItems();

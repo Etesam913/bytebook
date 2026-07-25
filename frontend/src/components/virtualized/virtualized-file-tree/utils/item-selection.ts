@@ -3,7 +3,7 @@ import type {
   FlattenedFileOrFolder,
   VirtualizedFileTreeItem,
 } from '../types';
-import { CREATE_FOLDER_TYPE, LOAD_MORE_TYPE } from '../types';
+import { LOAD_MORE_TYPE } from '../types';
 import { isTreeNodeAFile, isTreeNodeAFolder } from './file-tree-utils';
 import { createFilePath, createFolderPath } from '../../../../utils/path';
 import {
@@ -174,11 +174,7 @@ export function computeShiftClickSelections({
   // Go through the visible flattened range and select each file or folder.
   for (let index = rangeStart; index <= rangeEnd; index += 1) {
     const childItem = virtualizedData[index];
-    if (
-      !childItem ||
-      childItem.type === CREATE_FOLDER_TYPE ||
-      childItem.type === LOAD_MORE_TYPE
-    ) {
+    if (!childItem || childItem.type === LOAD_MORE_TYPE) {
       continue;
     }
 

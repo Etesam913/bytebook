@@ -100,6 +100,7 @@ export function useAddTreeItemMutation() {
             childrenIds: [],
             childrenCursor: '',
             hasMoreChildren: false,
+            childrenLoaded: true,
             isOpen: false,
           });
           filePathToTreeDataId.set(newPath, id);

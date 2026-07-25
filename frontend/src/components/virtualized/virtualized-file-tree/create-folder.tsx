@@ -18,7 +18,7 @@ export function CreateFolder() {
   } = useFileTreeFolderAddActions({ dataItem: null });
 
   return (
-    <div className="flex flex-col gap-1 text-sm">
+    <div className="flex flex-col gap-1 text-sm w-full px-1">
       <div className="px-1 py-2">
         <MotionButton
           {...getDefaultButtonVariants({
@@ -46,7 +46,7 @@ export function CreateFolder() {
           className="flex items-center w-full relative rounded-md py-0.25"
           style={{ paddingLeft: getFileTreeItemIndent(0) }}
         >
-          <span className="rounded-md flex items-center gap-2 z-10 py-1 overflow-hidden w-full">
+          <span className="rounded-md flex items-center gap-2 z-10 py-1 pr-2 overflow-hidden w-full">
             <FolderIcon
               className="min-w-4 min-h-4"
               height="1rem"

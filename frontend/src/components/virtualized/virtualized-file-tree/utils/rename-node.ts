@@ -9,6 +9,7 @@ import {
   isTreeNodeAFolder,
   removeFileFromFileTreeMap,
 } from './file-tree-utils';
+import { cloneFileTreeData, removeSubtree } from './file-tree-state';
 
 /**
  * Returns the name of the last loaded child of a folder, using the
@@ -283,27 +284,6 @@ function applyPathRemappings({
 }
 
 /**
- * Recursively removes a node and all its descendants from standalone maps.
- */
-function removeSubtreeFromMaps(
-  treeData: Map<string, FileOrFolder>,
-  filePathToTreeDataId: Map<string, string>,
-  nodeId: string
-): void {
-  const node = treeData.get(nodeId);
-  if (!node) return;
-
-  if (isTreeNodeAFolder(node)) {
-    for (const childId of node.childrenIds) {
-      removeSubtreeFromMaps(treeData, filePathToTreeDataId, childId);
-    }
-  }
-
-  filePathToTreeDataId.delete(node.path);
-  treeData.delete(nodeId);
-}
-
-/**
  * Updates parent folders' children lists for moved/renamed nodes, re-sorting
  * by name and enforcing pagination boundaries.
  *
@@ -328,8 +308,12 @@ function applyParentFolderUpdates({
   filePathToTreeDataId: Map<string, string>;
   parentFolderUpdates: Map<string, ParentFolderUpdate>;
 }): FileTreeData {
-  const updatedTreeData = new Map(treeData);
-  const updatedFilePathToTreeDataId = new Map(filePathToTreeDataId);
+  const updatedFileTreeData = cloneFileTreeData({
+    treeData,
+    filePathToTreeDataId,
+  });
+  const { treeData: updatedTreeData, filePathToTreeDataId: updatedPathIndex } =
+    updatedFileTreeData;
 
   for (const [parentId, updates] of parentFolderUpdates) {
     const parent = updatedTreeData.get(parentId);
@@ -389,11 +373,7 @@ function applyParentFolderUpdates({
         // Remove all children from the boundary onwards
         const overflow = updatedChildrenIds.slice(boundaryIndex);
         for (const overflowId of overflow) {
-          removeSubtreeFromMaps(
-            updatedTreeData,
-            updatedFilePathToTreeDataId,
-            overflowId
-          );
+          removeSubtree(updatedFileTreeData, overflowId);
         }
         updatedChildrenIds = updatedChildrenIds.slice(0, boundaryIndex);
       }
@@ -407,7 +387,7 @@ function applyParentFolderUpdates({
 
   return {
     treeData: updatedTreeData,
-    filePathToTreeDataId: updatedFilePathToTreeDataId,
+    filePathToTreeDataId: updatedPathIndex,
   };
 }
 
