@@ -53,14 +53,14 @@ import type { PlaceholderLineData } from './types';
 import TableHoverActionsV2Plugin from './plugins/table/table-hover-actions.tsx';
 import TableActionMenuPlugin from './plugins/table/table-actions-menu.tsx';
 import { usePreventBoundaryOverscrollFlicker } from '../virtualized/virtualized-list/hooks.tsx';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { TreeView } from '@lexical/react/LexicalTreeView';
+// import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+// import { TreeView } from '@lexical/react/LexicalTreeView';
 
 // Inlined TreeViewPlugin
-function InlineTreeViewPlugin() {
-  const [editor] = useLexicalComposerContext();
-  return <TreeView editor={editor} />;
-}
+// function InlineTreeViewPlugin() {
+//   const [editor] = useLexicalComposerContext();
+//   return <TreeView editor={editor} />;
+// }
 
 export function NotesEditor({
   filePath,
@@ -149,7 +149,7 @@ export function NotesEditor({
             className={cn(
               'py-6 px-14 flex flex-col w-full min-w-72 flex-1',
               projectSettings.appearance.noteWidth === 'readability' &&
-              'max-w-225 mx-auto'
+                'max-w-225 mx-auto'
             )}
           >
             <div

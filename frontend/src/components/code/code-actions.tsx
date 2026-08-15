@@ -76,29 +76,29 @@ export function CodeActions({
     },
     ...(canShowKernelInfo
       ? [
-        {
-          id: 'kernel-info',
-          label: (
-            <span className="flex items-center gap-1.5 will-change-transform">
-              <SquareTerminal height="1.125rem" width="1.125rem" /> Kernel
-              Info
-            </span>
-          ),
-        },
-      ]
+          {
+            id: 'kernel-info',
+            label: (
+              <span className="flex items-center gap-1.5 will-change-transform">
+                <SquareTerminal height="1.125rem" width="1.125rem" /> Kernel
+                Info
+              </span>
+            ),
+          },
+        ]
       : []),
     ...(language !== LANGUAGES.TEXT
       ? [
-        {
-          id: hideResults ? 'show-results' : 'hide-results',
-          label: (
-            <span className="flex items-center gap-1.5 will-change-transform">
-              <Subtitles height="18" width="18" />
-              {hideResults ? 'Show Results' : 'Hide Results'}
-            </span>
-          ),
-        },
-      ]
+          {
+            id: hideResults ? 'show-results' : 'hide-results',
+            label: (
+              <span className="flex items-center gap-1.5 will-change-transform">
+                <Subtitles height="18" width="18" />
+                {hideResults ? 'Show Results' : 'Hide Results'}
+              </span>
+            ),
+          },
+        ]
       : []),
     {
       id: 'delete',
