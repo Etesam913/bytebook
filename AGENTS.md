@@ -16,16 +16,6 @@ Important: the repo uses a **local fork of Wails v3**. `go.mod` includes a `repl
 
 ## Quick commands
 
-### Dev
-
-```bash
-# Repo root (recommended)
-task dev
-
-# Direct
-wails3 dev -config ./build/config.yml -port 5173
-```
-
 ### Go backend
 
 ```bash

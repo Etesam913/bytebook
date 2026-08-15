@@ -116,10 +116,7 @@ export function Dropdown({
   }
 
   return (
-    <Tooltip
-      content={disabledTooltipContent}
-      delay={{ open: 450 }}
-    >
+    <Tooltip content={disabledTooltipContent} delay={{ open: 450 }}>
       <span
         className="inline-flex"
         tabIndex={0}
