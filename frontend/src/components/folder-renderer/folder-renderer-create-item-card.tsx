@@ -7,10 +7,14 @@ import { useAddTreeItemMutation } from '../virtualized/virtualized-file-tree/hoo
 import {
   FILE_TYPE,
   FOLDER_TYPE,
-  type Folder,
 } from '../virtualized/virtualized-file-tree/types';
+import type { FolderPath } from '../../utils/path';
 
-export function FolderRendererCreateItemCard({ folder }: { folder: Folder }) {
+export function FolderRendererCreateItemCard({
+  folderPath,
+}: {
+  folderPath: FolderPath;
+}) {
   const [creatingItemType, setCreatingItemType] = useState<
     typeof FOLDER_TYPE | typeof FILE_TYPE | null
   >(null);
@@ -60,7 +64,7 @@ export function FolderRendererCreateItemCard({ folder }: { folder: Folder }) {
     }
 
     addTreeItem({
-      parentFolder: folder,
+      parentFolderPath: folderPath.fullPath,
       addType: creatingItemType,
       newName: trimmedName,
       onSuccess: closeCreateItemCard,
@@ -71,8 +75,8 @@ export function FolderRendererCreateItemCard({ folder }: { folder: Folder }) {
   const previewName =
     value.trim() || (isCreatingFolder ? 'New folder' : 'New note');
   const previewPath = isCreatingFolder
-    ? `${folder.path}/${previewName}`
-    : `${folder.path}/${previewName}.md`;
+    ? `${folderPath.fullPath}/${previewName}`
+    : `${folderPath.fullPath}/${previewName}.md`;
 
   return (
     <div>
