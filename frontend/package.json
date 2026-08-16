@@ -44,6 +44,7 @@
     "@lexical/selection": "^0.41.0",
     "@lexical/table": "^0.41.0",
     "@lexical/utils": "^0.41.0",
+    "@pierre/trees": "1.0.0-beta.3",
     "@react-aria/overlays": "^3.32.0",
     "@replit/codemirror-vim": "^6.3.0",
     "@tanstack/react-query": "^5.90.21",
