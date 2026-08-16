@@ -16,6 +16,15 @@ Important: the repo uses a **local fork of Wails v3**. `go.mod` includes a `repl
 
 ## Quick commands
 
+### All checks in parallel (recommended)
+
+```bash
+bun check       # Run all frontend & backend checks + tests concurrently
+bun check:fix   # Auto-fix formatting & lint issues then run checks
+bun check:fe    # Frontend checks only (Prettier, ESLint, TSGO, Knip, Bun test)
+bun check:be    # Backend checks only (Go deadcode, Go vet, Go tests)
+```
+
 ### Go backend
 
 ```bash

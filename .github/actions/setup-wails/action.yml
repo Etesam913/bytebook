@@ -32,6 +32,7 @@ runs:
         cd wails
         cd v3/cmd/wails3
         go install
+        echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
     - name: Fix Wails replace directive
       shell: bash
@@ -42,4 +43,6 @@ runs:
     - name: Generate Wails bindings
       if: ${{ inputs.generate-bindings == 'true' }}
       shell: bash
-      run: wails3 generate bindings ./internal/...
+      run: |
+        export PATH="$(go env GOPATH)/bin:$PATH"
+        wails3 generate bindings ./internal/...
