@@ -4,6 +4,7 @@ import {
   useFilePathFromRoute,
   useFolderPathFromRoute,
 } from '../../../../hooks/routes';
+import { getRenameInput } from '../model-utils';
 
 /**
  * Keeps the @pierre/trees focused path in sync with the current `/notes/*`
@@ -27,6 +28,9 @@ export function usePierreRouteFocus(model: PierreFileTree | null) {
     if (!model || !targetPath) return;
     if (!model.getItem(targetPath)) return;
     if (model.getFocusedPath() === targetPath) return;
+    // Never move focus while the inline rename editor is open — focusPath
+    // would blur it, which commits the rename mid-edit.
+    if (getRenameInput(model)) return;
     model.focusPath(targetPath);
   }, [model, targetPath]);
 }
