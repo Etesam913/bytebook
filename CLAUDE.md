@@ -4,12 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 The codebase uses jj instead of git. Do not use useCallback or useMemo when writing react.js code as react-compiler is being used.
 
-Make sure to run the below commands after any major changes are made to frontend code
-
-1. `bun format`
-2. `bun lint`
-3. `bun knip`
-4. `bun test:unit`
+Make sure to run `bun check` (or `bun check:fix`) after any major changes. This runs all frontend and backend linters, type checkers, dead code analysis (Knip + Go deadcode), and unit tests concurrently in parallel.
 
 When making changes do not prioritize backwards compatibility. This is not a released product.
 
