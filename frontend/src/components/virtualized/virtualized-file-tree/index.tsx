@@ -1,11 +1,12 @@
-import { FileTree, useFileTree } from '@pierre/trees/react';
+import { FileTree } from '@pierre/trees/react';
 import {
+  FileTree as FileTreeModel,
   prepareFileTreeInput,
   type FileTreeDirectoryHandle,
   type FileTreeRenameEvent,
   type FileTreeDropResult,
 } from '@pierre/trees';
-import { type RefObject, useEffect, useRef } from 'react';
+import { type RefObject, useEffect } from 'react';
 import { navigate } from 'wouter/use-browser-location';
 import { createFilePath, createFolderPath } from '../../../utils/path';
 import {
@@ -56,89 +57,60 @@ function stripTrailingSlash(path: string): string {
   return path.endsWith('/') ? path.slice(0, -1) : path;
 }
 
+// The tree model is a MODULE-LEVEL singleton, created on first mount and never
+// destroyed. The sidebar hides the files panel with <Activity> when switching
+// to the search panel, and Activity runs effect cleanup on hide — so anything
+// managed per-mount (like `useFileTree`, whose cleanup calls model.cleanUp())
+// loses all expansion/selection state on every panel switch. Because the model
+// outlives any mount, every callback baked into it at creation reads its
+// collaborators through the module-level holders below instead of closing over
+// per-mount values.
+let sharedModel: FileTreeModel | null = null;
+/** Expansion the very first `resetPaths` should apply (route ancestors). */
+let firstResetExpandedPaths: readonly string[] = [];
+/** Identity of the path list the model was last reset with. */
+let lastResetPaths: readonly string[] | null = null;
+/** Last path this component navigated to (suppresses selection→route loops). */
+const lastNavigated: { current: string | null } = { current: null };
+/** Latest mutation functions, refreshed by effects on every render. */
+const mutations: {
+  renameTreeItem:
+    | ReturnType<typeof useRenameTreeItemMutation>['mutateAsync']
+    | null;
+  moveItems: ReturnType<typeof useMoveTreeItemsMutation>['mutateAsync'] | null;
+} = { renameTreeItem: null, moveItems: null };
+
 /**
- * The sidebar file tree, backed by @pierre/trees. Loads in two phases so the
- * first paint is instant: the model is created from the top-level entries
- * (a couple of items, resolved in ~1ms), then `resetPaths` silently swaps in
- * the full vault path list once `GetAllPaths` returns. After that, every
- * folder expand is instant and the Wails watcher events keep the model in
- * sync with disk.
+ * Returns the singleton model, creating it on the very first mount. Kept as a
+ * module function (not inline in the component) so the module-level state
+ * assignments happen outside the render body.
  */
-export function VirtualizedFileTree({
-  ref,
-}: {
-  ref: RefObject<HTMLElement | null>;
-}) {
-  const topLevelQuery = useTopLevelPaths();
-
-  if (!topLevelQuery.isSuccess) {
-    return null;
-  }
-
-  return (
-    <PierreFileTreeInner initialPaths={topLevelQuery.data} hostRef={ref} />
-  );
+function ensureSharedModel(init: {
+  paths: readonly string[];
+  routeTargetPath: string | null;
+  initialExpandedPaths: readonly string[];
+}): FileTreeModel {
+  if (sharedModel !== null) return sharedModel;
+  lastNavigated.current = init.routeTargetPath;
+  firstResetExpandedPaths = init.initialExpandedPaths;
+  sharedModel = createSharedModel({
+    paths: init.paths,
+    initialExpandedPaths: init.initialExpandedPaths,
+    initialSelectedPaths: init.routeTargetPath ? [init.routeTargetPath] : [],
+  });
+  return sharedModel;
 }
 
-function PierreFileTreeInner({
-  initialPaths,
-  hostRef,
-}: {
-  initialPaths: readonly string[];
-  hostRef: RefObject<HTMLElement | null>;
-}) {
-  const routeFilePath = useFilePathFromRoute();
-  const routeFolderPath = useFolderPathFromRoute();
-  // pierre keys folders with a trailing slash, so the route→model bridge has
-  // to match that convention before doing lookups.
-  const routeTargetPath = routeFilePath
-    ? routeFilePath.fullPath
-    : routeFolderPath
-      ? `${routeFolderPath.fullPath}/`
-      : null;
-  const lastNavigatedRef = useRef<string | null>(routeTargetPath);
-
-  const { mutateAsync: renameTreeItem } = useRenameTreeItemMutation();
-  const { mutateAsync: moveItems } = useMoveTreeItemsMutation();
-  const { mutateAsync: moveToTrash } = useMoveToTrashMutation();
-  const { mutate: addFolderAttachments } = useAddFolderAttachmentsMutation();
-
-  // The model is created exactly once by useFileTree, so the callbacks below
-  // capture the FIRST-render mutate functions. We funnel calls through refs
-  // that get refreshed in effects so later renders' fresh mutate identities
-  // are used instead of the stale closure.
-  const renameRef = useRef(renameTreeItem);
-  const moveItemsRef = useRef(moveItems);
-
-  useEffect(() => {
-    renameRef.current = renameTreeItem;
-  }, [renameTreeItem]);
-
-  useEffect(() => {
-    moveItemsRef.current = moveItems;
-  }, [moveItems]);
-
-  // Every ancestor of the route target is a folder, so it must end in '/'.
-  const initialExpandedPaths = (() => {
-    if (!routeTargetPath) return [];
-    const segments = stripTrailingSlash(routeTargetPath)
-      .split('/')
-      .filter(Boolean);
-    return segments
-      .slice(0, -1)
-      .map((_, index) => `${segments.slice(0, index + 1).join('/')}/`);
-  })();
-
-  // Captured once — `useFileTree` only reads options on the first render, and
-  // the very first `resetPaths` below should apply the expansion state the
-  // model was mounted with, not whatever route is active later.
-  const initialExpandedPathsRef = useRef(initialExpandedPaths);
-
-  const { model } = useFileTree({
-    paths: initialPaths,
+function createSharedModel(init: {
+  paths: readonly string[];
+  initialExpandedPaths: readonly string[];
+  initialSelectedPaths: readonly string[];
+}): FileTreeModel {
+  return new FileTreeModel({
+    paths: init.paths,
     initialExpansion: 'closed',
-    initialExpandedPaths,
-    initialSelectedPaths: routeTargetPath ? [routeTargetPath] : [],
+    initialExpandedPaths: init.initialExpandedPaths,
+    initialSelectedPaths: init.initialSelectedPaths,
     stickyFolders: true,
     unsafeCSS: FILE_TREE_UNSAFE_CSS,
     onSelectionChange: (selectedPaths) => {
@@ -150,21 +122,21 @@ function PierreFileTreeInner({
       // editor renders on the next task, so defer the navigation one tick and
       // bail if a rename is in progress.
       setTimeout(() => {
-        if (getRenameInput(model)) return;
-        if (lastNavigatedRef.current === path) return;
+        if (getRenameInput(sharedModel)) return;
+        if (lastNavigated.current === path) return;
         const isFolder = path.endsWith('/');
         const trimmed = stripTrailingSlash(path);
         if (isFolder) {
           const folderPath = createFolderPath(trimmed);
           if (folderPath) {
-            lastNavigatedRef.current = path;
+            lastNavigated.current = path;
             navigate(folderPath.encodedFolderUrl);
           }
           return;
         }
         const filePath = createFilePath(trimmed);
         if (filePath) {
-          lastNavigatedRef.current = path;
+          lastNavigated.current = path;
           navigate(filePath.encodedFileUrl);
         }
       }, 0);
@@ -174,7 +146,7 @@ function PierreFileTreeInner({
       onDropComplete: (result: FileTreeDropResult) => {
         const destination = result.target.directoryPath;
         if (destination === null) return;
-        void moveItemsRef.current({
+        void mutations.moveItems?.({
           itemPaths: result.draggedPaths.map(stripTrailingSlash),
           newFolder: stripTrailingSlash(destination),
         });
@@ -182,6 +154,8 @@ function PierreFileTreeInner({
     },
     renaming: {
       onRename: (event: FileTreeRenameEvent) => {
+        const model = sharedModel;
+        if (!model) return;
         const { sourcePath, destinationPath, isFolder } = event;
         if (sourcePath === destinationPath) return;
         const sourceNoSlash = stripTrailingSlash(sourcePath);
@@ -198,8 +172,8 @@ function PierreFileTreeInner({
         };
 
         if (isFolder) {
-          void renameRef
-            .current({
+          void mutations
+            .renameTreeItem?.({
               itemType: 'folder',
               folderPath: sourceNoSlash,
               newName,
@@ -228,8 +202,8 @@ function PierreFileTreeInner({
           model.move(destinationPath, actualDest, { collision: 'skip' });
           appliedPath = actualDest;
         }
-        void renameRef
-          .current({
+        void mutations
+          .renameTreeItem?.({
             itemType: 'file',
             filePath,
             newName: typedName,
@@ -238,26 +212,101 @@ function PierreFileTreeInner({
       },
     },
   });
+}
+
+/**
+ * The sidebar file tree, backed by @pierre/trees. Loads in two phases so the
+ * first paint is instant: the model is created from the top-level entries
+ * (a couple of items, resolved in ~1ms), then `resetPaths` silently swaps in
+ * the full vault path list once `GetAllPaths` returns. After that, every
+ * folder expand is instant and the Wails watcher events keep the model in
+ * sync with disk.
+ */
+export function VirtualizedFileTree({
+  ref,
+}: {
+  ref: RefObject<HTMLElement | null>;
+}) {
+  const topLevelQuery = useTopLevelPaths();
+
+  // Once the shared model exists it carries all the state the tree needs, so
+  // never gate on the query again (a cache miss here would unmount the tree).
+  if (sharedModel === null && !topLevelQuery.isSuccess) {
+    return null;
+  }
+
+  return (
+    <PierreFileTreeInner
+      initialPaths={topLevelQuery.data ?? []}
+      hostRef={ref}
+    />
+  );
+}
+
+function PierreFileTreeInner({
+  initialPaths,
+  hostRef,
+}: {
+  initialPaths: readonly string[];
+  hostRef: RefObject<HTMLElement | null>;
+}) {
+  const routeFilePath = useFilePathFromRoute();
+  const routeFolderPath = useFolderPathFromRoute();
+  // pierre keys folders with a trailing slash, so the route→model bridge has
+  // to match that convention before doing lookups.
+  const routeTargetPath = routeFilePath
+    ? routeFilePath.fullPath
+    : routeFolderPath
+      ? `${routeFolderPath.fullPath}/`
+      : null;
+
+  const { mutateAsync: renameTreeItem } = useRenameTreeItemMutation();
+  const { mutateAsync: moveItems } = useMoveTreeItemsMutation();
+  const { mutateAsync: moveToTrash } = useMoveToTrashMutation();
+  const { mutate: addFolderAttachments } = useAddFolderAttachmentsMutation();
 
   useEffect(() => {
-    lastNavigatedRef.current = routeTargetPath;
+    mutations.renameTreeItem = renameTreeItem;
+  }, [renameTreeItem]);
+
+  useEffect(() => {
+    mutations.moveItems = moveItems;
+  }, [moveItems]);
+
+  // Every ancestor of the route target is a folder, so it must end in '/'.
+  const initialExpandedPaths = (() => {
+    if (!routeTargetPath) return [];
+    const segments = stripTrailingSlash(routeTargetPath)
+      .split('/')
+      .filter(Boolean);
+    return segments
+      .slice(0, -1)
+      .map((_, index) => `${segments.slice(0, index + 1).join('/')}/`);
+  })();
+
+  const model = ensureSharedModel({
+    paths: initialPaths,
+    routeTargetPath,
+    initialExpandedPaths,
+  });
+
+  useEffect(() => {
+    lastNavigated.current = routeTargetPath;
   }, [routeTargetPath]);
 
-  // Phase 2: swap in the full vault path list. The sidebar hides this tree
-  // with <Activity> when switching to the search panel, which re-runs effects
-  // on reveal — so this must NOT blindly reset (that would collapse whatever
-  // the user had expanded). Reset only when the data actually changed, and
+  // Phase 2: swap in the full vault path list. This effect re-runs whenever
+  // the panel is revealed again (<Activity>) or the query refetches, so it
+  // must NOT blindly reset — reset only when the data actually changed, and
   // carry the current expansion/selection/focus across the reset.
   const allPathsQuery = useAllPaths();
   const allPaths = allPathsQuery.data;
-  const lastResetPathsRef = useRef<readonly string[] | null>(null);
   useEffect(() => {
-    if (!allPaths || lastResetPathsRef.current === allPaths) return;
-    const isFirstReset = lastResetPathsRef.current === null;
-    lastResetPathsRef.current = allPaths;
+    if (!allPaths || lastResetPaths === allPaths) return;
+    const isFirstReset = lastResetPaths === null;
+    lastResetPaths = allPaths;
 
     const expandedDirectories = isFirstReset
-      ? initialExpandedPathsRef.current
+      ? firstResetExpandedPaths
       : allPaths.filter((path) => {
           if (!path.endsWith('/')) return false;
           const item = model.getItem(path);
