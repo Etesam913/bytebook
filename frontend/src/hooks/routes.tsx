@@ -173,24 +173,3 @@ export function useRestoreLastVisitedOnLaunch(): void {
     // synchronously from localStorage, so the first render has the value.
   }, []);
 }
-
-/**
- * Hook to get a FolderPath object for the current `/notes/*` route.
- * If the route points to a file, returns the parent folder.
- * If it points to a folder path, returns that folder.
- *
- * @returns FolderPath object or null if not resolvable.
- */
-export function useCurrentNotesRouteFolderPath(): FolderPath | null {
-  const decodedPath = useDecodedNotesWildcardPath();
-  if (!decodedPath) {
-    return null;
-  }
-
-  const filePath = createFilePath(decodedPath);
-  if (filePath) {
-    return createFolderPath(filePath.folder);
-  }
-
-  return createFolderPath(decodedPath);
-}
