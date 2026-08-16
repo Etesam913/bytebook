@@ -22,6 +22,7 @@
     "lint:check": "bun run eslint .",
     "tsgo": "tsgo",
     "format:lint:tsgo": "bun run format:check && bun run lint:check && bun run tsgo",
+    "check": "cd .. && bun scripts/check.ts",
     "size": "size-limit",
     "knip": "bunx knip --production",
     "knip:ci": "bunx knip --reporter github-actions --reporter compact --production"
