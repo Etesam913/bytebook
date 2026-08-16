@@ -30,7 +30,7 @@ import {
   type DragContext,
 } from '../utils/drag';
 import { setSelectionFromPointerInNoteEditor } from '../utils/note-commands';
-import { FILE_TREE_GHOST_ID } from '../../virtualized/virtualized-file-tree/utils/drag';
+import { FILE_TREE_GHOST_ID } from '../utils/drag/context';
 import { installWailsDragHandlers } from '../../../hooks/wails-drag';
 
 /** Prefix stripped from paths returned by `addDroppedFilesToFolder`. */
