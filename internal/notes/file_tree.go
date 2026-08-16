@@ -2,6 +2,7 @@ package notes
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
@@ -198,6 +199,52 @@ func GetChildrenOfFolderBasedOnPath(projectPath, pathToFolder, parentId, cursor,
 		NextCursor: nextCursor,
 		HasMore:    hasMore,
 	}, nil
+}
+
+// GetAllPaths returns every file and folder path under notes/, relative to the
+// notes directory, sorted, with directories marked by a trailing slash. Hidden
+// files and folders (those starting with '.') are skipped entirely.
+func GetAllPaths(projectPath string) ([]string, error) {
+	notesRoot := filepath.Join(projectPath, "notes")
+	fileInfo, err := os.Stat(notesRoot)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read %s", notesRoot)
+	}
+	if !fileInfo.IsDir() {
+		return nil, fmt.Errorf("%s is not a directory", notesRoot)
+	}
+
+	paths := []string{}
+	err = filepath.WalkDir(notesRoot, func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if p == notesRoot {
+			return nil
+		}
+		if len(d.Name()) > 0 && d.Name()[0] == '.' {
+			if d.IsDir() {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		rel, relErr := filepath.Rel(notesRoot, p)
+		if relErr != nil {
+			return relErr
+		}
+		rel = filepath.ToSlash(rel)
+		if d.IsDir() {
+			rel += "/"
+		}
+		paths = append(paths, rel)
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	sort.Strings(paths)
+	return paths, nil
 }
 
 func GetTopLevelItems(projectPath string) ([]FileOrFolder, error) {
