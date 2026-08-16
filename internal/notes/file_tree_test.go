@@ -301,3 +301,42 @@ func TestGetTopLevelItems(t *testing.T) {
 		assert.Nil(t, hiddenFolder, ".hidden_folder should not be in items")
 	})
 }
+
+func TestGetAllPaths(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "file_tree_all_paths_test")
+	assert.NoError(t, err)
+	defer os.RemoveAll(tempDir)
+
+	notesDir := filepath.Join(tempDir, "notes")
+	assert.NoError(t, os.Mkdir(notesDir, 0755))
+
+	assert.NoError(t, os.Mkdir(filepath.Join(notesDir, "folder-a"), 0755))
+	assert.NoError(t, os.Mkdir(filepath.Join(notesDir, "folder-a", "nested"), 0755))
+	assert.NoError(t, os.Mkdir(filepath.Join(notesDir, "folder-b"), 0755))
+	assert.NoError(t, os.WriteFile(filepath.Join(notesDir, "folder-a", "note.md"), []byte("content"), 0644))
+	assert.NoError(t, os.WriteFile(filepath.Join(notesDir, "folder-a", "nested", "deep.md"), []byte("content"), 0644))
+	assert.NoError(t, os.WriteFile(filepath.Join(notesDir, "top.md"), []byte("content"), 0644))
+
+	// Hidden entries should be skipped, including everything inside hidden dirs
+	assert.NoError(t, os.WriteFile(filepath.Join(notesDir, ".DS_Store"), []byte("content"), 0644))
+	assert.NoError(t, os.Mkdir(filepath.Join(notesDir, ".hidden_dir"), 0755))
+	assert.NoError(t, os.WriteFile(filepath.Join(notesDir, ".hidden_dir", "inside.md"), []byte("content"), 0644))
+
+	t.Run("returns sorted paths with trailing slashes on directories", func(t *testing.T) {
+		paths, err := GetAllPaths(tempDir)
+		assert.NoError(t, err)
+		assert.Equal(t, []string{
+			"folder-a/",
+			"folder-a/nested/",
+			"folder-a/nested/deep.md",
+			"folder-a/note.md",
+			"folder-b/",
+			"top.md",
+		}, paths)
+	})
+
+	t.Run("errors when notes directory does not exist", func(t *testing.T) {
+		_, err := GetAllPaths(filepath.Join(tempDir, "nonexistent"))
+		assert.Error(t, err)
+	})
+}

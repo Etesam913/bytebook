@@ -50,6 +50,24 @@ func (f *FileTreeService) GetChildrenOfFolderBasedOnPath(
 	}
 }
 
+// GetAllPaths returns every file and folder path under the notes directory,
+// sorted, with directories marked by a trailing slash.
+func (f *FileTreeService) GetAllPaths() config.BackendResponseWithData[[]string] {
+	paths, err := notes.GetAllPaths(f.ProjectPath)
+	if err != nil {
+		return config.BackendResponseWithData[[]string]{
+			Success: false,
+			Message: err.Error(),
+		}
+	}
+
+	return config.BackendResponseWithData[[]string]{
+		Success: true,
+		Message: "Successfully retrieved all paths",
+		Data:    paths,
+	}
+}
+
 func (f *FileTreeService) GetTopLevelItems() config.BackendResponseWithData[[]notes.FileOrFolder] {
 	fileOrFolders, err := notes.GetTopLevelItems(f.ProjectPath)
 	if err != nil {
