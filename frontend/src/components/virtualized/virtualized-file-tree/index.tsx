@@ -1,6 +1,7 @@
 import { FileTree, useFileTree } from '@pierre/trees/react';
 import {
   prepareFileTreeInput,
+  type FileTreeDirectoryHandle,
   type FileTreeRenameEvent,
   type FileTreeDropResult,
 } from '@pierre/trees';
@@ -16,6 +17,7 @@ import { useMoveToTrashMutation } from '../../../hooks/notes';
 import { useAllPaths, useTopLevelPaths } from './hooks/use-all-paths';
 import { usePierreRouteFocus } from './hooks/use-pierre-route-focus';
 import { usePierreTreeEvents } from './hooks/use-pierre-tree-events';
+import { getRenameInput } from './model-utils';
 import { TreeHeader } from './tree-header';
 import { TreeContextMenu } from './tree-context-menu';
 import {
@@ -25,13 +27,25 @@ import {
 
 // The tree's own colors track the app theme automatically: the package uses
 // `light-dark()` CSS and `useThemeSetting` sets `color-scheme` on the root
-// element. Blend its background into the sidebar and reuse the app accent.
+// element. The background must be opaque (not transparent) because the sticky
+// folder overlay paints rows on top of the scrolling list with `--trees-bg` —
+// match the app background from index.html (light rgb(252,252,252) /
+// dark zinc-800).
 const FILE_TREE_HOST_STYLE = {
   height: '100%',
   display: 'block',
-  '--trees-bg-override': 'transparent',
+  '--trees-bg-override': 'light-dark(rgb(252, 252, 252), rgb(39, 39, 42))',
   '--trees-accent-override': 'var(--accent-color)',
+  '--trees-font-family-override': 'var(--app-font-family)',
 } as React.CSSProperties;
+
+// Separate sticky folder rows from the rows scrolling underneath them
+// (zinc-200 / zinc-700).
+const FILE_TREE_UNSAFE_CSS = `
+  [data-file-tree-sticky-overlay-content="true"] {
+    border-bottom: 1px solid light-dark(rgb(228, 228, 231), rgb(63, 63, 70));
+  }
+`;
 
 /**
  * @pierre/trees marks directories with a trailing slash. Bytebook's routes and
@@ -116,7 +130,7 @@ function PierreFileTreeInner({
   })();
 
   // Captured once — `useFileTree` only reads options on the first render, and
-  // the phase-2 `resetPaths` below should re-apply the expansion state the
+  // the very first `resetPaths` below should apply the expansion state the
   // model was mounted with, not whatever route is active later.
   const initialExpandedPathsRef = useRef(initialExpandedPaths);
 
@@ -126,25 +140,34 @@ function PierreFileTreeInner({
     initialExpandedPaths,
     initialSelectedPaths: routeTargetPath ? [routeTargetPath] : [],
     stickyFolders: true,
+    unsafeCSS: FILE_TREE_UNSAFE_CSS,
     onSelectionChange: (selectedPaths) => {
       if (selectedPaths.length !== 1) return;
       const path = selectedPaths[0];
-      if (lastNavigatedRef.current === path) return;
-      const isFolder = path.endsWith('/');
-      const trimmed = stripTrailingSlash(path);
-      if (isFolder) {
-        const folderPath = createFolderPath(trimmed);
-        if (folderPath) {
-          lastNavigatedRef.current = path;
-          navigate(folderPath.encodedFolderUrl);
+      // pierre's startRenaming() re-selects the renamed row, which lands here.
+      // Navigating then would mount the note editor, which steals focus from
+      // the inline rename input and commits the rename immediately. The rename
+      // editor renders on the next task, so defer the navigation one tick and
+      // bail if a rename is in progress.
+      setTimeout(() => {
+        if (getRenameInput(model)) return;
+        if (lastNavigatedRef.current === path) return;
+        const isFolder = path.endsWith('/');
+        const trimmed = stripTrailingSlash(path);
+        if (isFolder) {
+          const folderPath = createFolderPath(trimmed);
+          if (folderPath) {
+            lastNavigatedRef.current = path;
+            navigate(folderPath.encodedFolderUrl);
+          }
+          return;
         }
-        return;
-      }
-      const filePath = createFilePath(trimmed);
-      if (filePath) {
-        lastNavigatedRef.current = path;
-        navigate(filePath.encodedFileUrl);
-      }
+        const filePath = createFilePath(trimmed);
+        if (filePath) {
+          lastNavigatedRef.current = path;
+          navigate(filePath.encodedFileUrl);
+        }
+      }, 0);
     },
     dragAndDrop: {
       canDrop: ({ target }) => target.directoryPath !== null,
@@ -164,23 +187,54 @@ function PierreFileTreeInner({
         const sourceNoSlash = stripTrailingSlash(sourcePath);
         const destNoSlash = stripTrailingSlash(destinationPath);
         const newName = destNoSlash.split('/').pop() ?? '';
+
+        // pierre applies the rename to its model before this callback runs.
+        // If the backend rename fails, put the path back so the tree matches
+        // disk again (the watcher emits no event for a failed rename).
+        const revert = (appliedPath: string) => {
+          if (model.getItem(appliedPath) && !model.getItem(sourcePath)) {
+            model.move(appliedPath, sourcePath);
+          }
+        };
+
         if (isFolder) {
-          void renameRef.current({
-            itemType: 'folder',
-            folderPath: sourceNoSlash,
-            newName,
-          });
+          void renameRef
+            .current({
+              itemType: 'folder',
+              folderPath: sourceNoSlash,
+              newName,
+            })
+            .catch(() => revert(destinationPath));
           return;
         }
+
         const filePath = createFilePath(sourceNoSlash);
         if (!filePath) return;
-        const dotIndex = newName.lastIndexOf('.');
-        const trimmed = dotIndex === -1 ? newName : newName.slice(0, dotIndex);
-        void renameRef.current({
-          itemType: 'file',
-          filePath,
-          newName: trimmed,
-        });
+        // The file keeps its original extension no matter what was typed:
+        // strip it if present, otherwise treat the whole input as the name.
+        const suffix = `.${filePath.extension}`;
+        const typedName = newName.endsWith(suffix)
+          ? newName.slice(0, -suffix.length)
+          : newName;
+        // The backend will produce `<parent>/<typedName><suffix>`. If that
+        // differs from what pierre applied (extension edited or removed),
+        // correct the model now so the follow-up watcher event is a no-op.
+        const parentSegments = destNoSlash.split('/').slice(0, -1);
+        const actualDest = [...parentSegments, `${typedName}${suffix}`].join(
+          '/'
+        );
+        let appliedPath = destinationPath;
+        if (destNoSlash !== actualDest && model.getItem(destinationPath)) {
+          model.move(destinationPath, actualDest, { collision: 'skip' });
+          appliedPath = actualDest;
+        }
+        void renameRef
+          .current({
+            itemType: 'file',
+            filePath,
+            newName: typedName,
+          })
+          .catch(() => revert(appliedPath));
       },
     },
   });
@@ -189,21 +243,62 @@ function PierreFileTreeInner({
     lastNavigatedRef.current = routeTargetPath;
   }, [routeTargetPath]);
 
-  // Phase 2: swap in the full vault path list. Visually a no-op — the same
-  // top-level entries stay on screen; the model just now also knows what's
-  // inside them, so every subsequent expand is instant with no network call.
+  // Phase 2: swap in the full vault path list. The sidebar hides this tree
+  // with <Activity> when switching to the search panel, which re-runs effects
+  // on reveal — so this must NOT blindly reset (that would collapse whatever
+  // the user had expanded). Reset only when the data actually changed, and
+  // carry the current expansion/selection/focus across the reset.
   const allPathsQuery = useAllPaths();
   const allPaths = allPathsQuery.data;
+  const lastResetPathsRef = useRef<readonly string[] | null>(null);
   useEffect(() => {
-    if (!allPaths) return;
+    if (!allPaths || lastResetPathsRef.current === allPaths) return;
+    const isFirstReset = lastResetPathsRef.current === null;
+    lastResetPathsRef.current = allPaths;
+
+    const expandedDirectories = isFirstReset
+      ? initialExpandedPathsRef.current
+      : allPaths.filter((path) => {
+          if (!path.endsWith('/')) return false;
+          const item = model.getItem(path);
+          if (item === null || !item.isDirectory()) return false;
+          return (item as FileTreeDirectoryHandle).isExpanded();
+        });
+    const selectedPaths = model.getSelectedPaths();
+    const focusedPath = model.getFocusedPath();
+
     model.resetPaths(allPaths, {
       preparedInput: prepareFileTreeInput(allPaths),
-      initialExpandedPaths: initialExpandedPathsRef.current,
+      initialExpandedPaths: expandedDirectories,
     });
+
+    if (!isFirstReset) {
+      for (const path of selectedPaths) {
+        model.getItem(path)?.select();
+      }
+      if (focusedPath) {
+        model.focusNearestPath(focusedPath);
+      }
+    }
   }, [model, allPaths]);
 
   usePierreTreeEvents(model);
   usePierreRouteFocus(model);
+
+  function handleStartRename(path: string) {
+    if (!model.startRenaming(path)) return;
+    // Match editor conventions: pre-select only the name part so typing
+    // replaces the name and leaves the extension alone. The rename input
+    // mounts and focuses on the next frame.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const input = getRenameInput(model);
+        if (!input) return;
+        const dotIndex = input.value.lastIndexOf('.');
+        if (dotIndex > 0) input.setSelectionRange(0, dotIndex);
+      });
+    });
+  }
 
   return (
     <div
@@ -213,9 +308,12 @@ function PierreFileTreeInner({
       }}
       className="relative flex flex-1 flex-col min-h-0 overflow-hidden text-sm"
     >
+      {/* Rendered outside the tree's shadow-DOM header slot on purpose: the
+          tree's internal key/focus handlers sit between slotted content and
+          the page, which breaks the inline create-folder input. */}
+      <TreeHeader />
       <FileTree
         model={model}
-        header={<TreeHeader />}
         renderContextMenu={(item, context) => (
           <TreeContextMenu
             item={item}
@@ -224,7 +322,7 @@ function PierreFileTreeInner({
               void moveToTrash({ paths });
             }}
             onAddFolderAttachments={addFolderAttachments}
-            onStartRename={(path) => model.startRenaming(path)}
+            onStartRename={handleStartRename}
           />
         )}
         style={FILE_TREE_HOST_STYLE}
