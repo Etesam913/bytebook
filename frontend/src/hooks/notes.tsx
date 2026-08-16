@@ -4,7 +4,7 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { useAtom, useAtomValue } from 'jotai/react';
+import { useAtomValue } from 'jotai/react';
 import { Window } from '@wailsio/runtime';
 import { type LexicalEditor } from 'lexical';
 import { type Dispatch, type SetStateAction } from 'react';
@@ -24,6 +24,7 @@ import { QueryError } from '../utils/query';
 import { queryKeys } from '../utils/query-keys';
 import {
   createFilePath,
+  createFolderPath,
   type FileOrFolderPath,
   type FilePath,
 } from '../utils/path';
@@ -33,11 +34,6 @@ import { useUpdateProjectSettingsMutation } from './project-settings';
 import type { Frontmatter } from '../types';
 import { $convertFromMarkdownString } from '@lexical/markdown';
 import { parseFrontMatter } from '../components/editor/utils/note-metadata';
-import {
-  getNavigationTargetForDeletedPaths,
-  removePathsFromFileTree,
-} from '../components/virtualized/virtualized-file-tree/utils/delete-node';
-import { fileTreeDataAtom } from '../atoms';
 import { useFilePathFromRoute, useFolderPathFromRoute } from './routes';
 import { applyCodeResultsSidecar } from '../components/editor/utils/code-results';
 
@@ -72,14 +68,48 @@ export function useRevealInFinderMutation() {
 }
 
 /**
+ * Gets the route to navigate to when the current route points at (or inside)
+ * one of the deleted paths: the parent folder of the topmost affecting deleted
+ * path, falling back to `/`.
+ */
+function getNavigationTargetForDeletedPaths({
+  currentRoutePath,
+  paths,
+}: {
+  currentRoutePath: string | null;
+  paths: string[];
+}): string | null {
+  if (!currentRoutePath) return null;
+
+  // Filter to only paths that affect the current route (exact match or ancestor)
+  const affectingPaths = paths.filter(
+    (deletedPath) =>
+      deletedPath === currentRoutePath ||
+      currentRoutePath.startsWith(deletedPath + '/')
+  );
+  if (affectingPaths.length === 0) return null;
+
+  // Find the topmost (shallowest) affecting path — fewest segments
+  const topmostPath = affectingPaths.reduce((shallowest, path) => {
+    const depth = path.split('/').filter(Boolean).length;
+    const shallowestDepth = shallowest.split('/').filter(Boolean).length;
+    return depth <= shallowestDepth ? path : shallowest;
+  });
+
+  const parentPath = topmostPath.split('/').slice(0, -1).join('/');
+  if (!parentPath) return '/';
+  return createFolderPath(parentPath)?.encodedFolderUrl ?? '/';
+}
+
+/**
  * Moves one or more note/file-tree paths to trash.
  * Accepts project-relative paths (for example, `folder/note.md` or `folder`).
- * Optimistically removes items from the file tree and navigates away if the
+ * The `file:delete` / `folder:delete` watcher events that follow remove the
+ * paths from the sidebar tree model. Navigates away immediately if the
  * current route is among the deleted paths.
  */
 export function useMoveToTrashMutation() {
   const { mutate: restoreFromTrash } = useRestoreFromTrashMutation();
-  const [fileTreeData, setFileTreeData] = useAtom(fileTreeDataAtom);
   const queryClient = useQueryClient();
   const currentRouteFilePath = useFilePathFromRoute();
   const currentRouteFolderPath = useFolderPathFromRoute();
@@ -95,39 +125,16 @@ export function useMoveToTrashMutation() {
       return res.data ?? [];
     },
     onMutate: ({ paths }) => {
-      const previousFileTreeData = fileTreeData;
-
-      let needsTopLevelInvalidation = false;
-      setFileTreeData((prev) => {
-        const result = removePathsFromFileTree(prev, paths);
-        needsTopLevelInvalidation = result.needsTopLevelInvalidation;
-        if (!result.didChange) return prev;
-        return result.next;
-      });
-
-      if (needsTopLevelInvalidation) {
-        void queryClient.invalidateQueries({
-          queryKey: queryKeys.topLevelFiles(),
-        });
-      }
-
       // Navigate immediately if the current route was among the deleted paths
       const navigationTarget = getNavigationTargetForDeletedPaths({
         currentRoutePath,
-        fileTreeData: previousFileTreeData,
         paths,
       });
       if (navigationTarget) {
         navigate(navigationTarget);
       }
-
-      return { previousFileTreeData };
     },
-    onError: (e, _variables, context) => {
-      // Roll back optimistic update
-      if (context?.previousFileTreeData) {
-        setFileTreeData(context.previousFileTreeData);
-      }
+    onError: (e) => {
       if (e instanceof Error) {
         toast.error(e.message, DEFAULT_SONNER_OPTIONS);
       }
