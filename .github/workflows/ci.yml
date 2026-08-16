@@ -8,122 +8,47 @@ on:
 
 jobs:
   # ------------------------------------------------------------------
-  # JOB 1: Backend Setup and Tests
+  # JOB 1: Parallel Code Quality, Linters, Dead Code & Unit Tests
   # ------------------------------------------------------------------
-  backend-tests:
-    name: Backend Setup & Tests
+  code-quality:
+    name: Code Quality & Unit Tests
     runs-on: ubuntu-latest
     env:
       GOBIN: ${{ github.workspace }}/.cache/go-tools/bin
       GOTESTSUM_VERSION: v1.13.0
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Setup Wails environment
-        uses: ./.github/actions/setup-wails
-
-      - name: Add Go tools to PATH
-        run: |
-          mkdir -p "${GOBIN}"
-          echo "${GOBIN}" >> "${GITHUB_PATH}"
-
-      - name: Cache Go tools
-        uses: actions/cache@v5
-        id: go-tools-cache
-        with:
-          path: ${{ env.GOBIN }}
-          key: ${{ runner.os }}-go-tools-gotestsum-${{ env.GOTESTSUM_VERSION }}
-
-      # Create placeholder for go:embed directive (actual build happens in bundle-size-check job)
-      - name: Create frontend dist placeholder
-        run: |
-          mkdir -p frontend/dist
-          echo "<!doctype html><title>placeholder</title>" > frontend/dist/index.html
-
-      - name: Install gotestsum
-        if: steps.go-tools-cache.outputs.cache-hit != 'true'
-        run: go install gotest.tools/gotestsum@${GOTESTSUM_VERSION}
-
-      - name: Run Go Tests
-        # Runs tests while the wails source and modified go.mod are present
-        run: gotestsum --format=pkgname --format-icons=hivis ./internal/...
-
-  # ------------------------------------------------------------------
-  # JOB 2: Dead Code Check
-  # ------------------------------------------------------------------
-  deadcode:
-    name: Dead Code Check
-    runs-on: ubuntu-latest
-    env:
-      GOBIN: ${{ github.workspace }}/.cache/go-tools/bin
       DEADCODE_VERSION: v0.38.0
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Setup Wails environment
-        uses: ./.github/actions/setup-wails
-
-      - name: Add Go tools to PATH
-        run: |
-          mkdir -p "${GOBIN}"
-          echo "${GOBIN}" >> "${GITHUB_PATH}"
-
-      - name: Cache Go tools
-        uses: actions/cache@v5
-        id: go-tools-cache
-        with:
-          path: ${{ env.GOBIN }}
-          key: ${{ runner.os }}-go-tools-deadcode-${{ env.DEADCODE_VERSION }}
-
-      - name: Install deadcode
-        if: steps.go-tools-cache.outputs.cache-hit != 'true'
-        run: go install golang.org/x/tools/cmd/deadcode@${DEADCODE_VERSION}
-
-      - name: Check for dead code
-        run: deadcode ./...
-
-  # ------------------------------------------------------------------
-  # JOB 3: Frontend Checks (Lint/Typecheck/Unit Tests)
-  # ------------------------------------------------------------------
-  frontend-checks:
-    name: Frontend ${{ matrix.name }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: Format
-            command: bun run format:check
-            run-knip: false
-          - name: Lint
-            command: bun run lint:check
-            run-knip: true
-          - name: Typecheck
-            command: bun run tsgo
-            run-knip: false
-          - name: Unit Tests
-            command: bun run test:unit
-            run-knip: false
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
 
       - name: Setup Frontend Environment
         uses: ./.github/actions/setup-frontend
-        with:
-          run-knip: ${{ matrix.run-knip }}
 
       - name: Setup Wails environment
         uses: ./.github/actions/setup-wails
         with:
           generate-bindings: "true"
 
-      - name: Run ${{ matrix.name }}
-        working-directory: ./frontend
-        run: ${{ matrix.command }}
+      - name: Add Go tools to PATH
+        run: |
+          mkdir -p "${GOBIN}"
+          echo "${GOBIN}" >> "${GITHUB_PATH}"
+
+      - name: Cache Go tools
+        uses: actions/cache@v5
+        id: go-tools-cache
+        with:
+          path: ${{ env.GOBIN }}
+          key: ${{ runner.os }}-go-tools-v1-${{ env.GOTESTSUM_VERSION }}-${{ env.DEADCODE_VERSION }}
+
+      - name: Install gotestsum & deadcode
+        if: steps.go-tools-cache.outputs.cache-hit != 'true'
+        run: |
+          go install gotest.tools/gotestsum@${GOTESTSUM_VERSION}
+          go install golang.org/x/tools/cmd/deadcode@${DEADCODE_VERSION}
+
+      - name: Run all checks in parallel
+        run: bun check:ci
 
   # ------------------------------------------------------------------
   # JOB 4: Playwright Tests
