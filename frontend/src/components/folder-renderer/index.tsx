@@ -1,4 +1,3 @@
-import { useAtomValue } from 'jotai';
 import { forwardRef, useRef } from 'react';
 import {
   VirtuosoGrid,
@@ -7,17 +6,14 @@ import {
   type ScrollerProps,
 } from 'react-virtuoso';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { fileTreeDataAtom } from '../../atoms';
 import { Loader } from '../../icons/loader';
 import { GetChildrenOfFolderBasedOnLimit } from '../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
-import { getTreeNodeFromPath } from '../virtualized/virtualized-file-tree/utils/file-tree-utils';
 import { useToggleSidebarEvent } from '../../routes/notes-sidebar/render-note/hooks';
 import {
   type FolderPath,
   createFilePath,
   createFolderPath,
 } from '../../utils/path';
-import { FOLDER_TYPE } from '../virtualized/virtualized-file-tree/types';
 import { NotFound } from '../../routes/not-found';
 import { motion, type LegacyAnimationControls } from 'motion/react';
 import { cn } from '../../utils/string-formatting';
@@ -89,31 +85,24 @@ export function FolderRenderer({
   folderPath: FolderPath;
   animationControls: LegacyAnimationControls;
 }) {
-  const fileTreeData = useAtomValue(fileTreeDataAtom);
-  const folderTreeNode = getTreeNodeFromPath(fileTreeData, folderPath.fullPath);
   useToggleSidebarEvent(animationControls);
   const internalListRef = useRef<HTMLElement | null>(null);
   usePreventBoundaryOverscrollFlicker({ scrollElementRef: internalListRef });
 
-  const folderId =
-    folderTreeNode?.type === FOLDER_TYPE ? folderTreeNode.id : '';
-
   const { data, fetchNextPage, hasNextPage, isLoading } = useInfiniteQuery({
     queryKey: queryKeys.folderChildren(folderPath.fullPath),
-    enabled: !!folderTreeNode && folderTreeNode.type === FOLDER_TYPE,
     initialPageParam: '',
+    // The parentId argument is only echoed back on the response items and is
+    // unused here, so pass an empty string.
     queryFn: ({ pageParam }) =>
-      GetChildrenOfFolderBasedOnLimit(
-        folderPath.fullPath,
-        folderId,
-        pageParam,
-        300
-      ),
+      GetChildrenOfFolderBasedOnLimit(folderPath.fullPath, '', pageParam, 300),
     getNextPageParam: (lastPage) =>
       lastPage.data?.hasMore ? lastPage.data.nextCursor : undefined,
   });
 
-  if (!folderTreeNode || folderTreeNode.type !== FOLDER_TYPE) {
+  // The backend responds with success: false when the folder doesn't exist.
+  const firstPage = data?.pages[0];
+  if (firstPage && !firstPage.success) {
     return <NotFound />;
   }
 
@@ -151,10 +140,9 @@ export function FolderRenderer({
       <div className="space-y-3">
         <FolderRendererHeader
           folderPath={folderPath}
-          folderTreeNode={folderTreeNode}
           animationControls={animationControls}
         />
-        <FolderRendererCreateItemCard folder={folderTreeNode} />
+        <FolderRendererCreateItemCard folderPath={folderPath} />
       </div>
     ),
   };

@@ -20,27 +20,25 @@ import {
 import type { FolderPath } from '../../utils/path';
 import { routeUrls } from '../../utils/routes';
 import { cn } from '../../utils/string-formatting';
-import type { Folder } from '../virtualized/virtualized-file-tree/types';
 import type { LegacyAnimationControls } from 'motion/react';
 import { MotionIconButton } from '../buttons';
 import { getDefaultButtonVariants } from '../../animations';
 
 export function FolderRendererHeader({
   folderPath,
-  folderTreeNode,
   animationControls,
 }: {
   folderPath: FolderPath;
-  folderTreeNode: Folder;
   animationControls: LegacyAnimationControls;
 }) {
+  const folderName = folderPath.fullPath.split('/').pop() ?? '';
   const isFileMaximized = useAtomValue(isFileMaximizedAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const { mutate: revealInFinder } = useRevealInFinderMutation();
   const { mutate: moveToTrash } = useMoveToTrashMutation();
   const { mutate: pinPath } = usePinPathMutation();
 
-  const isPinned = projectSettings.pinnedNotes.has(folderTreeNode.path);
+  const isPinned = projectSettings.pinnedNotes.has(folderPath.fullPath);
 
   const items = [
     {
@@ -89,13 +87,13 @@ export function FolderRendererHeader({
       case 'pin-folder':
       case 'unpin-folder': {
         pinPath({
-          path: folderTreeNode.path,
+          path: folderPath.fullPath,
           shouldPin: key === 'pin-folder',
         });
         break;
       }
       case 'move-to-trash': {
-        moveToTrash({ paths: [folderTreeNode.path] });
+        moveToTrash({ paths: [folderPath.fullPath] });
         break;
       }
     }
@@ -115,7 +113,7 @@ export function FolderRendererHeader({
             <p className="text-sm text-zinc-500 dark:text-zinc-400">Folder</p>
             <span className="mt-1 flex items-center gap-2.5">
               <h1 className="truncate text-2xl font-semibold dark:text-zinc-50">
-                {folderTreeNode.name}
+                {folderName}
               </h1>
               <Tooltip content="Search this folder">
                 <MotionIconButton
@@ -131,7 +129,7 @@ export function FolderRendererHeader({
               </Tooltip>
             </span>
             <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400">
-              {folderTreeNode.path + '/'}
+              {folderPath.fullPath + '/'}
             </p>
           </div>
           <div className="ml-auto flex flex-col mr-2">

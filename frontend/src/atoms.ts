@@ -8,7 +8,6 @@ import {
   type LanguagesWithKernels,
   type ProjectSettings,
 } from './types';
-import type { FileOrFolder } from './components/virtualized/virtualized-file-tree/types';
 import {
   type FileOrFolderPath,
   createFilePath,
@@ -112,37 +111,6 @@ export const sidebarSelectionAtom = atomWithLogging<SidebarSelectionState>(
     anchorSelection: null,
   }
 );
-
-export type FileTreeData = {
-  treeData: Map<string, FileOrFolder>;
-  filePathToTreeDataId: Map<string, string>;
-};
-
-export type ReadonlyFileTreeData = {
-  readonly treeData: ReadonlyMap<string, FileOrFolder>;
-  readonly filePathToTreeDataId: ReadonlyMap<string, string>;
-};
-
-// Holds the virtualized file tree data including the node map and a reverse lookup from file path to tree node ID.
-export const fileTreeDataAtom = atomWithLogging<FileTreeData>(
-  'fileTreeDataAtom',
-  {
-    treeData: new Map<string, FileOrFolder>(),
-    filePathToTreeDataId: new Map<string, string>(),
-  }
-);
-
-/**
- * Stores the set of tree node IDs that should display a drag highlight.
- * Empty set = no highlight. Computed via BFS from the parent of the hovered file.
- */
-export const dragHighlightIdsAtom = atom<Set<string>>(new Set<string>());
-
-/**
- * Tracks the tree item currently acting as the active drag-and-drop target.
- * Null means no drop target is active.
- */
-export const activeDropTargetIdAtom = atom<string | null>(null);
 
 // Reflects whether the application is currently rendering in dark mode.
 export const isDarkModeOnAtom = atom<boolean>(false);

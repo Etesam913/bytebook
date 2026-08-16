@@ -25,16 +25,13 @@ import {
   useRestoreLastVisitedOnLaunch,
   useSyncFileMaximizedWithRoute,
 } from './hooks/routes';
-import { EditorWrapper } from './components/virtualized/virtualized-file-tree/editor-wrapper';
-import { VirtualizedFileTreeDebugView } from './components/virtualized/virtualized-file-tree/debug-view';
+import { EditorWrapper } from './components/editor-wrapper';
 import { RouteDebugView } from './components/route-debug-view';
-import { useCreateEvents } from './components/virtualized/virtualized-file-tree/hooks/use-create-events';
-import { useDeleteEvents } from './components/virtualized/virtualized-file-tree/hooks/use-delete-events';
-import { useRenameEvents } from './components/virtualized/virtualized-file-tree/hooks/use-rename-events';
 import { safeDecodeURIComponent } from './utils/path';
 import { isRegularMouseClick } from './utils/mouse';
 import { isE2ETestEnvironment } from './utils/e2e';
 import { useKernelInstanceEvents, useKernelInstancesQuery } from './hooks/code';
+import { useFolderChildrenInvalidation } from './hooks/folder-children-invalidation';
 
 const KernelInfo = lazy(() =>
   import('./routes/kernel-info').then((module) => ({
@@ -63,10 +60,8 @@ function App() {
   const isFileMaximized = useAtomValue(isFileMaximizedAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
 
-  useCreateEvents();
-  useDeleteEvents();
-  useRenameEvents();
   useTagEvents();
+  useFolderChildrenInvalidation();
   useThemeSetting();
   useProjectSettings();
   useKernelInstancesQuery();
@@ -97,12 +92,7 @@ function App() {
       <Dialog />
       <LoadingModal />
       <Toaster richColors theme="system" />
-      {import.meta.env.DEV && !isE2ETestEnvironment() && (
-        <>
-          <VirtualizedFileTreeDebugView />
-          <RouteDebugView />
-        </>
-      )}
+      {import.meta.env.DEV && !isE2ETestEnvironment() && <RouteDebugView />}
       <Activity mode={isFileMaximized ? 'hidden' : 'visible'}>
         <FileSidebar width={fileSidebarWidth} />
       </Activity>

@@ -1,182 +1,233 @@
-import { useAtom } from 'jotai';
-import { type MouseEvent, type RefObject, useRef, useState } from 'react';
-import { motion } from 'motion/react';
-import { Virtuoso, type ListRange, type VirtuosoHandle } from 'react-virtuoso';
-import { useTopLevelFileOrFolders } from './hooks/top-level';
-import { FileTreeItem } from './file-tree-item';
-import { type VirtualizedFileTreeItem } from './types';
-import { sidebarSelectionAtom } from '../../../atoms';
-import { useOnClickOutside } from '../../../hooks/general';
+import { FileTree, useFileTree } from '@pierre/trees/react';
 import {
-  handleFileTreeItemClickCapture,
-  handleFileTreeKeyDown,
-} from './utils/file-tree-navigation';
-import { useRoutePathFocus } from './hooks/use-route-path-focus';
-import { StickyHeader } from './sticky-header';
-import { shouldHandleOutsideSelectionInteraction } from '../../../utils/mouse';
-import { useExternalFileTreeDrag } from './hooks/use-external-file-tree-drag';
-import { useFileTreeContentDrop } from './hooks/use-file-tree-content-drop';
-import { usePreventBoundaryOverscrollFlicker } from '../virtualized-list/hooks';
+  prepareFileTreeInput,
+  type FileTreeRenameEvent,
+  type FileTreeDropResult,
+} from '@pierre/trees';
+import { type RefObject, useEffect, useRef } from 'react';
+import { navigate } from 'wouter/use-browser-location';
+import { createFilePath, createFolderPath } from '../../../utils/path';
 import {
-  isFileTreeBlankAreaClickTarget,
-  getFolderOpenAnimationRows,
-  OPENED_FOLDER_ROW_ANIMATION_DURATION,
-} from './utils/file-tree-utils';
-import { useFolderOpenAnimationParentIds } from './hooks/use-folder-open-animation';
-import { CreateFolder } from './create-folder';
+  useAddFolderAttachmentsMutation,
+  useMoveTreeItemsMutation,
+  useRenameTreeItemMutation,
+} from './hooks/tree-item-mutations';
+import { useMoveToTrashMutation } from '../../../hooks/notes';
+import { useAllPaths, useTopLevelPaths } from './hooks/use-all-paths';
+import { usePierreRouteFocus } from './hooks/use-pierre-route-focus';
+import { usePierreTreeEvents } from './hooks/use-pierre-tree-events';
+import { TreeHeader } from './tree-header';
+import { TreeContextMenu } from './tree-context-menu';
+import {
+  useFilePathFromRoute,
+  useFolderPathFromRoute,
+} from '../../../hooks/routes';
 
-const INITIAL_VISIBLE_RANGE: ListRange = { startIndex: 0, endIndex: -1 };
-const VIRTUOSO_COMPONENTS = {
-  Header: function FileTreeHeader() {
-    return <CreateFolder />;
-  },
-};
+// The tree's own colors track the app theme automatically: the package uses
+// `light-dark()` CSS and `useThemeSetting` sets `color-scheme` on the root
+// element. Blend its background into the sidebar and reuse the app accent.
+const FILE_TREE_HOST_STYLE = {
+  height: '100%',
+  display: 'block',
+  '--trees-bg-override': 'transparent',
+  '--trees-accent-override': 'var(--accent-color)',
+} as React.CSSProperties;
 
+/**
+ * @pierre/trees marks directories with a trailing slash. Bytebook's routes and
+ * backend APIs use slashless paths everywhere, so we strip the slash at the
+ * boundary.
+ */
+function stripTrailingSlash(path: string): string {
+  return path.endsWith('/') ? path.slice(0, -1) : path;
+}
+
+/**
+ * The sidebar file tree, backed by @pierre/trees. Loads in two phases so the
+ * first paint is instant: the model is created from the top-level entries
+ * (a couple of items, resolved in ~1ms), then `resetPaths` silently swaps in
+ * the full vault path list once `GetAllPaths` returns. After that, every
+ * folder expand is instant and the Wails watcher events keep the model in
+ * sync with disk.
+ */
 export function VirtualizedFileTree({
   ref,
 }: {
   ref: RefObject<HTMLElement | null>;
 }) {
-  const virtuosoRef = useRef<VirtuosoHandle>(null);
-  const [visibleRange, setVisibleRange] = useState(INITIAL_VISIBLE_RANGE);
-  const [sidebarSelection, setSidebarSelection] = useAtom(sidebarSelectionAtom);
-  const folderOpenAnimationParentIds = useFolderOpenAnimationParentIds();
+  const topLevelQuery = useTopLevelPaths();
 
-  // This only runs on component mount and when a top level folder or file is received in the folder:create or file:create events
-  const { topLevelFolderOrFilesQuery, virtualizedData } =
-    useTopLevelFileOrFolders();
-  const { isSuccess } = topLevelFolderOrFilesQuery;
-  const folderOpenAnimationRows = getFolderOpenAnimationRows({
-    currentData: virtualizedData,
-    parentFolderIds: folderOpenAnimationParentIds,
+  if (!topLevelQuery.isSuccess) {
+    return null;
+  }
+
+  return (
+    <PierreFileTreeInner initialPaths={topLevelQuery.data} hostRef={ref} />
+  );
+}
+
+function PierreFileTreeInner({
+  initialPaths,
+  hostRef,
+}: {
+  initialPaths: readonly string[];
+  hostRef: RefObject<HTMLElement | null>;
+}) {
+  const routeFilePath = useFilePathFromRoute();
+  const routeFolderPath = useFolderPathFromRoute();
+  // pierre keys folders with a trailing slash, so the route→model bridge has
+  // to match that convention before doing lookups.
+  const routeTargetPath = routeFilePath
+    ? routeFilePath.fullPath
+    : routeFolderPath
+      ? `${routeFolderPath.fullPath}/`
+      : null;
+  const lastNavigatedRef = useRef<string | null>(routeTargetPath);
+
+  const { mutateAsync: renameTreeItem } = useRenameTreeItemMutation();
+  const { mutateAsync: moveItems } = useMoveTreeItemsMutation();
+  const { mutateAsync: moveToTrash } = useMoveToTrashMutation();
+  const { mutate: addFolderAttachments } = useAddFolderAttachmentsMutation();
+
+  // The model is created exactly once by useFileTree, so the callbacks below
+  // capture the FIRST-render mutate functions. We funnel calls through refs
+  // that get refreshed in effects so later renders' fresh mutate identities
+  // are used instead of the stale closure.
+  const renameRef = useRef(renameTreeItem);
+  const moveItemsRef = useRef(moveItems);
+
+  useEffect(() => {
+    renameRef.current = renameTreeItem;
+  }, [renameTreeItem]);
+
+  useEffect(() => {
+    moveItemsRef.current = moveItems;
+  }, [moveItems]);
+
+  // Every ancestor of the route target is a folder, so it must end in '/'.
+  const initialExpandedPaths = (() => {
+    if (!routeTargetPath) return [];
+    const segments = stripTrailingSlash(routeTargetPath)
+      .split('/')
+      .filter(Boolean);
+    return segments
+      .slice(0, -1)
+      .map((_, index) => `${segments.slice(0, index + 1).join('/')}/`);
+  })();
+
+  // Captured once — `useFileTree` only reads options on the first render, and
+  // the phase-2 `resetPaths` below should re-apply the expansion state the
+  // model was mounted with, not whatever route is active later.
+  const initialExpandedPathsRef = useRef(initialExpandedPaths);
+
+  const { model } = useFileTree({
+    paths: initialPaths,
+    initialExpansion: 'closed',
+    initialExpandedPaths,
+    initialSelectedPaths: routeTargetPath ? [routeTargetPath] : [],
+    stickyFolders: true,
+    onSelectionChange: (selectedPaths) => {
+      if (selectedPaths.length !== 1) return;
+      const path = selectedPaths[0];
+      if (lastNavigatedRef.current === path) return;
+      const isFolder = path.endsWith('/');
+      const trimmed = stripTrailingSlash(path);
+      if (isFolder) {
+        const folderPath = createFolderPath(trimmed);
+        if (folderPath) {
+          lastNavigatedRef.current = path;
+          navigate(folderPath.encodedFolderUrl);
+        }
+        return;
+      }
+      const filePath = createFilePath(trimmed);
+      if (filePath) {
+        lastNavigatedRef.current = path;
+        navigate(filePath.encodedFileUrl);
+      }
+    },
+    dragAndDrop: {
+      canDrop: ({ target }) => target.directoryPath !== null,
+      onDropComplete: (result: FileTreeDropResult) => {
+        const destination = result.target.directoryPath;
+        if (destination === null) return;
+        void moveItemsRef.current({
+          itemPaths: result.draggedPaths.map(stripTrailingSlash),
+          newFolder: stripTrailingSlash(destination),
+        });
+      },
+    },
+    renaming: {
+      onRename: (event: FileTreeRenameEvent) => {
+        const { sourcePath, destinationPath, isFolder } = event;
+        if (sourcePath === destinationPath) return;
+        const sourceNoSlash = stripTrailingSlash(sourcePath);
+        const destNoSlash = stripTrailingSlash(destinationPath);
+        const newName = destNoSlash.split('/').pop() ?? '';
+        if (isFolder) {
+          void renameRef.current({
+            itemType: 'folder',
+            folderPath: sourceNoSlash,
+            newName,
+          });
+          return;
+        }
+        const filePath = createFilePath(sourceNoSlash);
+        if (!filePath) return;
+        const dotIndex = newName.lastIndexOf('.');
+        const trimmed = dotIndex === -1 ? newName : newName.slice(0, dotIndex);
+        void renameRef.current({
+          itemType: 'file',
+          filePath,
+          newName: trimmed,
+        });
+      },
+    },
   });
 
-  useRoutePathFocus({ visibleRange, virtualizedData, virtuosoRef, isSuccess });
-  useFileTreeContentDrop();
-  useExternalFileTreeDrag();
-  usePreventBoundaryOverscrollFlicker({ scrollElementRef: ref });
+  useEffect(() => {
+    lastNavigatedRef.current = routeTargetPath;
+  }, [routeTargetPath]);
 
-  function clearSidebarSelection() {
-    setSidebarSelection((prev) => ({
-      ...prev,
-      selections: new Set([]),
-      anchorSelection: null,
-    }));
-  }
+  // Phase 2: swap in the full vault path list. Visually a no-op — the same
+  // top-level entries stay on screen; the model just now also knows what's
+  // inside them, so every subsequent expand is instant with no network call.
+  const allPathsQuery = useAllPaths();
+  const allPaths = allPathsQuery.data;
+  useEffect(() => {
+    if (!allPaths) return;
+    model.resetPaths(allPaths, {
+      preparedInput: prepareFileTreeInput(allPaths),
+      initialExpandedPaths: initialExpandedPathsRef.current,
+    });
+  }, [model, allPaths]);
 
-  // Clear selection when clicking outside the file tree (unless it's a context menu click)
-  useOnClickOutside(
-    ref,
-    (event) => {
-      if (
-        !shouldHandleOutsideSelectionInteraction(event) ||
-        sidebarSelection.selections.size === 0
-      )
-        return;
-
-      clearSidebarSelection();
-    },
-    []
-  );
-
-  function handleFileTreeBlankAreaMouseDownCapture(event: MouseEvent) {
-    if (
-      !shouldHandleOutsideSelectionInteraction(event.nativeEvent) ||
-      sidebarSelection.selections.size === 0 ||
-      !isFileTreeBlankAreaClickTarget(event.target)
-    ) {
-      return;
-    }
-
-    clearSidebarSelection();
-  }
-
-  /**
-   * Renders a row wrapper used by tree navigation and delegates row content.
-   */
-  function renderItem(index: number, dataItem: VirtualizedFileTreeItem) {
-    const openAnimationIndex = folderOpenAnimationRows.get(dataItem.id);
-    const shouldAnimateFolderOpen = openAnimationIndex !== undefined;
-
-    return (
-      <motion.div
-        key={dataItem.id}
-        className="w-full px-2"
-        data-file-tree-index={index}
-        initial={shouldAnimateFolderOpen ? { opacity: 0, y: -3 } : false}
-        animate={{
-          opacity: 1,
-          y: 0,
-        }}
-        transition={{
-          duration: OPENED_FOLDER_ROW_ANIMATION_DURATION,
-          delay: 0.1,
-        }}
-        onClickCapture={(e) => {
-          handleFileTreeItemClickCapture(
-            {
-              virtualizedData,
-              internalListRef: ref,
-              virtuosoRef,
-            },
-            e
-          );
-        }}
-      >
-        <FileTreeItem dataItem={dataItem} virtualizedData={virtualizedData} />
-      </motion.div>
-    );
-  }
+  usePierreTreeEvents(model);
+  usePierreRouteFocus(model);
 
   return (
     <div
       id="file-tree"
-      role="tree"
-      aria-label="File tree"
-      className="relative flex flex-1 flex-col min-h-0 overflow-hidden text-sm"
-      onMouseDownCapture={handleFileTreeBlankAreaMouseDownCapture}
-      onKeyDown={(event) => {
-        handleFileTreeKeyDown(
-          {
-            virtualizedData,
-            internalListRef: ref,
-            virtuosoRef,
-          },
-          event
-        );
+      ref={(node) => {
+        hostRef.current = node;
       }}
+      className="relative flex flex-1 flex-col min-h-0 overflow-hidden text-sm"
     >
-      <StickyHeader
-        flattenedTopLevelData={virtualizedData}
-        visibleRange={visibleRange}
-      />
-      <Virtuoso
-        ref={virtuosoRef}
-        components={VIRTUOSO_COMPONENTS}
-        data={virtualizedData}
-        rangeChanged={(range) => {
-          setVisibleRange((previousRange) =>
-            previousRange.startIndex === range.startIndex &&
-            previousRange.endIndex === range.endIndex
-              ? previousRange
-              : range
-          );
-        }}
-        scrollerRef={(node) => {
-          const element = node instanceof HTMLElement ? node : null;
-          if (ref) {
-            ref.current = element;
-          }
-        }}
-        increaseViewportBy={{ top: 400, bottom: 400 }}
-        defaultItemHeight={30}
-        computeItemKey={(_, item) => item.id}
-        style={{
-          height: 0,
-          flexGrow: 1,
-        }}
-        totalListHeightChanged={() => {}}
-        itemContent={renderItem}
+      <FileTree
+        model={model}
+        header={<TreeHeader />}
+        renderContextMenu={(item, context) => (
+          <TreeContextMenu
+            item={item}
+            context={context}
+            onMoveToTrash={(paths) => {
+              void moveToTrash({ paths });
+            }}
+            onAddFolderAttachments={addFolderAttachments}
+            onStartRename={(path) => model.startRenaming(path)}
+          />
+        )}
+        style={FILE_TREE_HOST_STYLE}
       />
     </div>
   );
