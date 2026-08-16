@@ -1,7 +1,5 @@
 import type { Dispatch, KeyboardEvent, SetStateAction } from 'react';
-import type { FileOrFolderPath } from './path';
 import { SidebarContentType } from '../types';
-import type { SidebarSelectionState } from '../atoms';
 
 /** Selects are represent as strings with a separator between the prefix and value.
  *
@@ -28,17 +26,6 @@ export function createSelectionKey(prefix: string, value: string): string {
 }
 
 /**
- * Extracts the prefix part from a selection key.
- */
-function getSelectionPrefix(selectionKey: string): string | null {
-  const separatorIndex = selectionKey.indexOf(SIDEBAR_SELECTION_SEPARATOR);
-  if (separatorIndex === -1) {
-    return null;
-  }
-  return selectionKey.slice(0, separatorIndex);
-}
-
-/**
  * Extracts the value part from a selection key.
  */
 export function getSelectionValue(selectionKey: string): string | null {
@@ -61,45 +48,6 @@ export function keepSelectionWithPrefix(
       item.startsWith(`${prefix}${SIDEBAR_SELECTION_SEPARATOR}`)
     )
   );
-}
-
-/**
- * Adds selection keys to the state, ensuring only one prefix type is present.
- * If the new keys have a different prefix, replaces the current selection.
- */
-export function addSelectionKeysWithSinglePrefix({
-  prevState,
-  selectionKeysToAdd,
-  anchorSelectionKey,
-}: {
-  prevState: SidebarSelectionState;
-  selectionKeysToAdd: string[];
-  anchorSelectionKey?: string | null;
-}): SidebarSelectionState {
-  if (selectionKeysToAdd.length === 0) {
-    return prevState;
-  }
-
-  const firstPrefix = getSelectionPrefix(selectionKeysToAdd[0]);
-  const firstExistingSelectionKey: string | undefined = prevState.selections
-    .values()
-    .next().value;
-  const existingPrefix = firstExistingSelectionKey
-    ? getSelectionPrefix(firstExistingSelectionKey)
-    : null;
-
-  const nextSelections =
-    firstPrefix !== existingPrefix
-      ? new Set(selectionKeysToAdd)
-      : new Set([...prevState.selections, ...selectionKeysToAdd]);
-
-  return {
-    selections: nextSelections,
-    anchorSelection:
-      anchorSelectionKey === undefined
-        ? prevState.anchorSelection
-        : anchorSelectionKey,
-  };
 }
 
 /**
@@ -212,16 +160,3 @@ export function handleEditorEscape(
   }
 }
 export const FILE_SELECTION_PREFIX = 'file';
-
-export type SelectableItem = FileOrFolderPath & { id: string };
-
-// Derives the sidebar selection set key for a selectable file or folder item.
-/**
- * Each element in the sidebar selection set is a string as that allows for easy lookup and removal
- * This function creates a key for the selection set from a SelectableItems object
- */
-export function getKeyForSidebarSelection(
-  selectableItem: SelectableItem
-): string {
-  return createSelectionKey(FILE_SELECTION_PREFIX, selectableItem.id);
-}
