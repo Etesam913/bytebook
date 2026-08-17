@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import {
   mockBinding,
   updateMockBindingResponse,
@@ -15,6 +15,20 @@ import {
 } from '../../utils/mock-responses';
 import { SERVICE_FILES } from '../../utils/service-files';
 import { setupWailsEvents, emitWailsEvent } from '../../utils/wails-events';
+
+async function expandTagsSection(page: Page) {
+  const tagsHeading = page.getByRole('heading', {
+    name: /^Tags \(\d+\)$/,
+    level: 3,
+  });
+  const tagsToggle = tagsHeading.getByRole('button');
+  const tagsSection = tagsHeading.locator('..');
+
+  await expect(tagsToggle).toBeVisible();
+  await tagsToggle.click();
+
+  return tagsSection;
+}
 
 test.describe('Tags Workflow', () => {
   test.beforeEach(async ({ context }) => {
@@ -73,7 +87,7 @@ test.describe('Tags Workflow', () => {
   });
 
   test.describe('Adding Tags to Notes', () => {
-    test('tags can be added to a note and they appear in the BottomBar', async ({
+    test('tags can be added to a note and they appear in the tags section', async ({
       page,
       context,
     }) => {
@@ -92,11 +106,9 @@ test.describe('Tags Workflow', () => {
       const editor = page.locator('#content-editable-editor');
       await expect(editor).toBeVisible();
 
-      // Find the BottomBar's "Edit Tags" button and click it
-      const bottomBar = page.locator('footer').first();
-      await expect(bottomBar).toBeVisible();
-
-      const editTagsButton = bottomBar.getByRole('button', {
+      // Expand the tags section and click its "Edit Tags" button
+      const tagsSection = await expandTagsSection(page);
+      const editTagsButton = tagsSection.getByRole('button', {
         name: /Edit Tags/i,
       });
       await expect(editTagsButton).toBeVisible();
@@ -141,13 +153,13 @@ test.describe('Tags Workflow', () => {
       // Wait for dialog to close
       await expect(dialog).not.toBeVisible();
 
-      // Verify the new tag appears in the BottomBar
-      await expect(bottomBar).toContainText('dev');
+      // Verify the new tag appears in the tags section
+      await expect(tagsSection).toContainText('dev');
     });
   });
 
   test.describe('Existing Tags Display', () => {
-    test('existing tags for a note are displayed in the BottomBar', async ({
+    test('existing tags for a note are displayed in the tags section', async ({
       page,
     }) => {
       // Navigate to a note that has existing tags
@@ -157,13 +169,12 @@ test.describe('Tags Workflow', () => {
       const editor = page.locator('#content-editable-editor');
       await expect(editor).toBeVisible();
 
-      // Find the BottomBar
-      const bottomBar = page.locator('footer').first();
-      await expect(bottomBar).toBeVisible();
+      // Expand the tags section
+      const tagsSection = await expandTagsSection(page);
 
       // Verify existing tags are displayed
-      await expect(bottomBar).toContainText('economics');
-      await expect(bottomBar).toContainText('research');
+      await expect(tagsSection).toContainText('economics');
+      await expect(tagsSection).toContainText('research');
     });
 
     test('existing tags for a note are pre-selected in the Edit Tags dialog', async ({
@@ -191,8 +202,8 @@ test.describe('Tags Workflow', () => {
       await expect(editor).toBeVisible();
 
       // Open the Edit Tags dialog
-      const bottomBar = page.locator('footer').first();
-      const editTagsButton = bottomBar.getByRole('button', {
+      const tagsSection = await expandTagsSection(page);
+      const editTagsButton = tagsSection.getByRole('button', {
         name: /Edit Tags/i,
       });
       await editTagsButton.click();
