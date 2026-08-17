@@ -21,6 +21,14 @@ export const FILE_TREE_HOST_STYLE: CSSPropertiesWithVariables = {
   '--trees-fg-override': 'light-dark(rgb(9, 9, 11), rgb(244, 244, 245))',
   '--trees-accent-override': 'var(--accent-color)',
   '--trees-font-family-override': 'var(--app-font-family)',
+  // Match the app's standard font size (text-sm / 0.875rem) so tree items
+  // scale with UI zoom alongside the rest of the application.
+  '--trees-font-size-override': '0.875rem',
+  // Scale density (level indents, row gaps, margins) proportionally with UI zoom
+  // so spacing never gets mushed or over-expanded.
+  '--trees-density-override': 'var(--ui-scale)',
+  // Scale icons with UI zoom.
+  '--trees-icon-width-override': 'calc(16px * var(--ui-scale))',
 };
 
 // Separate sticky folder rows from the rows scrolling underneath them

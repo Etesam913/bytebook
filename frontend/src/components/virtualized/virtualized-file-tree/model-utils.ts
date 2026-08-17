@@ -3,7 +3,26 @@ import type {
   FileTreeDirectoryHandle,
   FileTreeItemHandle,
 } from '@pierre/trees';
-import { splitPathSegments, stripTrailingSlash } from '../../../utils/path';
+import { navigate } from 'wouter/use-browser-location';
+import {
+  createFilePath,
+  createFolderPath,
+  splitPathSegments,
+  stripTrailingSlash,
+} from '../../../utils/path';
+
+export function navigateToTreePath(path: string) {
+  const trimmed = stripTrailingSlash(path);
+  const targetPath = path.endsWith('/')
+    ? createFolderPath(trimmed)
+    : createFilePath(trimmed);
+  if (!targetPath) return;
+  navigate(
+    targetPath.type === 'folder'
+      ? targetPath.encodedFolderUrl
+      : targetPath.encodedFileUrl
+  );
+}
 
 /**
  * Narrows a `FileTreeItemHandle` to its directory variant. The union is
