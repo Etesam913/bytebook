@@ -1,7 +1,20 @@
 import type {
   FileTree as PierreFileTree,
   FileTreeDirectoryHandle,
+  FileTreeItemHandle,
 } from '@pierre/trees';
+import { splitPathSegments, stripTrailingSlash } from '../../../utils/path';
+
+/**
+ * Narrows a `FileTreeItemHandle` to its directory variant. The union is
+ * discriminated by `isDirectory()`'s literal return type, which TypeScript
+ * only applies through a user-defined type guard like this one.
+ */
+export function isDirectoryHandle(
+  item: FileTreeItemHandle
+): item is FileTreeDirectoryHandle {
+  return item.isDirectory();
+}
 
 /**
  * The tree's row order, as sorted by `prepareFileTreeInput`. Kept here so the
@@ -31,8 +44,8 @@ function isExpandedDirectory(
   directoryPath: string
 ): boolean {
   const item = model.getItem(directoryPath);
-  if (item === null || !item.isDirectory()) return false;
-  return (item as FileTreeDirectoryHandle).isExpanded();
+  if (item === null || !isDirectoryHandle(item)) return false;
+  return item.isExpanded();
 }
 
 /**
@@ -105,4 +118,41 @@ export function getRenameInput(
   return (
     root?.querySelector<HTMLInputElement>('[data-item-rename-input]') ?? null
   );
+}
+
+/**
+ * Makes the row for `targetPath` the tree's highlighted row: expands collapsed
+ * ancestors (focus/selection alone never do), moves selection and focus to it,
+ * and scrolls it into view. No-op if the path is not in the model.
+ */
+export function revealTreePath(
+  model: PierreFileTree,
+  targetPath: string
+): void {
+  const item = model.getItem(targetPath);
+  if (!item) return;
+
+  const segments = splitPathSegments(stripTrailingSlash(targetPath));
+  for (let i = 1; i < segments.length; i++) {
+    const ancestor = `${segments.slice(0, i).join('/')}/`;
+    const ancestorItem = model.getItem(ancestor);
+    if (
+      ancestorItem !== null &&
+      isDirectoryHandle(ancestorItem) &&
+      !ancestorItem.isExpanded()
+    ) {
+      ancestorItem.expand();
+    }
+  }
+
+  for (const selectedPath of model.getSelectedPaths()) {
+    if (selectedPath !== targetPath) {
+      model.getItem(selectedPath)?.deselect();
+    }
+  }
+  item.select();
+  if (model.getFocusedPath() !== targetPath) {
+    model.focusPath(targetPath);
+  }
+  scrollTreePathIntoView(model, targetPath);
 }

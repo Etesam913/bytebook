@@ -11,18 +11,17 @@ import {
 import { queryKeys } from '../utils/query-keys';
 
 /**
- * The folder view's grid (`FolderRenderer`) reads from a
- * `['folder-children', folderPath]` infinite query that isn't backed by the
- * file tree model, so any file-watcher event has to invalidate it for disk
- * changes to appear in the grid. Mounted in `App` so it stays active even
- * when the sidebar tree is unmounted.
+ * The full vault path list (`useAllPaths`) backs both the folder view's grid
+ * and the sidebar tree's phase-2 sync, so any file-watcher event has to
+ * invalidate it for disk changes to appear. Mounted in `App` so it stays
+ * active even when the sidebar tree is unmounted (<Activity> hides it).
  */
-export function useFolderChildrenInvalidation() {
+export function useAllPathsInvalidation() {
   const queryClient = useQueryClient();
 
   const invalidate = () => {
     void queryClient.invalidateQueries({
-      queryKey: queryKeys.folderChildrenAll(),
+      queryKey: queryKeys.allPaths(),
     });
   };
 

@@ -15,6 +15,7 @@ import {
 import {
   createFilePath,
   createFolderPath,
+  joinPath,
   replaceLastPathSegment,
   type FilePath,
 } from '../../../../utils/path';
@@ -56,28 +57,27 @@ export function useAddTreeItemMutation() {
         throw new Error('Parent folder is required to add a note');
       }
 
-      const newPath =
+      const newItemPath =
         addType === FOLDER_TYPE
-          ? parentFolderPath
-            ? `${parentFolderPath}/${trimmedName}`
-            : trimmedName
-          : `${parentFolderPath}/${trimmedName}.md`;
+          ? createFolderPath(joinPath(parentFolderPath, trimmedName))
+          : createFilePath(joinPath(parentFolderPath, `${trimmedName}.md`));
+      if (!newItemPath) {
+        throw new Error(`"${trimmedName}" is not a valid name`);
+      }
 
       const res =
-        addType === FOLDER_TYPE
-          ? await AddFolder(newPath)
+        newItemPath.type === FOLDER_TYPE
+          ? await AddFolder(newItemPath.fullPath)
           : await AddNoteToFolder(parentFolderPath!, trimmedName);
       if (!res.success) throw new Error(res.message);
 
-      if (addType === FOLDER_TYPE) {
-        const folderPath = createFolderPath(newPath);
-        if (folderPath) navigate(folderPath.encodedFolderUrl);
-      } else {
-        const filePath = createFilePath(newPath);
-        if (filePath) navigate(filePath.encodedFileUrl);
-      }
+      navigate(
+        newItemPath.type === FOLDER_TYPE
+          ? newItemPath.encodedFolderUrl
+          : newItemPath.encodedFileUrl
+      );
 
-      return { addType, newPath };
+      return { addType, newPath: newItemPath.fullPath };
     },
     onSuccess: (_, variables) => {
       variables.onSuccess?.();
@@ -166,7 +166,7 @@ export function useMoveTreeItemsMutation() {
     },
     onSettled: () => {
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.folderChildrenAll(),
+        queryKey: queryKeys.allPaths(),
       });
     },
   });

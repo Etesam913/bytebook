@@ -56,11 +56,6 @@ function splitMotionProps(allProps: Record<string, unknown>): {
   return { motionProps, buttonProps };
 }
 
-type MotionButtonProps = ButtonProps &
-  MotionOwnProps & {
-    children?: ReactNode;
-  };
-
 /** Transparent icon-only button with hover/focus background. */
 export function AppIconButton({
   className,
@@ -78,7 +73,10 @@ export function AppIconButton({
 }
 
 /** Motion-animated styled button. Accepts motion props like whileHover, whileTap, initial, animate, etc. */
-export function MotionButton({ className, ...allProps }: MotionButtonProps) {
+export function MotionButton({
+  className,
+  ...allProps
+}: ButtonProps & MotionOwnProps & { children?: ReactNode }) {
   const { motionProps, buttonProps } = splitMotionProps(
     allProps as unknown as Record<string, unknown>
   );
@@ -103,7 +101,7 @@ export function MotionButton({ className, ...allProps }: MotionButtonProps) {
 export function MotionIconButton({
   className,
   ...allProps
-}: MotionButtonProps) {
+}: ButtonProps & MotionOwnProps & { children?: ReactNode }) {
   const { motionProps, buttonProps } = splitMotionProps(
     allProps as unknown as Record<string, unknown>
   );

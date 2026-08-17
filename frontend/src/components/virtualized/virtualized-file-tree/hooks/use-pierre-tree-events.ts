@@ -8,6 +8,8 @@ import {
   FOLDER_DELETE,
   FOLDER_RENAME,
 } from '../../../../utils/events';
+import { revealTreePath } from '../model-utils';
+import { usePierreRouteTargetPath } from './use-route-target-path';
 
 type CreatePayload = { filePath?: string; folderPath?: string };
 type DeletePayload = { filePath?: string; folderPath?: string };
@@ -63,31 +65,39 @@ function extractRename(
  * an optimistic rename, and `model.move` throws when the source is gone.
  */
 export function usePierreTreeEvents(model: PierreFileTree | null) {
+  const routeTargetPath = usePierreRouteTargetPath();
+
   useWailsEvent(FOLDER_CREATE, (body) =>
-    handleCreate(model, body, /* isFolder */ true)
+    handleCreate({ model, body, isFolder: true, routeTargetPath })
   );
   useWailsEvent(FILE_CREATE, (body) =>
-    handleCreate(model, body, /* isFolder */ false)
+    handleCreate({ model, body, isFolder: false, routeTargetPath })
   );
   useWailsEvent(FOLDER_DELETE, (body) =>
-    handleDelete(model, body, /* isFolder */ true)
+    handleDelete({ model, body, isFolder: true })
   );
   useWailsEvent(FILE_DELETE, (body) =>
-    handleDelete(model, body, /* isFolder */ false)
+    handleDelete({ model, body, isFolder: false })
   );
   useWailsEvent(FOLDER_RENAME, (body) =>
-    handleRename(model, body, /* isFolder */ true)
+    handleRename({ model, body, isFolder: true })
   );
   useWailsEvent(FILE_RENAME, (body) =>
-    handleRename(model, body, /* isFolder */ false)
+    handleRename({ model, body, isFolder: false })
   );
 }
 
-function handleCreate(
-  model: PierreFileTree | null,
-  body: WailsEvent,
-  isFolder: boolean
-) {
+function handleCreate({
+  model,
+  body,
+  isFolder,
+  routeTargetPath,
+}: {
+  model: PierreFileTree | null;
+  body: WailsEvent;
+  isFolder: boolean;
+  routeTargetPath: string | null;
+}) {
   if (!model) return;
   const items = (body.data as CreatePayload[]) ?? [];
   const ops = items
@@ -96,13 +106,23 @@ function handleCreate(
     .map((path) => ({ type: 'add' as const, path }));
   if (ops.length === 0) return;
   model.batch(ops);
+  // Creating an item navigates to it before this watcher event has inserted
+  // its path, so the route-focus effect could not highlight it — catch up now
+  // that the row exists.
+  if (routeTargetPath && ops.some((op) => op.path === routeTargetPath)) {
+    revealTreePath(model, routeTargetPath);
+  }
 }
 
-function handleDelete(
-  model: PierreFileTree | null,
-  body: WailsEvent,
-  isFolder: boolean
-) {
+function handleDelete({
+  model,
+  body,
+  isFolder,
+}: {
+  model: PierreFileTree | null;
+  body: WailsEvent;
+  isFolder: boolean;
+}) {
   if (!model) return;
   const items = (body.data as DeletePayload[]) ?? [];
   const ops = items
@@ -117,11 +137,15 @@ function handleDelete(
   model.batch(ops);
 }
 
-function handleRename(
-  model: PierreFileTree | null,
-  body: WailsEvent,
-  isFolder: boolean
-) {
+function handleRename({
+  model,
+  body,
+  isFolder,
+}: {
+  model: PierreFileTree | null;
+  body: WailsEvent;
+  isFolder: boolean;
+}) {
   if (!model) return;
   const items = (body.data as RenamePayload[]) ?? [];
   const ops: Parameters<PierreFileTree['batch']>[0][number][] = [];

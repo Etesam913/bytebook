@@ -10,11 +10,11 @@ import {
 import { useEffect } from 'react';
 import { LinkNode, TOGGLE_LINK_COMMAND, toggleLink } from '../nodes/link';
 
-type Props = {
+export function LinkPlugin({
+  validateUrl,
+}: {
   validateUrl?: (url: string) => boolean;
-};
-
-export function LinkPlugin({ validateUrl }: Props): null {
+}): null {
   const [editor] = useLexicalComposerContext();
 
   useEffect(() => {

@@ -1,0 +1,32 @@
+import type { CSSProperties } from 'react';
+
+/**
+ * `React.CSSProperties` does not admit CSS custom properties, so widen it with
+ * a template-literal key instead of casting the style object.
+ */
+type CSSPropertiesWithVariables = CSSProperties & Record<`--${string}`, string>;
+
+// The tree's own colors track the app theme automatically: the package uses
+// `light-dark()` CSS and `useThemeSetting` sets `color-scheme` on the root
+// element. The background must be opaque (not transparent) because the sticky
+// folder overlay paints rows on top of the scrolling list with `--trees-bg` —
+// match the app background from index.html (light rgb(252,252,252) /
+// dark zinc-800).
+export const FILE_TREE_HOST_STYLE: CSSPropertiesWithVariables = {
+  height: '100%',
+  display: 'block',
+  '--trees-bg-override': 'light-dark(rgb(252, 252, 252), rgb(39, 39, 42))',
+  // Match the app's default text color (near-black / zinc-100) instead of the
+  // package's muted gray default.
+  '--trees-fg-override': 'light-dark(rgb(9, 9, 11), rgb(244, 244, 245))',
+  '--trees-accent-override': 'var(--accent-color)',
+  '--trees-font-family-override': 'var(--app-font-family)',
+};
+
+// Separate sticky folder rows from the rows scrolling underneath them
+// (zinc-200 / zinc-700).
+export const FILE_TREE_UNSAFE_CSS = `
+  [data-file-tree-sticky-overlay-content="true"] {
+    border-bottom: 1px solid light-dark(rgb(228, 228, 231), rgb(63, 63, 70));
+  }
+`;

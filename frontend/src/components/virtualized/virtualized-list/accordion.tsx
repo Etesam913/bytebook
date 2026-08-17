@@ -2,13 +2,6 @@ import { type ReactNode, useRef } from 'react';
 import { VirtualizedList, type VirtualizedListProps } from './index';
 import { useAutoScrollDuringDrag } from '../../../hooks/draggable';
 
-interface VirtualizedListAccordionProps<T> extends VirtualizedListProps<T> {
-  isLoading?: boolean;
-  loadingElement?: ReactNode;
-  isError?: boolean;
-  errorElement?: ReactNode;
-}
-
 export function VirtualizedListAccordion<T>({
   isLoading,
   loadingElement,
@@ -18,7 +11,12 @@ export function VirtualizedListAccordion<T>({
   data,
   emptyElement,
   ...props
-}: VirtualizedListAccordionProps<T>) {
+}: VirtualizedListProps<T> & {
+  isLoading?: boolean;
+  loadingElement?: ReactNode;
+  isError?: boolean;
+  errorElement?: ReactNode;
+}) {
   const isEmpty = !data || data.length === 0;
   const scrollContainerRef = useRef<HTMLElement | null>(null);
   const { onDragOver, onDragLeave, onDrop } = useAutoScrollDuringDrag(

@@ -11,10 +11,7 @@
  */
 export const queryKeys = {
   // File tree
-  topLevelFiles: () => ['top-level-files'] as const,
-  folderChildrenAll: () => ['folder-children'] as const,
-  folderChildren: (folderFullPath: string) =>
-    ['folder-children', folderFullPath] as const,
+  allPaths: () => ['file-tree', 'all-paths'] as const,
   file: (src: string) => ['file', src] as const,
 
   // Notes
