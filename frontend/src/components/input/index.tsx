@@ -64,8 +64,6 @@ function spellCheckToString(
   return value;
 }
 
-type AppTextFieldProps = Omit<TextFieldProps, 'spellCheck'> & SharedExtras;
-
 export function AppTextField({
   ref,
   label,
@@ -78,7 +76,7 @@ export function AppTextField({
   autoCapitalize,
   spellCheck,
   ...props
-}: AppTextFieldProps) {
+}: Omit<TextFieldProps, 'spellCheck'> & SharedExtras) {
   return (
     <TextField
       {...props}
@@ -103,8 +101,6 @@ export function AppTextField({
   );
 }
 
-type AppSearchFieldProps = Omit<SearchFieldProps, 'spellCheck'> & SharedExtras;
-
 export function AppSearchField({
   ref,
   label,
@@ -117,7 +113,7 @@ export function AppSearchField({
   autoCapitalize,
   spellCheck,
   ...props
-}: AppSearchFieldProps) {
+}: Omit<SearchFieldProps, 'spellCheck'> & SharedExtras) {
   return (
     <SearchField
       {...props}

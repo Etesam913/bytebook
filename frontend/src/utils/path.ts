@@ -22,6 +22,26 @@ export function splitPathSegments(path: string): string[] {
 }
 
 /**
+ * Removes a single trailing slash (e.g. `"folder/"` → `"folder"`).
+ * @pierre/trees marks directories with a trailing slash, while bytebook's
+ * routes and backend APIs use slashless paths, so this strips the slash at
+ * that boundary.
+ */
+export function stripTrailingSlash(path: string): string {
+  return path.endsWith('/') ? path.slice(0, -1) : path;
+}
+
+/**
+ * Joins path pieces into a normalized slash-delimited path, skipping empty or
+ * null pieces and collapsing repeated slashes.
+ */
+export function joinPath(...pieces: (string | null | undefined)[]): string {
+  return pieces
+    .flatMap((piece) => (piece ? splitPathSegments(piece) : []))
+    .join('/');
+}
+
+/**
  * Replaces the last segment of a slash-delimited path with `newLastSegment`.
  * Preserves any leading empty segment (e.g. an absolute-style path).
  */

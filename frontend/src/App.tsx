@@ -31,7 +31,7 @@ import { safeDecodeURIComponent } from './utils/path';
 import { isRegularMouseClick } from './utils/mouse';
 import { isE2ETestEnvironment } from './utils/e2e';
 import { useKernelInstanceEvents, useKernelInstancesQuery } from './hooks/code';
-import { useFolderChildrenInvalidation } from './hooks/folder-children-invalidation';
+import { useAllPathsInvalidation } from './hooks/all-paths-invalidation';
 
 const KernelInfo = lazy(() =>
   import('./routes/kernel-info').then((module) => ({
@@ -61,7 +61,7 @@ function App() {
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
 
   useTagEvents();
-  useFolderChildrenInvalidation();
+  useAllPathsInvalidation();
   useThemeSetting();
   useProjectSettings();
   useKernelInstancesQuery();

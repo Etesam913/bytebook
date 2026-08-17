@@ -3,7 +3,14 @@ import type { ButtonHTMLAttributes, MouseEventHandler, ReactNode } from 'react';
 import { ChevronDown } from '../../icons/chevron-down';
 import { cn } from '../../utils/string-formatting';
 
-type AccordionButtonProps = {
+export function AccordionButton({
+  icon,
+  title,
+  isOpen,
+  onClick,
+  className,
+  ...props
+}: {
   icon: ReactNode;
   title: ReactNode;
   isOpen: boolean;
@@ -12,16 +19,7 @@ type AccordionButtonProps = {
 } & Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
   'type' | 'children' | 'onClick' | 'className' | 'title'
->;
-
-export function AccordionButton({
-  icon,
-  title,
-  isOpen,
-  onClick,
-  className,
-  ...props
-}: AccordionButtonProps) {
+>) {
   return (
     <button
       type="button"

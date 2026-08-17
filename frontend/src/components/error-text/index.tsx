@@ -3,19 +3,17 @@ import { getDefaultButtonVariants } from '../../animations';
 import { MotionButton } from '../buttons';
 import { cn } from '../../utils/string-formatting';
 
-interface ErrorTextProps {
-  message: string;
-  onRetry: () => void;
-  icon?: ReactNode;
-  className?: string;
-}
-
 export function ErrorText({
   message,
   onRetry,
   icon,
   className = '',
-}: ErrorTextProps) {
+}: {
+  message: string;
+  onRetry: () => void;
+  icon?: ReactNode;
+  className?: string;
+}) {
   return (
     <div
       className={cn(

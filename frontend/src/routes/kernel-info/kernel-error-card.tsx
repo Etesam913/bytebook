@@ -1,10 +1,6 @@
 import { XMark } from '../../icons/circle-xmark';
 
-interface KernelErrorCardProps {
-  errorMessage: string;
-}
-
-export function KernelErrorCard({ errorMessage }: KernelErrorCardProps) {
+export function KernelErrorCard({ errorMessage }: { errorMessage: string }) {
   return (
     <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 mb-8">
       <div className="flex items-center gap-3 mb-4">

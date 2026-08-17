@@ -5,19 +5,22 @@ import {
   type GridListProps,
   type ScrollerProps,
 } from 'react-virtuoso';
-import { useInfiniteQuery } from '@tanstack/react-query';
 import { Loader } from '../../icons/loader';
-import { GetChildrenOfFolderBasedOnLimit } from '../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
 import { useToggleSidebarEvent } from '../../routes/notes-sidebar/render-note/hooks';
 import {
   type FolderPath,
   createFilePath,
   createFolderPath,
+  stripTrailingSlash,
 } from '../../utils/path';
 import { NotFound } from '../../routes/not-found';
 import { motion, type LegacyAnimationControls } from 'motion/react';
 import { cn } from '../../utils/string-formatting';
-import { queryKeys } from '../../utils/query-keys';
+import { useAllPaths } from '../virtualized/virtualized-file-tree/hooks/use-all-paths';
+import {
+  FILE_TYPE,
+  FOLDER_TYPE,
+} from '../virtualized/virtualized-file-tree/types';
 import {
   FolderRendererCard,
   type FolderRendererItem,
@@ -78,6 +81,52 @@ folderGridComponents.Scroller.displayName = 'FolderRendererGridScroller';
 folderGridComponents.List.displayName = 'FolderRendererGridList';
 folderGridComponents.Item.displayName = 'FolderRendererGridItem';
 
+/**
+ * Extracts the direct children of `folderPath` from the full vault path list
+ * (already in tree display order — folders carry a trailing slash).
+ */
+function getFolderItems(
+  allPaths: readonly string[],
+  folderPath: FolderPath
+): FolderRendererItem[] {
+  const childPrefix = `${folderPath.fullPath}/`;
+  return allPaths.flatMap((path): FolderRendererItem[] => {
+    const trimmed = stripTrailingSlash(path);
+    if (!trimmed.startsWith(childPrefix)) return [];
+    // Direct children only — deeper descendants contain another slash.
+    if (trimmed.slice(childPrefix.length).includes('/')) return [];
+
+    if (path.endsWith('/')) {
+      const entryFolderPath = createFolderPath(trimmed);
+      if (!entryFolderPath) return [];
+      return [
+        {
+          id: path,
+          type: FOLDER_TYPE,
+          name: entryFolderPath.folder,
+          path: entryFolderPath,
+        },
+      ];
+    }
+    const entryFilePath = createFilePath(trimmed);
+    if (!entryFilePath) return [];
+    return [
+      {
+        id: path,
+        type: FILE_TYPE,
+        name: entryFilePath.note,
+        path: entryFilePath,
+      },
+    ];
+  });
+}
+
+/**
+ * Renders a folder's direct children as a card grid. The items come straight
+ * from the same `GetAllPaths` query that feeds the sidebar tree (invalidated
+ * by `useAllPathsInvalidation` on every file-watcher event), so there is no
+ * per-folder pagination or fetching to manage.
+ */
 export function FolderRenderer({
   folderPath,
   animationControls,
@@ -89,50 +138,13 @@ export function FolderRenderer({
   const internalListRef = useRef<HTMLElement | null>(null);
   usePreventBoundaryOverscrollFlicker({ scrollElementRef: internalListRef });
 
-  const { data, fetchNextPage, hasNextPage, isLoading } = useInfiniteQuery({
-    queryKey: queryKeys.folderChildren(folderPath.fullPath),
-    initialPageParam: '',
-    // The parentId argument is only echoed back on the response items and is
-    // unused here, so pass an empty string.
-    queryFn: ({ pageParam }) =>
-      GetChildrenOfFolderBasedOnLimit(folderPath.fullPath, '', pageParam, 300),
-    getNextPageParam: (lastPage) =>
-      lastPage.data?.hasMore ? lastPage.data.nextCursor : undefined,
-  });
+  const { data: allPaths, isLoading } = useAllPaths();
 
-  // The backend responds with success: false when the folder doesn't exist.
-  const firstPage = data?.pages[0];
-  if (firstPage && !firstPage.success) {
+  if (allPaths && !allPaths.includes(`${folderPath.fullPath}/`)) {
     return <NotFound />;
   }
 
-  const items: FolderRendererItem[] = (data?.pages ?? []).flatMap((page) => {
-    const entries = page.data?.items ?? [];
-    return entries.reduce<FolderRendererItem[]>((acc, entry) => {
-      if (entry.type === 'folder') {
-        const entryFolderPath = createFolderPath(entry.path);
-        if (entryFolderPath) {
-          acc.push({
-            id: entry.id,
-            type: 'folder',
-            name: entry.name,
-            path: entryFolderPath,
-          });
-        }
-      } else {
-        const entryFilePath = createFilePath(entry.path);
-        if (entryFilePath) {
-          acc.push({
-            id: entry.id,
-            type: 'file',
-            name: entry.name,
-            path: entryFilePath,
-          });
-        }
-      }
-      return acc;
-    }, []);
-  });
+  const items = getFolderItems(allPaths ?? [], folderPath);
 
   const gridComponents = {
     ...folderGridComponents,
@@ -173,9 +185,6 @@ export function FolderRenderer({
             computeItemKey={(_, item) => item.id}
             components={gridComponents}
             itemContent={(_, item) => <FolderRendererCard item={item} />}
-            endReached={() => {
-              if (hasNextPage) void fetchNextPage();
-            }}
           />
         </section>
       )}

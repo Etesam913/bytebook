@@ -105,3 +105,18 @@ flowchart LR
 - Keep event names in `internal/util/events.go` as the source of truth.
 - If you change backend services, ensure generated bindings stay in sync (Wails binding generation).
 - In the frontend TypeScript code, prefer regular function comments (standard `//` line comments) instead of JSDoc comments.
+- In React components, inline prop types directly in the function parameter signature instead of creating a separate `interface` or `type` alias, unless the prop types are imported elsewhere.
+
+  ```tsx
+  export function NoteItem({
+    title,
+    isSelected,
+    onSelect,
+  }: {
+    title: string;
+    isSelected?: boolean;
+    onSelect: () => void;
+  }) {
+    // ...
+  }
+  ```

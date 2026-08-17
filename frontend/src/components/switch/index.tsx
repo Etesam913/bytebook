@@ -3,12 +3,14 @@ import { Switch, type SwitchProps } from 'react-aria-components/Switch';
 import { motion } from 'motion/react';
 import { cn } from '../../utils/string-formatting';
 
-interface AppSwitchProps extends SwitchProps {
+export function AppSwitch({
+  className,
+  children,
+  ...props
+}: SwitchProps & {
   children?: ReactNode;
   className?: string;
-}
-
-export function AppSwitch({ className, children, ...props }: AppSwitchProps) {
+}) {
   return (
     <Switch
       {...props}
