@@ -32,17 +32,25 @@ runs:
         cd wails
         cd v3/cmd/wails3
         go install
-        echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+        wails_bin_dir="$(go env GOBIN)"
+        if [ -z "$wails_bin_dir" ]; then
+          wails_bin_dir="$(go env GOPATH)/bin"
+        fi
+        echo "$wails_bin_dir" >> "$GITHUB_PATH"
 
     - name: Fix Wails replace directive
       shell: bash
       run: |
         sed -i 's|replace github.com/wailsapp/wails/v3 => ../wails/v3|replace github.com/wailsapp/wails/v3 => ./wails/v3|g' go.mod
-        go mod download
+        go mod tidy
 
     - name: Generate Wails bindings
       if: ${{ inputs.generate-bindings == 'true' }}
       shell: bash
       run: |
-        export PATH="$(go env GOPATH)/bin:$PATH"
+        wails_bin_dir="$(go env GOBIN)"
+        if [ -z "$wails_bin_dir" ]; then
+          wails_bin_dir="$(go env GOPATH)/bin"
+        fi
+        export PATH="$wails_bin_dir:$PATH"
         wails3 generate bindings ./internal/...

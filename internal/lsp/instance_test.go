@@ -31,6 +31,7 @@ type fakeServer struct {
 	completionItems  []protocol.CompletionItem
 	hoverContents    string
 	completionErrors atomic.Int32
+	initialized      chan struct{}
 }
 
 func (s *fakeServer) handler(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) error {
@@ -45,6 +46,7 @@ func (s *fakeServer) handler(ctx context.Context, reply jsonrpc2.Replier, req js
 		s.mu.Lock()
 		s.gotInitialized = true
 		s.mu.Unlock()
+		close(s.initialized)
 		return reply(ctx, nil, nil)
 
 	case protocol.MethodTextDocumentDidOpen:
@@ -118,7 +120,7 @@ func newTestInstance(t *testing.T) (*Instance, *fakeServer, func()) {
 	clientConn, serverConn := net.Pipe()
 
 	srvCtx, srvCancel := context.WithCancel(context.Background())
-	fake := &fakeServer{}
+	fake := &fakeServer{initialized: make(chan struct{})}
 
 	// Start the server side. We use jsonrpc2 directly because protocol.NewServer
 	// requires a full protocol.Server impl; jsonrpc2's handler is the lower
@@ -140,6 +142,13 @@ func newTestInstance(t *testing.T) (*Instance, *fakeServer, func()) {
 		srvCancel()
 		_ = in.Shutdown()
 		t.Fatalf("initialize: %v", err)
+	}
+	select {
+	case <-fake.initialized:
+	case <-time.After(time.Second):
+		srvCancel()
+		_ = in.Shutdown()
+		t.Fatal("timed out waiting for initialized notification")
 	}
 
 	teardown := func() {
