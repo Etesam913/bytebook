@@ -10,6 +10,7 @@ import {
 } from '../../../hooks/notes';
 import { projectSettingsAtom } from '../../../atoms';
 import { createFilePath, createFolderPath } from '../../../utils/path';
+import { MenuItemLabel } from '../../context-menu/items';
 import { Trash } from '../../../icons/trash';
 import { PaperclipPlus } from '../../../icons/paperclip-plus';
 import { FilePen } from '../../../icons/file-pen';
@@ -21,7 +22,6 @@ type MenuRow = {
   key: string;
   label: string;
   icon: ReactNode;
-  destructive?: boolean;
   /** When true, the rename row keeps focus so the inline editor receives it. */
   keepFocus?: boolean;
   onSelect: () => void;
@@ -116,28 +116,24 @@ export function TreeContextMenu({
     key: 'move-to-trash',
     icon: <Trash height="1.0625rem" width="1.0625rem" />,
     label: 'Move to Trash',
-    destructive: true,
     onSelect: () => onMoveToTrash([slashlessPath]),
   });
 
+  // Mirrors the native context menu's look (`components/context-menu` +
+  // `components/menu`): translucent rounded-xl surface, rounded-lg rows, and
+  // the accent highlight on hover/focus.
   return (
     <ul
       role="menu"
       data-file-tree-context-menu-root="true"
-      className="min-w-[12rem] py-1 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-md text-sm"
+      className="w-fit flex flex-col overflow-hidden rounded-xl border-[0.078125rem] border-zinc-300 bg-zinc-50/92.5 shadow-xl dark:border-zinc-600 dark:bg-zinc-700/92.5 px-[0.28125rem] py-1.5 gap-0.5 text-sm outline-hidden"
     >
       {rows.map((row) => (
         <li key={row.key} role="presentation">
-          {row.destructive && (
-            <div className="my-1 border-t border-zinc-200 dark:border-zinc-700" />
-          )}
           <button
             type="button"
             role="menuitem"
-            className={
-              'w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 focus:bg-zinc-100 dark:focus:bg-zinc-700 outline-none' +
-              (row.destructive ? ' text-red-500' : '')
-            }
+            className="w-full rounded-lg px-2 py-0.5 text-left whitespace-nowrap cursor-default outline-hidden hover:bg-(--accent-color) hover:text-white focus:bg-(--accent-color) focus:text-white"
             onClick={() => {
               row.onSelect();
               if (!row.keepFocus) {
@@ -145,8 +141,7 @@ export function TreeContextMenu({
               }
             }}
           >
-            {row.icon}
-            <span>{row.label}</span>
+            <MenuItemLabel icon={row.icon}>{row.label}</MenuItemLabel>
           </button>
         </li>
       ))}
