@@ -2,16 +2,9 @@ import {
   prepareFileTreeInput,
   type FileTree as PierreFileTree,
 } from '@pierre/trees';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { isDirectoryHandle, setSortedTreePaths } from '../model-utils';
 import { useAllPaths } from './use-all-paths';
-
-/**
- * Identity of the path list the model was last synced with. Module-level for
- * the same reason as the shared model itself: the sync must survive the
- * <Activity> unmount/remount cycle of the sidebar's files panel.
- */
-let lastSyncedPaths: readonly string[] | null = null;
 
 function arePathListsEqual(
   a: readonly string[],
@@ -29,11 +22,12 @@ export function useSyncAllPaths(
   model: PierreFileTree
 ): readonly string[] | undefined {
   const allPaths = useAllPaths().data;
+  const lastSyncedPathsRef = useRef<readonly string[] | null>(null);
 
   useEffect(() => {
-    if (!allPaths || lastSyncedPaths === allPaths) return;
-    const previousPaths = lastSyncedPaths;
-    lastSyncedPaths = allPaths;
+    if (!allPaths || lastSyncedPathsRef.current === allPaths) return;
+    const previousPaths = lastSyncedPathsRef.current;
+    lastSyncedPathsRef.current = allPaths;
 
     const preparedInput = prepareFileTreeInput(allPaths);
     // The prepared input's paths are in the tree's final row order — the
