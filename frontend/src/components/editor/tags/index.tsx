@@ -37,6 +37,7 @@ export function Tags({ filePath }: { filePath: FilePath }) {
 
   return (
     <section
+      data-testid="note-tags"
       className={cn(
         'group mt-2 pt-1 border-t border-gray-200 dark:border-gray-600',
         isFileMaximized && 'px-3'

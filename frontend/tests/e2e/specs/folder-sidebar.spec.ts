@@ -44,11 +44,17 @@ test.describe('File Sidebar', () => {
   });
 
   test.describe('File Tree', () => {
+    // @pierre/trees renders row labels as truncation fragments, so text-based
+    // locators can't match a full name — use the treeitem's accessible name.
     test('renders folders', async ({ page }) => {
       await page.goto('/');
       const sidebar = page.getByTestId('file-sidebar');
-      await expect(sidebar).toContainText('Economics Notes');
-      await expect(sidebar).toContainText('Research Notes');
+      await expect(
+        sidebar.getByRole('treeitem', { name: 'Economics Notes' })
+      ).toBeVisible();
+      await expect(
+        sidebar.getByRole('treeitem', { name: 'Research Notes' })
+      ).toBeVisible();
     });
 
     test('clicking on folder navigates to the correct location', async ({
@@ -56,8 +62,9 @@ test.describe('File Sidebar', () => {
     }) => {
       await page.goto('/');
       const sidebar = page.getByTestId('file-sidebar');
-      await expect(sidebar).toContainText('Economics Notes');
-      const economicsFolder = sidebar.getByText('Economics Notes');
+      const economicsFolder = sidebar.getByRole('treeitem', {
+        name: 'Economics Notes',
+      });
       await economicsFolder.click();
       await expect(page).toHaveURL(/\/notes\/Economics%20Notes/i);
     });
@@ -76,7 +83,9 @@ test.describe('File Sidebar', () => {
 
         await page.goto('/');
         const sidebar = page.getByTestId('file-sidebar');
-        await sidebar.getByText('Economics Notes').click({ button: 'right' });
+        await sidebar
+          .getByRole('treeitem', { name: 'Economics Notes' })
+          .click({ button: 'right' });
 
         const contextMenu = page.getByRole('menu');
         await expect(contextMenu).toBeVisible();
@@ -98,7 +107,9 @@ test.describe('File Sidebar', () => {
 
         await page.goto('/');
         const sidebar = page.getByTestId('file-sidebar');
-        await sidebar.getByText('Economics Notes').click({ button: 'right' });
+        await sidebar
+          .getByRole('treeitem', { name: 'Economics Notes' })
+          .click({ button: 'right' });
 
         const contextMenu = page.getByRole('menu');
         await contextMenu.getByText('Rename').click();
@@ -120,47 +131,41 @@ test.describe('File Sidebar', () => {
           { file: SERVICE_FILES.NOTE_SERVICE, method: 'MoveToTrash' },
           { success: true, message: '', data: [] }
         );
+        await setupWailsEvents(context);
 
         await page.goto('/');
         const sidebar = page.getByTestId('file-sidebar');
 
         // Verify folders are visible
-        await expect(sidebar).toContainText('Economics Notes');
-        await expect(sidebar).toContainText('Research Notes');
-
-        // Update GetTopLevelItems mock so refetch returns only remaining folders
-        await updateMockBindingResponse(
-          page,
-          { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetTopLevelItems' },
-          {
-            success: true,
-            message: '',
-            data: [
-              {
-                id: 'folder-2',
-                path: 'Research Notes',
-                name: 'Research Notes',
-                parentId: '',
-                type: 'folder',
-                childrenIds: [],
-              },
-            ],
-          }
-        );
+        const economicsItem = sidebar.getByRole('treeitem', {
+          name: 'Economics Notes',
+        });
+        await expect(economicsItem).toBeVisible();
+        await expect(
+          sidebar.getByRole('treeitem', { name: 'Research Notes' })
+        ).toBeVisible();
 
         // Right-click on a folder to open context menu
-        await sidebar.getByText('Economics Notes').click({ button: 'right' });
+        await economicsItem.click({ button: 'right' });
 
-        // Click "Move to Trash" - no confirmation dialog, items removed optimistically
+        // Click "Move to Trash" - no confirmation dialog
         const contextMenu = page.getByRole('menu');
         await expect(contextMenu).toBeVisible();
         await contextMenu.getByText('Move to Trash').click();
 
+        // The tree removes rows in response to the backend file watcher's
+        // delete event, so emit it the way the real backend would.
+        await emitWailsEvent(page, 'folder:delete', [
+          { folderPath: 'Economics Notes' },
+        ]);
+
         // Verify the folder is no longer in the sidebar
-        await expect(sidebar.getByText('Economics Notes')).not.toBeVisible();
+        await expect(economicsItem).not.toBeVisible();
 
         // Verify other folders are still visible
-        await expect(sidebar).toContainText('Research Notes');
+        await expect(
+          sidebar.getByRole('treeitem', { name: 'Research Notes' })
+        ).toBeVisible();
       });
     });
   });

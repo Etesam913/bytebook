@@ -201,7 +201,7 @@ test.describe('Tags Workflow', () => {
       const editor = page.locator('#content-editable-editor');
       await expect(editor).toBeVisible();
 
-      // Open the Edit Tags dialog
+      // Expand the tags section and open the Edit Tags dialog
       const tagsSection = await expandTagsSection(page);
       const editTagsButton = tagsSection.getByRole('button', {
         name: /Edit Tags/i,
