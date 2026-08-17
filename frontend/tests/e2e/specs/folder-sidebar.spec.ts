@@ -2,8 +2,12 @@ import { test, expect } from '@playwright/test';
 import { mockBinding, updateMockBindingResponse } from '../utils/mock-binding';
 import {
   MOCK_TOP_LEVEL_ITEMS_RESPONSE,
+  MOCK_ALL_PATHS_RESPONSE,
+  MOCK_ECONOMICS_FOLDER_CHILDREN_RESPONSE,
+  MOCK_NOTE_MARKDOWN_RESPONSE,
   MOCK_PROJECT_SETTINGS_RESPONSE,
   MOCK_SAVED_SEARCHES_RESPONSE,
+  MOCK_TAGS_FOR_NOTES_RESPONSE,
   MOCK_TAGS_RESPONSE,
   MOCK_SUCCESS_RESPONSE,
 } from '../utils/mock-responses';
@@ -16,6 +20,12 @@ test.describe('File Sidebar', () => {
       context,
       { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetTopLevelItems' },
       MOCK_TOP_LEVEL_ITEMS_RESPONSE
+    );
+
+    await mockBinding(
+      context,
+      { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetAllPaths' },
+      MOCK_ALL_PATHS_RESPONSE
     );
 
     await mockBinding(
@@ -119,6 +129,68 @@ test.describe('File Sidebar', () => {
         const input = fileTree.locator('input');
         await expect(input).toBeVisible();
         await expect(input).toHaveValue('Economics Notes');
+      });
+
+      test('shows Edit Tags for a note and opens the dialog', async ({
+        page,
+        context,
+      }) => {
+        await mockBinding(
+          context,
+          {
+            file: SERVICE_FILES.FILE_TREE_SERVICE,
+            method: 'GetChildrenOfFolderBasedOnPath',
+          },
+          MOCK_ECONOMICS_FOLDER_CHILDREN_RESPONSE
+        );
+        await mockBinding(
+          context,
+          { file: SERVICE_FILES.NOTE_SERVICE, method: 'DoesNoteExist' },
+          true
+        );
+        await mockBinding(
+          context,
+          {
+            file: SERVICE_FILES.NOTE_SERVICE,
+            method: 'GetNoteMarkdownWithCodeResults',
+          },
+          MOCK_NOTE_MARKDOWN_RESPONSE
+        );
+        await mockBinding(
+          context,
+          { file: SERVICE_FILES.TAGS_SERVICE, method: 'GetTagsForNotes' },
+          MOCK_TAGS_FOR_NOTES_RESPONSE
+        );
+
+        // Navigating to a note expands its folder in the tree and scrolls the
+        // note row into view.
+        await page.goto('/notes/Economics%20Notes/Inflation.md');
+        const sidebar = page.getByTestId('file-sidebar');
+        const noteItem = sidebar.getByRole('treeitem', { name: /Inflation/ });
+        await expect(noteItem).toBeVisible();
+
+        await noteItem.click({ button: 'right' });
+
+        const contextMenu = page.getByRole('menu');
+        await expect(contextMenu).toBeVisible();
+        await contextMenu.getByText('Edit Tags').click();
+
+        const dialog = page.getByRole('dialog');
+        await expect(
+          dialog.getByRole('heading', { name: 'Edit Tags' })
+        ).toBeVisible();
+      });
+
+      test('does not show Edit Tags for folders', async ({ page }) => {
+        await page.goto('/');
+        const sidebar = page.getByTestId('file-sidebar');
+        await sidebar
+          .getByRole('treeitem', { name: 'Economics Notes' })
+          .click({ button: 'right' });
+
+        const contextMenu = page.getByRole('menu');
+        await expect(contextMenu).toBeVisible();
+        await expect(contextMenu.getByText('Edit Tags')).not.toBeVisible();
       });
 
       test('moves a folder to trash via context menu', async ({

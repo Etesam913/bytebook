@@ -69,6 +69,24 @@ export const MOCK_ECONOMICS_FOLDER_CHILDREN_RESPONSE = {
   },
 };
 
+/**
+ * Mock response for FileTreeService.GetAllPaths — every path under notes/,
+ * walk order (each directory immediately followed by its children), with
+ * directories marked by a trailing slash. Feeds the sidebar file tree.
+ */
+export const MOCK_ALL_PATHS_RESPONSE = {
+  success: true,
+  message: '',
+  data: [
+    'Economics Notes/',
+    'Economics Notes/Inflation.md',
+    'Economics Notes/Market Equilibrium.md',
+    'Economics Notes/Supply and Demand.md',
+    'Research Notes/',
+    'Research Notes/Quantum Physics.md',
+  ],
+};
+
 export const MOCK_TAGS_RESPONSE = {
   success: true,
   message: '',

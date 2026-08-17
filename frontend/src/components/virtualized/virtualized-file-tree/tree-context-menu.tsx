@@ -4,28 +4,35 @@ import type {
 } from '@pierre/trees';
 import { useAtomValue } from 'jotai';
 import { type ReactNode } from 'react';
-import {
-  usePinPathMutation,
-  useRevealInFinderMutation,
-} from '../../../hooks/notes';
+import { useRevealInFinderMutation } from '../../../hooks/notes';
 import { projectSettingsAtom } from '../../../atoms';
-import { createFilePath, createFolderPath } from '../../../utils/path';
-import { MenuItemLabel } from '../../context-menu/items';
+import {
+  createFilePath,
+  createFolderPath,
+  stripTrailingSlash,
+} from '../../../utils/path';
+import { MenuItemLabel, useContextMenuItems } from '../../context-menu/items';
+import type { DropdownItem } from '../../../types';
 import { Trash } from '../../../icons/trash';
 import { PaperclipPlus } from '../../../icons/paperclip-plus';
 import { FilePen } from '../../../icons/file-pen';
 import { Finder } from '../../../icons/finder';
-import { PinTack2 } from '../../../icons/pin-tack-2';
-import { PinTackSlash } from '../../../icons/pin-tack-slash';
 
 type MenuRow = {
   key: string;
-  label: string;
-  icon: ReactNode;
+  content: ReactNode;
   /** When true, the rename row keeps focus so the inline editor receives it. */
   keepFocus?: boolean;
   onSelect: () => void;
 };
+
+function dropdownItemToMenuRow(item: DropdownItem): MenuRow {
+  return {
+    key: item.value,
+    content: item.label,
+    onSelect: () => item.onChange?.(),
+  };
+}
 
 /**
  * Bespoke context menu rendered for the @pierre/trees model. The pierre
@@ -36,38 +43,52 @@ type MenuRow = {
 export function TreeContextMenu({
   item,
   context,
+  selectedPaths,
   onMoveToTrash,
   onAddFolderAttachments,
   onStartRename,
 }: {
   item: FileTreeContextMenuItem;
   context: FileTreeContextMenuOpenContext;
+  selectedPaths: readonly string[];
   onMoveToTrash: (paths: string[]) => void;
   onAddFolderAttachments: (folderPath: string) => void;
   onStartRename: (path: string) => void;
 }) {
   const { mutate: revealInFinder } = useRevealInFinderMutation();
-  const { mutate: pinPath } = usePinPathMutation();
+  const { editTags, pin } = useContextMenuItems();
   const projectSettings = useAtomValue(projectSettingsAtom);
   const isFolder = item.kind === 'directory';
   // pierre marks directories with a trailing slash; Bytebook's path utilities
   // and backend APIs expect slashless paths, so strip it here.
-  const slashlessPath = isFolder
-    ? item.path.endsWith('/')
-      ? item.path.slice(0, -1)
-      : item.path
-    : item.path;
+  const slashlessPath = stripTrailingSlash(item.path);
   const filePath = isFolder ? null : createFilePath(slashlessPath);
   const folderPath = isFolder ? createFolderPath(slashlessPath) : null;
-  const isPinned = projectSettings.pinnedNotes.has(slashlessPath);
+
+  // Menu actions apply to the whole selection when the right-clicked item is
+  // part of it, otherwise to just the right-clicked item.
+  const isItemInSelection = selectedPaths.includes(item.path);
+  const targetPaths = isItemInSelection ? selectedPaths : [item.path];
+  const slashlessTargets = targetPaths.map(stripTrailingSlash);
+  const isMultiSelection = targetPaths.length > 1;
+  const targetHasFolder = targetPaths.some((path) => path.endsWith('/'));
+  const targetFilePaths = targetHasFolder
+    ? []
+    : targetPaths.flatMap((path) => {
+        const target = createFilePath(stripTrailingSlash(path));
+        return target ? [target] : [];
+      });
 
   const rows: MenuRow[] = [];
 
   if (filePath || folderPath) {
     rows.push({
       key: 'reveal-in-finder',
-      icon: <Finder height="1.0625rem" width="1.0625rem" />,
-      label: 'Reveal in Finder',
+      content: (
+        <MenuItemLabel icon={<Finder height="1.0625rem" width="1.0625rem" />}>
+          Reveal in Finder
+        </MenuItemLabel>
+      ),
       onSelect: () => {
         const path = filePath ?? folderPath;
         if (path) revealInFinder({ path });
@@ -78,45 +99,91 @@ export function TreeContextMenu({
   if (isFolder) {
     rows.push({
       key: 'add-attachments',
-      icon: <PaperclipPlus height="1.0625rem" width="1.0625rem" />,
-      label: 'Add attachments',
+      content: (
+        <MenuItemLabel
+          icon={<PaperclipPlus height="1.0625rem" width="1.0625rem" />}
+        >
+          Add attachments
+        </MenuItemLabel>
+      ),
       onSelect: () => onAddFolderAttachments(slashlessPath),
     });
   }
 
-  rows.push({
-    key: 'pin',
-    icon: isPinned ? (
-      <PinTackSlash height="1.0625rem" width="1.0625rem" />
-    ) : (
-      <PinTack2 height="1.0625rem" width="1.0625rem" />
-    ),
-    label: isPinned
-      ? `Unpin ${isFolder ? 'Folder' : 'Note'}`
-      : `Pin ${isFolder ? 'Folder' : 'Note'}`,
-    onSelect: () => pinPath({ path: slashlessPath, shouldPin: !isPinned }),
-  });
+  if (targetHasFolder) {
+    // Folders (or mixed selections) pin only the right-clicked item.
+    const isPinned = projectSettings.pinnedNotes.has(slashlessPath);
+    rows.push(
+      dropdownItemToMenuRow(
+        pin({
+          paths: [slashlessPath],
+          shouldPin: !isPinned,
+          kind: isFolder ? 'folder' : 'note',
+        })
+      )
+    );
+  } else {
+    rows.push(
+      dropdownItemToMenuRow(
+        pin({
+          paths: slashlessTargets,
+          shouldPin: slashlessTargets.some(
+            (path) => !projectSettings.pinnedNotes.has(path)
+          ),
+          kind: 'note',
+        })
+      )
+    );
+  }
 
-  rows.push({
-    key: 'rename',
-    icon: <FilePen height="1.0625rem" width="1.0625rem" />,
-    label: 'Rename',
-    keepFocus: true,
-    onSelect: () => {
-      // Close the menu *first* without restoring focus to the row — the inline
-      // rename input will own focus once the model enters renaming mode. Pass
-      // pierre's original (possibly slashed) path so startRenaming finds the
-      // right node.
-      context.close({ restoreFocus: false });
-      onStartRename(item.path);
-    },
-  });
+  const uniqueFolders = new Set(targetFilePaths.map((target) => target.folder));
+  const isEditTagsEligible =
+    !targetHasFolder &&
+    targetFilePaths.length > 0 &&
+    targetFilePaths.length === targetPaths.length &&
+    uniqueFolders.size === 1;
+
+  if (isEditTagsEligible) {
+    rows.push(
+      dropdownItemToMenuRow(
+        editTags({
+          folder: targetFilePaths[0].folder,
+          selectionRange: new Set(
+            targetFilePaths.map((target) => `note:${target.note}`)
+          ),
+        })
+      )
+    );
+  }
+
+  if (!isMultiSelection) {
+    rows.push({
+      key: 'rename',
+      content: (
+        <MenuItemLabel icon={<FilePen height="1.0625rem" width="1.0625rem" />}>
+          Rename
+        </MenuItemLabel>
+      ),
+      keepFocus: true,
+      onSelect: () => {
+        // Close the menu *first* without restoring focus to the row — the inline
+        // rename input will own focus once the model enters renaming mode. Pass
+        // pierre's original (possibly slashed) path so startRenaming finds the
+        // right node.
+        context.close({ restoreFocus: false });
+        onStartRename(item.path);
+      },
+    });
+  }
 
   rows.push({
     key: 'move-to-trash',
-    icon: <Trash height="1.0625rem" width="1.0625rem" />,
-    label: 'Move to Trash',
-    onSelect: () => onMoveToTrash([slashlessPath]),
+    content: (
+      <MenuItemLabel icon={<Trash height="1.0625rem" width="1.0625rem" />}>
+        Move to Trash
+      </MenuItemLabel>
+    ),
+    onSelect: () => onMoveToTrash([...slashlessTargets]),
   });
 
   // Mirrors the native context menu's look (`components/context-menu` +
@@ -141,7 +208,7 @@ export function TreeContextMenu({
               }
             }}
           >
-            <MenuItemLabel icon={row.icon}>{row.label}</MenuItemLabel>
+            {row.content}
           </button>
         </li>
       ))}

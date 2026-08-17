@@ -170,6 +170,7 @@ function PierreFileTreeInner({
           <TreeContextMenu
             item={item}
             context={context}
+            selectedPaths={model.getSelectedPaths()}
             onMoveToTrash={(paths) => {
               void moveToTrash({ paths });
             }}
