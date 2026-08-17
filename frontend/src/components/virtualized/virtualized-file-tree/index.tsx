@@ -18,7 +18,9 @@ import { useMoveToTrashMutation } from '../../../hooks/notes';
 import { useAllPaths, useTopLevelPaths } from './hooks/use-all-paths';
 import { usePierreRouteFocus } from './hooks/use-pierre-route-focus';
 import { usePierreTreeEvents } from './hooks/use-pierre-tree-events';
-import { getRenameInput } from './model-utils';
+import { getRenameInput, setSortedTreePaths } from './model-utils';
+import { useAtomValue } from 'jotai';
+import { isDarkModeOnAtom } from '../../../atoms';
 import { TreeHeader } from './tree-header';
 import { TreeContextMenu } from './tree-context-menu';
 import {
@@ -36,6 +38,9 @@ const FILE_TREE_HOST_STYLE = {
   height: '100%',
   display: 'block',
   '--trees-bg-override': 'light-dark(rgb(252, 252, 252), rgb(39, 39, 42))',
+  // Match the app's default text color (near-black / zinc-100) instead of the
+  // package's muted gray default.
+  '--trees-fg-override': 'light-dark(rgb(9, 9, 11), rgb(244, 244, 245))',
   '--trees-accent-override': 'var(--accent-color)',
   '--trees-font-family-override': 'var(--app-font-family)',
 } as React.CSSProperties;
@@ -316,8 +321,12 @@ function PierreFileTreeInner({
     const selectedPaths = model.getSelectedPaths();
     const focusedPath = model.getFocusedPath();
 
+    const preparedInput = prepareFileTreeInput(allPaths);
+    // The prepared input's paths are in the tree's final row order — the
+    // scroll-into-view helper needs it to map a path to a row index.
+    setSortedTreePaths(preparedInput.paths);
     model.resetPaths(allPaths, {
-      preparedInput: prepareFileTreeInput(allPaths),
+      preparedInput,
       initialExpandedPaths: expandedDirectories,
     });
 
@@ -332,7 +341,17 @@ function PierreFileTreeInner({
   }, [model, allPaths]);
 
   usePierreTreeEvents(model);
-  usePierreRouteFocus(model);
+  usePierreRouteFocus(model, allPaths);
+
+  // The tree's shadow stylesheet sets `color-scheme: light dark` on :host,
+  // which makes its light-dark() colors follow the OS preference — not the
+  // app's chosen theme. An inline style on the host element wins over the
+  // shadow :host rule, so pin the scheme to the app's resolved mode.
+  const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
+  const hostStyle: React.CSSProperties = {
+    ...FILE_TREE_HOST_STYLE,
+    colorScheme: isDarkModeOn ? 'dark' : 'light',
+  };
 
   function handleStartRename(path: string) {
     if (!model.startRenaming(path)) return;
@@ -374,7 +393,7 @@ function PierreFileTreeInner({
             onStartRename={handleStartRename}
           />
         )}
-        style={FILE_TREE_HOST_STYLE}
+        style={hostStyle}
       />
     </div>
   );
