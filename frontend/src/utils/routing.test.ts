@@ -29,4 +29,22 @@ describe('disableBackspaceNavigation', () => {
 
     expect(preventDefaultSpy).not.toHaveBeenCalled();
   });
+
+  it('lets inputs inside shadow DOM handle backspace normally', () => {
+    disableBackspaceNavigation();
+
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const shadowRoot = host.attachShadow({ mode: 'open' });
+    const input = document.createElement('input');
+    shadowRoot.appendChild(input);
+    input.focus();
+
+    const event = new KeyboardEvent('keydown', { key: 'Backspace' });
+    const preventDefaultSpy = spyOn(event, 'preventDefault');
+
+    document.dispatchEvent(event);
+
+    expect(preventDefaultSpy).not.toHaveBeenCalled();
+  });
 });

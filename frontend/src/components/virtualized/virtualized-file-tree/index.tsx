@@ -353,6 +353,26 @@ function PierreFileTreeInner({
     colorScheme: isDarkModeOn ? 'dark' : 'light',
   };
 
+  // @pierre/trees only binds renaming to F2. Enter on a focused row is
+  // unhandled there, so it bubbles out of the shadow root (retargeted to the
+  // tree's host element) and we can start the rename here. The host-element
+  // check keeps light-DOM children like the create-folder input unaffected,
+  // and a commit-Enter never reaches this handler (the tree stops it).
+  function handleKeyDown(event: React.KeyboardEvent) {
+    if (event.key !== 'Enter') return;
+    const container = model.getFileTreeContainer();
+    const host =
+      container?.getRootNode() instanceof ShadowRoot
+        ? (container.getRootNode() as ShadowRoot).host
+        : container;
+    if (event.target !== host) return;
+    if (getRenameInput(model)) return;
+    const focusedPath = model.getFocusedPath();
+    if (!focusedPath) return;
+    event.preventDefault();
+    handleStartRename(focusedPath);
+  }
+
   function handleStartRename(path: string) {
     if (!model.startRenaming(path)) return;
     // Match editor conventions: pre-select only the name part so typing
@@ -375,6 +395,7 @@ function PierreFileTreeInner({
         hostRef.current = node;
       }}
       className="relative flex flex-1 flex-col min-h-0 overflow-hidden text-sm"
+      onKeyDown={handleKeyDown}
     >
       {/* Rendered outside the tree's shadow-DOM header slot on purpose: the
           tree's internal key/focus handlers sit between slotted content and
