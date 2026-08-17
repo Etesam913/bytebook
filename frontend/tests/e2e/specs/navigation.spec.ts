@@ -27,7 +27,9 @@ test.describe('Navigation', () => {
 
     // Navigate to a folder
     const sidebar = page.getByTestId('file-sidebar');
-    await sidebar.getByText('Economics Notes').click();
+    // @pierre/trees renders row labels as truncation fragments, so locate the
+    // row by its accessible treeitem name instead of text content.
+    await sidebar.getByRole('treeitem', { name: 'Economics Notes' }).click();
     await expect(page).toHaveURL(/\/notes\/Economics%20Notes/);
 
     // Click the Go back button
@@ -45,7 +47,9 @@ test.describe('Navigation', () => {
 
     // Navigate to a folder
     const sidebar = page.getByTestId('file-sidebar');
-    await sidebar.getByText('Economics Notes').click();
+    // @pierre/trees renders row labels as truncation fragments, so locate the
+    // row by its accessible treeitem name instead of text content.
+    await sidebar.getByRole('treeitem', { name: 'Economics Notes' }).click();
     await expect(page).toHaveURL(/\/notes\/Economics%20Notes/);
 
     // Go back
