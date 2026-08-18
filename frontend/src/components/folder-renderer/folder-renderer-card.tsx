@@ -2,10 +2,7 @@ import { navigate } from 'wouter/use-browser-location';
 import { type FilePath, type FolderPath } from '../../utils/path';
 import { Folder as FolderIcon } from '../../icons/folder';
 import { RenderNoteIcon } from '../../icons/render-note-icon';
-import {
-  FILE_TYPE,
-  FOLDER_TYPE,
-} from '../virtualized/virtualized-file-tree/types';
+import { FILE_TYPE, FOLDER_TYPE } from '../../utils/tree-item-types';
 
 type RendererItem = {
   id: string;

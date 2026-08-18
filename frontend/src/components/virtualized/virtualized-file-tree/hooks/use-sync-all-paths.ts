@@ -4,7 +4,7 @@ import {
 } from '@pierre/trees';
 import { useEffect, useRef } from 'react';
 import { isDirectoryHandle, setSortedTreePaths } from '../model-utils';
-import { useAllPaths } from './use-all-paths';
+import { useAllPaths } from '../../../../hooks/all-paths';
 
 function arePathListsEqual(
   a: readonly string[],

@@ -16,11 +16,8 @@ import {
 import { NotFound } from '../../routes/not-found';
 import { motion, type LegacyAnimationControls } from 'motion/react';
 import { cn } from '../../utils/string-formatting';
-import { useAllPaths } from '../virtualized/virtualized-file-tree/hooks/use-all-paths';
-import {
-  FILE_TYPE,
-  FOLDER_TYPE,
-} from '../virtualized/virtualized-file-tree/types';
+import { useAllPaths } from '../../hooks/all-paths';
+import { FILE_TYPE, FOLDER_TYPE } from '../../utils/tree-item-types';
 import {
   FolderRendererCard,
   type FolderRendererItem,

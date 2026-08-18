@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { GetAllPaths } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
-import { QueryError } from '../../../../utils/query';
-import { queryKeys } from '../../../../utils/query-keys';
+import { GetAllPaths } from '../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
+import { QueryError } from '../utils/query';
+import { queryKeys } from '../utils/query-keys';
 
 /**
  * Loads every file and folder path under the notes directory in a single
