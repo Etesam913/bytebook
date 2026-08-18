@@ -1,4 +1,9 @@
-import { LANGUAGES, type Languages } from '../types';
+import {
+  LANGUAGES,
+  type Frontmatter,
+  type Languages,
+  type ProjectSettings,
+} from '../types';
 
 type ValidatedProjectSettings = {
   theme: 'light' | 'dark' | 'system';
@@ -12,6 +17,7 @@ export const MAX_EDITOR_FONT_SIZE = 24;
 export const DEFAULT_EDITOR_LINE_HEIGHT = 2;
 export const MIN_EDITOR_LINE_HEIGHT = 1.2;
 export const MAX_EDITOR_LINE_HEIGHT = 3;
+export const EDITOR_LINE_HEIGHT_STEP = 0.1;
 
 export const DEFAULT_CODE_BLOCK_FONT_SIZE = 13;
 export const MIN_CODE_BLOCK_FONT_SIZE = 8;
@@ -86,6 +92,22 @@ export function validateCodeBlockFontSize(fontSize: unknown): number {
   }
 
   return DEFAULT_CODE_BLOCK_FONT_SIZE;
+}
+
+// Determines whether the table of contents should be shown for a note.
+// An explicit frontmatter value ('true'/'false') always wins; the project
+// setting is only the fallback when the frontmatter key is absent.
+export function isTableOfContentsVisible({
+  frontmatter,
+  projectSettings,
+}: {
+  frontmatter: Frontmatter;
+  projectSettings: ProjectSettings;
+}): boolean {
+  if (frontmatter.showTableOfContents !== undefined) {
+    return frontmatter.showTableOfContents === 'true';
+  }
+  return projectSettings.appearance.showTableOfContentsByDefault;
 }
 
 // Returns the language if it is a supported code block language, otherwise the default.
