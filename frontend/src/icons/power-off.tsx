@@ -1,4 +1,4 @@
-function PowerOff({
+export function PowerOff({
   fill = 'currentColor',
   secondaryfill,
   strokewidth = 1.5,
@@ -45,5 +45,3 @@ function PowerOff({
     </svg>
   );
 }
-
-export default PowerOff;

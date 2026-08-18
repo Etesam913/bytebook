@@ -129,9 +129,8 @@ export const sidebarSelectionAtom = atomWithLogging<SidebarSelectionState>(
 // Reflects whether the application is currently rendering in dark mode.
 export const isDarkModeOnAtom = atom<boolean>(false);
 
-// Editor UI state atoms
-// Controls whether the editor toolbar is currently disabled (e.g., when the editor is not focused).
-export const isToolbarDisabledAtom = atom<boolean>(false);
+// Drag and drop ghost element tracked during sidebar and editor drag operations.
+export const draggedGhostElementAtom = atom<HTMLElement | null>(null);
 
 // Tracks whether the current file/note is displayed in maximized (full-area) mode, hiding the sidebar.
 export const isFileMaximizedAtom = atom<boolean>(false);
@@ -164,12 +163,7 @@ export const contextMenuDataAtom = atom<ContextMenuData>({
   targetId: null,
 });
 
-export type TrashRestoreInfo = {
-  originalPath: string;
-  trashedPath: string;
-  isFolder: boolean;
-  relatedItems: TrashRestoreInfo[] | undefined;
-};
+export type { TrashRestoreInfo } from './types';
 
 /**
  * Map of kernel instance id -> instance data. The backend KernelManager owns

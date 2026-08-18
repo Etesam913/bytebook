@@ -3,8 +3,11 @@ import type { RefObject } from 'react';
 import { BaseSelection, LexicalEditor } from 'lexical';
 
 // Drag and drop atoms
-export const draggedGhostElementAtom = atom<HTMLElement | null>(null);
+export { draggedGhostElementAtom } from '../../atoms';
 export const draggableBlockElementAtom = atom<HTMLElement | null>(null);
+
+// Editor toolbar state atom
+export const isToolbarDisabledAtom = atom<boolean>(false);
 
 // Editor core atoms
 export const editorAtom = atom<LexicalEditor | null>(null);

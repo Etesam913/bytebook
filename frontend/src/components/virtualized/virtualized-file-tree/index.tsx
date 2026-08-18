@@ -137,7 +137,22 @@ function PierreFileTreeInner({
       },
     },
     renaming: {
-      onRename: (event) => applyTreeRename({ model, event, renameTreeItem }),
+      onRename: (event) => {
+        // Pierre's optimistic move re-points selection at the typed path
+        // while the backend rename is still in flight; suppress that
+        // navigation and only navigate once disk agrees, so the note view
+        // never chases a path that does not exist yet.
+        const wasCurrent = lastNavigatedRef.current === event.sourcePath;
+        if (wasCurrent) lastNavigatedRef.current = event.destinationPath;
+        applyTreeRename({
+          model,
+          event,
+          renameTreeItem,
+          onSuccess: wasCurrent
+            ? () => navigateToTreePath(event.destinationPath)
+            : undefined,
+        });
+      },
     },
   });
 

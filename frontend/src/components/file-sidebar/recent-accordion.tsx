@@ -1,7 +1,7 @@
 import { useAtom } from 'jotai';
 import { type RefObject, useEffect, useRef } from 'react';
 import { fileSidebarOpenStateAtom, mostRecentItemsAtom } from '../../atoms.ts';
-import HourglassStart from '../../icons/hourglass-start.tsx';
+import { HourglassStart } from '../../icons/hourglass-start';
 import { AccordionItem } from '../accordion/accordion-item.tsx';
 import { AccordionButton } from '../accordion/accordion-button';
 import { useRecentItemFromRoute } from '../../hooks/routes.tsx';

@@ -50,7 +50,7 @@
         "@types/react-dom": "^19.2.3",
         "@typescript/native-preview": "^7.0.0-dev.20260221.1",
         "@vitejs/plugin-react": "^5.1.4",
-        "@wailsio/runtime": "3.0.0-alpha.79",
+        "@wailsio/runtime": "^3.0.0-beta.9",
         "babel-plugin-react-compiler": "1.0.0",
         "bun-types": "latest",
         "clsx": "^2.1.1",
@@ -72,6 +72,9 @@
         "vite": "^8.0.0",
       },
     },
+  },
+  "patchedDependencies": {
+    "@pierre/trees@1.0.0-beta.3": "patches/@pierre%2Ftrees@1.0.0-beta.3.patch",
   },
   "overrides": {
     "@codemirror/language": "6.12.2",
@@ -500,7 +503,7 @@
 
     "@vitejs/plugin-react": ["@vitejs/plugin-react@5.1.4", "", { "dependencies": { "@babel/core": "^7.29.0", "@babel/plugin-transform-react-jsx-self": "^7.27.1", "@babel/plugin-transform-react-jsx-source": "^7.27.1", "@rolldown/pluginutils": "1.0.0-rc.3", "@types/babel__core": "^7.20.5", "react-refresh": "^0.18.0" }, "peerDependencies": { "vite": "^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0" } }, "sha512-VIcFLdRi/VYRU8OL/puL7QXMYafHmqOnwTZY50U1JPlCNj30PxCMx65c494b1K9be9hX83KVt0+gTEwTWLqToA=="],
 
-    "@wailsio/runtime": ["@wailsio/runtime@3.0.0-alpha.79", "", {}, "sha512-NITzxKmJsMEruc39L166lbPJVECxzcbdqpHVqOOF7Cu/7Zqk/e3B/gNpkUjhNyo5rVb3V1wpS8oEgLUmpu1cwA=="],
+    "@wailsio/runtime": ["@wailsio/runtime@3.0.0-beta.9", "", {}, "sha512-nsC4bwte9wNSxEFvjB5BslF/sfCZXQKrw2VlmAxQoSu77Lu5z292SeNmOKk0gcHd1r36LubSaNBDCEsJQLddYA=="],
 
     "acorn": ["acorn@8.15.0", "", { "bin": { "acorn": "bin/acorn" } }, "sha512-NZyJarBfL7nWwIq+FDL6Zp/yHEhePMNnnJ0y3qfieCrmNvYct8uvtiV41UvlSe6apAfk0fY1FbWx+NwfmpvtTg=="],
 

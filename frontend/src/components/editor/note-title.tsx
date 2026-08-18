@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useSetAtom } from 'jotai';
 import { $getRoot } from 'lexical';
 import { useState } from 'react';
-import { isToolbarDisabledAtom } from '../../atoms';
+import { isToolbarDisabledAtom } from './atoms';
 import { NAME_CHARS, cn } from '../../utils/string-formatting';
 import { FilePath, createFilePath } from '../../utils/path';
 import { useRenameFileMutation } from '../../hooks/notes';

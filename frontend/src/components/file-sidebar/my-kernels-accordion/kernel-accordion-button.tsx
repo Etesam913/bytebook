@@ -5,7 +5,7 @@ import {
   contextMenuDataAtom,
   kernelInstancesByLanguageAtom,
 } from '../../../atoms';
-import PowerOff from '../../../icons/power-off';
+import { PowerOff } from '../../../icons/power-off';
 import { ShutdownKernelsByLanguage } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
 import type { Languages, LanguagesWithKernels } from '../../../types';
 import { routeUrls } from '../../../utils/routes';

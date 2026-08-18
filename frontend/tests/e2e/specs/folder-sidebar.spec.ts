@@ -125,8 +125,9 @@ test.describe('File Sidebar', () => {
         await contextMenu.getByText('Rename').click();
 
         // An inline input should appear with the current folder name
-        const fileTree = page.locator('#file-tree');
-        const input = fileTree.locator('input');
+        const input = page.getByRole('textbox', {
+          name: 'Rename Economics Notes',
+        });
         await expect(input).toBeVisible();
         await expect(input).toHaveValue('Economics Notes');
       });

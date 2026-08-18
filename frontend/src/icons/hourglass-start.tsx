@@ -1,4 +1,4 @@
-function HourglassStart({
+export function HourglassStart({
   width = '1.25rem',
   height = '1.25rem',
   fill = 'currentColor',
@@ -65,5 +65,3 @@ function HourglassStart({
     </svg>
   );
 }
-
-export default HourglassStart;

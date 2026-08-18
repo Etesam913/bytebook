@@ -4,7 +4,6 @@ import {
   type HTMLAttributes,
   type RefObject,
   type ReactNode,
-  forwardRef,
   useImperativeHandle,
   useRef,
   useState,
@@ -31,12 +30,15 @@ export type VirtualizedListHandle = {
 };
 
 function createListComponent() {
-  const ListComponent = forwardRef<
-    HTMLDivElement,
-    HTMLAttributes<HTMLDivElement>
-  >(({ className, ...rest }, ref) => (
-    <div {...rest} ref={ref} className={cn('mt-[2px]', className)} />
-  ));
+  function ListComponent({
+    className,
+    ref,
+    ...rest
+  }: HTMLAttributes<HTMLDivElement> & {
+    ref?: React.Ref<HTMLDivElement>;
+  }) {
+    return <div {...rest} ref={ref} className={cn('mt-[2px]', className)} />;
+  }
   ListComponent.displayName = 'SidebarVirtuosoList';
   return ListComponent;
 }

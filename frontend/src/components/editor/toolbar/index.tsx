@@ -10,12 +10,8 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  isFullscreenAtom,
-  isFileMaximizedAtom,
-  isToolbarDisabledAtom,
-} from '../../../atoms';
-import { noteSelectionAtom } from '../atoms';
+import { isFullscreenAtom, isFileMaximizedAtom } from '../../../atoms';
+import { isToolbarDisabledAtom, noteSelectionAtom } from '../atoms';
 import { useAttachmentsMutation } from '../../../hooks/attachments';
 import { useNoteWriteEvent } from '../../../hooks/notes';
 import { useCreateTableDialog } from '../../../hooks/dialogs';
