@@ -8,6 +8,7 @@ import { KernelInstanceData } from '../../types';
 import { useShutdownKernelMutation } from '../../hooks/code';
 import { MotionButton } from '../../components/buttons';
 import { getDefaultButtonVariants } from '../../animations';
+import { Tooltip } from '../../components/tooltip';
 import { createFilePath, safeDecodeURIComponent } from '../../utils/path';
 import { Link } from 'wouter';
 import { RenderNoteIcon } from '../../icons/render-note-icon';
@@ -104,21 +105,23 @@ export function KernelStatusCard({
             </span>
           </div>
         </div>
-        <MotionButton
-          onClick={() =>
-            shutdownKernel({ kernelInstanceId: id, restart: false })
-          }
-          isDisabled={isPending}
-          {...getDefaultButtonVariants()}
-          className="shrink-0 space-x-0.5 px-2 py-1 text-sm"
-        >
-          {isPending ? (
-            <Loader />
-          ) : (
-            <PowerOff height="0.875rem" width="0.875rem" />
-          )}
-          <span>{isPending ? 'Stopping...' : 'Stop'}</span>
-        </MotionButton>
+        <Tooltip content={isPending ? 'Stopping kernel...' : 'Stop kernel'}>
+          <MotionButton
+            onClick={() =>
+              shutdownKernel({ kernelInstanceId: id, restart: false })
+            }
+            isDisabled={isPending}
+            {...getDefaultButtonVariants()}
+            className="shrink-0 space-x-0.5 px-2 py-1 text-sm"
+          >
+            {isPending ? (
+              <Loader />
+            ) : (
+              <PowerOff height="0.875rem" width="0.875rem" />
+            )}
+            <span>{isPending ? 'Stopping...' : 'Stop'}</span>
+          </MotionButton>
+        </Tooltip>
       </div>
     </div>
   );

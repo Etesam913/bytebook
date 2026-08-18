@@ -86,7 +86,6 @@ export function PlayButton({
             : 'Run code'
       }
       root={tooltipRoot}
-      disabled={status === 'starting' || status === 'queueing'}
     >
       <MotionIconButton
         aria-label={buttonLabel}

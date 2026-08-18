@@ -165,6 +165,8 @@ export function ToolbarButtons({
       }
     : null;
 
+  const DISABLED_FORMATTING_MESSAGE = 'Click inside note text to format';
+
   function renderAction({
     icon,
     key,
@@ -173,8 +175,12 @@ export function ToolbarButtons({
     isDisabled,
   }: ActionItem) {
     const itemDisabled = disabled || isDisabled;
+    const tooltipContent = disabled
+      ? `${tooltip} — ${DISABLED_FORMATTING_MESSAGE}`
+      : tooltip;
+
     return (
-      <Tooltip key={key} content={tooltip} delay={{ open: 450 }}>
+      <Tooltip key={key} content={tooltipContent} delay={{ open: 450 }}>
         <Button
           onPress={onPress}
           isDisabled={itemDisabled}
@@ -194,8 +200,12 @@ export function ToolbarButtons({
     isSelected,
     onToggle,
   }: ToggleItem) {
+    const tooltipContent = disabled
+      ? `${tooltip} — ${DISABLED_FORMATTING_MESSAGE}`
+      : tooltip;
+
     return (
-      <Tooltip key={key} content={tooltip} delay={{ open: 450 }}>
+      <Tooltip key={key} content={tooltipContent} delay={{ open: 450 }}>
         <ToggleButton
           isSelected={isSelected && !disabled}
           onChange={onToggle}

@@ -16,6 +16,7 @@ import {
   validateEditorFontSize,
 } from '../../../utils/project-settings';
 import { MotionIconButton } from '../../buttons';
+import { Tooltip } from '../../tooltip';
 import { SettingsRow } from '../settings-row';
 
 type FontSizeSetting = 'editor' | 'code-block';
@@ -133,13 +134,22 @@ export function FontSizeRow({
             }}
           />
         </TextField>
-        <MotionIconButton
-          {...getDefaultButtonVariants()}
-          isDisabled={currentFontSize === copy.defaultValue}
-          onClick={() => updateFontSize(copy.defaultValue)}
+        <Tooltip
+          content={
+            currentFontSize === copy.defaultValue
+              ? 'Already set to default'
+              : 'Reset to default'
+          }
         >
-          <ArrowRotateAnticlockwise width="0.75rem" height="0.75rem" />
-        </MotionIconButton>
+          <MotionIconButton
+            {...getDefaultButtonVariants()}
+            aria-label="Reset font size"
+            isDisabled={currentFontSize === copy.defaultValue}
+            onClick={() => updateFontSize(copy.defaultValue)}
+          >
+            <ArrowRotateAnticlockwise width="0.75rem" height="0.75rem" />
+          </MotionIconButton>
+        </Tooltip>
       </div>
     </SettingsRow>
   );

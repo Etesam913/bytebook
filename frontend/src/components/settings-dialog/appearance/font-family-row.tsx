@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { TextField, Input } from 'react-aria-components/TextField';
 import { ArrowRotateAnticlockwise } from '../../../icons/arrow-rotate-anticlockwise';
 import { MotionIconButton } from '../../buttons';
+import { Tooltip } from '../../tooltip';
 import { SettingsRow } from '../settings-row';
 import { getDefaultButtonVariants } from '../../../animations';
 import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
@@ -107,16 +108,25 @@ export function FontFamilyRow({
             placeholder="Arial"
           />
         </TextField>
-        <MotionIconButton
-          {...getDefaultButtonVariants()}
-          isDisabled={fontFamilyInputValue === copy.defaultValue}
-          onClick={() => {
-            setFontFamilyInputValue(copy.defaultValue);
-            updateFontFamily(copy.defaultValue);
-          }}
+        <Tooltip
+          content={
+            fontFamilyInputValue === copy.defaultValue
+              ? 'Already set to default'
+              : 'Reset to default'
+          }
         >
-          <ArrowRotateAnticlockwise width="0.75rem" height="0.75rem" />
-        </MotionIconButton>
+          <MotionIconButton
+            {...getDefaultButtonVariants()}
+            aria-label="Reset font family"
+            isDisabled={fontFamilyInputValue === copy.defaultValue}
+            onClick={() => {
+              setFontFamilyInputValue(copy.defaultValue);
+              updateFontFamily(copy.defaultValue);
+            }}
+          >
+            <ArrowRotateAnticlockwise width="0.75rem" height="0.75rem" />
+          </MotionIconButton>
+        </Tooltip>
       </div>
     </SettingsRow>
   );

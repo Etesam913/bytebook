@@ -134,24 +134,32 @@ function MissingSavedSearchNoteFallback({
           </div>
         </div>
 
-        <MotionButton
-          className={cn(
-            'text-center w-44',
-            isRegeneratingSearchIndex && 'flex items-center justify-center'
-          )}
-          {...getDefaultButtonVariants()}
-          isDisabled={isRegeneratingSearchIndex}
-          onClick={onRegenerateSearchIndex}
+        <Tooltip
+          content={
+            isRegeneratingSearchIndex
+              ? 'Regenerating search index...'
+              : 'Regenerate search index'
+          }
         >
-          {isRegeneratingSearchIndex ? (
-            <Loader width="1.4375rem" height="1.4375rem" />
-          ) : (
-            <>
-              <SearchContent2 width="1.25rem" height="1.25rem" />
-              Regenerate Index
-            </>
-          )}
-        </MotionButton>
+          <MotionButton
+            className={cn(
+              'text-center w-44',
+              isRegeneratingSearchIndex && 'flex items-center justify-center'
+            )}
+            {...getDefaultButtonVariants()}
+            isDisabled={isRegeneratingSearchIndex}
+            onClick={onRegenerateSearchIndex}
+          >
+            {isRegeneratingSearchIndex ? (
+              <Loader width="1.4375rem" height="1.4375rem" />
+            ) : (
+              <>
+                <SearchContent2 width="1.25rem" height="1.25rem" />
+                Regenerate Index
+              </>
+            )}
+          </MotionButton>
+        </Tooltip>
       </div>
     </div>
   );

@@ -41,12 +41,10 @@ import { cn } from '../../../utils/string-formatting';
 export function SettingsDropdown({
   folder,
   note,
-  isToolbarDisabled,
   frontmatter,
 }: {
   folder: string;
   note: string;
-  isToolbarDisabled: boolean;
   frontmatter: Frontmatter;
 }) {
   const isFullscreen = useAtomValue(isFullscreenAtom);
@@ -218,7 +216,6 @@ export function SettingsDropdown({
         <Tooltip content="Note settings" placement="left" delay={{ open: 50 }}>
           <Button
             aria-label="Note settings menu"
-            isDisabled={isToolbarDisabled}
             className={({ isHovered, isPressed }) =>
               cn(
                 'bg-transparent border-0 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 aria-expanded:bg-zinc-100 dark:aria-expanded:bg-zinc-700 rounded-md h-auto p-1.5 disabled:opacity-30 will-change-transform outline-hidden transition-transform',

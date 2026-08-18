@@ -13,6 +13,7 @@ import {
   validateEditorLineHeight,
 } from '../../../utils/project-settings';
 import { MotionIconButton } from '../../buttons';
+import { Tooltip } from '../../tooltip';
 import { SettingsRow } from '../settings-row';
 
 export function LineHeightRow() {
@@ -73,16 +74,26 @@ export function LineHeightRow() {
             }}
           />
         </TextField>
-        <MotionIconButton
-          {...getDefaultButtonVariants()}
-          isDisabled={
+        <Tooltip
+          content={
             projectSettings.appearance.editorLineHeight ===
             DEFAULT_EDITOR_LINE_HEIGHT
+              ? 'Already set to default'
+              : 'Reset to default'
           }
-          onClick={() => updateLineHeight(DEFAULT_EDITOR_LINE_HEIGHT)}
         >
-          <ArrowRotateAnticlockwise width="0.75rem" height="0.75rem" />
-        </MotionIconButton>
+          <MotionIconButton
+            {...getDefaultButtonVariants()}
+            aria-label="Reset editor line height"
+            isDisabled={
+              projectSettings.appearance.editorLineHeight ===
+              DEFAULT_EDITOR_LINE_HEIGHT
+            }
+            onClick={() => updateLineHeight(DEFAULT_EDITOR_LINE_HEIGHT)}
+          >
+            <ArrowRotateAnticlockwise width="0.75rem" height="0.75rem" />
+          </MotionIconButton>
+        </Tooltip>
       </div>
     </SettingsRow>
   );

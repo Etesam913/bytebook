@@ -194,7 +194,7 @@ export function useProjectSettings() {
         isOpen: true,
         isPending: false,
         title: 'Settings',
-        dialogClassName: 'w-[min(55rem,90vw)]',
+        dialogClassName: 'w-[min(55rem,90vw)] rounded-2xl',
         children: () => <SettingsDialog />,
         onSubmit: async () => Promise.resolve(true),
       });
