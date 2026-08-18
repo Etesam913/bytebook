@@ -31,7 +31,7 @@ export function VirtualizedListAccordion<T>({
       {!isError && !isLoading && isEmpty && <div>{emptyElement}</div>}
       {!isError && !isLoading && !isEmpty && (
         <div
-          className="flex flex-1 flex-col min-h-0 overflow-hidden scrollbar-hidden"
+          className="flex flex-1 flex-col min-h-0 overflow-hidden [scrollbar-width:none]"
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
           onDrop={onDrop}
