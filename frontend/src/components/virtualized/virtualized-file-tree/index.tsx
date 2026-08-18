@@ -7,7 +7,6 @@ import { FileTree } from '@pierre/trees/react';
 import { type RefObject, useEffect, useRef } from 'react';
 import { useAtomValue } from 'jotai';
 import { isDarkModeOnAtom } from '../../../atoms';
-import { useMoveToTrashMutation } from '../../../hooks/notes';
 import { splitPathSegments } from '../../../utils/path';
 import {
   useAddFolderAttachmentsMutation,
@@ -103,7 +102,6 @@ function PierreFileTreeInner({
   // ── Backend mutations ────────────────────────────────────────────────
   const { mutateAsync: renameTreeItem } = useRenameTreeItemMutation();
   const { mutateAsync: moveItems } = useMoveTreeItemsMutation();
-  const { mutateAsync: moveToTrash } = useMoveToTrashMutation();
   const { mutate: addFolderAttachments } = useAddFolderAttachmentsMutation();
 
   // ── Tree model ───────────────────────────────────────────────────────
@@ -223,9 +221,6 @@ function PierreFileTreeInner({
             item={item}
             context={context}
             selectedPaths={model.getSelectedPaths()}
-            onMoveToTrash={(paths) => {
-              void moveToTrash({ paths });
-            }}
             onAddFolderAttachments={addFolderAttachments}
             onStartRename={handleStartRename}
           />
