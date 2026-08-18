@@ -37,11 +37,16 @@ export function isDirectoryHandle(
  * The tree's row order, as sorted by `prepareFileTreeInput`. Kept here so the
  * scroll helper can translate a path into a visible row index without access
  * to the package's internal controller (which exposes no public reveal API).
+ * Keyed by model so the order can never leak between instances and is
+ * collected along with the model itself.
  */
-let sortedTreePaths: readonly string[] = [];
+const sortedPathsByModel = new WeakMap<PierreFileTree, readonly string[]>();
 
-export function setSortedTreePaths(paths: readonly string[]) {
-  sortedTreePaths = paths;
+export function setSortedTreePaths(
+  model: PierreFileTree,
+  paths: readonly string[]
+) {
+  sortedPathsByModel.set(model, paths);
 }
 
 function getShadowRoot(model: PierreFileTree | null): ShadowRoot | null {
@@ -81,7 +86,7 @@ function isExpandedDirectory(
 function getVisibleRowIndex(model: PierreFileTree, targetPath: string): number {
   let index = 0;
   let collapsedPrefix: string | null = null;
-  for (const path of sortedTreePaths) {
+  for (const path of sortedPathsByModel.get(model) ?? []) {
     if (collapsedPrefix !== null) {
       if (path.startsWith(collapsedPrefix)) continue;
       collapsedPrefix = null;
