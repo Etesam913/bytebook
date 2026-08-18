@@ -24,6 +24,7 @@ import { applyTreeRename } from './rename';
 import { FILE_TREE_HOST_STYLE, FILE_TREE_UNSAFE_CSS } from './styles';
 import { TreeContextMenu } from './tree-context-menu';
 import { TreeHeader } from './tree-header';
+import { TreeSearchInput } from './tree-search-input';
 
 /**
  * Replaces @pierre/trees' useFileTree, whose effect cleanup destroys the model
@@ -114,6 +115,7 @@ function PierreFileTreeInner({
     initialExpandedPaths: getInitialExpandedPaths(routeTargetPath),
     initialSelectedPaths: routeTargetPath ? [routeTargetPath] : [],
     stickyFolders: true,
+    searchBlurBehavior: 'retain',
     unsafeCSS: FILE_TREE_UNSAFE_CSS,
     onSelectionChange: (selectedPaths) => {
       if (selectedPaths.length !== 1) return;
@@ -198,6 +200,7 @@ function PierreFileTreeInner({
           tree's internal key/focus handlers sit between slotted content and
           the page, which breaks the inline create-folder input. */}
       <TreeHeader />
+      <TreeSearchInput model={model} />
       <FileTree
         model={model}
         renderContextMenu={(item, context) => (
