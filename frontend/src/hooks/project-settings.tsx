@@ -17,7 +17,10 @@ import { useWailsEvent } from '../hooks/events';
 import type { ProjectSettings } from '../types';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import {
+  validateCodeBlockDefaultLanguage,
+  validateCodeBlockFontSize,
   validateEditorFontSize,
+  validateEditorLineHeight,
   validateProjectSettings,
 } from '../utils/project-settings';
 import {
@@ -55,6 +58,22 @@ function updateEditorFontSizeVariable(fontSize: unknown) {
   );
 }
 
+function updateEditorLineHeightVariable(lineHeight: unknown) {
+  const validatedLineHeight = validateEditorLineHeight(lineHeight);
+  document.documentElement.style.setProperty(
+    '--editor-line-height',
+    String(validatedLineHeight)
+  );
+}
+
+function updateCodeBlockFontSizeVariable(fontSize: unknown) {
+  const validatedFontSize = validateCodeBlockFontSize(fontSize);
+  document.documentElement.style.setProperty(
+    '--code-block-font-size-base',
+    `${validatedFontSize}px`
+  );
+}
+
 function updateFontFamilyVariable(
   variableName: string,
   fontFamily: unknown,
@@ -79,12 +98,23 @@ function validateProjectSettingsWrapper(data: ProjectSettingsJson) {
     noteWidth: data.appearance.noteWidth,
   });
   const editorFontSize = validateEditorFontSize(data.appearance.editorFontSize);
+  const editorLineHeight = validateEditorLineHeight(
+    data.appearance.editorLineHeight
+  );
+  const codeBlockFontSize = validateCodeBlockFontSize(
+    data.code.codeBlockFontSize
+  );
+  const codeBlockDefaultLanguage = validateCodeBlockDefaultLanguage(
+    data.code.codeBlockDefaultLanguage
+  );
   const accentColor = parseRGB(data.appearance.accentColor)
     ? data.appearance.accentColor
     : DEFAULT_ACCENT_COLOR;
 
   updateAccentColorVariable(accentColor);
   updateEditorFontSizeVariable(editorFontSize);
+  updateEditorLineHeightVariable(editorLineHeight);
+  updateCodeBlockFontSizeVariable(codeBlockFontSize);
   updateFontFamilyVariable(
     '--app-font-family',
     data.appearance.uiFontFamily,
@@ -103,6 +133,9 @@ function validateProjectSettingsWrapper(data: ProjectSettingsJson) {
       ...data.appearance,
       accentColor,
       editorFontSize,
+      editorLineHeight,
+      showTableOfContentsByDefault:
+        data.appearance.showTableOfContentsByDefault ?? false,
       uiFontFamily: data.appearance.uiFontFamily ?? DEFAULT_UI_FONT_FAMILY,
       theme,
       noteWidth,
@@ -118,6 +151,10 @@ function validateProjectSettingsWrapper(data: ProjectSettingsJson) {
     code: {
       ...data.code,
       codeBlockFontFamily: data.code.codeBlockFontFamily ?? '',
+      codeBlockFontSize,
+      codeBlockLineWrapping: data.code.codeBlockLineWrapping ?? false,
+      codeBlockShowLineNumbers: data.code.codeBlockShowLineNumbers ?? false,
+      codeBlockDefaultLanguage,
     },
   };
 }
@@ -188,6 +225,12 @@ export function useUpdateProjectSettingsMutation() {
     onMutate: ({ newProjectSettings }) => {
       updateEditorFontSizeVariable(
         newProjectSettings.appearance.editorFontSize
+      );
+      updateEditorLineHeightVariable(
+        newProjectSettings.appearance.editorLineHeight
+      );
+      updateCodeBlockFontSizeVariable(
+        newProjectSettings.code.codeBlockFontSize
       );
       updateFontFamilyVariable(
         '--app-font-family',

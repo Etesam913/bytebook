@@ -195,10 +195,13 @@ export function CodeResult({
           aria-live="polite"
           dangerouslySetInnerHTML={{ __html: lastExecutedResult }}
           className={cn(
-            'code-result-output flex flex-col justify-between overflow-x-hidden gap-1.5 relative font-mono text-xs px-2 py-3',
+            'code-result-output flex flex-col justify-between overflow-x-hidden gap-1.5 relative font-mono px-2 py-3',
             showRunningStatus && 'italic text-zinc-400 dark:text-zinc-500'
           )}
-          style={{ fontFamily: 'var(--code-block-font-family)' }}
+          style={{
+            fontFamily: 'var(--code-block-font-family)',
+            fontSize: 'calc(var(--code-block-font-size) * 0.9)',
+          }}
         />
       </div>
 

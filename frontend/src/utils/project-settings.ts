@@ -1,3 +1,5 @@
+import { LANGUAGES, type Languages } from '../types';
+
 type ValidatedProjectSettings = {
   theme: 'light' | 'dark' | 'system';
   noteWidth: 'fullWidth' | 'readability';
@@ -6,6 +8,16 @@ type ValidatedProjectSettings = {
 export const DEFAULT_EDITOR_FONT_SIZE = 14;
 export const MIN_EDITOR_FONT_SIZE = 8;
 export const MAX_EDITOR_FONT_SIZE = 24;
+
+export const DEFAULT_EDITOR_LINE_HEIGHT = 2;
+export const MIN_EDITOR_LINE_HEIGHT = 1.2;
+export const MAX_EDITOR_LINE_HEIGHT = 3;
+
+export const DEFAULT_CODE_BLOCK_FONT_SIZE = 13;
+export const MIN_CODE_BLOCK_FONT_SIZE = 8;
+export const MAX_CODE_BLOCK_FONT_SIZE = 24;
+
+export const DEFAULT_CODE_BLOCK_LANGUAGE: Languages = LANGUAGES.PYTHON;
 
 /**
  * Validates the project settings and ensures they conform to the expected types.
@@ -49,4 +61,39 @@ export function validateEditorFontSize(fontSize: unknown): number {
   }
 
   return DEFAULT_EDITOR_FONT_SIZE;
+}
+
+// Clamps a line height multiplier to the allowed range and rounds it to one decimal place, returning the default if invalid.
+export function validateEditorLineHeight(lineHeight: unknown): number {
+  if (typeof lineHeight === 'number' && Number.isFinite(lineHeight)) {
+    const clamped = Math.min(
+      MAX_EDITOR_LINE_HEIGHT,
+      Math.max(MIN_EDITOR_LINE_HEIGHT, lineHeight)
+    );
+    return Math.round(clamped * 10) / 10;
+  }
+
+  return DEFAULT_EDITOR_LINE_HEIGHT;
+}
+
+// Clamps and rounds a font size value to the allowed code block range, returning the default if invalid.
+export function validateCodeBlockFontSize(fontSize: unknown): number {
+  if (typeof fontSize === 'number' && Number.isFinite(fontSize)) {
+    return Math.min(
+      MAX_CODE_BLOCK_FONT_SIZE,
+      Math.max(MIN_CODE_BLOCK_FONT_SIZE, Math.round(fontSize))
+    );
+  }
+
+  return DEFAULT_CODE_BLOCK_FONT_SIZE;
+}
+
+// Returns the language if it is a supported code block language, otherwise the default.
+export function validateCodeBlockDefaultLanguage(language: unknown): Languages {
+  const languageOptions = Object.values(LANGUAGES) as readonly string[];
+  if (typeof language === 'string' && languageOptions.includes(language)) {
+    return language as Languages;
+  }
+
+  return DEFAULT_CODE_BLOCK_LANGUAGE;
 }

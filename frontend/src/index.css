@@ -72,6 +72,11 @@
   --app-font-size-base: 16px;
   --editor-font-size-base: 14px;
   --editor-font-size: calc(var(--editor-font-size-base) * var(--ui-scale));
+  --editor-line-height: 2;
+  --code-block-font-size-base: 13px;
+  --code-block-font-size: calc(
+    var(--code-block-font-size-base) * var(--ui-scale)
+  );
   --accent-color-values: 96, 165, 250;
 }
 
@@ -158,39 +163,50 @@ textarea,
 #content-editable-editor {
   @apply cursor-text isolate py-1;
   font-size: var(--editor-font-size);
-  line-height: calc(var(--editor-font-size) * 2);
+  line-height: calc(var(--editor-font-size) * var(--editor-line-height));
   /* Avoid paint containment so floating node affordances can render outside blocks. */
   contain: layout style;
 
+  /* Heading line heights scale proportionally to the default 2.0 multiplier. */
   h1,
   h1.dragging {
     font-size: calc(var(--editor-font-size) * 1.875);
-    line-height: calc(var(--editor-font-size) * 3.25);
+    line-height: calc(
+      var(--editor-font-size) * 1.625 * var(--editor-line-height)
+    );
   }
   h2,
   h2.dragging {
     font-size: calc(var(--editor-font-size) * 1.5);
-    line-height: calc(var(--editor-font-size) * 2.875);
+    line-height: calc(
+      var(--editor-font-size) * 1.4375 * var(--editor-line-height)
+    );
   }
   h3,
   h3.dragging {
     font-size: calc(var(--editor-font-size) * 1.25);
-    line-height: calc(var(--editor-font-size) * 2.5);
+    line-height: calc(
+      var(--editor-font-size) * 1.25 * var(--editor-line-height)
+    );
   }
   h4,
   h4.dragging {
     font-size: calc(var(--editor-font-size) * 1.125);
-    line-height: calc(var(--editor-font-size) * 2.25);
+    line-height: calc(
+      var(--editor-font-size) * 1.125 * var(--editor-line-height)
+    );
   }
   h5,
   h5.dragging {
     font-size: var(--editor-font-size);
-    line-height: calc(var(--editor-font-size) * 2);
+    line-height: calc(var(--editor-font-size) * var(--editor-line-height));
   }
   h6,
   h6.dragging {
     font-size: calc(var(--editor-font-size) * 0.875);
-    line-height: calc(var(--editor-font-size) * 1.75);
+    line-height: calc(
+      var(--editor-font-size) * 0.875 * var(--editor-line-height)
+    );
   }
 
   &:focus {
@@ -421,7 +437,8 @@ textarea,
 }
 
 .cm-content {
-  @apply font-mono text-[0.8125rem] py-3 px-2!;
+  @apply font-mono py-3 px-2!;
+  font-size: var(--code-block-font-size);
   font-family: var(--code-block-font-family);
 }
 
@@ -475,7 +492,8 @@ textarea,
 }
 
 .cm-lineNumbers {
-  @apply text-xs text-zinc-500;
+  @apply text-zinc-500;
+  font-size: calc(var(--code-block-font-size) * 0.9);
 }
 
 .cm-gutter-element {
