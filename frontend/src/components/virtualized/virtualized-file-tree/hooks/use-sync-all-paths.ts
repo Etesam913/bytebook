@@ -31,11 +31,12 @@ export function useSyncAllPaths(
 
     const preparedInput = prepareFileTreeInput(allPaths);
     // The prepared input's paths are in the tree's final row order — the
-    // scroll-into-view helper needs it to map a path to a row index.
+    // scroll-into-view helper needs it to map a path to a row index. This runs
+    // on mount too (before any reveal effect), so it is the only writer.
     setSortedTreePaths(preparedInput.paths);
 
-    // Initial mount is already initialized by ensureSharedModel with allPaths,
-    // and content-identical refetches need no coarse reset.
+    // The model was constructed with this same path list, and content-identical
+    // refetches need no coarse reset.
     if (previousPaths === null || arePathListsEqual(previousPaths, allPaths)) {
       return;
     }
