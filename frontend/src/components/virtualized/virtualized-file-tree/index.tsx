@@ -19,12 +19,7 @@ import { usePierreRouteFocus } from './hooks/use-pierre-route-focus';
 import { usePierreTreeEvents } from './hooks/use-pierre-tree-events';
 import { usePierreRouteTargetPath } from './hooks/use-route-target-path';
 import { useSyncAllPaths } from './hooks/use-sync-all-paths';
-import {
-  getRenameInput,
-  getTreeHost,
-  navigateToTreePath,
-  setSortedTreePaths,
-} from './model-utils';
+import { getRenameInput, getTreeHost, navigateToTreePath } from './model-utils';
 import { applyTreeRename } from './rename';
 import { FILE_TREE_HOST_STYLE, FILE_TREE_UNSAFE_CSS } from './styles';
 import { TreeContextMenu } from './tree-context-menu';
@@ -44,6 +39,19 @@ function usePersistentFileTree(
   const modelRef = useRef<FileTreeModel | null>(null);
   modelRef.current ??= new FileTreeModel(options);
   return modelRef.current;
+}
+
+/**
+ * `prepareFileTreeInput` sorts the whole path list, and only the first result
+ * ever reaches the model — every later list arrives through `useSyncAllPaths`
+ * — so compute it once per component instance rather than on every render.
+ */
+function usePreparedTreeInput(paths: readonly string[]) {
+  const preparedInputRef = useRef<ReturnType<
+    typeof prepareFileTreeInput
+  > | null>(null);
+  preparedInputRef.current ??= prepareFileTreeInput(paths);
+  return preparedInputRef.current;
 }
 
 // Every ancestor of the route target is a folder, so it must end in '/'.
@@ -98,9 +106,7 @@ function PierreFileTreeInner({
   const { mutate: addFolderAttachments } = useAddFolderAttachmentsMutation();
 
   // ── Tree model ───────────────────────────────────────────────────────
-  const preparedInput = prepareFileTreeInput(initialPaths);
-  // Keep the sorted path order cached for the scroll-into-view helper.
-  setSortedTreePaths(preparedInput.paths);
+  const preparedInput = usePreparedTreeInput(initialPaths);
 
   const model = usePersistentFileTree({
     preparedInput,
