@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { getMockBindingCalls, mockBinding } from '../utils/mock-binding';
 import {
   MOCK_ALL_PATHS_RESPONSE,
@@ -19,6 +19,26 @@ async function openSettings(page: Page) {
   const dialog = page.getByRole('dialog');
   await expect(dialog.getByRole('heading', { name: 'Settings' })).toBeVisible();
   return dialog;
+}
+
+async function openSettingsTab(page: Page, tabName: 'Editor' | 'Code') {
+  const dialog = await openSettings(page);
+  await dialog.getByRole('tab', { name: tabName }).click();
+  return dialog;
+}
+
+async function expectLastSettingsUpdate(page: Page, expected: object) {
+  await expect
+    .poll(async () => {
+      const calls = await getMockBindingCalls(page, UPDATE_SETTINGS_BINDING);
+      return calls.at(-1)?.[0];
+    })
+    .toMatchObject(expected);
+}
+
+async function toggleSwitch(settingSwitch: Locator) {
+  await expect(settingSwitch).not.toBeChecked();
+  await settingSwitch.press('Space');
 }
 
 test.describe('Settings dialog', () => {
@@ -45,28 +65,18 @@ test.describe('Settings dialog', () => {
     });
   });
 
-  test('updates the new editor settings', async ({ page }) => {
-    const dialog = await openSettings(page);
-    await dialog.getByRole('tab', { name: 'Editor' }).click();
-
+  test('updates the editor line height', async ({ page }) => {
+    const dialog = await openSettingsTab(page, 'Editor');
     const lineHeightInput = dialog.getByRole('spinbutton', {
       name: 'Editor line height',
     });
-    const tableOfContentsSwitch = dialog.getByRole('switch', {
-      name: 'Show the table of contents by default',
-    });
 
     await expect(lineHeightInput).toHaveValue('2');
-    await expect(tableOfContentsSwitch).not.toBeChecked();
-
     await lineHeightInput.fill('2.4');
     await lineHeightInput.blur();
-    await expect
-      .poll(async () => {
-        const calls = await getMockBindingCalls(page, UPDATE_SETTINGS_BINDING);
-        return calls.at(-1)?.[0];
-      })
-      .toMatchObject({ appearance: { editorLineHeight: 2.4 } });
+    await expectLastSettingsUpdate(page, {
+      appearance: { editorLineHeight: 2.4 },
+    });
     await expect
       .poll(() =>
         page.evaluate(() =>
@@ -76,48 +86,32 @@ test.describe('Settings dialog', () => {
         )
       )
       .toBe('2.4');
-
-    await tableOfContentsSwitch.press('Space');
-    await expect
-      .poll(async () => {
-        const calls = await getMockBindingCalls(page, UPDATE_SETTINGS_BINDING);
-        return calls.at(-1)?.[0];
-      })
-      .toMatchObject({
-        appearance: { showTableOfContentsByDefault: true },
-      });
   });
 
-  test('updates the new code block settings', async ({ page }) => {
-    const dialog = await openSettings(page);
-    await dialog.getByRole('tab', { name: 'Code' }).click();
+  test('updates the table of contents default', async ({ page }) => {
+    const dialog = await openSettingsTab(page, 'Editor');
+    const settingSwitch = dialog.getByRole('switch', {
+      name: 'Show the table of contents by default',
+    });
 
+    await toggleSwitch(settingSwitch);
+    await expectLastSettingsUpdate(page, {
+      appearance: { showTableOfContentsByDefault: true },
+    });
+  });
+
+  test('updates the code block font size', async ({ page }) => {
+    const dialog = await openSettingsTab(page, 'Code');
     const fontSizeInput = dialog.getByRole('spinbutton', {
       name: 'Code block font size',
     });
-    const lineWrappingSwitch = dialog.getByRole('switch', {
-      name: 'Enable line wrapping in code blocks',
-    });
-    const lineNumbersSwitch = dialog.getByRole('switch', {
-      name: 'Show line numbers in code blocks',
-    });
-    const languageSelect = dialog.getByRole('button', {
-      name: 'Default code block language',
-    });
 
     await expect(fontSizeInput).toHaveValue('13');
-    await expect(lineWrappingSwitch).not.toBeChecked();
-    await expect(lineNumbersSwitch).not.toBeChecked();
-    await expect(languageSelect).toContainText('Python');
-
     await fontSizeInput.fill('16');
     await fontSizeInput.blur();
-    await expect
-      .poll(async () => {
-        const calls = await getMockBindingCalls(page, UPDATE_SETTINGS_BINDING);
-        return calls.at(-1)?.[0];
-      })
-      .toMatchObject({ code: { codeBlockFontSize: 16 } });
+    await expectLastSettingsUpdate(page, {
+      code: { codeBlockFontSize: 16 },
+    });
     await expect
       .poll(() =>
         page.evaluate(() =>
@@ -127,30 +121,43 @@ test.describe('Settings dialog', () => {
         )
       )
       .toBe('16px');
+  });
 
-    await lineWrappingSwitch.press('Space');
-    await expect
-      .poll(async () => {
-        const calls = await getMockBindingCalls(page, UPDATE_SETTINGS_BINDING);
-        return calls.at(-1)?.[0];
-      })
-      .toMatchObject({ code: { codeBlockLineWrapping: true } });
+  test('updates code block line wrapping', async ({ page }) => {
+    const dialog = await openSettingsTab(page, 'Code');
+    const settingSwitch = dialog.getByRole('switch', {
+      name: 'Enable line wrapping in code blocks',
+    });
 
-    await lineNumbersSwitch.press('Space');
-    await expect
-      .poll(async () => {
-        const calls = await getMockBindingCalls(page, UPDATE_SETTINGS_BINDING);
-        return calls.at(-1)?.[0];
-      })
-      .toMatchObject({ code: { codeBlockShowLineNumbers: true } });
+    await toggleSwitch(settingSwitch);
+    await expectLastSettingsUpdate(page, {
+      code: { codeBlockLineWrapping: true },
+    });
+  });
 
+  test('updates code block line numbers', async ({ page }) => {
+    const dialog = await openSettingsTab(page, 'Code');
+    const settingSwitch = dialog.getByRole('switch', {
+      name: 'Show line numbers in code blocks',
+    });
+
+    await toggleSwitch(settingSwitch);
+    await expectLastSettingsUpdate(page, {
+      code: { codeBlockShowLineNumbers: true },
+    });
+  });
+
+  test('updates the default code block language', async ({ page }) => {
+    const dialog = await openSettingsTab(page, 'Code');
+    const languageSelect = dialog.getByRole('button', {
+      name: 'Default code block language',
+    });
+
+    await expect(languageSelect).toContainText('Python');
     await languageSelect.click();
     await page.getByRole('option', { name: 'go' }).click();
-    await expect
-      .poll(async () => {
-        const calls = await getMockBindingCalls(page, UPDATE_SETTINGS_BINDING);
-        return calls.at(-1)?.[0];
-      })
-      .toMatchObject({ code: { codeBlockDefaultLanguage: 'go' } });
+    await expectLastSettingsUpdate(page, {
+      code: { codeBlockDefaultLanguage: 'go' },
+    });
   });
 });

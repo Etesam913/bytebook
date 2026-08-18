@@ -78,14 +78,14 @@ export function ToolbarButtons({
       key: 'undo',
       tooltip: 'Undo',
       onPress: () => editor.dispatchCommand(UNDO_COMMAND, undefined),
-      isDisabled: canUndo || isNodeSelection,
+      isDisabled: !canUndo || isNodeSelection,
     },
     {
       icon: <Redo />,
       key: 'redo',
       tooltip: 'Redo',
       onPress: () => editor.dispatchCommand(REDO_COMMAND, undefined),
-      isDisabled: canRedo || isNodeSelection,
+      isDisabled: !canRedo || isNodeSelection,
     },
   ];
 
@@ -174,12 +174,7 @@ export function ToolbarButtons({
   }: ActionItem) {
     const itemDisabled = disabled || isDisabled;
     return (
-      <Tooltip
-        key={key}
-        content={tooltip}
-        disabled={itemDisabled}
-        delay={{ open: 450 }}
-      >
+      <Tooltip key={key} content={tooltip} delay={{ open: 450 }}>
         <Button
           onPress={onPress}
           isDisabled={itemDisabled}
@@ -200,12 +195,7 @@ export function ToolbarButtons({
     onToggle,
   }: ToggleItem) {
     return (
-      <Tooltip
-        key={key}
-        content={tooltip}
-        disabled={disabled}
-        delay={{ open: 450 }}
-      >
+      <Tooltip key={key} content={tooltip} delay={{ open: 450 }}>
         <ToggleButton
           isSelected={isSelected && !disabled}
           onChange={onToggle}
