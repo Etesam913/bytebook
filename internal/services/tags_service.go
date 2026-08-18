@@ -1,6 +1,7 @@
 package services
 
 import (
+	"log"
 	"path/filepath"
 
 	"github.com/blevesearch/bleve/v2"
@@ -9,7 +10,6 @@ import (
 	"github.com/etesam913/bytebook/internal/notes/sidecar"
 	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/util"
-	"github.com/labstack/gommon/log"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -216,14 +216,14 @@ func (t *TagsService) DeleteTags(tagsToDelete []string) config.BackendResponseWi
 			updatedTags, err := notes.DeleteTagsFromNote(t.ProjectPath, folderAndNoteName, tagsToDelete)
 			if err != nil {
 				// Log the error but continue processing other notes
-				log.Error(err)
+				log.Printf("failed to delete tags from markdown note %s: %v", folderAndNoteName, err)
 				continue
 			}
 			eventData[folderAndNoteName] = updatedTags
 		} else {
 			updatedTags, err := sidecar.DeleteTags(t.ProjectPath, folderAndNoteName, tagsToDelete)
 			if err != nil {
-				log.Error(err)
+				log.Printf("failed to delete tags from sidecar for %s: %v", folderAndNoteName, err)
 				continue
 			}
 			eventData[folderAndNoteName] = updatedTags

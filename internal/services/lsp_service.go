@@ -60,7 +60,10 @@ func (s *LSPService) Completion(noteID, blockID string, blockOrder int, source s
 				Data:    lsp.CompletionResult{Available: false},
 			}
 		}
-		return errResp[lsp.CompletionResult](err.Error())
+		return config.BackendResponseWithData[lsp.CompletionResult]{
+			Success: false,
+			Message: "LSP server not available",
+		}
 	}
 
 	syncCtx, cancel := context.WithTimeout(context.Background(), DID_CHANGE_TIMEOUT)
@@ -69,7 +72,10 @@ func (s *LSPService) Completion(noteID, blockID string, blockOrder int, source s
 	// need a separate edit notification before every completion request.
 	if err := instance.DidChange(syncCtx, blockID, blockOrder, source); err != nil {
 		cancel()
-		return errResp[lsp.CompletionResult](err.Error())
+		return config.BackendResponseWithData[lsp.CompletionResult]{
+			Success: false,
+			Message: "Failed to update document for completion",
+		}
 	}
 	cancel()
 
@@ -89,7 +95,10 @@ func (s *LSPService) Completion(noteID, blockID string, blockOrder int, source s
 				Data:    lsp.CompletionResult{Available: true, Items: nil},
 			}
 		}
-		return errResp[lsp.CompletionResult](err.Error())
+		return config.BackendResponseWithData[lsp.CompletionResult]{
+			Success: false,
+			Message: "LSP completion request failed",
+		}
 	}
 	return config.BackendResponseWithData[lsp.CompletionResult]{
 		Success: true,
@@ -117,7 +126,10 @@ func (s *LSPService) Hover(noteID, blockID string, blockOrder int, source string
 				Data:    lsp.HoverResult{Available: false},
 			}
 		}
-		return errResp[lsp.HoverResult](err.Error())
+		return config.BackendResponseWithData[lsp.HoverResult]{
+			Success: false,
+			Message: "LSP server not available",
+		}
 	}
 
 	syncCtx, cancel := context.WithTimeout(context.Background(), DID_CHANGE_TIMEOUT)
@@ -125,7 +137,10 @@ func (s *LSPService) Hover(noteID, blockID string, blockOrder int, source string
 	// block text into the synthetic note document.
 	if err := instance.DidChange(syncCtx, blockID, blockOrder, source); err != nil {
 		cancel()
-		return errResp[lsp.HoverResult](err.Error())
+		return config.BackendResponseWithData[lsp.HoverResult]{
+			Success: false,
+			Message: "Failed to update document for hover",
+		}
 	}
 	cancel()
 
@@ -143,7 +158,10 @@ func (s *LSPService) Hover(noteID, blockID string, blockOrder int, source string
 				Data:    lsp.HoverResult{Available: true, Found: false},
 			}
 		}
-		return errResp[lsp.HoverResult](err.Error())
+		return config.BackendResponseWithData[lsp.HoverResult]{
+			Success: false,
+			Message: "LSP hover request failed",
+		}
 	}
 	return config.BackendResponseWithData[lsp.HoverResult]{
 		Success: true,

@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log/slog"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -45,7 +45,6 @@ type Instance struct {
 
 	conn jsonrpc2.Conn
 	srv  protocol.Server
-	log  *slog.Logger
 
 	mu     sync.Mutex
 	opened bool
@@ -59,7 +58,7 @@ type Instance struct {
 
 // spawnInstance launches pyright as a child process and returns a ready
 // Instance with `initialize` + `initialized` already negotiated.
-func spawnInstance(parent context.Context, noteID, binPath string, log *slog.Logger) (*Instance, error) {
+func spawnInstance(parent context.Context, noteID, binPath string) (*Instance, error) {
 	cctx, cancel := context.WithCancel(parent)
 	cmd := exec.CommandContext(cctx, binPath, "--stdio")
 
@@ -86,7 +85,7 @@ func spawnInstance(parent context.Context, noteID, binPath string, log *slog.Log
 	// Pyright exposes separate stdin/stdout pipes, while jsonrpc2.NewStream
 	// wants one ReadWriteCloser. procRWC is the small adapter between those APIs.
 	transport := &procRWC{in: stdin, out: stdout}
-	lspInstance, err := newInstance(cctx, cancel, noteID, transport, log)
+	lspInstance, err := newInstance(cctx, cancel, noteID, transport)
 	if err != nil {
 		_ = cmd.Process.Kill()
 		_ = cmd.Wait()
@@ -94,7 +93,7 @@ func spawnInstance(parent context.Context, noteID, binPath string, log *slog.Log
 	}
 	lspInstance.cmd = cmd
 
-	go drainStderr(stderr, log)
+	go drainStderr(stderr)
 	go lspInstance.waitProcess()
 
 	if err := lspInstance.initialize(); err != nil {
@@ -107,22 +106,18 @@ func spawnInstance(parent context.Context, noteID, binPath string, log *slog.Log
 // newInstance wires up the jsonrpc2 connection on top of `transport`. It does
 // NOT send initialize — callers do that themselves (so tests can stub the
 // handshake).
-func newInstance(ctx context.Context, cancel context.CancelFunc, noteID string, transport instanceTransport, log *slog.Logger) (*Instance, error) {
-	if log == nil {
-		log = slog.Default()
-	}
+func newInstance(ctx context.Context, cancel context.CancelFunc, noteID string, transport instanceTransport) (*Instance, error) {
 	lspInstance := &Instance{
 		noteID:    noteID,
 		docURI:    syntheticDocURI(noteID),
 		doc:       NewVirtualDoc(),
 		transport: transport,
-		log:       log,
 		ctx:       ctx,
 		cancelCtx: cancel,
 		done:      make(chan struct{}),
 	}
 	stream := jsonrpc2.NewStream(transport)
-	_, conn, srv := protocol.NewClient(ctx, &noopClient{log: log}, stream, zap.NewNop())
+	_, conn, srv := protocol.NewClient(ctx, &noopClient{}, stream, zap.NewNop())
 	lspInstance.conn = conn
 	lspInstance.srv = srv
 
@@ -339,8 +334,8 @@ func (lspInstance *Instance) checkAlive() error {
 func (lspInstance *Instance) watchConn() {
 	<-lspInstance.conn.Done()
 	lspInstance.markDone()
-	if err := lspInstance.conn.Err(); err != nil && lspInstance.log != nil {
-		lspInstance.log.Debug("lsp connection ended", slog.String("noteID", lspInstance.noteID), slog.Any("error", err))
+	if err := lspInstance.conn.Err(); err != nil {
+		log.Printf("lsp connection ended (noteID=%s): %v", lspInstance.noteID, err)
 	}
 }
 
@@ -415,13 +410,10 @@ func (p *procRWC) Close() error {
 	return err2
 }
 
-// drainStderr reads pyright's stderr into the logger at debug level. Without
-// this the OS pipe buffer fills and pyright blocks on its next write.
-func drainStderr(stderr io.Reader, log *slog.Logger) {
+// drainStderr reads pyright's stderr so the OS pipe buffer does not fill.
+func drainStderr(stderr io.Reader) {
 	scanner := bufio.NewScanner(stderr)
 	for scanner.Scan() {
-		if log != nil {
-			log.Debug("pyright stderr", slog.String("line", scanner.Text()))
-		}
+		// Pyright stderr is consumed
 	}
 }

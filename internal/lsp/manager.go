@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"os/exec"
 	"sync"
 	"time"
@@ -27,8 +26,6 @@ var ErrNotAvailable = errors.New("lsp server not available")
 // instances when editors unmount. The expected steady state is "open notes
 // with Python code blocks", not every note in the project.
 type LspManager struct {
-	log *slog.Logger
-
 	// mu protects both the instance map and the cached LookPath result. LookPath
 	// itself is not the reason for the lock; sharing these fields across Wails
 	// RPC goroutines is.
@@ -44,14 +41,10 @@ type LspManager struct {
 	cancel context.CancelFunc
 }
 
-// New constructs an LspManager. The provided logger may be nil.
-func New(log *slog.Logger) *LspManager {
-	if log == nil {
-		log = slog.Default()
-	}
+// New constructs an LspManager.
+func New() *LspManager {
 	ctx, cancel := context.WithCancel(context.Background())
 	m := &LspManager{
-		log:       log,
 		instances: map[string]*Instance{},
 		ctx:       ctx,
 		cancel:    cancel,
@@ -113,7 +106,7 @@ func (m *LspManager) GetOrCreate(noteID string) (*Instance, error) {
 	binaryPath := m.binaryPath
 	m.mu.Unlock()
 
-	instance, err := spawnInstance(m.ctx, noteID, binaryPath, m.log)
+	instance, err := spawnInstance(m.ctx, noteID, binaryPath)
 	if err != nil {
 		return nil, fmt.Errorf("spawn pyright for note %s: %w", noteID, err)
 	}

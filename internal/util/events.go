@@ -50,6 +50,7 @@ var Events = struct {
 	CodeBlockInputRequest  string
 	CodeBlockInspectReply  string
 	CodeBlockCompleteReply string
+	CodeBlockExecuteReply  string
 }{
 	// File events
 	FileCreate: "file:create",
@@ -100,6 +101,7 @@ var Events = struct {
 	CodeBlockInputRequest:  "code:code-block:input_request",
 	CodeBlockInspectReply:  "code:code-block:inspect_reply",
 	CodeBlockCompleteReply: "code:code-block:complete_reply",
+	CodeBlockExecuteReply:  "code:code-block:execute_reply",
 }
 
 // A map of folderAndNoteNames to tags
