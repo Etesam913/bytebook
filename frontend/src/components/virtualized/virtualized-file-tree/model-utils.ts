@@ -48,12 +48,20 @@ function getShadowRoot(model: PierreFileTree | null): ShadowRoot | null {
   if (!model) return null;
   const container = model.getFileTreeContainer();
   if (!container) return null;
-  return (
-    container.shadowRoot ??
-    (container.getRootNode() instanceof ShadowRoot
-      ? (container.getRootNode() as ShadowRoot)
-      : null)
-  );
+  const root = container.getRootNode();
+  return container.shadowRoot ?? (root instanceof ShadowRoot ? root : null);
+}
+
+/**
+ * The tree's host element: the shadow root's host when the tree renders into
+ * one, otherwise the container itself. Events from inside the shadow root are
+ * retargeted to this element by the time they reach React's handlers.
+ */
+export function getTreeHost(model: PierreFileTree): Element | null {
+  const container = model.getFileTreeContainer();
+  if (!container) return null;
+  const root = container.getRootNode();
+  return root instanceof ShadowRoot ? root.host : container;
 }
 
 function isExpandedDirectory(
@@ -124,16 +132,10 @@ export function scrollTreePathIntoView(
 export function getRenameInput(
   model: PierreFileTree | null
 ): HTMLInputElement | null {
-  if (!model) return null;
-  const container = model.getFileTreeContainer();
-  if (!container) return null;
-  const root =
-    container.shadowRoot ??
-    (container.getRootNode() instanceof ShadowRoot
-      ? (container.getRootNode() as ShadowRoot)
-      : null);
   return (
-    root?.querySelector<HTMLInputElement>('[data-item-rename-input]') ?? null
+    getShadowRoot(model)?.querySelector<HTMLInputElement>(
+      '[data-item-rename-input]'
+    ) ?? null
   );
 }
 
