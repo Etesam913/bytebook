@@ -4,19 +4,11 @@ import type { Key } from 'react-aria-components/Breadcrumbs';
 import { Button } from 'react-aria-components/Button';
 import { isFileMaximizedAtom, projectSettingsAtom } from '../../atoms';
 import { MaximizeNoteButton } from '../buttons/maximize-note';
+import { useContextMenuItems } from '../context-menu/items';
 import { AppMenu, AppMenuItem, AppMenuPopover, AppMenuTrigger } from '../menu';
 import { Tooltip } from '../tooltip';
-import { Finder } from '../../icons/finder';
 import { HorizontalDots } from '../../icons/horizontal-dots';
 import { Magnifier } from '../../icons/magnifier';
-import { PinTack2 } from '../../icons/pin-tack-2';
-import { PinTackSlash } from '../../icons/pin-tack-slash';
-import { Trash } from '../../icons/trash';
-import {
-  useMoveToTrashMutation,
-  usePinPathMutation,
-  useRevealInFinderMutation,
-} from '../../hooks/notes';
 import { stripTrailingSlash, type FolderPath } from '../../utils/path';
 import { routeUrls } from '../../utils/routes';
 import { cn } from '../../utils/string-formatting';
@@ -34,9 +26,7 @@ export function FolderRendererHeader({
   const folderName = folderPath.folder;
   const isFileMaximized = useAtomValue(isFileMaximizedAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const { mutate: revealInFinder } = useRevealInFinderMutation();
-  const { mutate: moveToTrash } = useMoveToTrashMutation();
-  const { mutate: pinPath } = usePinPathMutation();
+  const { revealInFinder, pin, moveToTrash } = useContextMenuItems();
 
   // pinnedNotes stores slashless paths (the settings.json format).
   const isPinned = projectSettings.pinnedNotes.has(
@@ -44,62 +34,17 @@ export function FolderRendererHeader({
   );
 
   const items = [
-    {
-      id: 'reveal-in-finder',
-      label: (
-        <span className="flex items-center gap-1.5 will-change-transform">
-          <Finder className="min-w-5" height="1.125rem" width="1.125rem" />
-          Reveal In Finder
-        </span>
-      ),
-    },
-    {
-      id: isPinned ? 'unpin-folder' : 'pin-folder',
-      label: (
-        <span className="flex items-center gap-1.5 will-change-transform">
-          {isPinned ? (
-            <PinTackSlash
-              className="min-w-5"
-              height="1.125rem"
-              width="1.125rem"
-            />
-          ) : (
-            <PinTack2 className="min-w-5" height="1.125rem" width="1.125rem" />
-          )}
-          {isPinned ? 'Unpin Folder' : 'Pin Folder'}
-        </span>
-      ),
-    },
-    {
-      id: 'move-to-trash',
-      label: (
-        <span className="flex items-center gap-1.5 will-change-transform">
-          <Trash className="min-w-5" height="1.125rem" width="1.125rem" />
-          Move to Trash
-        </span>
-      ),
-    },
+    revealInFinder({ path: folderPath }),
+    pin({
+      paths: [folderPath.fullPath],
+      shouldPin: !isPinned,
+      kind: 'folder',
+    }),
+    moveToTrash({ paths: [folderPath.fullPath] }),
   ];
 
   function handleAction(key: Key) {
-    switch (key) {
-      case 'reveal-in-finder': {
-        revealInFinder({ path: folderPath });
-        break;
-      }
-      case 'pin-folder':
-      case 'unpin-folder': {
-        pinPath({
-          path: folderPath.fullPath,
-          shouldPin: key === 'pin-folder',
-        });
-        break;
-      }
-      case 'move-to-trash': {
-        moveToTrash({ paths: [folderPath.fullPath] });
-        break;
-      }
-    }
+    items.find((item) => item.value === key)?.onChange?.();
   }
 
   return (
@@ -158,7 +103,7 @@ export function FolderRendererHeader({
               <AppMenuPopover className="w-52" placement="bottom end">
                 <AppMenu onAction={handleAction}>
                   {items.map((item) => (
-                    <AppMenuItem key={item.id} id={item.id}>
+                    <AppMenuItem key={item.value} id={item.value}>
                       {item.label}
                     </AppMenuItem>
                   ))}

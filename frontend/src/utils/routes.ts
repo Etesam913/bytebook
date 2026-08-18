@@ -1,6 +1,18 @@
 /**
  * Centralized route definitions and utilities for the application
  */
+import { navigate } from 'wouter/use-browser-location';
+import type { FilePath, FolderPath } from './path';
+import { FOLDER_TYPE } from './tree-item-types';
+
+/** Navigates to the route for a typed file or folder path. */
+export function navigateToPath(target: FilePath | FolderPath) {
+  navigate(
+    target.type === FOLDER_TYPE
+      ? target.encodedFolderUrl
+      : target.encodedFileUrl
+  );
+}
 
 export type KernelWithFilesRouteParams = {
   kernelName: string;

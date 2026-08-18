@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { getDefaultButtonVariants } from '../../animations';
 import { MotionButton } from '../buttons';
 import { Blog } from '../../icons/blog';
 import { Folder as FolderIcon } from '../../icons/folder';
-import { useAddTreeItemMutation } from '../../hooks/tree-items';
+import { useCreateTreeItemForm } from '../../hooks/tree-items';
 import { FILE_TYPE, FOLDER_TYPE } from '../../utils/tree-item-types';
 import type { FolderPath } from '../../utils/path';
 
@@ -12,17 +12,17 @@ export function FolderRendererCreateItemCard({
 }: {
   folderPath: FolderPath;
 }) {
-  const [creatingItemType, setCreatingItemType] = useState<
-    typeof FOLDER_TYPE | typeof FILE_TYPE | null
-  >(null);
   const {
-    mutate: addTreeItem,
-    isPending: isCreatingItem,
-    error: createItemError,
-    reset: resetCreateItemMutation,
-  } = useAddTreeItemMutation();
+    creatingItemType,
+    name,
+    setName,
+    isPending,
+    errorText,
+    startCreating,
+    cancelCreating,
+    submit,
+  } = useCreateTreeItemForm({ parentFolderPath: folderPath.fullPath });
   const inputRef = useRef<HTMLInputElement>(null);
-  const [value, setValue] = useState('');
 
   useEffect(() => {
     if (!creatingItemType) {
@@ -35,42 +35,9 @@ export function FolderRendererCreateItemCard({
     }
   }, [creatingItemType]);
 
-  const createItemErrorText =
-    createItemError instanceof Error
-      ? createItemError.message
-      : createItemError
-        ? 'An error occurred'
-        : '';
-
-  function closeCreateItemCard() {
-    resetCreateItemMutation();
-    setCreatingItemType(null);
-    setValue('');
-  }
-
-  function handleCreateItemSave(newName: string) {
-    const trimmedName = newName.trim();
-
-    if (!trimmedName || !creatingItemType) {
-      closeCreateItemCard();
-      return;
-    }
-
-    if (isCreatingItem) {
-      return;
-    }
-
-    addTreeItem({
-      parentFolderPath: folderPath.fullPath,
-      addType: creatingItemType,
-      newName: trimmedName,
-      onSuccess: closeCreateItemCard,
-    });
-  }
-
   const isCreatingFolder = creatingItemType === FOLDER_TYPE;
   const previewName =
-    value.trim() || (isCreatingFolder ? 'New folder' : 'New note');
+    name.trim() || (isCreatingFolder ? 'New folder' : 'New note');
   const previewPath = isCreatingFolder
     ? `${folderPath.fullPath}${previewName}`
     : `${folderPath.fullPath}${previewName}.md`;
@@ -79,27 +46,19 @@ export function FolderRendererCreateItemCard({
     <div>
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-8 pt-1 pb-3">
         <MotionButton
-          {...getDefaultButtonVariants({ disabled: isCreatingItem })}
+          {...getDefaultButtonVariants({ disabled: isPending })}
           aria-label="Create folder"
           className="shrink-0 flex items-center gap-2 text-sm"
-          onClick={() => {
-            resetCreateItemMutation();
-            setValue('');
-            setCreatingItemType(FOLDER_TYPE);
-          }}
+          onClick={() => startCreating(FOLDER_TYPE)}
         >
           <FolderIcon width="1rem" height="1rem" />
           Create folder
         </MotionButton>
         <MotionButton
-          {...getDefaultButtonVariants({ disabled: isCreatingItem })}
+          {...getDefaultButtonVariants({ disabled: isPending })}
           aria-label="Create note"
           className="shrink-0 flex items-center gap-2 text-sm"
-          onClick={() => {
-            resetCreateItemMutation();
-            setValue('');
-            setCreatingItemType(FILE_TYPE);
-          }}
+          onClick={() => startCreating(FILE_TYPE)}
         >
           <Blog width="1rem" height="1rem" />
           Create note
@@ -135,25 +94,23 @@ export function FolderRendererCreateItemCard({
                     autoComplete="off"
                     autoCorrect="off"
                     spellCheck={false}
-                    value={value}
+                    value={name}
                     placeholder={isCreatingFolder ? 'New folder' : 'New note'}
-                    title={createItemErrorText}
-                    disabled={isCreatingItem}
+                    title={errorText}
+                    disabled={isPending}
                     onChange={(e) => {
-                      setValue(e.currentTarget.value);
+                      setName(e.currentTarget.value);
                     }}
                     onKeyDown={(e) => {
                       if (e.key === 'Escape') {
                         e.preventDefault();
-                        closeCreateItemCard();
+                        cancelCreating();
                       } else if (e.key === 'Enter') {
                         e.preventDefault();
-                        handleCreateItemSave(e.currentTarget.value);
+                        submit();
                       }
                     }}
-                    onBlur={(e) => {
-                      handleCreateItemSave(e.currentTarget.value);
-                    }}
+                    onBlur={submit}
                   />
                   {!isCreatingFolder && (
                     <span className="text-xs leading-4 text-zinc-500 dark:text-zinc-400">
@@ -164,9 +121,9 @@ export function FolderRendererCreateItemCard({
                 <span className="block truncate text-xs leading-4 text-zinc-500 dark:text-zinc-400">
                   {previewPath}
                 </span>
-                {createItemErrorText && (
+                {errorText && (
                   <span className="block pt-1 text-xs text-red-500 dark:text-red-500">
-                    {createItemErrorText}
+                    {errorText}
                   </span>
                 )}
               </span>

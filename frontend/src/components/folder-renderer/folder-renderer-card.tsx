@@ -1,5 +1,5 @@
-import { navigate } from 'wouter/use-browser-location';
 import { type FilePath, type FolderPath } from '../../utils/path';
+import { navigateToPath } from '../../utils/routes';
 import { Folder as FolderIcon } from '../../icons/folder';
 import { RenderNoteIcon } from '../../icons/render-note-icon';
 import { FILE_TYPE, FOLDER_TYPE } from '../../utils/tree-item-types';
@@ -25,17 +25,11 @@ export function FolderRendererCard({ item }: { item: FolderRendererItem }) {
   return (
     <button
       type="button"
-      onClick={() =>
-        navigate(
-          item.type === 'folder'
-            ? item.path.encodedFolderUrl
-            : item.path.encodedFileUrl
-        )
-      }
+      onClick={() => navigateToPath(item.path)}
       className="flex w-full items-start gap-2.5 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-left hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-650 dark:bg-zinc-700 dark:hover:border-zinc-600 dark:hover:bg-zinc-650"
     >
       <span className="mt-0.75">
-        {item.type === 'folder' ? (
+        {item.type === FOLDER_TYPE ? (
           <FolderIcon
             className="min-w-4 min-h-4"
             height="1rem"

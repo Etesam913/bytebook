@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { navigate } from 'wouter/use-browser-location';
+import { useState } from 'react';
 import { AddFolder } from '../../bindings/github.com/etesam913/bytebook/internal/services/folderservice';
 import { AddAttachmentsFromPaths } from '../../bindings/github.com/etesam913/bytebook/internal/services/nodeservice';
 import { AddNoteToFolder } from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
@@ -10,14 +10,16 @@ import {
   stripTrailingSlash,
 } from '../utils/path';
 import { QueryError } from '../utils/query';
+import { navigateToPath } from '../utils/routes';
 import { NAME_CHARS } from '../utils/string-formatting';
 import { FILE_TYPE, FOLDER_TYPE } from '../utils/tree-item-types';
 
+type TreeItemType = typeof FOLDER_TYPE | typeof FILE_TYPE;
+
 type AddTreeItemVariables = {
   parentFolderPath: string | null;
-  addType: typeof FOLDER_TYPE | typeof FILE_TYPE;
+  addType: TreeItemType;
   newName: string;
-  onSuccess?: () => void;
 };
 
 /**
@@ -60,18 +62,73 @@ export function useAddTreeItemMutation() {
             );
       if (!res.success) throw new Error(res.message);
 
-      navigate(
-        newItemPath.type === FOLDER_TYPE
-          ? newItemPath.encodedFolderUrl
-          : newItemPath.encodedFileUrl
-      );
+      navigateToPath(newItemPath);
 
       return { addType, newPath: newItemPath.fullPath };
     },
-    onSuccess: (_, variables) => {
-      variables.onSuccess?.();
-    },
   });
+}
+
+/**
+ * Shared state machine for the inline "create folder/note" flows (the sidebar
+ * tree header and the folder view's create card). Owns the pending item type,
+ * the name input value, and the submit/cancel handling around
+ * `useAddTreeItemMutation`.
+ */
+export function useCreateTreeItemForm({
+  parentFolderPath,
+}: {
+  parentFolderPath: string | null;
+}) {
+  const {
+    mutate: addTreeItem,
+    isPending,
+    error,
+    reset,
+  } = useAddTreeItemMutation();
+  const [creatingItemType, setCreatingItemType] = useState<TreeItemType | null>(
+    null
+  );
+  const [name, setName] = useState('');
+
+  function startCreating(itemType: TreeItemType) {
+    reset();
+    setName('');
+    setCreatingItemType(itemType);
+  }
+
+  function cancelCreating() {
+    reset();
+    setName('');
+    setCreatingItemType(null);
+  }
+
+  function submit() {
+    const trimmedName = name.trim();
+    if (!trimmedName || !creatingItemType) {
+      cancelCreating();
+      return;
+    }
+    if (isPending) return;
+    addTreeItem(
+      { parentFolderPath, addType: creatingItemType, newName: trimmedName },
+      { onSuccess: cancelCreating }
+    );
+  }
+
+  const errorText =
+    error instanceof Error ? error.message : error ? 'An error occurred' : '';
+
+  return {
+    creatingItemType,
+    name,
+    setName,
+    isPending,
+    errorText,
+    startCreating,
+    cancelCreating,
+    submit,
+  };
 }
 
 /**
