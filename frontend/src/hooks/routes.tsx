@@ -11,9 +11,10 @@ import {
   safeDecodeURIComponent,
 } from '../utils/path';
 import {
-  NotesRouteParams,
-  SavedSearchRouteParams,
-  SearchRouteParams,
+  type NotesRouteParams,
+  type SavedSearchRouteParams,
+  type SearchRouteParams,
+  routeUrls,
 } from '../utils/routes';
 
 function normalizeWildcardPath(path: string | undefined): string | null {
@@ -31,7 +32,9 @@ function normalizeWildcardPath(path: string | undefined): string | null {
  * @returns The normalized path from the route, or null if not on `/notes/*`
  */
 export function useDecodedNotesWildcardPath(): string | null {
-  const [isNoteRoute, noteParams] = useRoute<NotesRouteParams>('/notes/*');
+  const [isNoteRoute, noteParams] = useRoute<NotesRouteParams>(
+    routeUrls.patterns.NOTES
+  );
   if (!isNoteRoute) {
     return null;
   }
@@ -48,7 +51,7 @@ export function useDecodedNotesWildcardPath(): string | null {
  */
 function useDecodedSavedSearchWildcardPath(): string | null {
   const [isSavedSearchRoute, savedSearchParams] =
-    useRoute<SavedSearchRouteParams>('/saved-search/:searchQuery/*');
+    useRoute<SavedSearchRouteParams>(routeUrls.patterns.SAVED_SEARCH);
   if (!isSavedSearchRoute) {
     return null;
   }
@@ -65,7 +68,7 @@ function useDecodedSavedSearchWildcardPath(): string | null {
  */
 function useDecodedSearchWildcardPath(): string | null {
   const [isSearchRoute, searchParams] = useRoute<SearchRouteParams>(
-    '/search/:searchQuery/*'
+    routeUrls.patterns.SEARCH_WILDCARD
   );
   if (!isSearchRoute) {
     return null;

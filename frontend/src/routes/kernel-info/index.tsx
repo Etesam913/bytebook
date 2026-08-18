@@ -50,7 +50,6 @@ export function KernelInfo() {
   const isValidKernel =
     kernelName &&
     isValidKernelLanguage(kernelName) &&
-    kernelName !== LANGUAGES.TEXT &&
     kernelName in KERNEL_CONFIGS;
 
   if (!isValidKernel) {

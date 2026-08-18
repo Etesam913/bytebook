@@ -2,7 +2,6 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { useSetAtom } from 'jotai';
 import { logger } from '../utils/logging';
 import { useEffect } from 'react';
-import { toast } from 'sonner';
 import {
   GetProjectSettings,
   UpdateProjectSettings,
@@ -15,7 +14,6 @@ import {
 import { SettingsDialog } from '../components/settings-dialog';
 import { useWailsEvent } from '../hooks/events';
 import type { ProjectSettings } from '../types';
-import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import {
   validateCodeBlockDefaultLanguage,
   validateCodeBlockFontSize,
@@ -252,17 +250,7 @@ export function useUpdateProjectSettingsMutation() {
         ...newProjectSettings,
         pinnedNotes: [...newProjectSettings.pinnedNotes],
       });
-      if (!res.success) throw new Error(res.message);
-    },
-    onError: (e) => {
-      if (e instanceof Error) {
-        toast.error(e.message, DEFAULT_SONNER_OPTIONS);
-      } else {
-        toast.error(
-          'An Unknown Error Occurred. Please Try Again Later',
-          DEFAULT_SONNER_OPTIONS
-        );
-      }
+      if (!res.success) throw new QueryError(res.message);
     },
   });
 }

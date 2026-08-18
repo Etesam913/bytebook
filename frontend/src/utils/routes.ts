@@ -40,6 +40,7 @@ export const ROUTE_PATTERNS = {
   KERNELS: '/kernels/:kernelName',
   KERNELS_WITH_FILES: '/kernels/:kernelName/:folder?/:note?',
   SEARCH: '/search/:searchQuery?/*',
+  SEARCH_WILDCARD: '/search/:searchQuery/*',
   SAVED_SEARCH: '/saved-search/:searchQuery/*',
   NOTES: '/notes/*',
   CATCH_ALL: '*',

@@ -22,7 +22,7 @@ import { PythonLogo } from '../../../icons/python-logo';
 import { GolangLogo } from '../../../icons/golang-logo';
 import { JavascriptLogo } from '../../../icons/javascript-logo';
 import { JavaLogo } from '../../../icons/java-logo';
-import { Languages, LanguagesWithKernels } from '../../../types';
+import { Languages } from '../../../types';
 import { SidebarAccordionPanel } from '../sidebar-accordion-panel';
 import type { SidebarFlexWeights } from '../../../atoms';
 import type { FlexWeightMVs } from '../index';
@@ -114,9 +114,7 @@ export function MyKernelsAccordion({
             <KernelAccordionButton
               kernelName={kernelName}
               kernelNameFromUrl={kernelNameFromUrl}
-              instanceCount={
-                byLanguage[kernelName as LanguagesWithKernels]?.length ?? 0
-              }
+              instanceCount={byLanguage[kernelName]?.length ?? 0}
             />
           );
         }}

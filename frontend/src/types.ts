@@ -142,9 +142,14 @@ export const languagesWithKernelsSet = new Set<LanguagesWithKernels>(
   )
 );
 
-// Type guard that checks whether an unknown value is one of the recognized language strings.
-export function isValidKernelLanguage(key: unknown): key is Languages {
-  return typeof key === 'string' && allLanguagesSet.has(key as Languages);
+// Type guard that checks whether an unknown value is a supported kernel execution language.
+export function isValidKernelLanguage(
+  key: unknown
+): key is LanguagesWithKernels {
+  return (
+    typeof key === 'string' &&
+    languagesWithKernelsSet.has(key as LanguagesWithKernels)
+  );
 }
 
 export type Frontmatter = {

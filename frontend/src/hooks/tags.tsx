@@ -65,7 +65,7 @@ export function useTagsForNotesQuery(paths: string[]) {
     queryFn: async (): Promise<Record<string, string[]>> => {
       const res = await GetTagsForNotes(paths);
       if (!res.success) {
-        throw new Error(res.message);
+        throw new QueryError(res.message);
       }
       return (res.data ?? {}) as Record<string, string[]>;
     },
@@ -134,7 +134,7 @@ export function useDeleteTagFromNoteMutation(filePath: string) {
     mutationFn: async ({ tagToDelete }: { tagToDelete: string }) => {
       const res = await SetTagsOnNotes([filePath], [], [tagToDelete]);
       if (!res.success) {
-        throw new Error(res.message);
+        throw new QueryError(res.message);
       }
       return true;
     },
@@ -146,10 +146,10 @@ export function useDeleteTagFromNoteMutation(filePath: string) {
   });
 }
 
-interface DeleteTagsMutationVariables {
+type DeleteTagsMutationVariables = {
   tagsToDelete: string[];
   setErrorText: (error: string) => void;
-}
+};
 
 /**
  * Deletes tags from all notes. Used for tag context-menu option.
@@ -160,7 +160,7 @@ export function useDeleteTagsMutation() {
     mutationFn: async (variables: DeleteTagsMutationVariables) => {
       const res = await DeleteTags(variables.tagsToDelete);
       if (!res.success) {
-        throw new Error(res.message);
+        throw new QueryError(res.message);
       }
       return true;
     },

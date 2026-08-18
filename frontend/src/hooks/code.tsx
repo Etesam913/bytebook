@@ -98,10 +98,7 @@ export function useKernelInstancesQuery() {
 
       return data.reduce<Record<string, KernelInstanceData>>(
         (acc, snapshot) => {
-          if (
-            !isValidKernelLanguage(snapshot.language) ||
-            snapshot.language === LANGUAGES.TEXT
-          ) {
+          if (!isValidKernelLanguage(snapshot.language)) {
             return acc;
           }
 

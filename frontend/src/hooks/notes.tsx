@@ -126,7 +126,7 @@ export function useMoveToTrashMutation() {
   return useMutation({
     mutationFn: async ({ paths }: { paths: string[] }) => {
       const res = await MoveToTrash(paths.map(stripTrailingSlash));
-      if (!res.success) throw new Error(res.message);
+      if (!res.success) throw new QueryError(res.message);
       return res.data ?? [];
     },
     onMutate: ({ paths }) => {
@@ -137,11 +137,6 @@ export function useMoveToTrashMutation() {
       });
       if (navigationTarget) {
         navigate(navigationTarget);
-      }
-    },
-    onError: (e) => {
-      if (e instanceof Error) {
-        toast.error(e.message, DEFAULT_SONNER_OPTIONS);
       }
     },
     onSuccess: (restoreItems) => {
@@ -180,7 +175,7 @@ function useRestoreFromTrashMutation() {
     }) => {
       const res = await RestoreFromTrash(restoreItems);
       if (!res.success) {
-        throw new Error(res.message);
+        throw new QueryError(res.message);
       }
     },
   });
@@ -216,11 +211,6 @@ export function usePinPathMutation() {
       }
       return updateProjectSettings({ newProjectSettings });
     },
-    onError: (e) => {
-      if (e instanceof Error) {
-        toast.error(e.message, DEFAULT_SONNER_OPTIONS);
-      }
-    },
   });
 }
 
@@ -237,7 +227,7 @@ export function useRenameFileMutation() {
     }) => {
       const res = await RenameFile(oldPath.fullPath, newPath.fullPath);
       if (!res.success) {
-        throw new Error(res.message);
+        throw new QueryError(res.message);
       }
       return res.data;
     },
