@@ -130,7 +130,7 @@ func newTestInstance(t *testing.T) (*Instance, *fakeServer, func()) {
 	serverJSONRPC.Go(srvCtx, fake.handler)
 
 	cctx, cancel := context.WithCancel(context.Background())
-	in, err := newInstance(cctx, cancel, "test-note", clientConn, nil)
+	in, err := newInstance(cctx, cancel, "test-note", clientConn)
 	if err != nil {
 		srvCancel()
 		_ = serverJSONRPC.Close()

@@ -10,7 +10,7 @@ import (
 // asserts Available reports false. Achieves this by stubbing binaryPath to ""
 // and using a fresh-enough lastLookup that the TTL doesn't re-resolve.
 func TestManagerAvailableWhenBinaryMissing(t *testing.T) {
-	m := New(nil)
+	m := New()
 	t.Cleanup(m.ShutdownAll)
 
 	m.mu.Lock()
@@ -28,7 +28,7 @@ func TestManagerAvailableWhenBinaryMissing(t *testing.T) {
 }
 
 func TestManagerAvailableLanguageGating(t *testing.T) {
-	m := New(nil)
+	m := New()
 	t.Cleanup(m.ShutdownAll)
 
 	// Force binary present so Available depends only on language.
@@ -47,7 +47,7 @@ func TestManagerAvailableLanguageGating(t *testing.T) {
 }
 
 func TestManagerGetOrCreateRejectsWhenUnavailable(t *testing.T) {
-	m := New(nil)
+	m := New()
 	t.Cleanup(m.ShutdownAll)
 
 	m.mu.Lock()
@@ -62,7 +62,7 @@ func TestManagerGetOrCreateRejectsWhenUnavailable(t *testing.T) {
 }
 
 func TestManagerGetOrCreateRejectsEmptyNoteID(t *testing.T) {
-	m := New(nil)
+	m := New()
 	t.Cleanup(m.ShutdownAll)
 
 	// Even with binary "available", empty noteID must fail.
@@ -77,13 +77,13 @@ func TestManagerGetOrCreateRejectsEmptyNoteID(t *testing.T) {
 }
 
 func TestManagerShutdownAllSafeWhenEmpty(t *testing.T) {
-	m := New(nil)
+	m := New()
 	// Should not panic / block.
 	m.ShutdownAll()
 }
 
 func TestManagerShutdownNoteUnknownIsNoop(t *testing.T) {
-	m := New(nil)
+	m := New()
 	t.Cleanup(m.ShutdownAll)
 
 	if err := m.ShutdownNote("never-existed"); err != nil {

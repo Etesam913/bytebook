@@ -129,7 +129,7 @@ func (s *shellSocket) Listen(p CreateParams) {
 				if app != nil {
 					if currentWindow := app.Window.Current(); currentWindow != nil {
 						currentWindow.EmitEvent(
-							"code:code-block:execute_reply",
+							util.Events.CodeBlockExecuteReply,
 							executeReplyEvent{
 								Status:         status,
 								MessageId:      msgId,

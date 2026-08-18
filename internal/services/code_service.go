@@ -30,11 +30,17 @@ type SendExecuteRequestResponse struct {
 func (c *CodeService) SendExecuteRequest(noteID, codeBlockID, executionID, language, code string) config.BackendResponseWithData[SendExecuteRequestResponse] {
 	projectSettings, err := config.GetProjectSettings(c.ProjectPath)
 	if err != nil {
-		return errResp[SendExecuteRequestResponse]("Failed to get project settings. Please check if the settings.json file exists.")
+		return config.BackendResponseWithData[SendExecuteRequestResponse]{
+			Success: false,
+			Message: "Failed to get project settings. Please check if the settings.json file exists.",
+		}
 	}
 
 	if language == "python" && !util.IsVirtualEnv(projectSettings.Code.PythonVenvPath) {
-		return errResp[SendExecuteRequestResponse]("A virtual environment is not set. A virtual environment can be configured in the \"Code Block\" section of the settings.")
+		return config.BackendResponseWithData[SendExecuteRequestResponse]{
+			Success: false,
+			Message: "A virtual environment is not set. A virtual environment can be configured in the \"Code Block\" section of the settings.",
+		}
 	}
 
 	venvPath := projectSettings.Code.PythonVenvPath
@@ -42,14 +48,23 @@ func (c *CodeService) SendExecuteRequest(noteID, codeBlockID, executionID, langu
 	inst, err := c.Manager.GetOrCreate(context.Background(), language, noteID, venvPath)
 	if err != nil {
 		if errors.Is(err, kernel_manager.ErrNoIdleKernelToEvict) {
-			return errResp[SendExecuteRequestResponse](fmt.Sprintf("Stop another %s kernel to start this one.", language))
+			return config.BackendResponseWithData[SendExecuteRequestResponse]{
+				Success: false,
+				Message: fmt.Sprintf("Stop another %s kernel to start this one.", language),
+			}
 		}
-		return errResp[SendExecuteRequestResponse](err.Error())
+		return config.BackendResponseWithData[SendExecuteRequestResponse]{
+			Success: false,
+			Message: "Failed to start kernel",
+		}
 	}
 
 	if err := inst.SendExecute(codeBlockID, executionID, code); err != nil {
 		if !errors.Is(err, zmq4.ErrorSocketClosed) {
-			return errResp[SendExecuteRequestResponse](fmt.Sprintf("Failed to send execute request: %v", err))
+			return config.BackendResponseWithData[SendExecuteRequestResponse]{
+				Success: false,
+				Message: fmt.Sprintf("Failed to send execute request: %v", err),
+			}
 		}
 
 		// If the socket is closed, try to re-create it
@@ -57,12 +72,21 @@ func (c *CodeService) SendExecuteRequest(noteID, codeBlockID, executionID, langu
 		inst, err = c.Manager.GetOrCreate(context.Background(), language, noteID, venvPath)
 		if err != nil {
 			if errors.Is(err, kernel_manager.ErrNoIdleKernelToEvict) {
-				return errResp[SendExecuteRequestResponse](fmt.Sprintf("Stop another %s kernel to start this one.", language))
+				return config.BackendResponseWithData[SendExecuteRequestResponse]{
+					Success: false,
+					Message: fmt.Sprintf("Stop another %s kernel to start this one.", language),
+				}
 			}
-			return errResp[SendExecuteRequestResponse](err.Error())
+			return config.BackendResponseWithData[SendExecuteRequestResponse]{
+				Success: false,
+				Message: "Failed to restart kernel",
+			}
 		}
 		if err := inst.SendExecute(codeBlockID, executionID, code); err != nil {
-			return errResp[SendExecuteRequestResponse](fmt.Sprintf("Failed to send execute request after reopening kernel: %v", err))
+			return config.BackendResponseWithData[SendExecuteRequestResponse]{
+				Success: false,
+				Message: fmt.Sprintf("Failed to send execute request after reopening kernel: %v", err),
+			}
 		}
 	}
 	inst.MarkActivity()
@@ -79,18 +103,30 @@ func (c *CodeService) SendExecuteRequest(noteID, codeBlockID, executionID, langu
 func (c *CodeService) EnsureKernel(noteID, language string) config.BackendResponseWithData[SendExecuteRequestResponse] {
 	projectSettings, err := config.GetProjectSettings(c.ProjectPath)
 	if err != nil {
-		return errResp[SendExecuteRequestResponse]("Failed to retrieve project settings.")
+		return config.BackendResponseWithData[SendExecuteRequestResponse]{
+			Success: false,
+			Message: "Failed to retrieve project settings.",
+		}
 	}
 	if language == "python" && !util.IsVirtualEnv(projectSettings.Code.PythonVenvPath) {
-		return errResp[SendExecuteRequestResponse]("A virtual environment is not set. A virtual environment can be configured in the \"Code Block\" section of the settings.")
+		return config.BackendResponseWithData[SendExecuteRequestResponse]{
+			Success: false,
+			Message: "A virtual environment is not set. A virtual environment can be configured in the \"Code Block\" section of the settings.",
+		}
 	}
 
 	inst, err := c.Manager.GetOrCreate(context.Background(), language, noteID, projectSettings.Code.PythonVenvPath)
 	if err != nil {
 		if errors.Is(err, kernel_manager.ErrNoIdleKernelToEvict) {
-			return errResp[SendExecuteRequestResponse](fmt.Sprintf("Stop another %s kernel to start this one.", language))
+			return config.BackendResponseWithData[SendExecuteRequestResponse]{
+				Success: false,
+				Message: fmt.Sprintf("Stop another %s kernel to start this one.", language),
+			}
 		}
-		return errResp[SendExecuteRequestResponse](err.Error())
+		return config.BackendResponseWithData[SendExecuteRequestResponse]{
+			Success: false,
+			Message: "Failed to start kernel",
+		}
 	}
 	return config.BackendResponseWithData[SendExecuteRequestResponse]{
 		Success: true,
@@ -151,14 +187,23 @@ type SendInspectRequestResponse struct {
 func (c *CodeService) SendInspectRequest(kernelInstanceID, codeBlockID, executionID, code string, cursorPos, detailLevel int) config.BackendResponseWithData[SendInspectRequestResponse] {
 	inst := c.Manager.GetByID(kernelInstanceID)
 	if inst == nil {
-		return errResp[SendInspectRequestResponse]("Kernel instance not found")
+		return config.BackendResponseWithData[SendInspectRequestResponse]{
+			Success: false,
+			Message: "Kernel instance not found",
+		}
 	}
 	if !inst.IsHeartbeating() {
-		return errResp[SendInspectRequestResponse]("Kernel is not running.")
+		return config.BackendResponseWithData[SendInspectRequestResponse]{
+			Success: false,
+			Message: "Kernel is not running.",
+		}
 	}
 	messageID, err := inst.SendInspect(codeBlockID, executionID, code, cursorPos, detailLevel)
 	if err != nil {
-		return errResp[SendInspectRequestResponse](err.Error())
+		return config.BackendResponseWithData[SendInspectRequestResponse]{
+			Success: false,
+			Message: "Failed to send inspect request",
+		}
 	}
 	return config.BackendResponseWithData[SendInspectRequestResponse]{
 		Success: true,
@@ -175,14 +220,23 @@ type SendCompleteRequestResponse struct {
 func (c *CodeService) SendCompleteRequest(kernelInstanceID, codeBlockID, executionID, code string, cursorPos int) config.BackendResponseWithData[SendCompleteRequestResponse] {
 	inst := c.Manager.GetByID(kernelInstanceID)
 	if inst == nil {
-		return errResp[SendCompleteRequestResponse]("Kernel instance not found")
+		return config.BackendResponseWithData[SendCompleteRequestResponse]{
+			Success: false,
+			Message: "Kernel instance not found",
+		}
 	}
 	if !inst.IsHeartbeating() {
-		return errResp[SendCompleteRequestResponse]("Kernel is not running.")
+		return config.BackendResponseWithData[SendCompleteRequestResponse]{
+			Success: false,
+			Message: "Kernel is not running.",
+		}
 	}
 	messageID, err := inst.SendComplete(codeBlockID, executionID, code, cursorPos)
 	if err != nil {
-		return errResp[SendCompleteRequestResponse](err.Error())
+		return config.BackendResponseWithData[SendCompleteRequestResponse]{
+			Success: false,
+			Message: "Failed to send complete request",
+		}
 	}
 	return config.BackendResponseWithData[SendCompleteRequestResponse]{
 		Success: true,
@@ -204,7 +258,10 @@ func (c *CodeService) ListKernels() config.BackendResponseWithData[[]kernel_mana
 func (c *CodeService) GetPythonVirtualEnvironments() config.BackendResponseWithData[[]string] {
 	projectSettings, err := config.GetProjectSettings(c.ProjectPath)
 	if err != nil {
-		return errResp[[]string]("Failed to retrieve project settings")
+		return config.BackendResponseWithData[[]string]{
+			Success: false,
+			Message: "Failed to retrieve project settings",
+		}
 	}
 
 	virtualEnvironmentPaths, err := config.GetPythonVirtualEnvironments(
@@ -212,7 +269,10 @@ func (c *CodeService) GetPythonVirtualEnvironments() config.BackendResponseWithD
 		projectSettings.Code.CustomPythonVenvPaths,
 	)
 	if err != nil {
-		return errResp[[]string](err.Error())
+		return config.BackendResponseWithData[[]string]{
+			Success: false,
+			Message: "Failed to locate virtual environments",
+		}
 	}
 	return config.BackendResponseWithData[[]string]{
 		Success: true,
@@ -244,7 +304,10 @@ func (c *CodeService) IsPathAValidVirtualEnvironment(path string) config.Backend
 func (c *CodeService) ChooseCustomVirtualEnvironmentPath() config.BackendResponseWithData[string] {
 	app := application.Get()
 	if app == nil || app.Dialog == nil {
-		return errResp[string]("Application not initialized")
+		return config.BackendResponseWithData[string]{
+			Success: false,
+			Message: "Application not initialized",
+		}
 	}
 
 	localFilePath, err := app.Dialog.OpenFile().
@@ -253,7 +316,10 @@ func (c *CodeService) ChooseCustomVirtualEnvironmentPath() config.BackendRespons
 		PromptForSingleSelection()
 
 	if err != nil {
-		return errResp[string]("Failed to open file dialog")
+		return config.BackendResponseWithData[string]{
+			Success: false,
+			Message: "Failed to open file dialog",
+		}
 	}
 
 	return config.BackendResponseWithData[string]{
@@ -268,7 +334,10 @@ func (c *CodeService) ChooseCustomVirtualEnvironmentPath() config.BackendRespons
 func (c *CodeService) GetKernelDescriptor(language string) config.BackendResponseWithData[*config.KernelJson] {
 	all, err := config.GetAllKernels(c.ProjectPath)
 	if err != nil {
-		return errResp[*config.KernelJson](err.Error())
+		return config.BackendResponseWithData[*config.KernelJson]{
+			Success: false,
+			Message: "Failed to read kernel descriptor",
+		}
 	}
 	var k *config.KernelJson
 	switch language {
@@ -281,17 +350,14 @@ func (c *CodeService) GetKernelDescriptor(language string) config.BackendRespons
 	case "java":
 		k = &all.Java
 	default:
-		return errResp[*config.KernelJson]("Unsupported language")
+		return config.BackendResponseWithData[*config.KernelJson]{
+			Success: false,
+			Message: "Unsupported language",
+		}
 	}
 	return config.BackendResponseWithData[*config.KernelJson]{
 		Success: true,
 		Message: "Kernel descriptor retrieved",
 		Data:    k,
 	}
-}
-
-// errResp constructs a typed BackendResponseWithData error result with a zero-value Data.
-func errResp[T any](msg string) config.BackendResponseWithData[T] {
-	var zero T
-	return config.BackendResponseWithData[T]{Success: false, Message: msg, Data: zero}
 }

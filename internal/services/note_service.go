@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -239,7 +240,7 @@ func (n *NoteService) AddNoteToFolder(folderName string, noteName string) config
 	err = os.WriteFile(pathToNote, []byte(""), 0644)
 
 	if err != nil {
-		fmt.Printf("Error writing to %s: %v", noteFolderPath, err)
+		log.Printf("Error writing to %s: %v", noteFolderPath, err)
 		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: err.Error(),

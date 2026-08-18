@@ -9,9 +9,7 @@ require (
 )
 
 require (
-	github.com/blevesearch/bleve v1.0.14
 	github.com/blevesearch/bleve/v2 v2.5.5
-	github.com/labstack/gommon v0.4.2
 	github.com/robert-nix/ansihtml v1.0.1
 	github.com/yuin/goldmark v1.7.16
 	golang.org/x/sync v0.20.0
@@ -52,8 +50,6 @@ require (
 	github.com/mschoch/smat v0.2.0 // indirect
 	github.com/segmentio/asm v1.1.3 // indirect
 	github.com/segmentio/encoding v0.3.4 // indirect
-	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasttemplate v1.2.2 // indirect
 	go.etcd.io/bbolt v1.4.3 // indirect
 	go.lsp.dev/jsonrpc2 v0.10.0
 	go.lsp.dev/pkg v0.0.0-20210717090340-384b27a52fb2 // indirect

@@ -2,8 +2,6 @@ package main
 
 import (
 	"log"
-	"log/slog"
-	"os"
 	"sync"
 
 	bytebook "github.com/etesam913/bytebook"
@@ -25,8 +23,6 @@ import (
 
 // main function serves as the application's entry point.
 func main() {
-	appLogger := newAppLogger()
-
 	projectPath, err := config.GetProjectPath()
 	if err != nil {
 		log.Fatal(err.Error())
@@ -56,7 +52,7 @@ func main() {
 	kernelManager := kernel_manager.New(projectPath, projectFiles.AllKernels)
 	defer kernelManager.ShutdownAll()
 
-	lspManager := lsp.New(appLogger.With("component", "lsp"))
+	lspManager := lsp.New()
 	defer lspManager.ShutdownAll()
 
 	watcher, err := fsnotify.NewWatcher()
@@ -99,7 +95,6 @@ func main() {
 		Mac: application.MacOptions{
 			ApplicationShouldTerminateAfterLastWindowClosed: true,
 		},
-		Logger: appLogger,
 	})
 
 	backgroundColor := application.NewRGB(27, 38, 54)
@@ -131,17 +126,4 @@ func main() {
 	if err := app.Run(); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func newAppLogger() *slog.Logger {
-	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
-	})
-	logger := slog.New(handler)
-
-	slog.SetDefault(logger)
-	log.SetFlags(0)
-	log.SetOutput(slog.NewLogLogger(handler, slog.LevelInfo).Writer())
-
-	return logger
 }

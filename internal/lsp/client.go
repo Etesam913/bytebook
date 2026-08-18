@@ -2,7 +2,6 @@ package lsp
 
 import (
 	"context"
-	"log/slog"
 
 	"go.lsp.dev/protocol"
 )
@@ -11,18 +10,13 @@ import (
 // jsonrpc2 connection can route server-initiated callbacks somewhere, but
 // drops everything on the floor. v1.1 may grow this to handle
 // PublishDiagnostics for inline error squiggles.
-type noopClient struct {
-	log *slog.Logger
-}
+type noopClient struct{}
 
 func (c *noopClient) Progress(ctx context.Context, p *protocol.ProgressParams) error { return nil }
 func (c *noopClient) WorkDoneProgressCreate(ctx context.Context, p *protocol.WorkDoneProgressCreateParams) error {
 	return nil
 }
 func (c *noopClient) LogMessage(ctx context.Context, p *protocol.LogMessageParams) error {
-	if c.log != nil {
-		c.log.Debug("lsp server log", slog.Int("type", int(p.Type)), slog.String("message", p.Message))
-	}
 	return nil
 }
 func (c *noopClient) PublishDiagnostics(ctx context.Context, p *protocol.PublishDiagnosticsParams) error {
