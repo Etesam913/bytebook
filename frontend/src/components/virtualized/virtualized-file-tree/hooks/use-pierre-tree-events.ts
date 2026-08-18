@@ -8,8 +8,6 @@ import {
   FOLDER_DELETE,
   FOLDER_RENAME,
 } from '../../../../utils/events';
-import { revealTreePath } from '../model-utils';
-import { usePierreRouteTargetPath } from './use-route-target-path';
 
 type CreatePayload = { filePath?: string; folderPath?: string };
 type DeletePayload = { filePath?: string; folderPath?: string };
@@ -65,13 +63,11 @@ function extractRename(
  * an optimistic rename, and `model.move` throws when the source is gone.
  */
 export function usePierreTreeEvents(model: PierreFileTree | null) {
-  const routeTargetPath = usePierreRouteTargetPath();
-
   useWailsEvent(FOLDER_CREATE, (body) =>
-    handleCreate({ model, body, isFolder: true, routeTargetPath })
+    handleCreate({ model, body, isFolder: true })
   );
   useWailsEvent(FILE_CREATE, (body) =>
-    handleCreate({ model, body, isFolder: false, routeTargetPath })
+    handleCreate({ model, body, isFolder: false })
   );
   useWailsEvent(FOLDER_DELETE, (body) =>
     handleDelete({ model, body, isFolder: true })
@@ -91,12 +87,10 @@ function handleCreate({
   model,
   body,
   isFolder,
-  routeTargetPath,
 }: {
   model: PierreFileTree | null;
   body: WailsEvent;
   isFolder: boolean;
-  routeTargetPath: string | null;
 }) {
   if (!model) return;
   const items = (body.data as CreatePayload[]) ?? [];
@@ -106,12 +100,8 @@ function handleCreate({
     .map((path) => ({ type: 'add' as const, path }));
   if (ops.length === 0) return;
   model.batch(ops);
-  // Creating an item navigates to it before this watcher event has inserted
-  // its path, so the route-focus effect could not highlight it — catch up now
-  // that the row exists.
-  if (routeTargetPath && ops.some((op) => op.path === routeTargetPath)) {
-    revealTreePath(model, routeTargetPath);
-  }
+  // A newly created item is navigated to before this event inserts its row;
+  // `usePierreRouteFocus` reveals it once the refetched path list lands.
 }
 
 function handleDelete({
