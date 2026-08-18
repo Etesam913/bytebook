@@ -11,14 +11,13 @@ import {
   TextField,
   type TextFieldProps,
 } from 'react-aria-components/TextField';
-import { XMark } from '../../icons/circle-xmark';
 import { cn } from '../../utils/string-formatting';
 
 const labelStyles =
   'text-sm cursor-pointer pb-2 text-zinc-500 dark:text-zinc-300';
 
 const inputStyles =
-  'bg-zinc-150 dark:bg-zinc-700 py-1 px-2 rounded-md border-2 border-zinc-300 dark:border-zinc-600 w-full outline-none focus:border-(--accent-color)';
+  'bg-zinc-50 dark:bg-zinc-700 py-1 px-2 rounded-md border-2 border-zinc-150 dark:border-zinc-600 w-full outline-none focus:border-(--accent-color)';
 
 type ExtraInputAttrs = Omit<
   InputHTMLAttributes<HTMLInputElement>,
@@ -130,7 +129,7 @@ export function AppSearchField({
         ref={ref}
         autoCapitalize={autoCapitalize}
         placeholder={placeholder}
-        className={cn(inputStyles, 'pr-8', inputClassName)}
+        className={cn(inputStyles, inputClassName)}
       />
       <Button
         slot="clear"
@@ -140,7 +139,6 @@ export function AppSearchField({
           label && 'top-[calc(50%+0.625rem)]'
         )}
       >
-        <XMark width="1rem" height="1rem" fill="currentColor" />
       </Button>
       {errorMessage && (
         <FieldError className="text-red-500 text-xs pt-1">

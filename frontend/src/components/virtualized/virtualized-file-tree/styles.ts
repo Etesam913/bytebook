@@ -15,6 +15,7 @@ type CSSPropertiesWithVariables = CSSProperties & Record<`--${string}`, string>;
 export const FILE_TREE_HOST_STYLE: CSSPropertiesWithVariables = {
   height: '100%',
   display: 'block',
+  cursor: 'default',
   '--trees-bg-override': 'light-dark(rgb(252, 252, 252), rgb(39, 39, 42))',
   // Match the app's default text color (near-black / zinc-100) instead of the
   // package's muted gray default.
@@ -31,9 +32,21 @@ export const FILE_TREE_HOST_STYLE: CSSPropertiesWithVariables = {
   '--trees-icon-width-override': 'calc(16px * var(--ui-scale))',
 };
 
+// Tree rows and the context-menu trigger use the default cursor instead of the
+// package's pointer — the only two selectors its stylesheet sets pointer on.
+// !important is required: the package's base styles live in an adopted
+// constructed stylesheet while this CSS is a <style> element, and WebKit does
+// not merge @layer ordering across the two, so a normal declaration here loses
+// to the adopted sheet. Note the model captures unsafeCSS at construction, so
+// edits here need a full reload (the persistent model survives HMR).
 // Separate sticky folder rows from the rows scrolling underneath them
 // (zinc-200 / zinc-700).
 export const FILE_TREE_UNSAFE_CSS = `
+  [data-type='item'],
+  [data-type='context-menu-trigger'] {
+    cursor: default !important;
+  }
+
   [data-file-tree-sticky-overlay-content="true"] {
     border-bottom: 1px solid light-dark(rgb(228, 228, 231), rgb(63, 63, 70));
   }
