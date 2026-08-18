@@ -59,23 +59,19 @@ export function TreeContextMenu({
   const { editTags, pin } = useContextMenuItems();
   const projectSettings = useAtomValue(projectSettingsAtom);
   const isFolder = item.kind === 'directory';
-  // pierre marks directories with a trailing slash; Bytebook's path utilities
-  // and backend APIs expect slashless paths, so strip it here.
-  const slashlessPath = stripTrailingSlash(item.path);
-  const filePath = isFolder ? null : createFilePath(slashlessPath);
-  const folderPath = isFolder ? createFolderPath(slashlessPath) : null;
+  const filePath = isFolder ? null : createFilePath(item.path);
+  const folderPath = isFolder ? createFolderPath(item.path) : null;
 
   // Menu actions apply to the whole selection when the right-clicked item is
   // part of it, otherwise to just the right-clicked item.
   const isItemInSelection = selectedPaths.includes(item.path);
   const targetPaths = isItemInSelection ? selectedPaths : [item.path];
-  const slashlessTargets = targetPaths.map(stripTrailingSlash);
   const isMultiSelection = targetPaths.length > 1;
   const targetHasFolder = targetPaths.some((path) => path.endsWith('/'));
   const targetFilePaths = targetHasFolder
     ? []
     : targetPaths.flatMap((path) => {
-        const target = createFilePath(stripTrailingSlash(path));
+        const target = createFilePath(path);
         return target ? [target] : [];
       });
 
@@ -106,17 +102,21 @@ export function TreeContextMenu({
           Add attachments
         </MenuItemLabel>
       ),
-      onSelect: () => onAddFolderAttachments(slashlessPath),
+      onSelect: () => onAddFolderAttachments(item.path),
     });
   }
 
+  // pinnedNotes stores slashless paths (the settings.json format), so
+  // membership checks strip pierre's folder marker.
   if (targetHasFolder) {
     // Folders (or mixed selections) pin only the right-clicked item.
-    const isPinned = projectSettings.pinnedNotes.has(slashlessPath);
+    const isPinned = projectSettings.pinnedNotes.has(
+      stripTrailingSlash(item.path)
+    );
     rows.push(
       dropdownItemToMenuRow(
         pin({
-          paths: [slashlessPath],
+          paths: [item.path],
           shouldPin: !isPinned,
           kind: isFolder ? 'folder' : 'note',
         })
@@ -126,8 +126,8 @@ export function TreeContextMenu({
     rows.push(
       dropdownItemToMenuRow(
         pin({
-          paths: slashlessTargets,
-          shouldPin: slashlessTargets.some(
+          paths: [...targetPaths],
+          shouldPin: targetPaths.some(
             (path) => !projectSettings.pinnedNotes.has(path)
           ),
           kind: 'note',
@@ -183,7 +183,7 @@ export function TreeContextMenu({
         Move to Trash
       </MenuItemLabel>
     ),
-    onSelect: () => onMoveToTrash([...slashlessTargets]),
+    onSelect: () => onMoveToTrash([...targetPaths]),
   });
 
   // Mirrors the native context menu's look (`components/context-menu` +

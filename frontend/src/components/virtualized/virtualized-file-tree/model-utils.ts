@@ -8,14 +8,12 @@ import {
   createFilePath,
   createFolderPath,
   splitPathSegments,
-  stripTrailingSlash,
 } from '../../../utils/path';
 
 export function navigateToTreePath(path: string) {
-  const trimmed = stripTrailingSlash(path);
   const targetPath = path.endsWith('/')
-    ? createFolderPath(trimmed)
-    : createFilePath(trimmed);
+    ? createFolderPath(path)
+    : createFilePath(path);
   if (!targetPath) return;
   navigate(
     targetPath.type === 'folder'
@@ -151,7 +149,7 @@ export function revealTreePath(
   const item = model.getItem(targetPath);
   if (!item) return;
 
-  const segments = splitPathSegments(stripTrailingSlash(targetPath));
+  const segments = splitPathSegments(targetPath);
   for (let i = 1; i < segments.length; i++) {
     const ancestor = `${segments.slice(0, i).join('/')}/`;
     const ancestorItem = model.getItem(ancestor);
