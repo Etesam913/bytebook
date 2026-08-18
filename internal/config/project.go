@@ -40,11 +40,6 @@ type BackendResponseWithoutData struct {
 	Message string `json:"message"`
 }
 
-type FolderAndNote struct {
-	Folder string `json:"folder"`
-	Note   string `json:"note"`
-}
-
 // GetProjectPath returns the path to the project directory in the user's home directory.
 // On macOS, this is located in ~/Library/Application Support/Bytebook.
 // It creates the parent directory if it doesn't exist.
@@ -69,10 +64,6 @@ func GetProjectPath() (string, error) {
 		return "", fmt.Errorf("could not create the dbPath directory: %w", err)
 	}
 	return projectPath, nil
-}
-
-type NotesToTagsMap struct {
-	Notes map[string][]string `json:"notes"`
 }
 
 type ProjectFiles struct {

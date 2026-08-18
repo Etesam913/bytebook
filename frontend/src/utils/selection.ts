@@ -51,19 +51,6 @@ export function keepSelectionWithPrefix(
 }
 
 /**
- * Filters a selection Set to keep only items that start with the specified prefix.
- * @param selection - A Set of strings to filter
- * @param prefix - The prefix string to match against
- * @returns A new Set containing only the items that start with the prefix
- */
-function keepSelectionNotesWithPrefix(
-  selection: Set<string>,
-  prefix: SidebarContentType
-) {
-  return keepSelectionWithPrefix(selection, prefix);
-}
-
-/**
  * Handles selection range logic for context menus across different sidebar components.
  * Creates or updates the selection range when right-clicking on an item.
  * Optionally allows only one item in the selection set.
@@ -93,7 +80,7 @@ export function handleContextMenuSelection({
       newSelectionRange = new Set([createSelectionKey(itemType, itemName)]);
       return newSelectionRange;
     }
-    const setWithoutItems = keepSelectionNotesWithPrefix(prev, itemType);
+    const setWithoutItems = keepSelectionWithPrefix(prev, itemType);
     setWithoutItems.add(createSelectionKey(itemType, itemName));
     newSelectionRange = setWithoutItems;
     return setWithoutItems;
@@ -139,24 +126,8 @@ export function handleEditorEscape(
   isFileMaximized: boolean,
   setIsFileMaximized: Dispatch<SetStateAction<boolean>>
 ) {
-  if (e.key === 'Escape') {
-    if (isFileMaximized) {
-      setIsFileMaximized(false);
-
-      setTimeout(() => {
-        const selectedNoteButton = document.getElementById(
-          'selected-note-button'
-        );
-        if (!selectedNoteButton) return;
-        selectedNoteButton.focus();
-      }, 250);
-    } else {
-      const selectedNoteButton = document.getElementById(
-        'selected-note-button'
-      );
-      if (!selectedNoteButton) return;
-      selectedNoteButton.focus();
-    }
+  if (e.key === 'Escape' && isFileMaximized) {
+    setIsFileMaximized(false);
   }
 }
 export const FILE_SELECTION_PREFIX = 'file';

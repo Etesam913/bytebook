@@ -391,8 +391,7 @@ func MoveNotesToTrash(projectPath string, folderAndNotes []string) ([]TrashResto
 
 	// Attempt to move each note/folder to trash
 	for _, relPath := range normalizedPaths {
-		parts := strings.Split(relPath, "/")
-		_, fileName, _ := Pop(parts)
+		fileName := filepath.Base(relPath)
 		fullPath := filepath.Join(projectPath, "notes", relPath)
 
 		var relatedItems []TrashRestoreInfo
@@ -422,14 +421,6 @@ func MoveNotesToTrash(projectPath string, folderAndNotes []string) ([]TrashResto
 		restoreInfo.RelatedItems = relatedItems
 		restoreItems = append(restoreItems, restoreInfo)
 	}
-
-	// // Update pinned-notes in settings.json if present (ignore errors here)
-	// settingsPath := filepath.Join(projectPath, "settings", "settings.json")
-	// var cfg config.ProjectSettingsJson
-	// if err := ReadJsonFromPath(settingsPath, &cfg); err == nil {
-	// 	cfg.PinnedNotes = GetValidPinned(projectPath, cfg)
-	// 	_ = WriteJsonToPath(settingsPath, cfg)
-	// }
 
 	// Return a combined error if any moves failed
 	if len(failed) > 0 {
