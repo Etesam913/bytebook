@@ -108,7 +108,7 @@ const searchQueries = {
       queryFn: async () => {
         const response = await GetAllSavedSearches();
         if (!response.success) {
-          throw new Error(response.message);
+          throw new QueryError(response.message);
         }
         return response.data;
       },
@@ -221,7 +221,7 @@ export function useSaveSearchMutation() {
     }) => {
       const response = await AddSavedSearch(name, searchQuery);
       if (!response.success) {
-        throw new Error(response.message);
+        throw new QueryError(response.message);
       }
       return response;
     },
@@ -239,7 +239,7 @@ export function useDeleteSavedSearchMutation() {
     mutationFn: async ({ name }: { name: string }) => {
       const response = await RemoveSavedSearch(name);
       if (!response.success) {
-        throw new Error(response.message);
+        throw new QueryError(response.message);
       }
       return response;
     },

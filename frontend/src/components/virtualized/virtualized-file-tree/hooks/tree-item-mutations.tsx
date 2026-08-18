@@ -42,7 +42,7 @@ export function useRenameTreeItemMutation() {
     mutationFn: async (args: RenameTreeItemPayload) => {
       const trimmedName = args.newName.trim();
       if (!NAME_CHARS.test(trimmedName)) {
-        throw new Error(
+        throw new QueryError(
           'Names can only contain letters, numbers, spaces, hyphens, and underscores.'
         );
       }
@@ -60,7 +60,7 @@ export function useRenameTreeItemMutation() {
         args.itemType === 'folder'
           ? await RenameFolder(oldPath, newPath)
           : await RenameFile(oldPath, newPath);
-      if (!res.success) throw new Error(res.message);
+      if (!res.success) throw new QueryError(res.message);
       return { itemType: args.itemType };
     },
     onSuccess: (_, variables) => {

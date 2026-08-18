@@ -1,10 +1,8 @@
 import { useMutation } from '@tanstack/react-query';
 import { useSetAtom } from 'jotai/react';
 import { $getSelection, type BaseSelection, type LexicalEditor } from 'lexical';
-import { toast } from 'sonner';
 import { backendQueryAtom } from '../atoms';
 import { insertAttachmentFromFile } from '../components/editor/utils/toolbar';
-import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 
 // Opens a file picker and inserts the selected file as an attachment at the current editor selection position.
 export function useAttachmentsMutation({
@@ -31,21 +29,11 @@ export function useAttachmentsMutation({
         editorSelection,
       });
     },
-    onSuccess: () => {
+    onSettled: () => {
       setBackendQuery({
         isLoading: false,
         message: '',
       });
-    },
-    onError: () => {
-      setBackendQuery({
-        isLoading: false,
-        message: '',
-      });
-      toast.error(
-        'An Unknown Error Occurred. Please Try Again Later',
-        DEFAULT_SONNER_OPTIONS
-      );
     },
   });
 

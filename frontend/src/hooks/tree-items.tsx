@@ -60,7 +60,7 @@ export function useAddTreeItemMutation() {
               stripTrailingSlash(parentFolderPath!),
               trimmedName
             );
-      if (!res.success) throw new Error(res.message);
+      if (!res.success) throw new QueryError(res.message);
 
       navigateToPath(newItemPath);
 
