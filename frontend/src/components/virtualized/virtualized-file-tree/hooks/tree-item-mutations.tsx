@@ -89,7 +89,10 @@ export function useAddTreeItemMutation() {
   });
 }
 
-type RenameTreeItemPayload = (RenameFolderPayload | RenameFilePayload) & {
+export type RenameTreeItemPayload = (
+  | RenameFolderPayload
+  | RenameFilePayload
+) & {
   onSuccess?: () => void;
   newName: string;
 };
