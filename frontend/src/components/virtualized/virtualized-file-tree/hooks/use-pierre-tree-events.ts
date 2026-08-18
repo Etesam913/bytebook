@@ -9,8 +9,7 @@ import {
   FOLDER_RENAME,
 } from '../../../../utils/events';
 
-type CreatePayload = { filePath?: string; folderPath?: string };
-type DeletePayload = { filePath?: string; folderPath?: string };
+type PathPayload = { filePath?: string; folderPath?: string };
 type RenamePayload = {
   oldFilePath?: string;
   newFilePath?: string;
@@ -24,19 +23,15 @@ type RenamePayload = {
  * Go → frontend boundary where the folder marker is restored.
  */
 function toPierrePath(rawPath: string, isFolder: boolean): string {
-  if (!rawPath) return rawPath;
-  if (!isFolder) return rawPath;
-  return rawPath.endsWith('/') ? rawPath : `${rawPath}/`;
+  if (!rawPath || !isFolder || rawPath.endsWith('/')) return rawPath;
+  return `${rawPath}/`;
 }
 
-function extractCreatePath(item: CreatePayload, isFolder: boolean): string {
-  const raw = (isFolder ? item.folderPath : item.filePath) ?? '';
-  return toPierrePath(raw, isFolder);
-}
-
-function extractDeletePath(item: DeletePayload, isFolder: boolean): string {
-  const raw = (isFolder ? item.folderPath : item.filePath) ?? '';
-  return toPierrePath(raw, isFolder);
+function extractPath(item: PathPayload, isFolder: boolean): string {
+  return toPierrePath(
+    (isFolder ? item.folderPath : item.filePath) ?? '',
+    isFolder
+  );
 }
 
 function extractRename(
@@ -93,9 +88,9 @@ function handleCreate({
   isFolder: boolean;
 }) {
   if (!model) return;
-  const items = (body.data as CreatePayload[]) ?? [];
+  const items = (body.data as PathPayload[]) ?? [];
   const ops = items
-    .map((item) => extractCreatePath(item, isFolder))
+    .map((item) => extractPath(item, isFolder))
     .filter((path) => path && !model.getItem(path))
     .map((path) => ({ type: 'add' as const, path }));
   if (ops.length === 0) return;
@@ -114,9 +109,9 @@ function handleDelete({
   isFolder: boolean;
 }) {
   if (!model) return;
-  const items = (body.data as DeletePayload[]) ?? [];
+  const items = (body.data as PathPayload[]) ?? [];
   const ops = items
-    .map((item) => extractDeletePath(item, isFolder))
+    .map((item) => extractPath(item, isFolder))
     .filter((path) => path && model.getItem(path))
     .map((path) => ({
       type: 'remove' as const,
