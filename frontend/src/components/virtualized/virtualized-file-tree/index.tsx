@@ -86,10 +86,6 @@ function PierreFileTreeInner({
   // route changes synchronize selection back to the tree.
   const lastNavigatedRef = useRef<string | null>(routeTargetPath);
 
-  // Set to true while initiating a rename (via F2, Enter, or context menu) to
-  // stop onSelectionChange from navigating and stealing focus from the rename input.
-  const isSelectionFromRenameStartRef = useRef(false);
-
   useEffect(() => {
     lastNavigatedRef.current = routeTargetPath;
   }, [routeTargetPath]);
@@ -189,12 +185,7 @@ function PierreFileTreeInner({
   }
 
   function handleStartRename(path: string) {
-    isSelectionFromRenameStartRef.current = true;
-    try {
-      if (!model.startRenaming(path)) return;
-    } finally {
-      isSelectionFromRenameStartRef.current = false;
-    }
+    if (!model.startRenaming(path)) return;
     // Match editor conventions: pre-select only the name part so typing
     // replaces the name and leaves the extension alone. The rename input
     // mounts and focuses on the next frame.
@@ -229,18 +220,6 @@ function PierreFileTreeInner({
     handleStartRename(focusedPath);
   }
 
-  // F2 renames start inside @pierre/trees, so flag them during the capture
-  // phase (which runs before the tree's own shadow-DOM handler) to keep the
-  // rename's re-selection from navigating.
-  function handleKeyDownCapture(event: React.KeyboardEvent) {
-    if (event.key === 'F2') {
-      isSelectionFromRenameStartRef.current = true;
-      queueMicrotask(() => {
-        isSelectionFromRenameStartRef.current = false;
-      });
-    }
-  }
-
   // ── Render ───────────────────────────────────────────────────────────
   // The tree's shadow stylesheet sets `color-scheme: light dark` on :host,
   // which makes its light-dark() colors follow the OS preference — not the
@@ -260,7 +239,6 @@ function PierreFileTreeInner({
       }}
       className="relative flex flex-1 flex-col min-h-0 overflow-hidden text-sm"
       onKeyDown={handleKeyDown}
-      onKeyDownCapture={handleKeyDownCapture}
     >
       {/* Rendered outside the tree's shadow-DOM header slot on purpose: the
           tree's internal key/focus handlers sit between slotted content and
