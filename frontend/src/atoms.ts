@@ -37,6 +37,9 @@ function atomWithLogging<T>(name: string, initialValue: T) {
   );
 }
 // Reads the most recent sidebar items from localStorage and converts stored path strings to typed path objects.
+// Folder entries written before folder paths carried a trailing slash still
+// parse correctly: createFilePath rejects them (no extension) and
+// createFolderPath accepts both slashed and slashless input.
 const initializeMostRecentItems = (): FileOrFolderPath[] => {
   const stored = JSON.parse(
     localStorage.getItem('mostRecentItems') ?? '[]'

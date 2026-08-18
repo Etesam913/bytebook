@@ -89,7 +89,7 @@ function getFolderItems(
   allPaths: readonly string[],
   folderPath: FolderPath
 ): FolderRendererItem[] {
-  const childPrefix = `${folderPath.fullPath}/`;
+  const childPrefix = folderPath.fullPath;
   return allPaths.flatMap((path): FolderRendererItem[] => {
     const trimmed = stripTrailingSlash(path);
     if (!trimmed.startsWith(childPrefix)) return [];
@@ -140,7 +140,7 @@ export function FolderRenderer({
 
   const { data: allPaths, isLoading } = useAllPaths();
 
-  if (allPaths && !allPaths.includes(`${folderPath.fullPath}/`)) {
+  if (allPaths && !allPaths.includes(folderPath.fullPath)) {
     return <NotFound />;
   }
 

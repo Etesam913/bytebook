@@ -17,7 +17,7 @@ import {
   usePinPathMutation,
   useRevealInFinderMutation,
 } from '../../hooks/notes';
-import type { FolderPath } from '../../utils/path';
+import { stripTrailingSlash, type FolderPath } from '../../utils/path';
 import { routeUrls } from '../../utils/routes';
 import { cn } from '../../utils/string-formatting';
 import type { LegacyAnimationControls } from 'motion/react';
@@ -31,14 +31,17 @@ export function FolderRendererHeader({
   folderPath: FolderPath;
   animationControls: LegacyAnimationControls;
 }) {
-  const folderName = folderPath.fullPath.split('/').pop() ?? '';
+  const folderName = folderPath.folder;
   const isFileMaximized = useAtomValue(isFileMaximizedAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const { mutate: revealInFinder } = useRevealInFinderMutation();
   const { mutate: moveToTrash } = useMoveToTrashMutation();
   const { mutate: pinPath } = usePinPathMutation();
 
-  const isPinned = projectSettings.pinnedNotes.has(folderPath.fullPath);
+  // pinnedNotes stores slashless paths (the settings.json format).
+  const isPinned = projectSettings.pinnedNotes.has(
+    stripTrailingSlash(folderPath.fullPath)
+  );
 
   const items = [
     {
@@ -121,7 +124,7 @@ export function FolderRendererHeader({
                   aria-label="Search this folder"
                   className="shrink-0"
                   onClick={() => {
-                    navigate(routeUrls.search(`f:"${folderPath.fullPath}/"`));
+                    navigate(routeUrls.search(`f:"${folderPath.fullPath}"`));
                   }}
                 >
                   <Magnifier width="0.875rem" height="0.875rem" />
@@ -129,7 +132,7 @@ export function FolderRendererHeader({
               </Tooltip>
             </span>
             <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400">
-              {folderPath.fullPath + '/'}
+              {folderPath.fullPath}
             </p>
           </div>
           <div className="ml-auto flex flex-col mr-2">

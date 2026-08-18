@@ -23,9 +23,10 @@ export function splitPathSegments(path: string): string[] {
 
 /**
  * Removes a single trailing slash (e.g. `"folder/"` → `"folder"`).
- * @pierre/trees marks directories with a trailing slash, while bytebook's
- * routes and backend APIs use slashless paths, so this strips the slash at
- * that boundary.
+ * Folder paths carry a trailing slash in the frontend (the @pierre/trees
+ * convention), while the Go backend, routes/URLs, and persisted formats
+ * (Bleve index, settings.json, watcher payloads) are slashless — this
+ * converts at those boundaries.
  */
 export function stripTrailingSlash(path: string): string {
   return path.endsWith('/') ? path.slice(0, -1) : path;
@@ -43,16 +44,18 @@ export function joinPath(...pieces: (string | null | undefined)[]): string {
 
 /**
  * Replaces the last segment of a slash-delimited path with `newLastSegment`.
- * Preserves any leading empty segment (e.g. an absolute-style path).
+ * Preserves any leading empty segment (e.g. an absolute-style path) and a
+ * trailing slash (a folder path keeps its folder marker).
  */
 export function replaceLastPathSegment(
   path: string,
   newLastSegment: string
 ): string {
-  const segments = path.split('/');
+  const hadTrailingSlash = path.endsWith('/');
+  const segments = stripTrailingSlash(path).split('/');
   if (segments.length === 0) return newLastSegment;
   segments[segments.length - 1] = newLastSegment;
-  return segments.join('/');
+  return segments.join('/') + (hadTrailingSlash ? '/' : '');
 }
 
 export interface FolderPath {
@@ -158,10 +161,12 @@ export function createFolderPath(folderPath: string): FolderPath | null {
 
   return {
     type: 'folder',
-    fullPath: normalizedPath,
+    // Folder paths carry a trailing slash (the @pierre/trees convention).
+    // URLs and backend calls stay slashless — see stripTrailingSlash.
+    fullPath: `${normalizedPath}/`,
     folder,
     folderUrl: `/notes/${normalizedPath}`,
-    encodedPath,
+    encodedPath: `${encodedPath}/`,
     encodedFolderUrl: `/notes/${encodedPath}`,
     equals(other: FolderPath) {
       return this.fullPath === other.fullPath;

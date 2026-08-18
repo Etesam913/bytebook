@@ -75,8 +75,8 @@ export function FolderRendererCreateItemCard({
   const previewName =
     value.trim() || (isCreatingFolder ? 'New folder' : 'New note');
   const previewPath = isCreatingFolder
-    ? `${folderPath.fullPath}/${previewName}`
-    : `${folderPath.fullPath}/${previewName}.md`;
+    ? `${folderPath.fullPath}${previewName}`
+    : `${folderPath.fullPath}${previewName}.md`;
 
   return (
     <div>
