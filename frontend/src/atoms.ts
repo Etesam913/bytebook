@@ -14,7 +14,12 @@ import {
   createFolderPath,
 } from './utils/path';
 import { logger } from './utils/logging';
-import { DEFAULT_EDITOR_FONT_SIZE } from './utils/project-settings';
+import {
+  DEFAULT_CODE_BLOCK_FONT_SIZE,
+  DEFAULT_CODE_BLOCK_LANGUAGE,
+  DEFAULT_EDITOR_FONT_SIZE,
+  DEFAULT_EDITOR_LINE_HEIGHT,
+} from './utils/project-settings';
 
 /**
  * Creates a jotai atom with automatic STATE logging when values are set.
@@ -80,8 +85,10 @@ export const projectSettingsAtom = atom<ProjectSettings>({
     noteWidth: 'fullWidth',
     uiFontFamily: 'ui-sans-serif',
     editorFontSize: DEFAULT_EDITOR_FONT_SIZE,
+    editorLineHeight: DEFAULT_EDITOR_LINE_HEIGHT,
     editorFontFamily: '',
     showEmptyLinePlaceholder: true,
+    showTableOfContentsByDefault: false,
     sidebarVisibility: {
       hidePinned: false,
       hideRecent: false,
@@ -93,6 +100,10 @@ export const projectSettingsAtom = atom<ProjectSettings>({
   code: {
     codeBlockVimMode: false,
     codeBlockFontFamily: '',
+    codeBlockFontSize: DEFAULT_CODE_BLOCK_FONT_SIZE,
+    codeBlockLineWrapping: false,
+    codeBlockShowLineNumbers: false,
+    codeBlockDefaultLanguage: DEFAULT_CODE_BLOCK_LANGUAGE,
     pythonVenvPath: '',
     customPythonVenvPaths: [],
   },

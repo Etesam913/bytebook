@@ -1,6 +1,7 @@
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import {
   AppearanceProjectSettingsJson,
+  CodeProjectSettingsJson,
   ProjectSettingsJson,
 } from '../bindings/github.com/etesam913/bytebook/internal/config/models';
 import { RangeSelection } from 'lexical';
@@ -68,16 +69,26 @@ type AppearanceSettings = Omit<
   theme: 'light' | 'dark' | 'system';
   noteWidth: 'fullWidth' | 'readability';
   editorFontSize: number;
+  editorLineHeight: number;
   showEmptyLinePlaceholder: boolean;
+  showTableOfContentsByDefault: boolean;
   sidebarVisibility: SidebarVisibility;
+};
+
+type CodeSettings = Omit<
+  CodeProjectSettingsJson,
+  'codeBlockDefaultLanguage'
+> & {
+  codeBlockDefaultLanguage: Languages;
 };
 
 export type ProjectSettings = Omit<
   ProjectSettingsJson,
-  'pinnedNotes' | 'appearance'
+  'pinnedNotes' | 'appearance' | 'code'
 > & {
   pinnedNotes: Set<string>;
   appearance: AppearanceSettings;
+  code: CodeSettings;
 };
 
 export type ContextMenuData = {
