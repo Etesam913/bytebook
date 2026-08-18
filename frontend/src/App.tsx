@@ -31,7 +31,7 @@ import { safeDecodeURIComponent } from './utils/path';
 import { isRegularMouseClick } from './utils/mouse';
 import { isE2ETestEnvironment } from './utils/e2e';
 import { useKernelInstanceEvents, useKernelInstancesQuery } from './hooks/code';
-import { useAllPathsInvalidation } from './hooks/all-paths-invalidation';
+import { useAllPathsInvalidation } from './hooks/all-paths';
 
 const KernelInfo = lazy(() =>
   import('./routes/kernel-info').then((module) => ({

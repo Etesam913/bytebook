@@ -17,7 +17,7 @@ import {
   RestoreFromTrash,
   RevealFolderOrFileInFinder,
 } from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
-import { projectSettingsAtom, type TrashRestoreInfo } from '../atoms';
+import { projectSettingsAtom } from '../atoms';
 import { CUSTOM_TRANSFORMERS } from '../components/editor/transformers';
 import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
 import { QueryError } from '../utils/query';
@@ -32,7 +32,7 @@ import {
 import { useWailsEvent } from './events';
 import { CODE_RESULTS_UPDATE, FILE_WRITE } from '../utils/events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
-import type { Frontmatter } from '../types';
+import type { Frontmatter, TrashRestoreInfo } from '../types';
 import { $convertFromMarkdownString } from '@lexical/markdown';
 import { parseFrontMatter } from '../components/editor/utils/note-metadata';
 import { useFilePathFromRoute, useFolderPathFromRoute } from './routes';
