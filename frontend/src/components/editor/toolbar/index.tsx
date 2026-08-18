@@ -181,10 +181,7 @@ export function Toolbar({
           hasFirstLoad={hasFirstLoad}
         />
         <span className="flex items-center gap-1.5">
-          <MaximizeNoteButton
-            animationControls={animationControls}
-            disabled={disabled}
-          />
+          <MaximizeNoteButton animationControls={animationControls} />
           <Dropdown
             controlledValueIndex={blockTypesDropdownItems.findIndex(
               (v) => v.value === currentBlockType
@@ -200,7 +197,7 @@ export function Toolbar({
             items={blockTypesDropdownItems}
             buttonClassName="w-48"
             disabled={disabled}
-            disabledTooltipContent="Place the cursor in the note body"
+            disabledTooltipContent="Click note text to format"
             aria-label="Select block type"
             id="block-type-dropdown"
           />
@@ -219,7 +216,6 @@ export function Toolbar({
         <SettingsDropdown
           folder={folder}
           note={note}
-          isToolbarDisabled={disabled}
           frontmatter={frontmatter}
         />
       </nav>
