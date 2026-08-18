@@ -102,21 +102,16 @@ flowchart LR
 ## Working conventions
 
 - Prefer **small, surgical diffs**; avoid drive-by refactors.
+- The repo uses **jj (Jujutsu)** for version control, not raw git commands.
+- Do not prioritize backwards compatibility — this is not a released product.
 - Keep event names in `internal/util/events.go` as the source of truth.
 - If you change backend services, ensure generated bindings stay in sync (Wails binding generation).
-- In the frontend TypeScript code, prefer regular function comments (standard `//` line comments) instead of JSDoc comments.
-- In React components, inline prop types directly in the function parameter signature instead of creating a separate `interface` or `type` alias, unless the prop types are imported elsewhere.
 
-  ```tsx
-  export function NoteItem({
-    title,
-    isSelected,
-    onSelect,
-  }: {
-    title: string;
-    isSelected?: boolean;
-    onSelect: () => void;
-  }) {
-    // ...
-  }
-  ```
+## Rules (`.agents/rules/`)
+
+Detailed, path-scoped coding conventions live in `.agents/rules/` and load automatically when working on matching files (`.claude/rules` is a symlink to it for Claude Code, same as `.claude/skills`):
+
+- `frontend-react.md` — React/TypeScript style: component & prop conventions, no `useCallback`/`useMemo`, Jotai atom placement, Tailwind/`cn()`, path utilities
+- `frontend-data-layer.md` — bindings via query hooks, `queryKeys` factory, `QueryError` handling, Wails event constants
+- `frontend-testing.md` — `bun:test` unit tests, Playwright e2e, binding regeneration for the mock harness
+- `go-backend.md` — `BackendResponse` shape, error wrapping, logging, event emission, test style
