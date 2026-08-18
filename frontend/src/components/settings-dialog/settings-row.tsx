@@ -13,7 +13,7 @@ export function SettingsRow({
 }) {
   return (
     <div
-      className={`settings-row-grid px-0.5 py-2.5 ${!isFirst ? 'border-t border-zinc-200 dark:border-zinc-700' : ''}`}
+      className={`grid grid-cols-[1fr_2fr] gap-4 px-0.5 py-2.5 ${!isFirst ? 'border-t border-zinc-200 dark:border-zinc-700' : ''}`}
     >
       <div className="flex flex-col gap-1 h-fit">
         <h3 className="text-base font-bold">{title}</h3>

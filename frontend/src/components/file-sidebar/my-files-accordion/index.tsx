@@ -54,7 +54,7 @@ export function MyFilesAccordion({
       }
     >
       <div
-        className="flex flex-1 flex-col min-h-0 overflow-hidden scrollbar-hidden"
+        className="flex flex-1 flex-col min-h-0 overflow-hidden [scrollbar-width:none]"
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
