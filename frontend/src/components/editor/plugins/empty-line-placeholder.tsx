@@ -96,11 +96,14 @@ export function EmptyLinePlaceholderPlugin({
       className="pointer-events-none select-none text-zinc-400 dark:text-zinc-500 absolute whitespace-nowrap"
       style={{
         position: 'absolute',
-        transform: `translate(calc(${placeholderLineData.position.left}px + 0.1875rem), calc(${placeholderLineData.position.top}px + 0.125rem))`,
+        transform: `translate(calc(${placeholderLineData.position.left}px + 0.1875rem), ${placeholderLineData.position.top}px)`,
         fontFamily:
           projectSettings.appearance.editorFontFamily ||
           'var(--editor-default-font-family)',
         fontSize: 'var(--editor-font-size)',
+        // Match the paragraph's line box so the hint stays vertically
+        // centered on the line at any editor line-height setting.
+        lineHeight: 'calc(var(--editor-font-size) * var(--editor-line-height))',
       }}
     >
       Type &quot;/&quot; to insert an element or &quot;@&quot; to link a file

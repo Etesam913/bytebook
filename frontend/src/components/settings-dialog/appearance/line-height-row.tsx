@@ -51,20 +51,6 @@ export function LineHeightRow() {
             max={MAX_EDITOR_LINE_HEIGHT}
             step={EDITOR_LINE_HEIGHT_STEP}
             className="bg-zinc-150 dark:bg-zinc-700 py-1 px-2 rounded-md border-2 border-zinc-300 dark:border-zinc-600 w-20 h-8 text-sm my-auto"
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const nextLineHeight = e.currentTarget.valueAsNumber;
-              if (!Number.isFinite(nextLineHeight)) {
-                return;
-              }
-              const roundedLineHeight = Math.round(nextLineHeight * 10) / 10;
-              if (
-                roundedLineHeight < MIN_EDITOR_LINE_HEIGHT ||
-                roundedLineHeight > MAX_EDITOR_LINE_HEIGHT
-              ) {
-                return;
-              }
-              updateLineHeight(roundedLineHeight);
-            }}
             onBlur={() => {
               const currentValue = lineHeightInputRef.current?.valueAsNumber;
               if (!Number.isFinite(currentValue)) {
@@ -81,7 +67,7 @@ export function LineHeightRow() {
               if (lineHeightInputRef.current) {
                 lineHeightInputRef.current.value = String(clamped);
               }
-              if (clamped !== currentValue) {
+              if (clamped !== projectSettings.appearance.editorLineHeight) {
                 updateLineHeight(clamped);
               }
             }}

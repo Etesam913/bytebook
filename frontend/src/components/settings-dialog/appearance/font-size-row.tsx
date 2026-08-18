@@ -6,27 +6,89 @@ import { projectSettingsAtom } from '../../../atoms';
 import { getDefaultButtonVariants } from '../../../animations';
 import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
 import {
+  DEFAULT_CODE_BLOCK_FONT_SIZE,
   DEFAULT_EDITOR_FONT_SIZE,
+  MAX_CODE_BLOCK_FONT_SIZE,
   MAX_EDITOR_FONT_SIZE,
+  MIN_CODE_BLOCK_FONT_SIZE,
   MIN_EDITOR_FONT_SIZE,
+  validateCodeBlockFontSize,
   validateEditorFontSize,
 } from '../../../utils/project-settings';
 import { MotionIconButton } from '../../buttons';
 import { SettingsRow } from '../settings-row';
 
-export function FontSizeRow() {
+type FontSizeSetting = 'editor' | 'code-block';
+
+const fontSizeCopy: Record<
+  FontSizeSetting,
+  {
+    title: string;
+    description: string;
+    ariaLabel: string;
+    defaultValue: number;
+    minValue: number;
+    maxValue: number;
+    validate: (fontSize: unknown) => number;
+  }
+> = {
+  editor: {
+    title: 'Editor Default Font Size',
+    description: 'Controls the font size in pixels.',
+    ariaLabel: 'Editor font size',
+    defaultValue: DEFAULT_EDITOR_FONT_SIZE,
+    minValue: MIN_EDITOR_FONT_SIZE,
+    maxValue: MAX_EDITOR_FONT_SIZE,
+    validate: validateEditorFontSize,
+  },
+  'code-block': {
+    title: 'Code Block Font Size',
+    description: 'Controls the font size in pixels for code blocks.',
+    ariaLabel: 'Code block font size',
+    defaultValue: DEFAULT_CODE_BLOCK_FONT_SIZE,
+    minValue: MIN_CODE_BLOCK_FONT_SIZE,
+    maxValue: MAX_CODE_BLOCK_FONT_SIZE,
+    validate: validateCodeBlockFontSize,
+  },
+};
+
+export function FontSizeRow({
+  setting,
+  isFirst = false,
+}: {
+  setting: FontSizeSetting;
+  isFirst?: boolean;
+}) {
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
   const projectSettings = useAtomValue(projectSettingsAtom);
   const fontSizeInputRef = useRef<HTMLInputElement>(null);
+  const copy = fontSizeCopy[setting];
+  const currentFontSize =
+    setting === 'editor'
+      ? projectSettings.appearance.editorFontSize
+      : projectSettings.code.codeBlockFontSize;
 
   function updateFontSize(nextFontSize: number) {
-    const validatedFontSize = validateEditorFontSize(nextFontSize);
+    const validatedFontSize = copy.validate(nextFontSize);
+    if (setting === 'editor') {
+      updateProjectSettings({
+        newProjectSettings: {
+          ...projectSettings,
+          appearance: {
+            ...projectSettings.appearance,
+            editorFontSize: validatedFontSize,
+          },
+        },
+      });
+      return;
+    }
+
     updateProjectSettings({
       newProjectSettings: {
         ...projectSettings,
-        appearance: {
-          ...projectSettings.appearance,
-          editorFontSize: validatedFontSize,
+        code: {
+          ...projectSettings.code,
+          codeBlockFontSize: validatedFontSize,
         },
       },
     });
@@ -34,56 +96,38 @@ export function FontSizeRow() {
 
   return (
     <SettingsRow
-      title="Editor Default Font Size"
-      description="Controls the font size in pixels."
-      isFirst={true}
+      title={copy.title}
+      description={copy.description}
+      isFirst={isFirst}
     >
       <div className="flex items-center gap-1.5">
         <TextField
-          key={projectSettings.appearance.editorFontSize}
-          aria-label="Editor font size"
-          defaultValue={String(projectSettings.appearance.editorFontSize)}
+          key={currentFontSize}
+          aria-label={copy.ariaLabel}
+          defaultValue={String(currentFontSize)}
         >
           <Input
             ref={fontSizeInputRef}
             type="number"
-            min={MIN_EDITOR_FONT_SIZE}
-            max={MAX_EDITOR_FONT_SIZE}
+            min={copy.minValue}
+            max={copy.maxValue}
             step={1}
             className="bg-zinc-150 dark:bg-zinc-700 py-1 px-2 rounded-md border-2 border-zinc-300 dark:border-zinc-600 w-20 h-8 text-sm my-auto"
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const nextFontSize = e.currentTarget.valueAsNumber;
-              if (!Number.isFinite(nextFontSize)) {
-                return;
-              }
-              const roundedFontSize = Math.round(nextFontSize);
-              if (
-                roundedFontSize < MIN_EDITOR_FONT_SIZE ||
-                roundedFontSize > MAX_EDITOR_FONT_SIZE
-              ) {
-                return;
-              }
-              updateFontSize(roundedFontSize);
-            }}
             onBlur={() => {
               const currentValue = fontSizeInputRef.current?.valueAsNumber;
               if (!Number.isFinite(currentValue)) {
                 if (fontSizeInputRef.current) {
-                  fontSizeInputRef.current.value = String(
-                    projectSettings.appearance.editorFontSize
-                  );
+                  fontSizeInputRef.current.value = String(currentFontSize);
                 }
                 return;
               }
-              const clamped = validateEditorFontSize(
-                Math.round(currentValue ?? DEFAULT_EDITOR_FONT_SIZE)
+              const clamped = copy.validate(
+                Math.round(currentValue ?? copy.defaultValue)
               );
               if (fontSizeInputRef.current) {
                 fontSizeInputRef.current.value = String(clamped);
               }
-              if (
-                clamped !== Math.round(currentValue ?? DEFAULT_EDITOR_FONT_SIZE)
-              ) {
+              if (clamped !== currentFontSize) {
                 updateFontSize(clamped);
               }
             }}
@@ -91,11 +135,8 @@ export function FontSizeRow() {
         </TextField>
         <MotionIconButton
           {...getDefaultButtonVariants()}
-          isDisabled={
-            projectSettings.appearance.editorFontSize ===
-            DEFAULT_EDITOR_FONT_SIZE
-          }
-          onClick={() => updateFontSize(DEFAULT_EDITOR_FONT_SIZE)}
+          isDisabled={currentFontSize === copy.defaultValue}
+          onClick={() => updateFontSize(copy.defaultValue)}
         >
           <ArrowRotateAnticlockwise width="0.75rem" height="0.75rem" />
         </MotionIconButton>

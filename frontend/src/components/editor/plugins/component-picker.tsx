@@ -15,7 +15,9 @@ import {
   type TextNode,
 } from 'lexical';
 import { type JSX, useState } from 'react';
+import { useAtomValue } from 'jotai/react';
 import { createPortal } from 'react-dom';
+import { projectSettingsAtom } from '../../../atoms';
 import { useAttachmentsMutation } from '../../../hooks/attachments';
 import { useCreateTableDialog } from '../../../hooks/dialogs';
 import { GolangLogo } from '../../../icons/golang-logo';
@@ -122,10 +124,12 @@ function getBaseOptions({
   editor,
   insertAttachmentsMutation,
   openCreateTableDialog,
+  defaultCodeBlockLanguage,
 }: {
   editor: LexicalEditor;
   insertAttachmentsMutation: UseMutationResult<void, Error, void, unknown>;
   openCreateTableDialog: ReturnType<typeof useCreateTableDialog>;
+  defaultCodeBlockLanguage: Languages;
 }) {
   return [
     new DropdownPickerOption('Paragraph', {
@@ -218,6 +222,20 @@ function getBaseOptions({
         insertAttachmentsMutation.mutate();
       },
     }),
+    new DropdownPickerOption('Code Block', {
+      icon: <SquareCode />,
+      keywords: ['code', 'codeblock', 'block', 'snippet', 'syntax'],
+      onSelect: () => {
+        editor.update(() => {
+          editor.dispatchCommand(INSERT_CODE_COMMAND, {
+            id: crypto.randomUUID(),
+            language: defaultCodeBlockLanguage,
+            code: getDefaultCodeForLanguage(defaultCodeBlockLanguage),
+            isCreatedNow: true,
+          });
+        });
+      },
+    }),
     ...languageCommandData.map(
       ({ languageName, keywords, icon, name }) =>
         new DropdownPickerOption(name, {
@@ -245,6 +263,7 @@ export function ComponentPickerMenuPlugin({
 }): JSX.Element {
   const [editor] = useLexicalComposerContext();
   const [queryString, setQueryString] = useState<string | null>(null);
+  const projectSettings = useAtomValue(projectSettingsAtom);
 
   const checkForTriggerMatch = useBasicTypeaheadTriggerMatch('/', {
     minLength: 0,
@@ -263,6 +282,7 @@ export function ComponentPickerMenuPlugin({
       editor,
       insertAttachmentsMutation,
       openCreateTableDialog,
+      defaultCodeBlockLanguage: projectSettings.code.codeBlockDefaultLanguage,
     });
 
     if (!queryString) {

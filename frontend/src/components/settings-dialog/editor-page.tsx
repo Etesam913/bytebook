@@ -8,7 +8,7 @@ import { TableOfContentsRow } from './appearance/table-of-contents-row';
 export function EditorPage() {
   return (
     <>
-      <FontSizeRow />
+      <FontSizeRow setting="editor" isFirst />
       <LineHeightRow />
       <FontFamilyRow setting="editor" />
       <NoteWidthRow />

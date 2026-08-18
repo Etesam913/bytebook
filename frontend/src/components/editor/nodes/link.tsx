@@ -101,10 +101,11 @@ export class LinkNode extends ElementNode {
     if (isInternalLink(element.href)) {
       const internalLinkPath = element.href.split(WAILS_URL)[1];
       element.style.display = 'inline-flex';
+      element.style.alignItems = 'center';
       element.style.gap = '0.15rem';
       const tempContainer = document.createElement('div');
 
-      const noteSvg = <Note className="translate-y-1" />;
+      const noteSvg = <Note />;
       const root = createRoot(tempContainer);
       // Use flushSync to force the update to complete synchronously.
       flushSync(() => {
