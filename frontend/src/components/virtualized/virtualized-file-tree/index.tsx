@@ -1,9 +1,10 @@
 import {
+  FileTree as FileTreeModel,
   prepareFileTreeInput,
   type FileTreeDropResult,
   type FileTreeRenameEvent,
 } from '@pierre/trees';
-import { FileTree, useFileTree } from '@pierre/trees/react';
+import { FileTree } from '@pierre/trees/react';
 import { type RefObject, useEffect, useRef } from 'react';
 import { useAtomValue } from 'jotai';
 import { isDarkModeOnAtom } from '../../../atoms';
@@ -27,6 +28,22 @@ import {
 import { FILE_TREE_HOST_STYLE, FILE_TREE_UNSAFE_CSS } from './styles';
 import { TreeContextMenu } from './tree-context-menu';
 import { TreeHeader } from './tree-header';
+
+/**
+ * Replaces @pierre/trees' useFileTree, whose effect cleanup destroys the model
+ * under StrictMode's mount→cleanup→mount cycle (and on <Activity> hides) while
+ * the rendered tree keeps using it — selection/rename callbacks silently die.
+ * The model is created once per component instance and never destroyed: the
+ * sidebar tree lives for the window's lifetime, and surviving Activity hides
+ * also preserves expansion/selection state across panel switches.
+ */
+function usePersistentFileTree(
+  options: ConstructorParameters<typeof FileTreeModel>[0]
+): FileTreeModel {
+  const modelRef = useRef<FileTreeModel | null>(null);
+  modelRef.current ??= new FileTreeModel(options);
+  return modelRef.current;
+}
 
 // Every ancestor of the route target is a folder, so it must end in '/'.
 // Expands the parent directory hierarchy leading to the initial route target.
@@ -88,7 +105,7 @@ function PierreFileTreeInner({
   // Keep the sorted path order cached for the scroll-into-view helper.
   setSortedTreePaths(preparedInput.paths);
 
-  const { model } = useFileTree({
+  const model = usePersistentFileTree({
     preparedInput,
     initialExpansion: 'closed',
     initialExpandedPaths: getInitialExpandedPaths(routeTargetPath),
