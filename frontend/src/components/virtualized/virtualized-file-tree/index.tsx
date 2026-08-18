@@ -8,11 +8,7 @@ import { type RefObject, useEffect, useRef } from 'react';
 import { useAtomValue } from 'jotai';
 import { isDarkModeOnAtom } from '../../../atoms';
 import { useMoveToTrashMutation } from '../../../hooks/notes';
-import {
-  createFilePath,
-  splitPathSegments,
-  stripTrailingSlash,
-} from '../../../utils/path';
+import { createFilePath, splitPathSegments } from '../../../utils/path';
 import {
   useAddFolderAttachmentsMutation,
   useMoveTreeItemsMutation,
@@ -36,7 +32,7 @@ import { TreeHeader } from './tree-header';
 // Expands the parent directory hierarchy leading to the initial route target.
 function getInitialExpandedPaths(routeTargetPath: string | null) {
   if (!routeTargetPath) return [];
-  const segments = splitPathSegments(stripTrailingSlash(routeTargetPath));
+  const segments = splitPathSegments(routeTargetPath);
   return segments
     .slice(0, -1)
     .map((_, index) => `${segments.slice(0, index + 1).join('/')}/`);
@@ -113,8 +109,8 @@ function PierreFileTreeInner({
         const destination = result.target.directoryPath;
         if (destination === null) return;
         void moveItems({
-          itemPaths: result.draggedPaths.map(stripTrailingSlash),
-          newFolder: stripTrailingSlash(destination),
+          itemPaths: result.draggedPaths,
+          newFolder: destination,
         });
       },
     },
@@ -129,9 +125,7 @@ function PierreFileTreeInner({
   function handleRename(event: FileTreeRenameEvent) {
     const { sourcePath, destinationPath, isFolder } = event;
     if (sourcePath === destinationPath) return;
-    const sourceNoSlash = stripTrailingSlash(sourcePath);
-    const destNoSlash = stripTrailingSlash(destinationPath);
-    const newName = destNoSlash.split('/').pop() ?? '';
+    const newName = splitPathSegments(destinationPath).pop() ?? '';
 
     // pierre applies the rename to its model before this callback runs.
     // If the backend rename fails, put the path back so the tree matches
@@ -145,13 +139,14 @@ function PierreFileTreeInner({
     if (isFolder) {
       void renameTreeItem({
         itemType: 'folder',
-        folderPath: sourceNoSlash,
+        folderPath: sourcePath,
         newName,
       }).catch(() => revert(destinationPath));
       return;
     }
 
-    const filePath = createFilePath(sourceNoSlash);
+    // Files carry no trailing slash in pierre paths.
+    const filePath = createFilePath(sourcePath);
     if (!filePath) return;
     // The file keeps its original extension no matter what was typed:
     // strip it if present, otherwise treat the whole input as the name.
@@ -162,10 +157,10 @@ function PierreFileTreeInner({
     // The backend will produce `<parent>/<typedName><suffix>`. If that
     // differs from what pierre applied (extension edited or removed),
     // correct the model now so the follow-up watcher event is a no-op.
-    const parentSegments = destNoSlash.split('/').slice(0, -1);
+    const parentSegments = destinationPath.split('/').slice(0, -1);
     const actualDest = [...parentSegments, `${typedName}${suffix}`].join('/');
     let appliedPath = destinationPath;
-    if (destNoSlash !== actualDest && model.getItem(destinationPath)) {
+    if (destinationPath !== actualDest && model.getItem(destinationPath)) {
       model.move(destinationPath, actualDest, { collision: 'skip' });
       appliedPath = actualDest;
     }

@@ -21,9 +21,9 @@ type RenamePayload = {
 };
 
 /**
- * @pierre/trees represents directories with a trailing slash in canonical
- * paths; files have no trailing slash. The backend's file-watcher payloads
- * always send slashless paths, so we normalize here.
+ * The frontend (and @pierre/trees) mark directories with a trailing slash,
+ * but the Go file-watcher payloads always send slashless paths — this is the
+ * Go → frontend boundary where the folder marker is restored.
  */
 function toPierrePath(rawPath: string, isFolder: boolean): string {
   if (!rawPath) return rawPath;
