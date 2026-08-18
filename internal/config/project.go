@@ -17,6 +17,15 @@ const DefaultAccentColor = "rgb(96, 165, 250)"
 const DefaultEditorFontSize = 14
 const MinEditorFontSize = 8
 const MaxEditorFontSize = 24
+const DefaultEditorLineHeight = 2.0
+const MinEditorLineHeight = 1.2
+const MaxEditorLineHeight = 3.0
+const DefaultCodeBlockFontSize = 13
+const MinCodeBlockFontSize = 8
+const MaxCodeBlockFontSize = 24
+const DefaultCodeBlockLanguage = "python"
+
+var ValidCodeBlockLanguages = []string{"python", "go", "javascript", "java", "text"}
 
 var UserHomeDir = os.UserHomeDir
 
@@ -127,21 +136,27 @@ type SidebarVisibilitySettings struct {
 }
 
 type AppearanceProjectSettingsJson struct {
-	Theme                    string                    `json:"theme"`
-	AccentColor              string                    `json:"accentColor"`
-	NoteWidth                string                    `json:"noteWidth"`
-	UiFontFamily             string                    `json:"uiFontFamily"`
-	EditorFontFamily         string                    `json:"editorFontFamily"`
-	EditorFontSize           int                       `json:"editorFontSize"`
-	ShowEmptyLinePlaceholder bool                      `json:"showEmptyLinePlaceholder"`
-	SidebarVisibility        SidebarVisibilitySettings `json:"sidebarVisibility"`
+	Theme                        string                    `json:"theme"`
+	AccentColor                  string                    `json:"accentColor"`
+	NoteWidth                    string                    `json:"noteWidth"`
+	UiFontFamily                 string                    `json:"uiFontFamily"`
+	EditorFontFamily             string                    `json:"editorFontFamily"`
+	EditorFontSize               int                       `json:"editorFontSize"`
+	EditorLineHeight             float64                   `json:"editorLineHeight"`
+	ShowEmptyLinePlaceholder     bool                      `json:"showEmptyLinePlaceholder"`
+	ShowTableOfContentsByDefault bool                      `json:"showTableOfContentsByDefault"`
+	SidebarVisibility            SidebarVisibilitySettings `json:"sidebarVisibility"`
 }
 
 type CodeProjectSettingsJson struct {
-	CodeBlockVimMode      bool     `json:"codeBlockVimMode"`
-	CodeBlockFontFamily   string   `json:"codeBlockFontFamily"`
-	PythonVenvPath        string   `json:"pythonVenvPath"`
-	CustomPythonVenvPaths []string `json:"customPythonVenvPaths"`
+	CodeBlockVimMode         bool     `json:"codeBlockVimMode"`
+	CodeBlockFontFamily      string   `json:"codeBlockFontFamily"`
+	CodeBlockFontSize        int      `json:"codeBlockFontSize"`
+	CodeBlockLineWrapping    bool     `json:"codeBlockLineWrapping"`
+	CodeBlockShowLineNumbers bool     `json:"codeBlockShowLineNumbers"`
+	CodeBlockDefaultLanguage string   `json:"codeBlockDefaultLanguage"`
+	PythonVenvPath           string   `json:"pythonVenvPath"`
+	CustomPythonVenvPaths    []string `json:"customPythonVenvPaths"`
 }
 
 type ProjectSettingsJson struct {
@@ -163,19 +178,25 @@ func GetProjectSettings(projectPath string) (ProjectSettingsJson, error) {
 		PinnedNotes: []string{},
 		ProjectPath: projectPath,
 		Appearance: AppearanceProjectSettingsJson{
-			Theme:                    "light",
-			AccentColor:              DefaultAccentColor,
-			UiFontFamily:             "ui-sans-serif",
-			EditorFontFamily:         "",
-			EditorFontSize:           DefaultEditorFontSize,
-			ShowEmptyLinePlaceholder: true,
-			SidebarVisibility:        SidebarVisibilitySettings{},
+			Theme:                        "light",
+			AccentColor:                  DefaultAccentColor,
+			UiFontFamily:                 "ui-sans-serif",
+			EditorFontFamily:             "",
+			EditorFontSize:               DefaultEditorFontSize,
+			EditorLineHeight:             DefaultEditorLineHeight,
+			ShowEmptyLinePlaceholder:     true,
+			ShowTableOfContentsByDefault: false,
+			SidebarVisibility:            SidebarVisibilitySettings{},
 		},
 		Code: CodeProjectSettingsJson{
-			CodeBlockVimMode:      false,
-			CodeBlockFontFamily:   "",
-			PythonVenvPath:        "",
-			CustomPythonVenvPaths: []string{},
+			CodeBlockVimMode:         false,
+			CodeBlockFontFamily:      "",
+			CodeBlockFontSize:        DefaultCodeBlockFontSize,
+			CodeBlockLineWrapping:    false,
+			CodeBlockShowLineNumbers: false,
+			CodeBlockDefaultLanguage: DefaultCodeBlockLanguage,
+			PythonVenvPath:           "",
+			CustomPythonVenvPaths:    []string{},
 		},
 	}
 
@@ -197,6 +218,30 @@ func GetProjectSettings(projectPath string) (ProjectSettingsJson, error) {
 	}
 	if projectSettings.Appearance.EditorFontSize > MaxEditorFontSize {
 		projectSettings.Appearance.EditorFontSize = MaxEditorFontSize
+	}
+
+	if projectSettings.Appearance.EditorLineHeight <= 0 {
+		projectSettings.Appearance.EditorLineHeight = DefaultEditorLineHeight
+	}
+	if projectSettings.Appearance.EditorLineHeight < MinEditorLineHeight {
+		projectSettings.Appearance.EditorLineHeight = MinEditorLineHeight
+	}
+	if projectSettings.Appearance.EditorLineHeight > MaxEditorLineHeight {
+		projectSettings.Appearance.EditorLineHeight = MaxEditorLineHeight
+	}
+
+	if projectSettings.Code.CodeBlockFontSize <= 0 {
+		projectSettings.Code.CodeBlockFontSize = DefaultCodeBlockFontSize
+	}
+	if projectSettings.Code.CodeBlockFontSize < MinCodeBlockFontSize {
+		projectSettings.Code.CodeBlockFontSize = MinCodeBlockFontSize
+	}
+	if projectSettings.Code.CodeBlockFontSize > MaxCodeBlockFontSize {
+		projectSettings.Code.CodeBlockFontSize = MaxCodeBlockFontSize
+	}
+
+	if !slices.Contains(ValidCodeBlockLanguages, projectSettings.Code.CodeBlockDefaultLanguage) {
+		projectSettings.Code.CodeBlockDefaultLanguage = DefaultCodeBlockLanguage
 	}
 
 	projectSettings = ValidateProjectSettings(projectPath, projectSettings)
