@@ -154,9 +154,9 @@ function PierreFileTreeInner({
     },
   });
 
-  const allPaths = useSyncAllPaths(model);
+  useSyncAllPaths({ model, initialPaths, preparedInput });
   usePierreTreeEvents(model);
-  usePierreRouteFocus(model, allPaths);
+  usePierreRouteFocus(model);
 
   function handleStartRename(path: string) {
     if (!model.startRenaming(path)) return;

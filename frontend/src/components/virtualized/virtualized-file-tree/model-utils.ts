@@ -1,7 +1,9 @@
-import type {
-  FileTree as PierreFileTree,
-  FileTreeDirectoryHandle,
-  FileTreeItemHandle,
+import {
+  prepareFileTreeInput,
+  type FileTree as PierreFileTree,
+  type FileTreeDirectoryHandle,
+  type FileTreeItemHandle,
+  type FileTreeMutationEvent,
 } from '@pierre/trees';
 import {
   createFilePath,
@@ -43,6 +45,75 @@ export function setSortedTreePaths(
   paths: readonly string[]
 ) {
   sortedPathsByModel.set(model, paths);
+}
+
+// Seeds the row order at model construction. No-op when an entry already
+// exists — an <Activity> re-mount must not clobber a fresher list with the
+// stale construction-time one.
+export function initializeSortedTreePaths(
+  model: PierreFileTree,
+  paths: readonly string[]
+) {
+  if (!sortedPathsByModel.has(model)) {
+    sortedPathsByModel.set(model, paths);
+  }
+}
+
+/**
+ * Folds a model mutation (watcher batch, drag move, inline rename) into the
+ * stored row order so scroll-into-view stays accurate between `allPaths`
+ * refetches. Idempotent against paths the refetch sync already applied.
+ */
+export function applySortedTreePathMutation(
+  model: PierreFileTree,
+  event: FileTreeMutationEvent
+): void {
+  if (event.operation === 'batch') {
+    for (const semanticEvent of event.events) {
+      applySortedTreePathMutation(model, semanticEvent);
+    }
+    return;
+  }
+  const current = sortedPathsByModel.get(model);
+  if (!current) return;
+  switch (event.operation) {
+    case 'add': {
+      if (current.includes(event.path)) return;
+      sortedPathsByModel.set(
+        model,
+        prepareFileTreeInput([...current, event.path]).paths
+      );
+      return;
+    }
+    case 'remove': {
+      sortedPathsByModel.set(
+        model,
+        current.filter(
+          (path) =>
+            path !== event.path &&
+            !(event.recursive && path.startsWith(event.path))
+        )
+      );
+      return;
+    }
+    case 'move': {
+      const { from, to } = event;
+      const moved = current.map((path) => {
+        if (path === from) return to;
+        if (from.endsWith('/') && path.startsWith(from)) {
+          return to + path.slice(from.length);
+        }
+        return path;
+      });
+      sortedPathsByModel.set(model, prepareFileTreeInput(moved).paths);
+      return;
+    }
+    case 'reset': {
+      // `useSyncAllPaths` writes the full sorted list before calling
+      // resetPaths, so there is nothing to derive from the event.
+      return;
+    }
+  }
 }
 
 function getShadowRoot(model: PierreFileTree | null): ShadowRoot | null {
