@@ -8,7 +8,7 @@ inputs:
   wails-version:
     description: "Wails v3 tag to clone for the local replace directive"
     required: false
-    default: "v3.0.0-alpha.74"
+    default: "v3.0.0-beta.9"
 
 runs:
   using: "composite"

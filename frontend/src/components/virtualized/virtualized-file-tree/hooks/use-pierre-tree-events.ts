@@ -1,4 +1,7 @@
-import type { FileTree as PierreFileTree } from '@pierre/trees';
+import type {
+  FileTree as PierreFileTree,
+  FileTreeBatchOperation,
+} from '@pierre/trees';
 import { useWailsEvent, type WailsEvent } from '../../../../hooks/events';
 import {
   FILE_CREATE,
@@ -133,7 +136,7 @@ function handleRename({
 }) {
   if (!model) return;
   const items = (body.data as RenamePayload[]) ?? [];
-  const ops: Parameters<PierreFileTree['batch']>[0][number][] = [];
+  const ops: FileTreeBatchOperation[] = [];
   for (const item of items) {
     const { oldPath, newPath } = extractRename(item, isFolder);
     if (!oldPath || !newPath) continue;

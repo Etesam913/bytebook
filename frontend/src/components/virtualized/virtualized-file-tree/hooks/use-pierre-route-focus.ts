@@ -8,26 +8,36 @@ import { usePierreRouteTargetPath } from './use-route-target-path';
 // package itself scrolls only on user-driven focus changes, so this also
 // covers the cases it misses: a freshly revealed panel (the sidebar hides the
 // tree with <Activity>, whose reveal re-runs these effects) and deep links.
-export function usePierreRouteFocus(
-  model: PierreFileTree | null,
-  // The model's current path list, from `useSyncAllPaths`. A new identity means
-  // the path set changed, so a target that did not exist yet — a just-created
-  // item, or a deep link that landed before the tree was populated — can now
-  // be revealed.
-  pathsRevision: readonly string[] | undefined
-) {
+export function usePierreRouteFocus(model: PierreFileTree | null) {
   const targetPath = usePierreRouteTargetPath();
 
   useEffect(() => {
     if (!model || !targetPath) return;
-    const item = model.getItem(targetPath);
-    if (!item) return;
-    // Already highlighted: re-revealing would yank the scroll position on
-    // unrelated disk changes.
-    if (model.getFocusedPath() === targetPath && item.isSelected()) return;
-    // Never move focus while the inline rename editor is open — focusPath
-    // would blur it, which commits the rename mid-edit.
-    if (getRenameInput(model)) return;
-    revealTreePath(model, targetPath);
-  }, [model, targetPath, pathsRevision]);
+    const tryReveal = () => {
+      const item = model.getItem(targetPath);
+      if (!item) return;
+      // Already highlighted: re-revealing would yank the scroll position on
+      // unrelated disk changes.
+      if (model.getFocusedPath() === targetPath && item.isSelected()) return;
+      // Never move focus while the inline rename editor is open — focusPath
+      // would blur it, which commits the rename mid-edit.
+      if (getRenameInput(model)) return;
+      revealTreePath(model, targetPath);
+    };
+    tryReveal();
+    // A just-created target is navigated to before its row exists — the row
+    // lands via a later model.batch, so retry on mutations. Deferred to a
+    // microtask so reveal side effects never run inside the model's own
+    // event dispatch.
+    let isActive = true;
+    const unsubscribe = model.onMutation('*', () => {
+      queueMicrotask(() => {
+        if (isActive) tryReveal();
+      });
+    });
+    return () => {
+      isActive = false;
+      unsubscribe();
+    };
+  }, [model, targetPath]);
 }
