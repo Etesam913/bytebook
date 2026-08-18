@@ -21,6 +21,7 @@ import {
 import { isFileMaximizedAtom } from '../../atoms';
 import { projectSettingsAtom } from '../../atoms';
 import type { FloatingDataType, Frontmatter } from '../../types.ts';
+import { isTableOfContentsVisible } from '../../utils/project-settings';
 import { handleEditorEscape } from '../../utils/selection.ts';
 import { cn } from '../../utils/string-formatting';
 import { BottomBar } from './bottom-bar';
@@ -176,7 +177,7 @@ export function NotesEditor({
                 setPlaceholderLineData={setPlaceholderLineData}
               />
               <HorizontalRulePlugin />
-              {frontmatter.showTableOfContents === 'true' && (
+              {isTableOfContentsVisible({ frontmatter, projectSettings }) && (
                 <TableOfContentsPlugin />
               )}
 

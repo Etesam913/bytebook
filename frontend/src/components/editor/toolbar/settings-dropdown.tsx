@@ -14,6 +14,7 @@ import {
   useRevealInFinderMutation,
 } from '../../../hooks/notes';
 import { createFilePath } from '../../../utils/path';
+import { isTableOfContentsVisible } from '../../../utils/project-settings';
 import { ROUTE_PATTERNS } from '../../../utils/routes';
 import { useEditTagsFormMutation } from '../../../hooks/tags';
 import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
@@ -63,6 +64,11 @@ export function SettingsDropdown({
   const [isSavedSearchRoute] = useRoute(ROUTE_PATTERNS.SAVED_SEARCH);
   const isOnSearchRoute = isSearchRoute || isSavedSearchRoute;
 
+  const isTocVisible = isTableOfContentsVisible({
+    frontmatter,
+    projectSettings,
+  });
+
   const items = [
     {
       id: 'reveal-in-finder',
@@ -109,16 +115,11 @@ export function SettingsDropdown({
       ),
     },
     {
-      id:
-        frontmatter.showTableOfContents === 'true'
-          ? 'hide-table-of-contents'
-          : 'show-table-of-contents',
+      id: isTocVisible ? 'hide-table-of-contents' : 'show-table-of-contents',
       label: (
         <span className="flex items-center gap-1.5 will-change-transform">
           <Table className="min-w-5" height="1.125rem" width="1.125rem" />{' '}
-          {frontmatter.showTableOfContents === 'true'
-            ? 'Hide Table of Contents'
-            : 'Show Table of Contents'}
+          {isTocVisible ? 'Hide Table of Contents' : 'Show Table of Contents'}
         </span>
       ),
     },
