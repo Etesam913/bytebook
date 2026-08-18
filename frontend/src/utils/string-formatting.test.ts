@@ -218,19 +218,16 @@ describe('escapeFileContentForMarkdown / unescapeFileContentFromMarkdown', () =>
     expect(escapeFileContentForMarkdown('a\\b')).toBe('a\\\\b');
   });
 
-  it('round-trips arbitrary content', () => {
-    const inputs = [
-      'file[name](test)',
-      'a\\b',
-      'mixed [a](b) \\ () []',
-      'plain text',
-      '',
-    ];
-    for (const input of inputs) {
-      expect(
-        unescapeFileContentFromMarkdown(escapeFileContentForMarkdown(input))
-      ).toBe(input);
-    }
+  it.each([
+    'file[name](test)',
+    'a\\b',
+    'mixed [a](b) \\ () []',
+    'plain text',
+    '',
+  ])('round-trips %j', (input) => {
+    expect(
+      unescapeFileContentFromMarkdown(escapeFileContentForMarkdown(input))
+    ).toBe(input);
   });
 });
 

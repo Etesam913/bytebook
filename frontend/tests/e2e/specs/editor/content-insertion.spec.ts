@@ -228,31 +228,31 @@ test.describe('Editor content insertion', () => {
       expectedText: string;
     }> = [
       {
-        label: '"# " → Heading 1',
+        label: 'converts "# " shortcut to Heading 1',
         input: '# Header text',
         selector: 'h1',
         expectedText: 'Header text',
       },
       {
-        label: '"## " → Heading 2',
+        label: 'converts "## " shortcut to Heading 2',
         input: '## Subheader',
         selector: 'h2',
         expectedText: 'Subheader',
       },
       {
-        label: '"> " → blockquote',
+        label: 'converts "> " shortcut to blockquote',
         input: '> Quoted',
         selector: 'blockquote',
         expectedText: 'Quoted',
       },
       {
-        label: '"- " → unordered list',
+        label: 'converts "- " shortcut to unordered list',
         input: '- List item',
         selector: 'ul li',
         expectedText: 'List item',
       },
       {
-        label: '"1. " → ordered list',
+        label: 'converts "1. " shortcut to ordered list',
         input: '1. First item',
         selector: 'ol li',
         expectedText: 'First item',
@@ -260,7 +260,7 @@ test.describe('Editor content insertion', () => {
     ];
 
     for (const { label, input, selector, expectedText } of blockTests) {
-      test(`${label}`, async ({ page }) => {
+      test(label, async ({ page }) => {
         await page.goto(NOTE_PATH);
 
         const editor = page.locator('#content-editable-editor');
@@ -285,19 +285,19 @@ test.describe('Editor content insertion', () => {
       expectedText: string;
     }> = [
       {
-        label: '"**text** " → bold',
+        label: 'converts "**text** " shortcut to bold',
         input: '**bold** ',
         selector: 'strong',
         expectedText: 'bold',
       },
       {
-        label: '"*text* " → italic',
+        label: 'converts "*text* " shortcut to italic',
         input: '*italic* ',
         selector: 'em',
         expectedText: 'italic',
       },
       {
-        label: '"~~text~~ " → strikethrough',
+        label: 'converts "~~text~~ " shortcut to strikethrough',
         input: '~~strike~~ ',
         selector: 'span.text-strikethrough',
         expectedText: 'strike',

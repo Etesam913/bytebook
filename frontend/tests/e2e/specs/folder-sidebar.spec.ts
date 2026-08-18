@@ -67,9 +67,7 @@ test.describe('File Sidebar', () => {
       ).toBeVisible();
     });
 
-    test('clicking on folder navigates to the correct location', async ({
-      page,
-    }) => {
+    test('navigates to folder path on folder click', async ({ page }) => {
       await page.goto('/');
       const sidebar = page.getByTestId('file-sidebar');
       const economicsFolder = sidebar.getByRole('treeitem', {
@@ -80,7 +78,10 @@ test.describe('File Sidebar', () => {
     });
 
     test.describe('Context menu', () => {
-      test('reveal in finder option is visible', async ({ page, context }) => {
+      test('shows Reveal in Finder option in folder context menu', async ({
+        page,
+        context,
+      }) => {
         // Mock RevealFolderOrFileInFinder
         await mockBinding(
           context,
@@ -434,7 +435,7 @@ test.describe('File Sidebar', () => {
   });
 
   test.describe('Pinned Accordion', () => {
-    test('renders correctly', async ({ page }) => {
+    test('renders pinned notes list', async ({ page }) => {
       await page.goto('/');
       const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Pinned');

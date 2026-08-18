@@ -47,16 +47,16 @@ describe('easingFunctions', () => {
     expect(easingFunctions['ease-in-out-expo']).toEqual([1, 0, 0, 1]);
   });
 
-  it('every preset is a 4-tuple of numbers', () => {
-    for (const [name, value] of Object.entries(easingFunctions)) {
-      expect(Array.isArray(value), `${name} should be an array`).toBe(true);
-      if (!Array.isArray(value)) {
-        throw new Error(`${name} should be an array`);
-      }
-      expect(value, `${name} should have 4 elements`).toHaveLength(4);
-      for (const n of value) {
-        expect(typeof n).toBe('number');
+  it.each(Object.entries(easingFunctions))(
+    'defines "%s" as a valid 4-number cubic bezier curve',
+    (_name, value) => {
+      expect(Array.isArray(value)).toBe(true);
+      if (Array.isArray(value)) {
+        expect(value).toHaveLength(4);
+        for (const n of value) {
+          expect(typeof n).toBe('number');
+        }
       }
     }
-  });
+  );
 });
