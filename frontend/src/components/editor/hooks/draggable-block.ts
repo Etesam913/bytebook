@@ -16,7 +16,7 @@ import { useWailsEvent, type WailsEvent } from '../../../hooks/events';
 import { EDITOR_CONTENT_DROP } from '../../../utils/events';
 import { createFilePath, type FilePath } from '../../../utils/path';
 import { throttle } from '../../../utils/draggable';
-import { useAddDroppedFilesToFolderMutation } from '../../virtualized/virtualized-file-tree/hooks/tree-item-mutations';
+import { useAddDroppedFilesToFolderMutation } from '../../../hooks/tree-items';
 import type { FilePayload } from '../nodes/file';
 import { INSERT_FILES_COMMAND } from '../plugins/file';
 import {

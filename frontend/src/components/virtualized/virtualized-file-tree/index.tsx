@@ -14,7 +14,7 @@ import {
   useMoveTreeItemsMutation,
   useRenameTreeItemMutation,
 } from './hooks/tree-item-mutations';
-import { useAllPaths } from './hooks/use-all-paths';
+import { useAllPaths } from '../../../hooks/all-paths';
 import { usePierreRouteFocus } from './hooks/use-pierre-route-focus';
 import { usePierreTreeEvents } from './hooks/use-pierre-tree-events';
 import { usePierreRouteTargetPath } from './hooks/use-route-target-path';

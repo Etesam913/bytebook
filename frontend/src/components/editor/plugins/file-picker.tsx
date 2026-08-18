@@ -23,7 +23,7 @@ import {
 import { $createLinkNode } from '../nodes/link';
 import { INSERT_FILES_COMMAND } from './file';
 import { RenderNoteIcon } from '../../../icons/render-note-icon';
-import { FILE_TYPE } from '../../virtualized/virtualized-file-tree/types';
+import { FILE_TYPE } from '../../../utils/tree-item-types';
 import {
   useFilePickerSearchQuery,
   type SearchResult,

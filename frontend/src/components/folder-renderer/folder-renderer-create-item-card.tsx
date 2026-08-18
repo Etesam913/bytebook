@@ -3,11 +3,8 @@ import { getDefaultButtonVariants } from '../../animations';
 import { MotionButton } from '../buttons';
 import { Blog } from '../../icons/blog';
 import { Folder as FolderIcon } from '../../icons/folder';
-import { useAddTreeItemMutation } from '../virtualized/virtualized-file-tree/hooks/tree-item-mutations';
-import {
-  FILE_TYPE,
-  FOLDER_TYPE,
-} from '../virtualized/virtualized-file-tree/types';
+import { useAddTreeItemMutation } from '../../hooks/tree-items';
+import { FILE_TYPE, FOLDER_TYPE } from '../../utils/tree-item-types';
 import type { FolderPath } from '../../utils/path';
 
 export function FolderRendererCreateItemCard({

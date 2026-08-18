@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { MotionButton } from '../../buttons';
 import { getDefaultButtonVariants } from '../../../animations';
 import { FolderPen } from '../../../icons/folder-pen';
-import { useAddTreeItemMutation } from './hooks/tree-item-mutations';
-import { FOLDER_TYPE } from './types';
+import { useAddTreeItemMutation } from '../../../hooks/tree-items';
+import { FOLDER_TYPE } from '../../../utils/tree-item-types';
 
 /**
  * Inline header rendered inside the @pierre/trees header slot. Shows a
