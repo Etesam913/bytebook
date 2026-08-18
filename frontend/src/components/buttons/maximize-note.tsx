@@ -29,6 +29,7 @@ export function MaximizeNoteButton({
           });
         }}
         {...getDefaultButtonVariants({ disabled })}
+        isDisabled={disabled}
         type="button"
         initial={{ rotate: isFileMaximized ? 180 : 0 }}
         animate={{ rotate: isFileMaximized ? 180 : 0 }}
