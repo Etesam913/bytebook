@@ -4,7 +4,6 @@ import type {
 } from '@pierre/trees';
 import { useAtomValue } from 'jotai';
 import { type ReactNode } from 'react';
-import { useRevealInFinderMutation } from '../../../hooks/notes';
 import { projectSettingsAtom } from '../../../atoms';
 import {
   createFilePath,
@@ -13,10 +12,7 @@ import {
 } from '../../../utils/path';
 import { MenuItemLabel, useContextMenuItems } from '../../context-menu/items';
 import type { DropdownItem } from '../../../types';
-import { Trash } from '../../../icons/trash';
 import { PaperclipPlus } from '../../../icons/paperclip-plus';
-import { FilePen } from '../../../icons/file-pen';
-import { Finder } from '../../../icons/finder';
 
 type MenuRow = {
   key: string;
@@ -44,19 +40,17 @@ export function TreeContextMenu({
   item,
   context,
   selectedPaths,
-  onMoveToTrash,
   onAddFolderAttachments,
   onStartRename,
 }: {
   item: FileTreeContextMenuItem;
   context: FileTreeContextMenuOpenContext;
   selectedPaths: readonly string[];
-  onMoveToTrash: (paths: string[]) => void;
   onAddFolderAttachments: (folderPath: string) => void;
   onStartRename: (path: string) => void;
 }) {
-  const { mutate: revealInFinder } = useRevealInFinderMutation();
-  const { editTags, pin } = useContextMenuItems();
+  const { editTags, moveToTrash, pin, rename, revealInFinder } =
+    useContextMenuItems();
   const projectSettings = useAtomValue(projectSettingsAtom);
   const isFolder = item.kind === 'directory';
   const filePath = isFolder ? null : createFilePath(item.path);
@@ -77,19 +71,9 @@ export function TreeContextMenu({
 
   const rows: MenuRow[] = [];
 
-  if (filePath || folderPath) {
-    rows.push({
-      key: 'reveal-in-finder',
-      content: (
-        <MenuItemLabel icon={<Finder height="1.0625rem" width="1.0625rem" />}>
-          Reveal in Finder
-        </MenuItemLabel>
-      ),
-      onSelect: () => {
-        const path = filePath ?? folderPath;
-        if (path) revealInFinder({ path });
-      },
-    });
+  const revealTarget = filePath ?? folderPath;
+  if (revealTarget) {
+    rows.push(dropdownItemToMenuRow(revealInFinder({ path: revealTarget })));
   }
 
   if (isFolder) {
@@ -158,33 +142,23 @@ export function TreeContextMenu({
 
   if (!isMultiSelection) {
     rows.push({
-      key: 'rename',
-      content: (
-        <MenuItemLabel icon={<FilePen height="1.0625rem" width="1.0625rem" />}>
-          Rename
-        </MenuItemLabel>
+      ...dropdownItemToMenuRow(
+        rename({
+          onRename: () => {
+            // Close the menu *first* without restoring focus to the row — the
+            // inline rename input will own focus once the model enters renaming
+            // mode. Pass pierre's original (possibly slashed) path so
+            // startRenaming finds the right node.
+            context.close({ restoreFocus: false });
+            onStartRename(item.path);
+          },
+        })
       ),
       keepFocus: true,
-      onSelect: () => {
-        // Close the menu *first* without restoring focus to the row — the inline
-        // rename input will own focus once the model enters renaming mode. Pass
-        // pierre's original (possibly slashed) path so startRenaming finds the
-        // right node.
-        context.close({ restoreFocus: false });
-        onStartRename(item.path);
-      },
     });
   }
 
-  rows.push({
-    key: 'move-to-trash',
-    content: (
-      <MenuItemLabel icon={<Trash height="1.0625rem" width="1.0625rem" />}>
-        Move to Trash
-      </MenuItemLabel>
-    ),
-    onSelect: () => onMoveToTrash([...targetPaths]),
-  });
+  rows.push(dropdownItemToMenuRow(moveToTrash({ paths: [...targetPaths] })));
 
   // Mirrors the native context menu's look (`components/context-menu` +
   // `components/menu`): translucent rounded-xl surface, rounded-lg rows, and
