@@ -27,7 +27,6 @@ import {
   type TextFormatType,
 } from 'lexical';
 import type { Dispatch, ReactNode, RefObject, SetStateAction } from 'react';
-import { toast } from 'sonner';
 import { AddAttachments } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/nodeservice';
 import { Heading1 } from '../../../icons/heading-1';
 import { Heading2 } from '../../../icons/heading-2';
@@ -49,6 +48,7 @@ import type {
 
 import type { FilePayload } from '../nodes/file';
 import { INSERT_FILES_COMMAND } from '../plugins/file';
+import { QueryError } from '../../../utils/query';
 import { QuoteIcon } from '../../../icons/quote.tsx';
 
 /**
@@ -332,31 +332,23 @@ export async function insertAttachmentFromFile({
   editor: LexicalEditor;
   editorSelection: BaseSelection | null;
 }) {
-  try {
-    const { success, message, data } = await AddAttachments(folder);
-    if (!success) {
-      toast.error(message);
-      return;
-    }
-    const paths = data ?? [];
-    if (paths.length === 0) return;
+  const { success, message, data } = await AddAttachments(folder);
+  // Thrown errors surface as toasts via the global MutationCache onError.
+  if (!success) throw new QueryError(message);
+  const paths = data ?? [];
+  if (paths.length === 0) return;
 
-    // Goes through all the files and add them to the editor
-    editor.update(() => {
-      const payloads: FilePayload[] = paths.map((filePath) => ({
-        src: `/${filePath}`,
-        alt: filePath.split('/').at(-1) ?? 'Untitled',
-      }));
-      if (editorSelection) {
-        $setSelection(editorSelection.clone());
-        editor.dispatchCommand(INSERT_FILES_COMMAND, payloads);
-      }
-    });
-  } catch (e: unknown) {
-    if (e instanceof Error) {
-      toast.error(e.message);
+  // Goes through all the files and add them to the editor
+  editor.update(() => {
+    const payloads: FilePayload[] = paths.map((filePath) => ({
+      src: `/${filePath}`,
+      alt: filePath.split('/').at(-1) ?? 'Untitled',
+    }));
+    if (editorSelection) {
+      $setSelection(editorSelection.clone());
+      editor.dispatchCommand(INSERT_FILES_COMMAND, payloads);
     }
-  }
+  });
 }
 
 function BlockTypeDropdownItemLabel({

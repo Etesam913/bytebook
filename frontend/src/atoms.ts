@@ -163,8 +163,6 @@ export const contextMenuDataAtom = atom<ContextMenuData>({
   targetId: null,
 });
 
-export type { TrashRestoreInfo } from './types';
-
 /**
  * Map of kernel instance id -> instance data. The backend KernelManager owns
  * the authoritative state and emits kernel:instance:* events whenever an

@@ -19,14 +19,16 @@ export function useAttachmentsMutation({
       editor.read(() => {
         editorSelection = $getSelection();
       });
-      setBackendQuery({
-        isLoading: true,
-        message: 'Inserting Attachments',
-      });
       await insertAttachmentFromFile({
         folder,
         editor,
         editorSelection,
+      });
+    },
+    onMutate: () => {
+      setBackendQuery({
+        isLoading: true,
+        message: 'Inserting Attachments',
       });
     },
     onSettled: () => {
