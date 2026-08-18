@@ -87,7 +87,7 @@ test.describe('Tags Workflow', () => {
   });
 
   test.describe('Adding Tags to Notes', () => {
-    test('tags can be added to a note and they appear in the tags section', async ({
+    test('adds a tag to a note and displays it in the tags section', async ({
       page,
       context,
     }) => {

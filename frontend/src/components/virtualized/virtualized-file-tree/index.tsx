@@ -113,6 +113,7 @@ function PierreFileTreeInner({
     initialExpandedPaths: getInitialExpandedPaths(routeTargetPath),
     initialSelectedPaths: routeTargetPath ? [routeTargetPath] : [],
     stickyFolders: true,
+    icons: 'minimal',
     searchBlurBehavior: 'retain',
     unsafeCSS: FILE_TREE_UNSAFE_CSS,
     onSelectionChange: (selectedPaths) => {

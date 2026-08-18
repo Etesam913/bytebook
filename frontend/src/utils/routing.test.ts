@@ -1,9 +1,13 @@
 import '../test/setup';
-import { describe, expect, it, spyOn } from 'bun:test';
+import { afterEach, describe, expect, it, spyOn } from 'bun:test';
 
 const { disableBackspaceNavigation } = await import('./routing');
 
 describe('disableBackspaceNavigation', () => {
+  afterEach(() => {
+    document.body.replaceChildren();
+  });
+
   it('prevents navigating back when focus is outside editable fields', () => {
     disableBackspaceNavigation();
 

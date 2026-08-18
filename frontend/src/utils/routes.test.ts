@@ -3,7 +3,7 @@ import { describe, it, expect } from 'bun:test';
 import { ROUTE_PATTERNS, routeUrls } from './routes';
 
 describe('ROUTE_PATTERNS', () => {
-  it('should have correct route pattern constants', () => {
+  it('defines correct route pattern constants', () => {
     expect(ROUTE_PATTERNS.ROOT).toBe('/');
     expect(ROUTE_PATTERNS.SEARCH).toBe('/search/:searchQuery?/*');
     expect(ROUTE_PATTERNS.KERNELS).toBe('/kernels/:kernelName');
@@ -19,30 +19,30 @@ describe('ROUTE_PATTERNS', () => {
 
 describe('routeUrls', () => {
   describe('root', () => {
-    it('should return root route', () => {
+    it('returns root route', () => {
       expect(routeUrls.root()).toBe('/');
     });
   });
 
   describe('search', () => {
-    it('should build search route with encoded query', () => {
+    it('builds search route with encoded query', () => {
       expect(routeUrls.search('research')).toBe('/search/research/');
       expect(routeUrls.search('economics notes')).toBe(
         '/search/economics%20notes/'
       );
     });
 
-    it('should encode special characters in search query', () => {
+    it('encodes special characters in search query', () => {
       expect(routeUrls.search('query & more')).toBe(
         '/search/query%20%26%20more/'
       );
     });
 
-    it('should handle empty search query', () => {
+    it('handles empty search query', () => {
       expect(routeUrls.search('')).toBe('/search/');
     });
 
-    it('should build search route with an encoded file path', () => {
+    it('builds search route with an encoded file path', () => {
       expect(routeUrls.search('economics', 'notes/file.md')).toBe(
         '/search/economics/notes/file.md'
       );
@@ -50,24 +50,24 @@ describe('routeUrls', () => {
   });
 
   describe('kernel', () => {
-    it('should build kernel route with encoded name', () => {
+    it('builds kernel route with encoded name', () => {
       expect(routeUrls.kernel('python')).toBe('/kernels/python');
       expect(routeUrls.kernel('javascript')).toBe('/kernels/javascript');
     });
 
-    it('should encode special characters in kernel name', () => {
+    it('encodes special characters in kernel name', () => {
       expect(routeUrls.kernel('python 3')).toBe('/kernels/python%203');
       expect(routeUrls.kernel('node.js')).toBe('/kernels/node.js');
       expect(routeUrls.kernel('c++')).toBe('/kernels/c%2B%2B');
     });
 
-    it('should handle empty kernel name', () => {
+    it('handles empty kernel name', () => {
       expect(routeUrls.kernel('')).toBe('/kernels/');
     });
   });
 
   describe('folder', () => {
-    it('should build folder route with encoded name', () => {
+    it('builds folder route with encoded name', () => {
       expect(routeUrls.folder('Economics Notes')).toBe(
         '/notes/Economics%20Notes'
       );
@@ -76,7 +76,7 @@ describe('routeUrls', () => {
       );
     });
 
-    it('should encode special characters in folder name', () => {
+    it('encodes special characters in folder name', () => {
       expect(routeUrls.folder('My Folder/Subfolder')).toBe(
         '/notes/My%20Folder%2FSubfolder'
       );
@@ -85,19 +85,19 @@ describe('routeUrls', () => {
       );
     });
 
-    it('should handle empty folder name', () => {
+    it('handles empty folder name', () => {
       expect(routeUrls.folder('')).toBe('/notes/');
     });
   });
 
   describe('notFoundFallback', () => {
-    it('should return 404 route', () => {
+    it('returns 404 route', () => {
       expect(routeUrls.notFoundFallback()).toBe('/404');
     });
   });
 
   describe('tagSearch', () => {
-    it('should build tag search route with # prefix', () => {
+    it('builds tag search route with # prefix', () => {
       expect(routeUrls.tagSearch('economics')).toBe(
         '/saved-search/%23economics/'
       );
@@ -106,7 +106,7 @@ describe('routeUrls', () => {
       );
     });
 
-    it('should encode special characters in tag name', () => {
+    it('encodes special characters in tag name', () => {
       expect(routeUrls.tagSearch('tag name')).toBe(
         '/saved-search/%23tag%20name/'
       );
@@ -115,20 +115,20 @@ describe('routeUrls', () => {
       );
     });
 
-    it('should handle empty tag name', () => {
+    it('handles empty tag name', () => {
       expect(routeUrls.tagSearch('')).toBe('/saved-search/%23/');
     });
   });
 
   describe('savedSearch', () => {
-    it('should build saved search route with encoded query', () => {
+    it('builds saved search route with encoded query', () => {
       expect(routeUrls.savedSearch('research')).toBe('/saved-search/research/');
       expect(routeUrls.savedSearch('economics notes')).toBe(
         '/saved-search/economics%20notes/'
       );
     });
 
-    it('should encode special characters in search query', () => {
+    it('encodes special characters in search query', () => {
       expect(routeUrls.savedSearch('query & more')).toBe(
         '/saved-search/query%20%26%20more/'
       );
@@ -137,17 +137,17 @@ describe('routeUrls', () => {
       );
     });
 
-    it('should handle empty search query', () => {
+    it('handles empty search query', () => {
       expect(routeUrls.savedSearch('')).toBe('/saved-search/');
     });
 
-    it('should handle queries with # prefix (tags)', () => {
+    it('handles queries with # prefix (tags)', () => {
       expect(routeUrls.savedSearch('#economics')).toBe(
         '/saved-search/%23economics/'
       );
     });
 
-    it('should build saved search route with an encoded file path', () => {
+    it('builds saved search route with an encoded file path', () => {
       expect(routeUrls.savedSearch('economics', 'notes/file.md')).toBe(
         '/saved-search/economics/notes/file.md'
       );

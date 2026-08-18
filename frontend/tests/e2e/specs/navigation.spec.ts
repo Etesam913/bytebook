@@ -28,45 +28,31 @@ test.describe('Navigation', () => {
     );
   });
 
-  test('Go back button navigates to previous page', async ({ page }) => {
-    // Start at the home page
+  test('navigates to previous page when go back button is clicked', async ({
+    page,
+  }) => {
     await page.goto('/');
-
-    // Navigate to a folder
     const sidebar = page.getByTestId('file-sidebar');
-    // @pierre/trees renders row labels as truncation fragments, so locate the
-    // row by its accessible treeitem name instead of text content.
     await sidebar.getByRole('treeitem', { name: 'Economics Notes' }).click();
     await expect(page).toHaveURL(/\/notes\/Economics%20Notes/);
 
-    // Click the Go back button
     await page.getByTestId('go-back-button').click();
 
-    // Should be back at the home page
     await expect(page).toHaveURL('/');
   });
 
-  test('Go forward button navigates to next page after going back', async ({
+  test('navigates to next page when go forward button is clicked', async ({
     page,
   }) => {
-    // Start at the home page
     await page.goto('/');
-
-    // Navigate to a folder
     const sidebar = page.getByTestId('file-sidebar');
-    // @pierre/trees renders row labels as truncation fragments, so locate the
-    // row by its accessible treeitem name instead of text content.
     await sidebar.getByRole('treeitem', { name: 'Economics Notes' }).click();
     await expect(page).toHaveURL(/\/notes\/Economics%20Notes/);
-
-    // Go back
     await page.getByTestId('go-back-button').click();
     await expect(page).toHaveURL('/');
 
-    // Click the Go forward button
     await page.getByTestId('go-forward-button').click();
 
-    // Should be back at the folder page
     await expect(page).toHaveURL(/\/notes\/Economics%20Notes/);
   });
 });
