@@ -58,10 +58,12 @@ function TableOfContentsElement({
                 textValue={title}
                 className={cn(
                   getPadding(level),
-                  'toc-list-item flex app-link text-left outline-none rounded-sm data-[focus-visible]:ring-2 data-[focus-visible]:ring-(--accent-color) cursor-pointer'
+                  'toc-list-item group flex text-left text-(--accent-color) outline-none rounded-sm data-[focus-visible]:ring-2 data-[focus-visible]:ring-(--accent-color) cursor-pointer'
                 )}
               >
-                {title}
+                <span className="underline decoration-2 underline-offset-2 group-hover:filter group-hover:brightness-90 dark:group-hover:brightness-125">
+                  {title}
+                </span>
               </ListBoxItem>
             );
           })}
