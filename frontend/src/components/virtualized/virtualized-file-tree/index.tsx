@@ -22,6 +22,7 @@ import { usePierreRouteTargetPath } from './hooks/use-route-target-path';
 import { useSyncAllPaths } from './hooks/use-sync-all-paths';
 import {
   getRenameInput,
+  getTreeHost,
   navigateToTreePath,
   setSortedTreePaths,
 } from './model-utils';
@@ -207,12 +208,7 @@ function PierreFileTreeInner({
   // and a commit-Enter never reaches this handler (the tree stops it).
   function handleKeyDown(event: React.KeyboardEvent) {
     if (event.key !== 'Enter') return;
-    const container = model.getFileTreeContainer();
-    const host =
-      container?.getRootNode() instanceof ShadowRoot
-        ? (container.getRootNode() as ShadowRoot).host
-        : container;
-    if (event.target !== host) return;
+    if (event.target !== getTreeHost(model)) return;
     if (getRenameInput(model)) return;
     const focusedPath = model.getFocusedPath();
     if (!focusedPath) return;
