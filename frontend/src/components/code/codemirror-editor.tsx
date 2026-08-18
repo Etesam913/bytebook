@@ -279,6 +279,9 @@ export function CodeMirrorEditor({
           //   parent: document.getElementById('code-dialog') ?? document.body,
           // }),
           EditorView.editable.of(isInNodeSelection),
+          ...(projectSettings.code.codeBlockLineWrapping
+            ? [EditorView.lineWrapping]
+            : []),
           ...(projectSettings.code.codeBlockVimMode && vimExtension
             ? [vimExtension]
             : []),
@@ -312,6 +315,7 @@ export function CodeMirrorEditor({
         basicSetup={{
           ...codeBlockBasicSetup,
           ...languageBasicSetup[language],
+          lineNumbers: projectSettings.code.codeBlockShowLineNumbers,
         }}
       />
     </div>

@@ -494,6 +494,7 @@ textarea,
 .cm-lineNumbers {
   @apply text-zinc-500;
   font-size: calc(var(--code-block-font-size) * 0.9);
+  font-family: var(--code-block-font-family);
 }
 
 .cm-gutter-element {
