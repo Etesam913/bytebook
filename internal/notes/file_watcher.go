@@ -23,9 +23,6 @@ const (
 	debounceTimeout = 50 * time.Millisecond
 )
 
-var IMAGE_FILE_EXTENSIONS = []string{"png", "jpg", "jpeg", "webp", "gif"}
-var VIDEO_FILE_EXTENSIONS = []string{"mov", "mp4", "m4v"}
-
 type pendingWatcherEvent struct {
 	event fsnotify.Event
 }
