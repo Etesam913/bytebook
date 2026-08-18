@@ -33,7 +33,7 @@ export function useSyncAllPaths(
     // The prepared input's paths are in the tree's final row order — the
     // scroll-into-view helper needs it to map a path to a row index. This runs
     // on mount too (before any reveal effect), so it is the only writer.
-    setSortedTreePaths(preparedInput.paths);
+    setSortedTreePaths(model, preparedInput.paths);
 
     // The model was constructed with this same path list, and content-identical
     // refetches need no coarse reset.
