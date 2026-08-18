@@ -3,7 +3,7 @@ import { Tab, TabList } from 'react-aria-components/Tabs';
 import type { SettingsTab } from '.';
 import { ColorPalette2 } from '../../icons/color-palette-2';
 import { cn } from '../../utils/string-formatting';
-import WindowCode from '../../icons/window-code';
+import { WindowCode } from '../../icons/window-code';
 import { Magnifier } from '../../icons/magnifier';
 import { Text } from '../../icons/text';
 

@@ -32,9 +32,8 @@ import { CircleArrowRight } from '../../icons/circle-arrow-right.tsx';
 import { MyKernelsAccordion } from './my-kernels-accordion/index.tsx';
 import { MySavedSearchesAccordion } from './my-saved-searches-accordion/index.tsx';
 import { Tooltip } from '../tooltip/index.tsx';
-import { isSearchSidebarRoute } from '../../utils/sidebar-routes.ts';
+import { isSearchSidebarRoute, routeUrls } from '../../utils/routes.ts';
 import { cn } from '../../utils/string-formatting.ts';
-import { routeUrls } from '../../utils/routes.ts';
 
 export type FlexWeightMVs = Record<SidebarPanelKey, MotionValue<number>>;
 

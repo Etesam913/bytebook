@@ -1,7 +1,7 @@
 import { Play } from '../../icons/circle-play';
-import HourglassStart from '../../icons/hourglass-start';
+import { HourglassStart } from '../../icons/hourglass-start';
 import { Loader } from '../../icons/loader';
-import PowerOff from '../../icons/power-off';
+import { PowerOff } from '../../icons/power-off';
 import { cn } from '../../utils/string-formatting';
 import { KernelHeartbeat } from '../../components/file-sidebar/my-kernels-accordion/kernel-heartbeat';
 import { KernelInstanceData } from '../../types';

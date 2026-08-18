@@ -170,3 +170,10 @@ export type SidebarContentType =
   | 'saved-search'
   | 'search-result'
   | 'kernel';
+
+export type TrashRestoreInfo = {
+  originalPath: string;
+  trashedPath: string;
+  isFolder: boolean;
+  relatedItems: TrashRestoreInfo[] | undefined;
+};

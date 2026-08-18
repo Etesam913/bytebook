@@ -1,6 +1,6 @@
 import '../test/setup';
 import { describe, expect, it } from 'bun:test';
-import { isSearchSidebarRoute } from './sidebar-routes';
+import { isSearchSidebarRoute } from './routes';
 
 describe('sidebar-routes', () => {
   describe('isSearchSidebarRoute', () => {

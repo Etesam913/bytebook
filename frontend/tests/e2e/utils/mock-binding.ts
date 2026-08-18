@@ -78,6 +78,23 @@ export async function updateMockBindingResponse(
   );
 }
 
+export async function getMockBindingCalls(
+  page: Page,
+  identifier: BindingIdentifier
+): Promise<unknown[][]> {
+  const methodId = getMethodId(identifier);
+
+  return await page.evaluate((methodId) => {
+    const calls = (
+      window as typeof window & {
+        __BYTEBOOK_WAILS_CALLS__?: Map<number, unknown[][]>;
+      }
+    ).__BYTEBOOK_WAILS_CALLS__;
+
+    return calls?.get(methodId) ?? [];
+  }, methodId);
+}
+
 /**
  * Retrieves the method ID for a given binding function by parsing the generated binding file.
  * Looks for the numeric method ID used in `$Call.ByID(<number>)` to keep tests resilient to regeneration.
@@ -139,6 +156,7 @@ async function ensureFetchIsPatched(context: BrowserContext) {
         payload: unknown
       ) => void;
       __BYTEBOOK_WAILS_MOCKS__?: Map<number, unknown>;
+      __BYTEBOOK_WAILS_CALLS__?: Map<number, unknown[][]>;
       __BYTEBOOK_E2E__?: boolean;
     };
 
@@ -149,7 +167,9 @@ async function ensureFetchIsPatched(context: BrowserContext) {
     }
 
     const mockStore = new Map<number, unknown>();
+    const callStore = new Map<number, unknown[][]>();
     globalWindow.__BYTEBOOK_WAILS_MOCKS__ = mockStore;
+    globalWindow.__BYTEBOOK_WAILS_CALLS__ = callStore;
     globalWindow.__BYTEBOOK_REGISTER_WAILS_MOCK__ = (methodId, payload) => {
       mockStore.set(methodId, payload);
     };
@@ -186,6 +206,9 @@ async function ensureFetchIsPatched(context: BrowserContext) {
               const mockResponse = mockStore.get(methodId);
 
               if (mockResponse !== undefined) {
+                const calls = callStore.get(methodId) ?? [];
+                calls.push(body.args.args ?? []);
+                callStore.set(methodId, calls);
                 return new Response(JSON.stringify(mockResponse), {
                   status: 200,
                   headers: { 'Content-Type': 'application/json' },

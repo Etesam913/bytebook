@@ -8,7 +8,7 @@ import type { Languages, LanguagesWithKernels } from '../../../types';
 import { cn } from '../../../utils/string-formatting';
 import { FolderOpen } from '../../../icons/folder-open';
 import { ChevronDown } from '../../../icons/chevron-down';
-import PowerOff from '../../../icons/power-off';
+import { PowerOff } from '../../../icons/power-off';
 import { PythonVenvDialog } from '../python-venv-dialog';
 import {
   useEnsureKernelMutation,

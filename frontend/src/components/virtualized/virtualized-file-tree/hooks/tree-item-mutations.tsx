@@ -50,11 +50,7 @@ export function useRenameTreeItemMutation() {
       const oldPath = stripTrailingSlash(
         args.itemType === 'folder' ? args.folderPath : args.filePath.fullPath
       );
-      const newLastSegment =
-        args.itemType === 'folder'
-          ? trimmedName
-          : `${trimmedName}.${args.filePath.extension}`;
-      const newPath = replaceLastPathSegment(oldPath, newLastSegment);
+      const newPath = replaceLastPathSegment(oldPath, trimmedName);
 
       const res =
         args.itemType === 'folder'

@@ -12,7 +12,7 @@ import { isFileMaximizedAtom } from '../../atoms';
 import { Note } from '../../icons/page';
 import { Magnifier } from '../../icons/magnifier';
 import { Tooltip } from '../tooltip';
-import { isSearchSidebarRoute } from '../../utils/sidebar-routes';
+import { isSearchSidebarRoute } from '../../utils/routes';
 import { cn } from '../../utils/string-formatting';
 import {
   isEventInCurrentWindow,

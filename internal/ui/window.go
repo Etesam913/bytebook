@@ -23,6 +23,7 @@ func CreateWindow(app *application.App, url string, backgroundColor application.
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 35,
 			TitleBar:                application.MacTitleBarHiddenInsetUnified,
+			CornerType:              application.MacWindowCornerTypeRounded,
 			WebviewPreferences: application.MacWebviewPreferences{
 				FullscreenEnabled: application.Enabled,
 			},

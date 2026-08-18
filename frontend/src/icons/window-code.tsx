@@ -1,4 +1,4 @@
-function WindowCode({
+export function WindowCode({
   fill = 'currentColor',
   secondaryfill,
   strokewidth = 1.5,
@@ -68,5 +68,3 @@ function WindowCode({
     </svg>
   );
 }
-
-export default WindowCode;
