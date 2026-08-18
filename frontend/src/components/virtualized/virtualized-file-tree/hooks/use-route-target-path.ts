@@ -4,14 +4,14 @@ import {
 } from '../../../../hooks/routes';
 
 /**
- * The current `/notes/*` route target in @pierre/trees' path convention:
- * files are slashless, directories carry a trailing slash. Returns null when
- * the route points at neither a note nor a folder.
+ * The current `/notes/*` route target: files are slashless, directories carry
+ * a trailing slash (both `fullPath` conventions match @pierre/trees). Returns
+ * null when the route points at neither a note nor a folder.
  */
 export function usePierreRouteTargetPath(): string | null {
   const filePath = useFilePathFromRoute();
   const folderPath = useFolderPathFromRoute();
   if (filePath) return filePath.fullPath;
-  if (folderPath) return `${folderPath.fullPath}/`;
+  if (folderPath) return folderPath.fullPath;
   return null;
 }

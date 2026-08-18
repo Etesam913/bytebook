@@ -76,9 +76,9 @@ describe('replaceLastPathSegment', () => {
     );
   });
 
-  it('replaces the last segment when the path has a trailing slash', () => {
+  it('renames the last segment and keeps the trailing slash for folder paths', () => {
     expect(replaceLastPathSegment('notes/folder/', 'new-folder')).toBe(
-      'notes/folder/new-folder'
+      'notes/new-folder/'
     );
   });
 });
@@ -167,30 +167,31 @@ describe('createFolderPath', () => {
     const fp = createFolderPath('foo/bar');
     expect(fp).toMatchObject({
       type: 'folder',
-      fullPath: 'foo/bar',
+      fullPath: 'foo/bar/',
       folder: 'bar',
       folderUrl: '/notes/foo/bar',
-      encodedPath: 'foo/bar',
+      encodedPath: 'foo/bar/',
       encodedFolderUrl: '/notes/foo/bar',
     });
   });
 
-  it('strips trailing slashes', () => {
-    expect(createFolderPath('foo/bar/')?.fullPath).toBe('foo/bar');
-    expect(createFolderPath('foo/bar///')?.fullPath).toBe('foo/bar');
+  it('normalizes to exactly one trailing slash', () => {
+    expect(createFolderPath('foo/bar')?.fullPath).toBe('foo/bar/');
+    expect(createFolderPath('foo/bar/')?.fullPath).toBe('foo/bar/');
+    expect(createFolderPath('foo/bar///')?.fullPath).toBe('foo/bar/');
   });
 
   it('parses a top-level folder', () => {
     const fp = createFolderPath('bar');
     expect(fp?.folder).toBe('bar');
-    expect(fp?.fullPath).toBe('bar');
+    expect(fp?.fullPath).toBe('bar/');
   });
 
   it('URL-encodes each segment', () => {
     const fp = createFolderPath('my folder/sub folder');
-    expect(fp?.encodedPath).toBe('my%20folder/sub%20folder');
+    expect(fp?.encodedPath).toBe('my%20folder/sub%20folder/');
     expect(fp?.encodedFolderUrl).toBe('/notes/my%20folder/sub%20folder');
-    expect(fp?.fullPath).toBe('my folder/sub folder');
+    expect(fp?.fullPath).toBe('my folder/sub folder/');
   });
 
   it('returns null for empty or slash-only input', () => {

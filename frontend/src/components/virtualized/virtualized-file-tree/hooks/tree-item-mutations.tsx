@@ -17,6 +17,7 @@ import {
   createFolderPath,
   joinPath,
   replaceLastPathSegment,
+  stripTrailingSlash,
   type FilePath,
 } from '../../../../utils/path';
 import { NAME_CHARS } from '../../../../utils/string-formatting';
@@ -67,8 +68,11 @@ export function useAddTreeItemMutation() {
 
       const res =
         newItemPath.type === FOLDER_TYPE
-          ? await AddFolder(newItemPath.fullPath)
-          : await AddNoteToFolder(parentFolderPath!, trimmedName);
+          ? await AddFolder(stripTrailingSlash(newItemPath.fullPath))
+          : await AddNoteToFolder(
+              stripTrailingSlash(parentFolderPath!),
+              trimmedName
+            );
       if (!res.success) throw new Error(res.message);
 
       navigate(
@@ -115,8 +119,9 @@ export function useRenameTreeItemMutation() {
         );
       }
 
-      const oldPath =
-        args.itemType === 'folder' ? args.folderPath : args.filePath.fullPath;
+      const oldPath = stripTrailingSlash(
+        args.itemType === 'folder' ? args.folderPath : args.filePath.fullPath
+      );
       const newLastSegment =
         args.itemType === 'folder'
           ? trimmedName
@@ -152,14 +157,15 @@ export function useMoveTreeItemsMutation() {
       itemPaths: readonly string[];
       newFolder: string;
     }) => {
-      const filtered = itemPaths.filter((path) => {
-        if (path === newFolder) return false;
+      const targetFolder = stripTrailingSlash(newFolder);
+      const filtered = itemPaths.map(stripTrailingSlash).filter((path) => {
+        if (path === targetFolder) return false;
         const parentPath = path.split('/').slice(0, -1).join('/');
-        if (parentPath === newFolder) return false;
+        if (parentPath === targetFolder) return false;
         return true;
       });
       if (filtered.length === 0) return;
-      const res = await MoveItemsToFolder([...filtered], newFolder);
+      const res = await MoveItemsToFolder(filtered, targetFolder);
       if (!res.success) {
         throw new QueryError(res.message);
       }
@@ -181,7 +187,7 @@ export function useAddFolderAttachmentsMutation() {
 
   return useMutation({
     mutationFn: async (folderPath: string) => {
-      const res = await AddAttachments(folderPath);
+      const res = await AddAttachments(stripTrailingSlash(folderPath));
       if (!res.success) {
         throw new QueryError(res.message);
       }
@@ -218,7 +224,10 @@ export function useAddDroppedFilesToFolderMutation() {
         return [];
       }
 
-      const res = await AddAttachmentsFromPaths(folderPath, filePaths);
+      const res = await AddAttachmentsFromPaths(
+        stripTrailingSlash(folderPath),
+        filePaths
+      );
       if (!res.success) {
         throw new QueryError(res.message);
       }

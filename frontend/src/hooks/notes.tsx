@@ -25,6 +25,7 @@ import { queryKeys } from '../utils/query-keys';
 import {
   createFilePath,
   createFolderPath,
+  stripTrailingSlash,
   type FileOrFolderPath,
   type FilePath,
 } from '../utils/path';
@@ -57,7 +58,7 @@ export function useRevealInFinderMutation() {
   return useMutation({
     mutationFn: async ({ path }: { path: FileOrFolderPath }) => {
       const res = await RevealFolderOrFileInFinder(
-        `notes/${path.fullPath}`,
+        `notes/${stripTrailingSlash(path.fullPath)}`,
         true
       );
       if (!res.success) {
@@ -81,12 +82,16 @@ function getNavigationTargetForDeletedPaths({
 }): string | null {
   if (!currentRoutePath) return null;
 
+  // Folder paths carry a trailing slash; compare in slashless form.
+  const routePath = stripTrailingSlash(currentRoutePath);
+
   // Filter to only paths that affect the current route (exact match or ancestor)
-  const affectingPaths = paths.filter(
-    (deletedPath) =>
-      deletedPath === currentRoutePath ||
-      currentRoutePath.startsWith(deletedPath + '/')
-  );
+  const affectingPaths = paths
+    .map(stripTrailingSlash)
+    .filter(
+      (deletedPath) =>
+        deletedPath === routePath || routePath.startsWith(deletedPath + '/')
+    );
   if (affectingPaths.length === 0) return null;
 
   // Find the topmost (shallowest) affecting path — fewest segments
@@ -120,7 +125,7 @@ export function useMoveToTrashMutation() {
 
   return useMutation({
     mutationFn: async ({ paths }: { paths: string[] }) => {
-      const res = await MoveToTrash(paths);
+      const res = await MoveToTrash(paths.map(stripTrailingSlash));
       if (!res.success) throw new Error(res.message);
       return res.data ?? [];
     },
@@ -198,14 +203,16 @@ export function usePinPathMutation() {
       path: string;
       shouldPin: boolean;
     }) => {
+      // pinnedNotes persists to settings.json in slashless form.
+      const normalizedPath = stripTrailingSlash(path);
       const newProjectSettings = {
         ...projectSettings,
         pinnedNotes: new Set(projectSettings.pinnedNotes),
       };
       if (shouldPin) {
-        newProjectSettings.pinnedNotes.add(path);
+        newProjectSettings.pinnedNotes.add(normalizedPath);
       } else {
-        newProjectSettings.pinnedNotes.delete(path);
+        newProjectSettings.pinnedNotes.delete(normalizedPath);
       }
       return updateProjectSettings({ newProjectSettings });
     },
