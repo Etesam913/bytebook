@@ -1,4 +1,4 @@
-import { forwardRef, useRef } from 'react';
+import { useRef } from 'react';
 import {
   VirtuosoGrid,
   type GridItemProps,
@@ -27,56 +27,26 @@ import { FolderRendererHeader } from './folder-renderer-header';
 import { usePreventBoundaryOverscrollFlicker } from '../virtualized/virtualized-list/hooks';
 
 const folderGridComponents = {
-  Scroller: forwardRef<HTMLDivElement, Omit<ScrollerProps, 'ref'>>(
-    (
-      {
-        style,
-        children,
-        tabIndex,
-        'data-testid': dataTestId,
-        'data-virtuoso-scroller': dataVirtuosoScroller,
-      },
-      ref
-    ) => (
-      <div
-        ref={ref}
-        style={style}
-        tabIndex={tabIndex}
-        data-testid={dataTestId}
-        data-virtuoso-scroller={dataVirtuosoScroller}
-        className="h-full w-full overflow-y-auto"
-      >
-        {children}
-      </div>
-    )
+  Scroller: ({ children, ...props }: ScrollerProps) => (
+    <div {...props} className="h-full w-full overflow-y-auto">
+      {children}
+    </div>
   ),
-  List: forwardRef<HTMLDivElement, Omit<GridListProps, 'ref'>>(
-    ({ style, children, className, 'data-testid': dataTestId }, ref) => (
-      <div
-        ref={ref}
-        style={style}
-        data-testid={dataTestId}
-        className={cn(
-          'mx-auto grid max-w-6xl gap-3 px-8 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]',
-          className
-        )}
-      >
-        {children}
-      </div>
-    )
+  List: ({ children, className, ...props }: GridListProps) => (
+    <div
+      {...props}
+      className={cn(
+        'mx-auto grid max-w-6xl gap-3 px-8 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]',
+        className
+      )}
+    >
+      {children}
+    </div>
   ),
-  Item: forwardRef<HTMLDivElement, Omit<GridItemProps, 'ref'>>(
-    ({ children, className, style, 'data-index': dataIndex }, ref) => (
-      <div ref={ref} className={className} style={style} data-index={dataIndex}>
-        {children}
-      </div>
-    )
+  Item: ({ children, ...props }: GridItemProps) => (
+    <div {...props}>{children}</div>
   ),
 };
-
-folderGridComponents.Scroller.displayName = 'FolderRendererGridScroller';
-folderGridComponents.List.displayName = 'FolderRendererGridList';
-folderGridComponents.Item.displayName = 'FolderRendererGridItem';
 
 /**
  * Extracts the direct children of `folderPath` from the full vault path list

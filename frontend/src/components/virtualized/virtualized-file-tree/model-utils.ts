@@ -3,23 +3,19 @@ import type {
   FileTreeDirectoryHandle,
   FileTreeItemHandle,
 } from '@pierre/trees';
-import { navigate } from 'wouter/use-browser-location';
 import {
   createFilePath,
   createFolderPath,
   splitPathSegments,
 } from '../../../utils/path';
+import { navigateToPath } from '../../../utils/routes';
 
 export function navigateToTreePath(path: string) {
   const targetPath = path.endsWith('/')
     ? createFolderPath(path)
     : createFilePath(path);
   if (!targetPath) return;
-  navigate(
-    targetPath.type === 'folder'
-      ? targetPath.encodedFolderUrl
-      : targetPath.encodedFileUrl
-  );
+  navigateToPath(targetPath);
 }
 
 /**

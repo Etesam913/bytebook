@@ -1,8 +1,7 @@
-import { useState } from 'react';
 import { MotionButton } from '../../buttons';
 import { getDefaultButtonVariants } from '../../../animations';
 import { FolderPen } from '../../../icons/folder-pen';
-import { useAddTreeItemMutation } from '../../../hooks/tree-items';
+import { useCreateTreeItemForm } from '../../../hooks/tree-items';
 import { FOLDER_TYPE } from '../../../utils/tree-item-types';
 
 /**
@@ -12,36 +11,15 @@ import { FOLDER_TYPE } from '../../../utils/tree-item-types';
  * new path via the `folder:create` Wails event.
  */
 export function TreeHeader() {
-  const { mutate: addTreeItem, error, reset } = useAddTreeItemMutation();
-  const [isCreating, setIsCreating] = useState(false);
-  const [name, setName] = useState('');
-
-  function startCreating() {
-    reset();
-    setName('');
-    setIsCreating(true);
-  }
-
-  function cancelCreating() {
-    setIsCreating(false);
-    setName('');
-    reset();
-  }
-
-  function submit() {
-    const trimmed = name.trim();
-    if (!trimmed) {
-      cancelCreating();
-      return;
-    }
-    addTreeItem(
-      { parentFolderPath: null, addType: FOLDER_TYPE, newName: trimmed },
-      { onSuccess: () => cancelCreating() }
-    );
-  }
-
-  const errorText =
-    error instanceof Error ? error.message : error ? 'An error occurred' : '';
+  const {
+    creatingItemType,
+    name,
+    setName,
+    errorText,
+    startCreating,
+    cancelCreating,
+    submit,
+  } = useCreateTreeItemForm({ parentFolderPath: null });
 
   return (
     <div className="px-2 py-2 w-full flex flex-col gap-1">
@@ -52,7 +30,7 @@ export function TreeHeader() {
           whileFocus: 1.025,
         })}
         className="w-full text-sm text-center flex items-center justify-center"
-        onClick={startCreating}
+        onClick={() => startCreating(FOLDER_TYPE)}
       >
         <FolderPen
           className="will-change-transform"
@@ -61,7 +39,7 @@ export function TreeHeader() {
         />
         <span>Create Folder</span>
       </MotionButton>
-      {isCreating && (
+      {creatingItemType && (
         <div className="flex flex-col gap-1 px-1">
           <input
             autoFocus
