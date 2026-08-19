@@ -72,6 +72,13 @@ export function useTagsForNotesQuery(paths: string[]) {
   });
 }
 
+type EditTagsFormMutationVariables = {
+  formData: FormData;
+  setErrorText: Dispatch<SetStateAction<string>>;
+  selectionRange: Set<string>;
+  folder: string;
+};
+
 /**
  * Custom hook to handle editing tags for notes via form submission.
  * Extracts tag data from the submitted FormData and calls EditTagsForNotes.
@@ -80,46 +87,39 @@ export function useEditTagsFormMutation() {
   return useMutation({
     mutationFn: async ({
       formData,
-      setErrorText,
       selectionRange,
       folder,
-    }: {
-      formData: FormData;
-      setErrorText: Dispatch<SetStateAction<string>>;
-      selectionRange: Set<string>;
-      folder: string;
-    }) => {
-      try {
-        const tagNamesToAdd = JSON.parse(
-          (formData.get('tag-names-to-add') as string) ?? '[]'
-        ) as string[];
-        const tagNamesToRemove = JSON.parse(
-          (formData.get('tag-names-to-remove') as string) ?? '[]'
-        ) as string[];
+    }: EditTagsFormMutationVariables) => {
+      const tagNamesToAdd = JSON.parse(
+        (formData.get('tag-names-to-add') as string) ?? '[]'
+      ) as string[];
+      const tagNamesToRemove = JSON.parse(
+        (formData.get('tag-names-to-remove') as string) ?? '[]'
+      ) as string[];
 
-        const filePaths = [...selectionRange].flatMap((entry) => {
-          const note = getSelectionValue(entry) ?? entry;
-          const filePath = createFilePath(`${folder}/${note}`);
-          return filePath ? [filePath.fullPath] : [];
-        });
+      const filePaths = [...selectionRange].flatMap((entry) => {
+        const note = getSelectionValue(entry) ?? entry;
+        const filePath = createFilePath(`${folder}/${note}`);
+        return filePath ? [filePath.fullPath] : [];
+      });
 
-        const res = await SetTagsOnNotes(
-          filePaths,
-          tagNamesToAdd,
-          tagNamesToRemove
-        );
+      const res = await SetTagsOnNotes(
+        filePaths,
+        tagNamesToAdd,
+        tagNamesToRemove
+      );
 
-        if (!res.success) {
-          throw new QueryError(res.message);
-        }
-
-        return true;
-      } catch (error) {
-        setErrorText(
-          error instanceof Error ? error.message : 'Failed to set tags'
-        );
-        return false;
+      if (!res.success) {
+        throw new QueryError(res.message);
       }
+
+      return true;
+    },
+    onError: (error, variables) => {
+      const { setErrorText } = variables;
+      setErrorText(
+        error instanceof Error ? error.message : 'Failed to set tags'
+      );
     },
   });
 }

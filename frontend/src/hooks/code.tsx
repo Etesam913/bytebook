@@ -535,8 +535,10 @@ export function useSendInterruptRequestMutation(onSuccess?: () => void) {
         codeBlockId,
         newExecutionId
       );
+      // Must reject: resolving here would run onSuccess and flip the code block
+      // to idle while the kernel is still executing.
       if (!res.success) {
-        toast.error(res.message, DEFAULT_SONNER_OPTIONS);
+        throw new QueryError(res.message);
       }
     },
     onSuccess,

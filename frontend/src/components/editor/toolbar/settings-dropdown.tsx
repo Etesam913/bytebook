@@ -189,12 +189,17 @@ export function SettingsDropdown({
             />
           ),
           onSubmit: async (formData, setErrorText) => {
-            return await editTags({
-              formData,
-              setErrorText,
-              selectionRange,
-              folder,
-            });
+            try {
+              return await editTags({
+                formData,
+                setErrorText,
+                selectionRange,
+                folder,
+              });
+            } catch {
+              // onError fills in the dialog's error text; keep it open.
+              return false;
+            }
           },
         });
         break;
