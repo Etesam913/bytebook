@@ -327,6 +327,7 @@ func handleFileWriteEvent(params EventParams, event *application.CustomEvent) {
 func updateNotesInIndex(params EventParams, data []map[string]string) {
 	idx := params.Index.RLock()
 	defer params.Index.RUnlock()
+	attachmentBatch := idx.NewBatch()
 	// TODO: Add flush logic in the loop
 	for _, note := range data {
 		folder, ok := note["folder"]
@@ -341,6 +342,24 @@ func updateNotesInIndex(params EventParams, data []map[string]string) {
 		}
 
 		notePath := filepath.Join(folder, noteName)
+
+		if filepath.Ext(noteName) != ".md" {
+			// Attachments are indexed by file metadata only — never read
+			// their contents into the markdown pipeline.
+			_, err := search.AddAttachmentToBatch(
+				attachmentBatch,
+				idx,
+				params.ProjectPath,
+				folder,
+				noteName,
+				filepath.Ext(noteName),
+				true,
+			)
+			if err != nil {
+				log.Printf("Error adding attachment to batch %s: %v", notePath, err)
+			}
+			continue
+		}
 
 		// The file watcher already read the note when it emitted the event, so
 		// prefer the markdown from the payload and only fall back to disk.
@@ -364,6 +383,12 @@ func updateNotesInIndex(params EventParams, data []map[string]string) {
 		err := idx.Index(notePath, bleveMarkdownDocument)
 		if err != nil {
 			log.Printf("Error indexing note %s: %v", notePath, err)
+		}
+	}
+
+	if attachmentBatch.Size() > 0 {
+		if err := idx.Batch(attachmentBatch); err != nil {
+			log.Println("Error batching attachment write operations", err)
 		}
 	}
 }

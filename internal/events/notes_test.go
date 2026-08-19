@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	index "github.com/blevesearch/bleve_index_api"
+	"github.com/etesam913/bytebook/internal/search"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -164,6 +166,27 @@ func TestUpdateNotesInIndex(t *testing.T) {
 		// Verify note is still indexed
 		doc, _ := rawIndex(params).Document("folder1/note.md")
 		assert.NotNil(t, doc)
+	})
+
+	t.Run("should index non-markdown files as attachments without reading their content", func(t *testing.T) {
+		params := createTestParams(t)
+		notesDir := setupNotesDir(t, params.ProjectPath)
+
+		createNoteFile(t, notesDir, "folder1", "video.mov", "binary-video-bytes")
+
+		updateData := []map[string]string{{"folder": "folder1", "note": "video.mov"}}
+		updateNotesInIndex(params, updateData)
+
+		doc, err := rawIndex(params).Document("folder1/video.mov")
+		require.NoError(t, err)
+		require.NotNil(t, doc)
+
+		fields := map[string]string{}
+		doc.VisitFields(func(field index.Field) {
+			fields[field.Name()] = string(field.Value())
+		})
+		assert.Equal(t, search.ATTACHMENT_TYPE, fields["type"])
+		assert.NotContains(t, fields, "text_content")
 	})
 
 	t.Run("should skip invalid entries", func(t *testing.T) {
