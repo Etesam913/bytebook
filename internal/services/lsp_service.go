@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"log"
 	"time"
 
 	"github.com/etesam913/bytebook/internal/config"
@@ -60,6 +61,7 @@ func (s *LSPService) Completion(noteID, blockID string, blockOrder int, source s
 				Data:    lsp.CompletionResult{Available: false},
 			}
 		}
+		log.Printf("Completion: resolve LSP instance for block %s: %v", blockID, err)
 		return config.BackendResponseWithData[lsp.CompletionResult]{
 			Success: false,
 			Message: "LSP server not available",
@@ -72,6 +74,7 @@ func (s *LSPService) Completion(noteID, blockID string, blockOrder int, source s
 	// need a separate edit notification before every completion request.
 	if err := instance.DidChange(syncCtx, blockID, blockOrder, source); err != nil {
 		cancel()
+		log.Printf("Completion: didChange for block %s: %v", blockID, err)
 		return config.BackendResponseWithData[lsp.CompletionResult]{
 			Success: false,
 			Message: "Failed to update document for completion",
@@ -95,6 +98,7 @@ func (s *LSPService) Completion(noteID, blockID string, blockOrder int, source s
 				Data:    lsp.CompletionResult{Available: true, Items: nil},
 			}
 		}
+		log.Printf("Completion: request for block %s: %v", blockID, err)
 		return config.BackendResponseWithData[lsp.CompletionResult]{
 			Success: false,
 			Message: "LSP completion request failed",
@@ -126,6 +130,7 @@ func (s *LSPService) Hover(noteID, blockID string, blockOrder int, source string
 				Data:    lsp.HoverResult{Available: false},
 			}
 		}
+		log.Printf("Hover: resolve LSP instance for block %s: %v", blockID, err)
 		return config.BackendResponseWithData[lsp.HoverResult]{
 			Success: false,
 			Message: "LSP server not available",
@@ -137,6 +142,7 @@ func (s *LSPService) Hover(noteID, blockID string, blockOrder int, source string
 	// block text into the synthetic note document.
 	if err := instance.DidChange(syncCtx, blockID, blockOrder, source); err != nil {
 		cancel()
+		log.Printf("Hover: didChange for block %s: %v", blockID, err)
 		return config.BackendResponseWithData[lsp.HoverResult]{
 			Success: false,
 			Message: "Failed to update document for hover",
@@ -158,6 +164,7 @@ func (s *LSPService) Hover(noteID, blockID string, blockOrder int, source string
 				Data:    lsp.HoverResult{Available: true, Found: false},
 			}
 		}
+		log.Printf("Hover: request for block %s: %v", blockID, err)
 		return config.BackendResponseWithData[lsp.HoverResult]{
 			Success: false,
 			Message: "LSP hover request failed",
