@@ -1,8 +1,4 @@
-import {
-  FileTree as FileTreeModel,
-  prepareFileTreeInput,
-  type FileTreeDropResult,
-} from '@pierre/trees';
+import { prepareFileTreeInput, type FileTreeDropResult } from '@pierre/trees';
 import { FileTree } from '@pierre/trees/react';
 import { type RefObject, useEffect, useRef } from 'react';
 import { useAtomValue } from 'jotai';
@@ -17,37 +13,25 @@ import { useAllPaths } from '@hooks/all-paths';
 import { useAddTreeItemMutation } from '@hooks/tree-items';
 import { toast } from 'sonner';
 import { DEFAULT_SONNER_OPTIONS } from '@utils/general';
+import { cn } from '@utils/string-formatting';
 import {
   applyTreeCreate,
   getPlaceholderPath,
   type TreeItemType,
 } from './create';
+import { FilteredFileTree } from './filtered-file-tree';
+import { usePersistentFileTree } from './hooks/use-persistent-file-tree';
 import { usePierreRouteFocus } from './hooks/use-pierre-route-focus';
 import { usePierreTreeEvents } from './hooks/use-pierre-tree-events';
 import { usePierreRouteTargetPath } from './hooks/use-route-target-path';
 import { useSyncAllPaths } from './hooks/use-sync-all-paths';
+import { useTreeFilter } from './hooks/use-tree-filter';
 import { getRenameInput, getTreeHost, navigateToTreePath } from './model-utils';
 import { applyTreeRename } from './rename';
 import { FILE_TREE_HOST_STYLE, FILE_TREE_UNSAFE_CSS } from './styles';
 import { TreeContextMenu } from './tree-context-menu';
 import { TreeHeader } from './tree-header';
 import { TreeSearchInput } from './tree-search-input';
-
-/**
- * Replaces @pierre/trees' useFileTree, whose effect cleanup destroys the model
- * under StrictMode's mount→cleanup→mount cycle (and on <Activity> hides) while
- * the rendered tree keeps using it — selection/rename callbacks silently die.
- * The model is created once per component instance and never destroyed: the
- * sidebar tree lives for the window's lifetime, and surviving Activity hides
- * also preserves expansion/selection state across panel switches.
- */
-function usePersistentFileTree(
-  options: ConstructorParameters<typeof FileTreeModel>[0]
-): FileTreeModel {
-  const modelRef = useRef<FileTreeModel | null>(null);
-  modelRef.current ??= new FileTreeModel(options);
-  return modelRef.current;
-}
 
 /**
  * `prepareFileTreeInput` sorts the whole path list, and only the first result
@@ -211,6 +195,8 @@ function PierreFileTreeInner({
   usePierreTreeEvents(model);
   usePierreRouteFocus(model);
 
+  const filter = useTreeFilter(model);
+
   function handleStartRename(path: string) {
     if (!model.startRenaming(path)) return;
     // Match editor conventions: pre-select only the name part so typing
@@ -310,21 +296,37 @@ function PierreFileTreeInner({
           tree's internal key/focus handlers sit between slotted content and
           the page, which breaks the inline create-folder input. */}
       <TreeHeader />
-      <TreeSearchInput model={model} />
-      <FileTree
-        model={model}
-        renderContextMenu={(item, context) => (
-          <TreeContextMenu
-            item={item}
-            context={context}
-            selectedPaths={model.getSelectedPaths()}
-            onAddFolderAttachments={addFolderAttachments}
-            onStartRename={handleStartRename}
-            onStartCreate={handleStartCreate}
-          />
-        )}
-        style={hostStyle}
+      <TreeSearchInput
+        value={filter.searchValue}
+        onChange={filter.onSearchChange}
       />
+      {/* The main tree stays mounted while a filter query is active: the sync
+          hooks keep mutating it invisibly, and expansion/selection/scroll all
+          survive un-hiding when the query clears. */}
+      <div className={cn('contents', filter.isFilterMode && 'hidden')}>
+        <FileTree
+          model={model}
+          renderContextMenu={(item, context) => (
+            <TreeContextMenu
+              item={item}
+              context={context}
+              selectedPaths={model.getSelectedPaths()}
+              onAddFolderAttachments={addFolderAttachments}
+              onStartRename={handleStartRename}
+              onStartCreate={handleStartCreate}
+            />
+          )}
+          style={hostStyle}
+        />
+      </div>
+      {filter.isFilterMode && (
+        <FilteredFileTree
+          paths={filter.filteredPaths}
+          isLoading={filter.isFilterLoading}
+          hostStyle={hostStyle}
+          routeTargetPath={routeTargetPath}
+        />
+      )}
     </div>
   );
 }

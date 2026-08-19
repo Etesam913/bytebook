@@ -12,7 +12,9 @@ export function queryHasFilterSyntax(query: string): boolean {
     if (token.startsWith('-') && token.length > 1) return true;
     // Uppercase-only on purpose (stricter than the backend's case-insensitive
     // operators): "fish and chips" should stay a local substring filter.
-    return token === 'AND' || token === 'OR' || token === '&&' || token === '||';
+    return (
+      token === 'AND' || token === 'OR' || token === '&&' || token === '||'
+    );
   });
 }
 
