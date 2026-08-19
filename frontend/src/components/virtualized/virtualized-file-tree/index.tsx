@@ -116,6 +116,11 @@ function PierreFileTreeInner({
     icons: 'minimal',
     searchBlurBehavior: 'retain',
     unsafeCSS: FILE_TREE_UNSAFE_CSS,
+    composition: {
+      contextMenu: {
+        triggerMode: 'both',
+      },
+    },
     onSelectionChange: (selectedPaths) => {
       if (selectedPaths.length !== 1) return;
       const path = selectedPaths[0];
