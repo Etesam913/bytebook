@@ -158,12 +158,17 @@ export function NonMarkdownToolbar({
             />
           ),
           onSubmit: async (formData, setErrorText) => {
-            return await editTags({
-              formData,
-              setErrorText,
-              selectionRange,
-              folder: filePath.folder,
-            });
+            try {
+              return await editTags({
+                formData,
+                setErrorText,
+                selectionRange,
+                folder: filePath.folder,
+              });
+            } catch {
+              // onError fills in the dialog's error text; keep it open.
+              return false;
+            }
           },
         });
         break;

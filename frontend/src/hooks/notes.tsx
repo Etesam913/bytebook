@@ -192,22 +192,27 @@ export function usePinPathMutation() {
 
   return useMutation({
     mutationFn: async ({
-      path,
+      paths,
       shouldPin,
     }: {
-      path: string;
+      paths: string[];
       shouldPin: boolean;
     }) => {
-      // pinnedNotes persists to settings.json in slashless form.
-      const normalizedPath = stripTrailingSlash(path);
       const newProjectSettings = {
         ...projectSettings,
         pinnedNotes: new Set(projectSettings.pinnedNotes),
       };
-      if (shouldPin) {
-        newProjectSettings.pinnedNotes.add(normalizedPath);
-      } else {
-        newProjectSettings.pinnedNotes.delete(normalizedPath);
+      // Apply the whole selection in one write. Calling this once per path
+      // would rebuild every payload from the same stale atom snapshot, so only
+      // the last write would survive.
+      for (const path of paths) {
+        // pinnedNotes persists to settings.json in slashless form.
+        const normalizedPath = stripTrailingSlash(path);
+        if (shouldPin) {
+          newProjectSettings.pinnedNotes.add(normalizedPath);
+        } else {
+          newProjectSettings.pinnedNotes.delete(normalizedPath);
+        }
       }
       return updateProjectSettings({ newProjectSettings });
     },

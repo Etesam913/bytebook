@@ -465,7 +465,12 @@ export function useSavedSearchSyncEvents({
     // Navigate if the active note's folder was renamed
     if (activeNotePath) {
       for (const { oldFolderPath, newFolderPath } of rawData) {
-        if (activeNotePath.folder.startsWith(oldFolderPath)) {
+        // Anchor at a segment boundary: a bare startsWith would also match a
+        // sibling folder whose name merely begins with the renamed one.
+        if (
+          activeNotePath.folder === oldFolderPath ||
+          activeNotePath.folder.startsWith(`${oldFolderPath}/`)
+        ) {
           const newFolder = activeNotePath.folder.replace(
             oldFolderPath,
             newFolderPath

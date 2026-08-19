@@ -69,7 +69,6 @@ export function useContextMenuItems() {
       ),
       onChange: () => navigate(path.encodedFileUrl),
     }),
-
     pin: ({
       paths,
       shouldPin,
@@ -102,7 +101,7 @@ export function useContextMenuItems() {
           </MenuItemLabel>
         ),
         onChange: () => {
-          paths.forEach((path) => pinPath({ path, shouldPin }));
+          pinPath({ paths, shouldPin });
         },
       };
     },
@@ -152,12 +151,17 @@ export function useContextMenuItems() {
             />
           ),
           onSubmit: async (formData, setErrorText) => {
-            return await editTags({
-              formData,
-              setErrorText,
-              selectionRange,
-              folder,
-            });
+            try {
+              return await editTags({
+                formData,
+                setErrorText,
+                selectionRange,
+                folder,
+              });
+            } catch {
+              // onError fills in the dialog's error text; keep it open.
+              return false;
+            }
           },
         });
       },
