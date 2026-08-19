@@ -114,6 +114,7 @@ export function FontFamilyRow({
               ? 'Already set to default'
               : 'Reset to default'
           }
+          showWhenDisabled={fontFamilyInputValue === copy.defaultValue}
         >
           <MotionIconButton
             {...getDefaultButtonVariants()}

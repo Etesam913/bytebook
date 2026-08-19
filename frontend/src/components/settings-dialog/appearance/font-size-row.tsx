@@ -140,6 +140,7 @@ export function FontSizeRow({
               ? 'Already set to default'
               : 'Reset to default'
           }
+          showWhenDisabled={currentFontSize === copy.defaultValue}
         >
           <MotionIconButton
             {...getDefaultButtonVariants()}

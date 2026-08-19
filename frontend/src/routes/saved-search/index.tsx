@@ -140,6 +140,7 @@ function MissingSavedSearchNoteFallback({
               ? 'Regenerating search index...'
               : 'Regenerate search index'
           }
+          showWhenDisabled={isRegeneratingSearchIndex}
         >
           <MotionButton
             className={cn(

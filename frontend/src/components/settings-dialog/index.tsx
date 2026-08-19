@@ -10,8 +10,22 @@ import { EditorPage } from './editor-page';
 export type SettingsTab = 'general' | 'editor' | 'code-block' | 'search';
 
 export function SettingsDialog() {
+  // The dialog wraps its children in a <form> whose footer button submits, so
+  // Enter inside a settings input would implicitly submit and close the dialog.
+  // Settings rows persist on blur, and React fires no blur on unmount, so the
+  // typed value would be lost. Blur instead: it commits and stays open.
+  function handleKeyDown(event: React.KeyboardEvent) {
+    if (event.key !== 'Enter') return;
+    if (!(event.target instanceof HTMLInputElement)) return;
+    event.preventDefault();
+    event.target.blur();
+  }
+
   return (
-    <div className="h-[calc(100vh-10rem)] flex flex-col justify-between overflow-y-hidden">
+    <div
+      onKeyDown={handleKeyDown}
+      className="h-[calc(100vh-10rem)] flex flex-col justify-between overflow-y-hidden"
+    >
       <Tabs
         orientation="vertical"
         defaultSelectedKey="general"

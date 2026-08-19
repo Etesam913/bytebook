@@ -105,7 +105,10 @@ export function KernelStatusCard({
             </span>
           </div>
         </div>
-        <Tooltip content={isPending ? 'Stopping kernel...' : 'Stop kernel'}>
+        <Tooltip
+          content={isPending ? 'Stopping kernel...' : 'Stop kernel'}
+          showWhenDisabled={isPending}
+        >
           <MotionButton
             onClick={() =>
               shutdownKernel({ kernelInstanceId: id, restart: false })
