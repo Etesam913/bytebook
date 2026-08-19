@@ -16,7 +16,7 @@ import { FILE_TYPE, FOLDER_TYPE } from '../utils/tree-item-types';
 
 type TreeItemType = typeof FOLDER_TYPE | typeof FILE_TYPE;
 
-type AddTreeItemVariables = {
+export type AddTreeItemVariables = {
   parentFolderPath: string | null;
   addType: TreeItemType;
   newName: string;
