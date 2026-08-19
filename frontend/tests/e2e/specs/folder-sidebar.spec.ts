@@ -1,9 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { mockBinding, updateMockBindingResponse } from '../utils/mock-binding';
 import {
-  MOCK_TOP_LEVEL_ITEMS_RESPONSE,
   MOCK_ALL_PATHS_RESPONSE,
-  MOCK_ECONOMICS_FOLDER_CHILDREN_RESPONSE,
   MOCK_NOTE_MARKDOWN_RESPONSE,
   MOCK_PROJECT_SETTINGS_RESPONSE,
   MOCK_SAVED_SEARCHES_RESPONSE,
@@ -16,12 +14,6 @@ import { setupWailsEvents, emitWailsEvent } from '../utils/wails-events';
 
 test.describe('File Sidebar', () => {
   test.beforeEach(async ({ context }) => {
-    await mockBinding(
-      context,
-      { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetTopLevelItems' },
-      MOCK_TOP_LEVEL_ITEMS_RESPONSE
-    );
-
     await mockBinding(
       context,
       { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetAllPaths' },
@@ -137,14 +129,6 @@ test.describe('File Sidebar', () => {
         page,
         context,
       }) => {
-        await mockBinding(
-          context,
-          {
-            file: SERVICE_FILES.FILE_TREE_SERVICE,
-            method: 'GetChildrenOfFolderBasedOnPath',
-          },
-          MOCK_ECONOMICS_FOLDER_CHILDREN_RESPONSE
-        );
         await mockBinding(
           context,
           { file: SERVICE_FILES.NOTE_SERVICE, method: 'DoesNoteExist' },
@@ -465,18 +449,6 @@ test.describe('File Sidebar', () => {
             markdown: '# Supply and Demand',
             codeResults: { version: 1, codeBlocks: [] },
           },
-        }
-      );
-      await mockBinding(
-        context,
-        {
-          file: SERVICE_FILES.FILE_TREE_SERVICE,
-          method: 'GetChildrenOfFolderBasedOnPath',
-        },
-        {
-          success: true,
-          message: '',
-          data: { items: [], nextCursor: '', hasMore: false },
         }
       );
       await page.goto('/');
