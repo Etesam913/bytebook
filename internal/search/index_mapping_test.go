@@ -1,6 +1,7 @@
 package search
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -84,8 +85,7 @@ func (env *TestEnv) verifyDocumentExists(docId string) {
 
 func indexFolderAndFlush(t *testing.T, idx bleve.Index, folderPath, folderName string) error {
 	batch := idx.NewBatch()
-	// No flush callback needed for tests (small batches)
-	err := IndexFilesInFolderWithBatch(folderPath, folderName, idx, batch)
+	batch, err := IndexFilesInFolderWithBatch(folderPath, folderName, idx, batch)
 	if err != nil {
 		return err
 	}
@@ -462,6 +462,31 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 		hiddenAttachmentDoc, err := env.Index.Document("hidden-skip-folder/.hidden.png")
 		require.NoError(t, err)
 		assert.Nil(t, hiddenAttachmentDoc)
+	})
+
+	t.Run("should replace a batch after flushing at the size limit", func(t *testing.T) {
+		initialDocumentCount, err := env.Index.DocCount()
+		require.NoError(t, err)
+
+		folderName := "large-folder"
+		folderPath := env.createTestFolder(folderName)
+		for i := 0; i < DefaultBatchSize+1; i++ {
+			env.createAttachmentFile(folderPath, fmt.Sprintf("attachment-%04d.bin", i), "data")
+		}
+
+		batch, err := IndexFilesInFolderWithBatch(folderPath, folderName, env.Index, env.Index.NewBatch())
+		require.NoError(t, err)
+		require.NotNil(t, batch)
+		assert.Equal(t, 1, batch.Size())
+
+		documentCount, err := env.Index.DocCount()
+		require.NoError(t, err)
+		assert.EqualValues(t, initialDocumentCount+DefaultBatchSize, documentCount)
+
+		require.NoError(t, env.Index.Batch(batch))
+		documentCount, err = env.Index.DocCount()
+		require.NoError(t, err)
+		assert.EqualValues(t, initialDocumentCount+DefaultBatchSize+1, documentCount)
 	})
 }
 

@@ -81,9 +81,12 @@ func addFoldersToIndex(params EventParams, data []map[string]string) {
 
 		// Index files within the folder
 		pathOnDisk := filepath.Join(params.ProjectPath, "notes", folderPath)
-		if err := search.IndexFilesInFolderWithBatch(pathOnDisk, folderPath, idx, batch); err != nil {
+		updatedBatch, err := search.IndexFilesInFolderWithBatch(pathOnDisk, folderPath, idx, batch)
+		if err != nil {
 			log.Printf("Error indexing files for folder %s: %v", folderPath, err)
+			continue
 		}
+		batch = updatedBatch
 	}
 
 	if batch.Size() == 0 {
@@ -214,7 +217,7 @@ func renameFoldersInIndex(params EventParams, data []map[string]string) {
 		newFolderPathOnDisk := filepath.Join(params.ProjectPath, "notes", newFolderPath)
 		batch := idx.NewBatch()
 
-		err := search.IndexFilesInFolderWithBatch(newFolderPathOnDisk, newFolderPath, idx, batch)
+		batch, err := search.IndexFilesInFolderWithBatch(newFolderPathOnDisk, newFolderPath, idx, batch)
 		if err != nil {
 			log.Printf("Error re-indexing folder %s: %v", newFolderPath, err)
 			continue
