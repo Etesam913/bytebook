@@ -31,6 +31,9 @@ export const queryKeys = {
   filePickerFullTextSearch: (searchQuery: string) =>
     ['file-picker-full-text-search', searchQuery] as const,
   savedSearches: () => ['saved-searches'] as const,
+  treeFilterPathsAll: () => ['tree-filter-paths'] as const,
+  treeFilterPaths: (searchQuery: string) =>
+    ['tree-filter-paths', searchQuery] as const,
 
   // Settings & kernels
   projectSettings: () => ['project-settings'] as const,
