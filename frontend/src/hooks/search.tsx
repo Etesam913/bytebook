@@ -10,6 +10,7 @@ import {
 import { navigate } from 'wouter/use-browser-location';
 import {
   FullTextSearch,
+  GetPathsFromSearchQuery,
   GetAllSavedSearches,
   AddSavedSearch,
   RemoveSavedSearch,
@@ -115,6 +116,24 @@ const searchQueries = {
       retry: false,
     }),
 };
+
+// Path-only backend search powering the file tree's filter-syntax mode.
+// keepPreviousData avoids the tree flashing empty between keystrokes.
+export function useTreeFilterPathsQuery({
+  searchQuery,
+  enabled,
+}: {
+  searchQuery: string;
+  enabled: boolean;
+}) {
+  return useQuery({
+    queryKey: queryKeys.treeFilterPaths(searchQuery),
+    queryFn: () => GetPathsFromSearchQuery(searchQuery),
+    enabled,
+    placeholderData: keepPreviousData,
+    refetchOnWindowFocus: false,
+  });
+}
 
 const FILE_PICKER_PAGE_SIZE = 15;
 
