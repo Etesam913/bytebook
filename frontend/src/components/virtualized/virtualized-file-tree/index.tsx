@@ -17,7 +17,11 @@ import { useAllPaths } from '../../../hooks/all-paths';
 import { useAddTreeItemMutation } from '../../../hooks/tree-items';
 import { toast } from 'sonner';
 import { DEFAULT_SONNER_OPTIONS } from '../../../utils/general';
-import { applyTreeCreate } from './create';
+import {
+  applyTreeCreate,
+  getPlaceholderPath,
+  type TreeItemType,
+} from './create';
 import { usePierreRouteFocus } from './hooks/use-pierre-route-focus';
 import { usePierreTreeEvents } from './hooks/use-pierre-tree-events';
 import { usePierreRouteTargetPath } from './hooks/use-route-target-path';
@@ -222,6 +226,49 @@ function PierreFileTreeInner({
     });
   }
 
+  function handleStartCreate({
+    folderPath,
+    itemType,
+  }: {
+    folderPath: string;
+    itemType: TreeItemType;
+  }) {
+    const placeholderPath = getPlaceholderPath({
+      parentPath: folderPath,
+      itemType,
+      hasItem: (path) => model.getItem(path) !== null,
+    });
+    model.add(placeholderPath);
+    pendingCreateRef.current = {
+      placeholderPath,
+      parentFolderPath: folderPath,
+    };
+    // Escape / empty commit removes the placeholder; clear the pending marker
+    // when that removal lands so a later genuine rename can't be misread.
+    const unsubscribe = model.onMutation('remove', (event) => {
+      if (event.path !== placeholderPath) return;
+      if (pendingCreateRef.current?.placeholderPath === placeholderPath) {
+        pendingCreateRef.current = null;
+      }
+      unsubscribe();
+    });
+    if (!model.startRenaming(placeholderPath, { removeIfCanceled: true })) {
+      return;
+    }
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const input = getRenameInput(model);
+        if (!input) return;
+        // Committing the unchanged seed name fires no rename callback and
+        // would leave a phantom row, so start empty (VS Code style). The
+        // rename editor is a controlled input — the DOM clear must be echoed
+        // to the controller via an input event; select() backstops a miss.
+        input.value = '';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.select();
+      });
+    });
+  }
 
   // ── Keyboard handling ────────────────────────────────────────────────
   // @pierre/trees only binds renaming to F2. Enter on a focused row is
@@ -273,6 +320,7 @@ function PierreFileTreeInner({
             selectedPaths={model.getSelectedPaths()}
             onAddFolderAttachments={addFolderAttachments}
             onStartRename={handleStartRename}
+            onStartCreate={handleStartCreate}
           />
         )}
         style={hostStyle}

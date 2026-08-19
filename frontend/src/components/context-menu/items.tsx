@@ -19,7 +19,7 @@ import { EditTagDialogChildren } from '../../routes/notes-sidebar/edit-tag-dialo
 import type { DropdownItem } from '../../types';
 import type { FilePath, FolderPath } from '../../utils/path';
 
-const ICON_PROPS = { height: '1.0625rem', width: '1.0625rem' } as const;
+export const ICON_PROPS = { height: '1.0625rem', width: '1.0625rem' } as const;
 type FileOrFolderPath = FilePath | FolderPath;
 
 export function MenuItemLabel({
