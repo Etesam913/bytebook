@@ -57,6 +57,84 @@ func TestSplitNotePath(t *testing.T) {
 	assert.False(t, ok)
 }
 
+func TestGetPathsFromSearchQuery(t *testing.T) {
+	newService := func(t *testing.T) (SearchService, string, bleve.Index) {
+		projectPath := t.TempDir()
+		index := createTestSearchIndex(t)
+		return SearchService{ProjectPath: projectPath, Index: search.NewIndexHolder(index)}, projectPath, index
+	}
+
+	t.Run("matches notes by tag filter", func(t *testing.T) {
+		service, projectPath, index := newService(t)
+		writeTestNote(t, projectPath, "cooking/pasta.md", "---\ntags:\n  - recipe\n---\n# Pasta")
+		writeTestNote(t, projectPath, "cooking/notes.md", "# Plain note")
+		indexTestNotes(t, projectPath, index, "cooking/pasta.md", "cooking/notes.md")
+
+		paths := service.GetPathsFromSearchQuery("#recipe")
+
+		assert.Equal(t, []string{"cooking/pasta.md"}, paths)
+	})
+
+	t.Run("matches notes by filename filter", func(t *testing.T) {
+		service, projectPath, index := newService(t)
+		writeTestNote(t, projectPath, "cooking/pasta.md", "# Pasta")
+		writeTestNote(t, projectPath, "work/meeting.md", "# Meeting")
+		indexTestNotes(t, projectPath, index, "cooking/pasta.md", "work/meeting.md")
+
+		paths := service.GetPathsFromSearchQuery("f:pasta")
+
+		assert.Equal(t, []string{"cooking/pasta.md"}, paths)
+	})
+
+	t.Run("type filter returns only attachments", func(t *testing.T) {
+		service, projectPath, index := newService(t)
+		writeTestNote(t, projectPath, "cooking/pasta.md", "# Pasta")
+		writeTestNote(t, projectPath, "cooking/photo.png", "binary-ish")
+		indexTestNotes(t, projectPath, index, "cooking/pasta.md", "cooking/photo.png")
+
+		paths := service.GetPathsFromSearchQuery("type:attachment")
+
+		assert.Equal(t, []string{"cooking/photo.png"}, paths)
+	})
+
+	t.Run("supports negation and OR operators", func(t *testing.T) {
+		service, projectPath, index := newService(t)
+		writeTestNote(t, projectPath, "cooking/pasta.md", "---\ntags:\n  - recipe\n---\n# Pasta")
+		writeTestNote(t, projectPath, "cooking/soup.md", "---\ntags:\n  - recipe\n  - draft\n---\n# Soup")
+		writeTestNote(t, projectPath, "work/meeting.md", "# Meeting")
+		indexTestNotes(t, projectPath, index, "cooking/pasta.md", "cooking/soup.md", "work/meeting.md")
+
+		negated := service.GetPathsFromSearchQuery("#recipe -#draft")
+		assert.Equal(t, []string{"cooking/pasta.md"}, negated)
+
+		ored := service.GetPathsFromSearchQuery("f:soup OR f:meeting")
+		assert.ElementsMatch(t, []string{"cooking/soup.md", "work/meeting.md"}, ored)
+	})
+
+	t.Run("excludes documents that are not notes or attachments", func(t *testing.T) {
+		service, projectPath, index := newService(t)
+		writeTestNote(t, projectPath, "cooking/pasta.md", "# Pasta")
+		indexTestNotes(t, projectPath, index, "cooking/pasta.md")
+		require.NoError(t, index.Index("folder-doc", map[string]any{
+			"type":      "folder",
+			"folder":    "cooking",
+			"file_name": "cooking",
+		}))
+
+		paths := service.GetPathsFromSearchQuery("f:cooking")
+
+		assert.Equal(t, []string{"cooking/pasta.md"}, paths)
+	})
+
+	t.Run("empty query matches nothing", func(t *testing.T) {
+		service, projectPath, index := newService(t)
+		writeTestNote(t, projectPath, "cooking/pasta.md", "# Pasta")
+		indexTestNotes(t, projectPath, index, "cooking/pasta.md")
+
+		assert.Empty(t, service.GetPathsFromSearchQuery(""))
+	})
+}
+
 func TestGetLinkedMentions(t *testing.T) {
 	t.Run("finds mentions for nested note paths", func(t *testing.T) {
 		projectPath := t.TempDir()

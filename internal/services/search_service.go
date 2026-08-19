@@ -17,6 +17,9 @@ type SearchService struct {
 	Index       *search.IndexHolder
 }
 
+// Upper bound on tree-filter hits; far above any realistic vault size.
+var TREE_FILTER_MAX_RESULTS = 10_000
+
 func buildSearchAfterFromHit(sortValues []string, score float64, docID string) []string {
 	if len(sortValues) >= 2 && sortValues[0] == "_score" {
 		// Bleve returns "_score" as a sentinel in hit.Sort for score sorting.
@@ -161,6 +164,55 @@ func (s *SearchService) SearchFileNamesFromQuery(searchQuery string) []FilePicke
 	}
 
 	return searchResults
+}
+
+// GetPathsFromSearchQuery runs the given filter-syntax query against the search
+// index and returns the matching note and attachment paths in the form
+// "<folder>/<fileName>". Returns an empty slice on error or when nothing matches.
+func (s *SearchService) GetPathsFromSearchQuery(searchQuery string) []string {
+	// The sort option is discarded: the file tree has a fixed sort order. A
+	// query containing only a sort token degenerates to MatchAll ("show
+	// everything"), which is acceptable for tree filtering.
+	totalQuery, _ := search.BuildBooleanQueryFromUserInput(searchQuery, 1)
+
+	// Leaner than search.CreateSearchRequest: three stored fields, no highlighting.
+	request := bleve.NewSearchRequest(totalQuery)
+	request.Fields = []string{search.FieldType, search.FieldFolder, search.FieldFileName}
+	request.Size = TREE_FILTER_MAX_RESULTS
+
+	results, err := func() (*bleve.SearchResult, error) {
+		idx := s.Index.RLock()
+		defer s.Index.RUnlock()
+		return idx.Search(request)
+	}()
+	if err != nil {
+		log.Println("tree filter search failed:", err)
+		return []string{}
+	}
+
+	paths := []string{}
+	seen := make(util.Set[string])
+	for _, hit := range results.Hits {
+		docType, _ := hit.Fields[search.FieldType].(string)
+		folder, _ := hit.Fields[search.FieldFolder].(string)
+		fileName, _ := hit.Fields[search.FieldFileName].(string)
+
+		// Only notes and attachments map onto tree paths.
+		if docType != search.MARKDOWN_NOTE_TYPE && docType != search.ATTACHMENT_TYPE {
+			continue
+		}
+		if folder == "" || fileName == "" {
+			continue
+		}
+
+		path := folder + "/" + fileName
+		if seen.Has(path) {
+			continue
+		}
+		seen.Add(path)
+		paths = append(paths, path)
+	}
+	return paths
 }
 
 // GetAllSavedSearches returns all saved searches for the project
