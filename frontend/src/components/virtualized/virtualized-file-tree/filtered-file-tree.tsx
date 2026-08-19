@@ -1,7 +1,6 @@
 import { prepareFileTreeInput } from '@pierre/trees';
-import { FileTree } from '@pierre/trees/react';
+import { FileTree, useFileTree } from '@pierre/trees/react';
 import { addAncestorDirectoryPaths } from '@utils/search';
-import { usePersistentFileTree } from './hooks/use-persistent-file-tree';
 import { navigateToTreePath } from './model-utils';
 import { FILE_TREE_UNSAFE_CSS } from './styles';
 
@@ -55,7 +54,7 @@ function FilteredTreeHost({
   hostStyle: React.CSSProperties;
   routeTargetPath: string | null;
 }) {
-  const model = usePersistentFileTree({
+  const { model } = useFileTree({
     preparedInput: prepareFileTreeInput(treePaths),
     initialExpansion: 'open',
     initialSelectedPaths: routeTargetPath ? [routeTargetPath] : [],

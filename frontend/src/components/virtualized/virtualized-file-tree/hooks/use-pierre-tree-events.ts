@@ -55,10 +55,8 @@ function extractRename(
 
 /**
  * Pipes the Wails file-watcher events into the @pierre/trees model so the
- * visible tree stays in sync with disk state. Each event is translated into
- * a batched mutation (add / remove / move). Skips entries whose source path
- * doesn't exist in the model — the backend can emit redundant events after
- * an optimistic rename, and `model.move` throws when the source is gone.
+ * visible tree stays in sync with disk state. Uses the pierre model api
+ * to make optimistic updates.
  */
 export function usePierreTreeEvents(model: PierreFileTree | null) {
   useWailsEvent(FOLDER_CREATE, (body) =>

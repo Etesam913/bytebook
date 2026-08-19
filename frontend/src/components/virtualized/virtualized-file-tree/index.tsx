@@ -1,9 +1,9 @@
 import { prepareFileTreeInput, type FileTreeDropResult } from '@pierre/trees';
-import { FileTree } from '@pierre/trees/react';
+import { FileTree, useFileTree } from '@pierre/trees/react';
 import { type RefObject, useEffect, useRef } from 'react';
 import { useAtomValue } from 'jotai';
 import { isDarkModeOnAtom } from '@/atoms';
-import { splitPathSegments } from '@utils/path';
+import { remapPathThroughRename, splitPathSegments } from '@utils/path';
 import {
   useAddFolderAttachmentsMutation,
   useMoveTreeItemsMutation,
@@ -20,7 +20,6 @@ import {
   type TreeItemType,
 } from './create';
 import { FilteredFileTree } from './filtered-file-tree';
-import { usePersistentFileTree } from './hooks/use-persistent-file-tree';
 import { usePierreRouteFocus } from './hooks/use-pierre-route-focus';
 import { usePierreTreeEvents } from './hooks/use-pierre-tree-events';
 import { usePierreRouteTargetPath } from './hooks/use-route-target-path';
@@ -102,7 +101,7 @@ function PierreFileTreeInner({
   // ── Tree model ───────────────────────────────────────────────────────
   const preparedInput = usePreparedTreeInput(initialPaths);
 
-  const model = usePersistentFileTree({
+  const { model } = useFileTree({
     preparedInput,
     initialExpansion: 'closed',
     initialExpandedPaths: getInitialExpandedPaths(routeTargetPath),
@@ -162,17 +161,20 @@ function PierreFileTreeInner({
           );
           return;
         }
-        // Wait for the backend rename before navigating to the new path.
-        const wasCurrent = lastNavigatedRef.current === event.sourcePath;
-        if (wasCurrent) lastNavigatedRef.current = event.destinationPath;
-        applyTreeRename({
-          model,
-          event,
-          renameTreeItem,
-          onSuccess: wasCurrent
-            ? () => navigateToTreePath(event.destinationPath)
-            : undefined,
+        // Pierre applies the rename to its model right after this callback,
+        // which remaps the selection and would fire onSelectionChange with the
+        // new path — before the backend has renamed anything on disk. Navigation
+        // on renames is owned by useSyncRouteWithRenames (driven by the watcher
+        // event), so pre-remap lastNavigatedRef to swallow that early emission
+        // when the current route is the renamed item or lives inside it.
+        const remapped = remapPathThroughRename({
+          path: lastNavigatedRef.current ?? '',
+          oldPath: event.sourcePath,
+          newPath: event.destinationPath,
+          isFolder: event.isFolder,
         });
+        if (remapped) lastNavigatedRef.current = remapped;
+        applyTreeRename({ model, event, renameTreeItem });
       },
       onError: (error) => {
         // Remove failed create placeholders from the model.

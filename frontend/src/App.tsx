@@ -1,4 +1,4 @@
-import { Activity, lazy, Suspense } from 'react';
+import { lazy, Suspense } from 'react';
 import { NotFound } from '@/routes/not-found';
 import { useMotionValue } from 'motion/react';
 import { useAtomValue, useSetAtom } from 'jotai/react';
@@ -24,6 +24,7 @@ import { useZoom, useFullscreen } from '@hooks/resize';
 import {
   useRestoreLastVisitedOnLaunch,
   useSyncFileMaximizedWithRoute,
+  useSyncRouteWithRenames,
 } from '@hooks/routes';
 import { EditorWrapper } from '@components/editor-wrapper';
 import { RouteDebugView } from '@components/route-debug-view';
@@ -70,6 +71,7 @@ function App() {
   useFullscreen();
   useRestoreLastVisitedOnLaunch();
   useSyncFileMaximizedWithRoute();
+  useSyncRouteWithRenames();
 
   return (
     <main
@@ -93,9 +95,9 @@ function App() {
       <LoadingModal />
       <Toaster richColors theme="system" />
       {import.meta.env.DEV && !isE2ETestEnvironment() && <RouteDebugView />}
-      <Activity mode={isFileMaximized ? 'hidden' : 'visible'}>
+      <div className={isFileMaximized ? 'hidden' : 'contents'}>
         <FileSidebar width={fileSidebarWidth} />
-      </Activity>
+      </div>
       <div id="main-content" className="flex-1 min-w-0 h-full">
         <Switch>
           <Route path={routeUrls.patterns.ROOT} />

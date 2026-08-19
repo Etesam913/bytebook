@@ -1,8 +1,8 @@
 diff --git a/dist/render/FileTreeView.js b/dist/render/FileTreeView.js
-index 50a32001d7a7d3612b7f1929ccb11b3f1cbffd4f..cd6d65d4d9f8bb7c6d600f329c16a7e4115adbcf 100644
+index 69807e41fead7afddc703dd26101b7cd10d7b1da..f180f74bc01dbfb85573530be731e9edcdf0a332 100644
 --- a/dist/render/FileTreeView.js
 +++ b/dist/render/FileTreeView.js
-@@ -1335,7 +1335,6 @@ function FileTreeView({ composition, controller, gitStatusByPath, ignoredGitDire
+@@ -1273,7 +1273,6 @@ function FileTreeView({ composition, controller, gitStatusByPath, ignoredGitDire
  			const nextItemCount = controller.getVisibleCount();
  			const nextViewportHeight = getCachedViewportHeight(measuredViewportHeightRef.current, initialViewportHeight);
  			const maxScrollTop = Math.max(0, nextItemCount * itemHeight - nextViewportHeight);

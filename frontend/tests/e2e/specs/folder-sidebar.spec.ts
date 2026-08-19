@@ -69,6 +69,48 @@ test.describe('File Sidebar', () => {
       await expect(page).toHaveURL(/\/notes\/Economics%20Notes/i);
     });
 
+    test('keeps the active note loaded when an ancestor folder is renamed', async ({
+      page,
+      context,
+    }) => {
+      await setupWailsEvents(context);
+      await mockBinding(
+        context,
+        { file: SERVICE_FILES.NOTE_SERVICE, method: 'DoesNoteExist' },
+        true
+      );
+      await mockBinding(
+        context,
+        {
+          file: SERVICE_FILES.NOTE_SERVICE,
+          method: 'GetNoteMarkdownWithCodeResults',
+        },
+        MOCK_NOTE_MARKDOWN_RESPONSE
+      );
+      await page.goto('/notes/Economics%20Notes/Inflation.md');
+      await expect(page.locator('#content-editable-editor')).toBeVisible();
+
+      await updateMockBindingResponse(
+        page,
+        { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetAllPaths' },
+        {
+          ...MOCK_ALL_PATHS_RESPONSE,
+          data: MOCK_ALL_PATHS_RESPONSE.data.map((path) =>
+            path.replace('Economics Notes', 'Course Notes')
+          ),
+        }
+      );
+      await emitWailsEvent(page, 'folder:rename', [
+        {
+          oldFolderPath: 'Economics Notes',
+          newFolderPath: 'Course Notes',
+        },
+      ]);
+
+      await expect(page).toHaveURL('/notes/Course%20Notes/Inflation.md');
+      await expect(page.locator('#content-editable-editor')).toBeVisible();
+    });
+
     test.describe('Context menu', () => {
       test('shows Reveal in Finder option in folder context menu', async ({
         page,
@@ -554,7 +596,9 @@ test.describe('File Sidebar', () => {
       await expect(
         sidebar.getByText('Something went wrong when fetching your tags')
       ).toBeVisible();
-      await expect(sidebar.getByText('Retry')).toBeVisible();
+      await expect(
+        sidebar.getByRole('button', { name: 'Retry' })
+      ).toBeVisible();
     });
 
     test('shows error message when saved searches fetch fails', async ({
@@ -587,7 +631,9 @@ test.describe('File Sidebar', () => {
           'Something went wrong when fetching your saved searches'
         )
       ).toBeVisible();
-      await expect(sidebar.getByText('Retry')).toBeVisible();
+      await expect(
+        sidebar.getByRole('button', { name: 'Retry' })
+      ).toBeVisible();
     });
   });
 });

@@ -419,11 +419,11 @@ export function useSavedSearchSyncEvents({
 
   useWailsEvent(FILE_RENAME, (body) => {
     const rawData = body.data as Array<{
-      oldNotePath: string;
-      newNotePath: string;
+      oldFilePath: string;
+      newFilePath: string;
     }>;
     const renameMap = new Map(
-      rawData.map((item) => [item.oldNotePath, item.newNotePath])
+      rawData.map((item) => [item.oldFilePath, item.newFilePath])
     );
 
     updateSearchCache(queryClient, (result) => {

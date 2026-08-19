@@ -18,7 +18,6 @@ export type RenameTreeItemPayload = (
   | RenameFolderPayload
   | RenameFilePayload
 ) & {
-  onSuccess?: () => void;
   newName: string;
 };
 
@@ -32,10 +31,11 @@ type RenameFilePayload = {
 };
 
 /**
- * A mutation hook for renaming files or folders. The backend performs the
- * rename on disk; the `file:rename` / `folder:rename` watcher event that
- * follows moves the path in the @pierre/trees model (and is skipped if the
- * model already applied the move from its inline rename UI).
+ * A mutation hook for renaming files or folders. The backend only performs
+ * the rename on disk — the `file:rename` / `folder:rename` watcher event that
+ * follows is what updates the query caches (`useAllPathsInvalidation`), the
+ * route (`useSyncRouteWithRenames`), and the @pierre/trees model
+ * (`usePierreTreeEvents`, skipped when the inline rename already moved it).
  */
 export function useRenameTreeItemMutation() {
   return useMutation({
@@ -57,10 +57,6 @@ export function useRenameTreeItemMutation() {
           ? await RenameFolder(oldPath, newPath)
           : await RenameFile(oldPath, newPath);
       if (!res.success) throw new QueryError(res.message);
-      return { itemType: args.itemType };
-    },
-    onSuccess: (_, variables) => {
-      variables.onSuccess?.();
     },
   });
 }

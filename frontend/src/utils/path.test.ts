@@ -6,6 +6,7 @@ import {
   replaceLastPathSegment,
   createFilePath,
   createFolderPath,
+  remapPathThroughRenames,
 } from './path';
 
 describe('safeDecodeURIComponent', () => {
@@ -80,6 +81,31 @@ describe('replaceLastPathSegment', () => {
     expect(replaceLastPathSegment('notes/folder/', 'new-folder')).toBe(
       'notes/new-folder/'
     );
+  });
+});
+
+describe('remapPathThroughRenames', () => {
+  it('rewrites a folder descendant using the matching rename in a batch', () => {
+    const result = remapPathThroughRenames({
+      path: 'Projects/todo.md',
+      renames: [
+        { oldPath: 'Archive/', newPath: 'Old/' },
+        { oldPath: 'Projects/', newPath: 'Work/' },
+      ],
+      isFolder: true,
+    });
+
+    expect(result).toBe('Work/todo.md');
+  });
+
+  it('returns null when no rename affects the path', () => {
+    const result = remapPathThroughRenames({
+      path: 'Projects/todo.md',
+      renames: [{ oldPath: 'Archive/', newPath: 'Old/' }],
+      isFolder: true,
+    });
+
+    expect(result).toBeNull();
   });
 });
 

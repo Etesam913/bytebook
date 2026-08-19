@@ -7,7 +7,7 @@ import { usePierreRouteTargetPath } from './use-route-target-path';
 // route, expanding ancestor folders and scrolling the row into view. The
 // package itself scrolls only on user-driven focus changes, so this also
 // covers the cases it misses: a freshly revealed panel (the sidebar hides the
-// tree with <Activity>, whose reveal re-runs these effects) and deep links.
+// tree after it becomes visible again) and deep links.
 export function usePierreRouteFocus(model: PierreFileTree | null) {
   const targetPath = usePierreRouteTargetPath();
 

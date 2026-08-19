@@ -48,7 +48,7 @@ export function setSortedTreePaths(
 }
 
 // Seeds the row order at model construction. No-op when an entry already
-// exists — an <Activity> re-mount must not clobber a fresher list with the
+// exists — a later tree effect must not clobber a fresher list with the
 // stale construction-time one.
 export function initializeSortedTreePaths(
   model: PierreFileTree,
