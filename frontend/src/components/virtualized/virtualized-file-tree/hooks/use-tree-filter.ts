@@ -1,6 +1,5 @@
-import type { FileTree as FileTreeModel } from '@pierre/trees';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useWailsEvent } from '@hooks/events';
 import { useTreeFilterPathsQuery } from '@hooks/search';
 import {
@@ -12,9 +11,8 @@ import {
   FOLDER_RENAME,
 } from '@utils/events';
 import { queryKeys } from '@utils/query-keys';
-import { queryHasFilterSyntax } from '@utils/search';
 
-const FILTER_DEBOUNCE_MS = 250;
+const FILTER_DEBOUNCE_MS = 150;
 
 function useDebouncedValue(value: string, delayMs: number): string {
   const [debounced, setDebounced] = useState(value);
@@ -26,41 +24,18 @@ function useDebouncedValue(value: string, delayMs: number): string {
 }
 
 /**
- * Routes the tree search bar's query: plain text stays on Pierre's local
- * substring matcher, while queries containing search filter syntax (#tag, f:,
- * type:, …) are resolved by the backend into a path list for an ephemeral
- * filtered tree.
+ * Resolves the tree search bar's query through the backend search index, so
+ * every query gets the full filter syntax (#tag, f:, type:, …) plus fuzzy
+ * filename and content matching — the same semantics as the search sidebar.
  */
-export function useTreeFilter(model: FileTreeModel) {
+export function useTreeFilter() {
   const [searchValue, setSearchValue] = useState('');
-  // The model emits synchronously, before React re-renders, so the restore
-  // guard below must read the query from a ref (state would be stale).
-  const searchValueRef = useRef('');
-  const isFilterMode = queryHasFilterSyntax(searchValue);
-
-  useEffect(() => {
-    return model.subscribe(() => {
-      // The tree closes search on row click / Enter / Escape; restore a live
-      // plain-text query. Filter-mode queries never live in the model.
-      const value = searchValueRef.current;
-      if (value && !queryHasFilterSyntax(value) && !model.getSearchValue()) {
-        model.setSearch(value);
-      }
-    });
-  }, [model]);
-
-  function onSearchChange(value: string) {
-    searchValueRef.current = value;
-    setSearchValue(value);
-    // Plain text → Pierre's local substring matcher; filter syntax → backend
-    // (clear any lingering substring highlight on the hidden main tree).
-    model.setSearch(queryHasFilterSyntax(value) ? null : value || null);
-  }
+  const isFilterMode = searchValue.trim().length > 0;
 
   const debouncedValue = useDebouncedValue(searchValue, FILTER_DEBOUNCE_MS);
   const pathsQuery = useTreeFilterPathsQuery({
     searchQuery: debouncedValue,
-    enabled: isFilterMode && queryHasFilterSyntax(debouncedValue),
+    enabled: debouncedValue.trim().length > 0,
   });
 
   // The bleve index updates asynchronously after disk events, so a refetch can
@@ -80,7 +55,7 @@ export function useTreeFilter(model: FileTreeModel) {
 
   return {
     searchValue,
-    onSearchChange,
+    onSearchChange: setSearchValue,
     isFilterMode,
     filteredPaths: pathsQuery.data,
     isFilterLoading: pathsQuery.isPending,
