@@ -1,4 +1,15 @@
-import { type RefObject, useEffect } from 'react';
+import { type RefObject, useEffect, useState } from 'react';
+
+export function useDebouncedValue<T>(value: T, delayMs: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedValue(value), delayMs);
+    return () => clearTimeout(timeout);
+  }, [value, delayMs]);
+
+  return debouncedValue;
+}
 
 /**
  * Hook that triggers a handler function when a click is detected outside of the specified element or when tab is pressed.
