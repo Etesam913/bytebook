@@ -195,7 +195,7 @@ function PierreFileTreeInner({
   usePierreTreeEvents(model);
   usePierreRouteFocus(model);
 
-  const filter = useTreeFilter(model);
+  const filter = useTreeFilter();
 
   function handleStartRename(path: string) {
     if (!model.startRenaming(path)) return;
