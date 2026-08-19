@@ -9,14 +9,14 @@ import {
   useState,
 } from 'react';
 import { Components, Virtuoso } from 'react-virtuoso';
-import { sidebarSelectionAtom } from '../../../atoms';
-import { useOnClickOutside } from '../../../hooks/general';
-import { cn } from '../../../utils/string-formatting';
-import type { SetSelectionUpdater } from '../../../utils/selection';
+import { sidebarSelectionAtom } from '@/atoms';
+import { useOnClickOutside } from '@hooks/general';
+import { cn } from '@utils/string-formatting';
+import type { SetSelectionUpdater } from '@utils/selection';
 import { VirtualizedListItem } from './virtualized-list-item';
-import { SidebarContentType } from '../../../types';
+import { SidebarContentType } from '@/types';
 import { usePreventBoundaryOverscrollFlicker, useSmartScroll } from './hooks';
-import { shouldHandleOutsideSelectionInteraction } from '../../../utils/mouse';
+import { shouldHandleOutsideSelectionInteraction } from '@utils/mouse';
 
 export type SelectionOptions<T> =
   | { disableSelection: true }

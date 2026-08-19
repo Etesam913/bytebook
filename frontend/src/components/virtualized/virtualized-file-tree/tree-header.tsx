@@ -1,8 +1,8 @@
-import { MotionButton } from '../../buttons';
-import { getDefaultButtonVariants } from '../../../animations';
-import { FolderPen } from '../../../icons/folder-pen';
-import { useCreateTreeItemForm } from '../../../hooks/tree-items';
-import { FOLDER_TYPE } from '../../../utils/tree-item-types';
+import { MotionButton } from '@components/buttons';
+import { getDefaultButtonVariants } from '@/animations';
+import { FolderPen } from '@/icons/folder-pen';
+import { useCreateTreeItemForm } from '@hooks/tree-items';
+import { FOLDER_TYPE } from '@utils/tree-item-types';
 
 /**
  * Inline header rendered inside the @pierre/trees header slot. Shows a

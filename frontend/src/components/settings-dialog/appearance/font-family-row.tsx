@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { TextField, Input } from 'react-aria-components/TextField';
-import { ArrowRotateAnticlockwise } from '../../../icons/arrow-rotate-anticlockwise';
-import { MotionIconButton } from '../../buttons';
-import { Tooltip } from '../../tooltip';
+import { ArrowRotateAnticlockwise } from '@/icons/arrow-rotate-anticlockwise';
+import { MotionIconButton } from '@components/buttons';
+import { Tooltip } from '@components/tooltip';
 import { SettingsRow } from '../settings-row';
-import { getDefaultButtonVariants } from '../../../animations';
-import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
+import { getDefaultButtonVariants } from '@/animations';
+import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
 import { useAtomValue } from 'jotai/react';
-import { projectSettingsAtom } from '../../../atoms';
+import { projectSettingsAtom } from '@/atoms';
 
 type FontFamilySetting = 'ui' | 'editor' | 'code-block';
 

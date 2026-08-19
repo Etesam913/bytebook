@@ -1,18 +1,18 @@
 import { useAtomValue } from 'jotai/react';
 import { useParams } from 'wouter';
-import { kernelInstancesByLanguageAtom } from '../../atoms';
-import { PythonLogo } from '../../icons/python-logo';
-import { GolangLogo } from '../../icons/golang-logo';
-import { SquareTerminal } from '../../icons/square-terminal';
+import { kernelInstancesByLanguageAtom } from '@/atoms';
+import { PythonLogo } from '@/icons/python-logo';
+import { GolangLogo } from '@/icons/golang-logo';
+import { SquareTerminal } from '@/icons/square-terminal';
 import { ReactNode } from 'react';
 import { KernelStatusCard } from './kernel-status-card';
 import { KernelInfoCard } from './kernel-info-card';
 import { KernelErrorCard } from './kernel-error-card';
 import { KernelQuickstart } from './kernel-quickstart';
-import { isValidKernelLanguage, LANGUAGES } from '../../types';
-import type { LanguagesWithKernels } from '../../types';
-import { JavascriptLogo } from '../../icons/javascript-logo';
-import { JavaLogo } from '../../icons/java-logo';
+import { isValidKernelLanguage, LANGUAGES } from '@/types';
+import type { LanguagesWithKernels } from '@/types';
+import { JavascriptLogo } from '@/icons/javascript-logo';
+import { JavaLogo } from '@/icons/java-logo';
 
 interface KernelConfig {
   displayName: string;

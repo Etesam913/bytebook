@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { getDefaultButtonVariants } from '../../animations';
-import { MotionIconButton } from '../buttons';
-import { Duplicate2 } from '../../icons/duplicate-2';
+import { getDefaultButtonVariants } from '@/animations';
+import { MotionIconButton } from '@components/buttons';
+import { Duplicate2 } from '@/icons/duplicate-2';
 import { motion } from 'motion/react';
-import { cn } from '../../utils/string-formatting';
-import { useSendInputReplyMutation } from '../../hooks/code';
+import { cn } from '@utils/string-formatting';
+import { useSendInputReplyMutation } from '@hooks/code';
 import type { CodeBlockResultProps } from './types';
 
 const RUNNING_STATUS_TEXT = 'Running';

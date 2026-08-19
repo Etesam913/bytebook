@@ -1,4 +1,4 @@
-import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '../../../types';
+import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '@/types';
 import type { FileType } from '../nodes/file';
 
 /**

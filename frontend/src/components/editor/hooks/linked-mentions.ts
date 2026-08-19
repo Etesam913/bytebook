@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { GetLinkedMentions } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/searchservice';
-import type { FilePath } from '../../../utils/path';
-import { queryKeys } from '../../../utils/query-keys';
+import { GetLinkedMentions } from '@bindings/services/searchservice';
+import type { FilePath } from '@utils/path';
+import { queryKeys } from '@utils/query-keys';
 
 const LINKED_MENTIONS_PAGE_SIZE = 100;
 

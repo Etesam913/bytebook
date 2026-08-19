@@ -1,23 +1,23 @@
 import type { ReactNode } from 'react';
 import { useSetAtom } from 'jotai/react';
 import { navigate } from 'wouter/use-browser-location';
-import { dialogDataAtom } from '../../atoms';
+import { dialogDataAtom } from '@/atoms';
 import {
   useMoveToTrashMutation,
   usePinPathMutation,
   useRevealInFinderMutation,
-} from '../../hooks/notes';
-import { useEditTagsFormMutation } from '../../hooks/tags';
-import { Finder } from '../../icons/finder';
-import { FolderOpen } from '../../icons/folder-open';
-import { PinTack2 } from '../../icons/pin-tack-2';
-import { PinTackSlash } from '../../icons/pin-tack-slash';
-import { TagPlus } from '../../icons/tag-plus';
-import { Trash } from '../../icons/trash';
-import { FilePen } from '../../icons/file-pen';
-import { EditTagDialogChildren } from '../../routes/notes-sidebar/edit-tag-dialog-children';
-import type { DropdownItem } from '../../types';
-import type { FilePath, FolderPath } from '../../utils/path';
+} from '@hooks/notes';
+import { useEditTagsFormMutation } from '@hooks/tags';
+import { Finder } from '@/icons/finder';
+import { FolderOpen } from '@/icons/folder-open';
+import { PinTack2 } from '@/icons/pin-tack-2';
+import { PinTackSlash } from '@/icons/pin-tack-slash';
+import { TagPlus } from '@/icons/tag-plus';
+import { Trash } from '@/icons/trash';
+import { FilePen } from '@/icons/file-pen';
+import { EditTagDialogChildren } from '@/routes/notes-sidebar/edit-tag-dialog-children';
+import type { DropdownItem } from '@/types';
+import type { FilePath, FolderPath } from '@utils/path';
 
 export const ICON_PROPS = { height: '1.0625rem', width: '1.0625rem' } as const;
 type FileOrFolderPath = FilePath | FolderPath;

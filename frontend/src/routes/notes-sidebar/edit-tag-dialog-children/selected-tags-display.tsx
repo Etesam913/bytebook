@@ -1,4 +1,4 @@
-import { Tag } from '../../../components/editor/bottom-bar/tag';
+import { Tag } from '@components/editor/bottom-bar/tag';
 import { Dispatch, SetStateAction } from 'react';
 
 /**

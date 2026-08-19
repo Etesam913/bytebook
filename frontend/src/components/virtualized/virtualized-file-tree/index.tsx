@@ -6,17 +6,17 @@ import {
 import { FileTree } from '@pierre/trees/react';
 import { type RefObject, useEffect, useRef } from 'react';
 import { useAtomValue } from 'jotai';
-import { isDarkModeOnAtom } from '../../../atoms';
-import { splitPathSegments } from '../../../utils/path';
+import { isDarkModeOnAtom } from '@/atoms';
+import { splitPathSegments } from '@utils/path';
 import {
   useAddFolderAttachmentsMutation,
   useMoveTreeItemsMutation,
   useRenameTreeItemMutation,
 } from './hooks/tree-item-mutations';
-import { useAllPaths } from '../../../hooks/all-paths';
-import { useAddTreeItemMutation } from '../../../hooks/tree-items';
+import { useAllPaths } from '@hooks/all-paths';
+import { useAddTreeItemMutation } from '@hooks/tree-items';
 import { toast } from 'sonner';
-import { DEFAULT_SONNER_OPTIONS } from '../../../utils/general';
+import { DEFAULT_SONNER_OPTIONS } from '@utils/general';
 import {
   applyTreeCreate,
   getPlaceholderPath,

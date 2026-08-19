@@ -10,7 +10,7 @@ import {
   Popover,
   type PopoverProps,
 } from 'react-aria-components/Menu';
-import { cn } from '../../utils/string-formatting';
+import { cn } from '@utils/string-formatting';
 
 const SPRING_TRANSITION = {
   type: 'spring',

@@ -1,10 +1,10 @@
 import { useRef } from 'react';
 import { useAtomValue } from 'jotai/react';
 import { TextField, Input } from 'react-aria-components/TextField';
-import { ArrowRotateAnticlockwise } from '../../../icons/arrow-rotate-anticlockwise';
-import { projectSettingsAtom } from '../../../atoms';
-import { getDefaultButtonVariants } from '../../../animations';
-import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
+import { ArrowRotateAnticlockwise } from '@/icons/arrow-rotate-anticlockwise';
+import { projectSettingsAtom } from '@/atoms';
+import { getDefaultButtonVariants } from '@/animations';
+import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
 import {
   DEFAULT_CODE_BLOCK_FONT_SIZE,
   DEFAULT_EDITOR_FONT_SIZE,
@@ -14,9 +14,9 @@ import {
   MIN_EDITOR_FONT_SIZE,
   validateCodeBlockFontSize,
   validateEditorFontSize,
-} from '../../../utils/project-settings';
-import { MotionIconButton } from '../../buttons';
-import { Tooltip } from '../../tooltip';
+} from '@utils/project-settings';
+import { MotionIconButton } from '@components/buttons';
+import { Tooltip } from '@components/tooltip';
 import { SettingsRow } from '../settings-row';
 
 type FontSizeSetting = 'editor' | 'code-block';

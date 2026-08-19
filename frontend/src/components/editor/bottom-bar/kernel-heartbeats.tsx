@@ -7,8 +7,8 @@ import {
   Languages,
   LanguagesWithKernels,
   languagesWithKernelsSet,
-} from '../../../types';
-import { useSendInterruptRequestMutation } from '../../../hooks/code';
+} from '@/types';
+import { useSendInterruptRequestMutation } from '@hooks/code';
 
 export function KernelHeartbeats() {
   const [editor] = useLexicalComposerContext();

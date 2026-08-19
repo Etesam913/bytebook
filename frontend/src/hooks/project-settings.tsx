@@ -1,35 +1,35 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useSetAtom } from 'jotai';
-import { logger } from '../utils/logging';
+import { logger } from '@utils/logging';
 import { useEffect } from 'react';
 import {
   GetProjectSettings,
   UpdateProjectSettings,
-} from '../../bindings/github.com/etesam913/bytebook/internal/services/settingsservice';
+} from '@bindings/services/settingsservice';
 import {
   dialogDataAtom,
   projectSettingsAtom,
   projectSettingsLoadedAtom,
-} from '../atoms';
-import { SettingsDialog } from '../components/settings-dialog';
-import { useWailsEvent } from '../hooks/events';
-import type { ProjectSettings } from '../types';
+} from '@/atoms';
+import { SettingsDialog } from '@components/settings-dialog';
+import { useWailsEvent } from '@hooks/events';
+import type { ProjectSettings } from '@/types';
 import {
   validateCodeBlockDefaultLanguage,
   validateCodeBlockFontSize,
   validateEditorFontSize,
   validateEditorLineHeight,
   validateProjectSettings,
-} from '../utils/project-settings';
+} from '@utils/project-settings';
 import {
   isEventInCurrentWindow,
   SETTINGS_OPEN,
   SETTINGS_UPDATE,
-} from '../utils/events';
-import { parseRGB } from '../utils/string-formatting';
-import { QueryError } from '../utils/query';
-import { queryKeys } from '../utils/query-keys';
-import { ProjectSettingsJson } from '../../bindings/github.com/etesam913/bytebook/internal/config/models';
+} from '@utils/events';
+import { parseRGB } from '@utils/string-formatting';
+import { QueryError } from '@utils/query';
+import { queryKeys } from '@utils/query-keys';
+import { ProjectSettingsJson } from '@bindings/config/models';
 
 const DEFAULT_ACCENT_COLOR = 'rgb(96, 165, 250)';
 const DEFAULT_UI_FONT_FAMILY = 'ui-sans-serif';

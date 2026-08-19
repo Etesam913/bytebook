@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 import { navigate } from 'wouter/use-browser-location';
-import { cn } from '../../utils/string-formatting';
+import { cn } from '@utils/string-formatting';
 
 export function BreadcrumbItem({
   path,

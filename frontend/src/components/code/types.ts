@@ -1,7 +1,7 @@
 import type { Dispatch, RefObject, SetStateAction } from 'react';
 import type { LexicalEditor } from 'lexical';
 import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
-import type { CodeBlockStatus, Languages } from '../../types';
+import type { CodeBlockStatus, Languages } from '@/types';
 
 export type CodeMirrorRef = ReactCodeMirrorRef | null;
 

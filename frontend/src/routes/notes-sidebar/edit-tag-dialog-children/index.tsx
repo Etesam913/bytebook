@@ -1,14 +1,14 @@
 import { type RefCallback, useState } from 'react';
-import { RouteFallback } from '../../../components/route-fallback';
-import { useTagsForNotesQuery, useTagsQuery } from '../../../hooks/tags';
-import { MotionButton } from '../../../components/buttons';
-import { getDefaultButtonVariants } from '../../../animations';
-import { TagPlus } from '../../../icons/tag-plus';
-import { DialogErrorText } from '../../../components/dialog';
+import { RouteFallback } from '@components/route-fallback';
+import { useTagsForNotesQuery, useTagsQuery } from '@hooks/tags';
+import { MotionButton } from '@components/buttons';
+import { getDefaultButtonVariants } from '@/animations';
+import { TagPlus } from '@/icons/tag-plus';
+import { DialogErrorText } from '@components/dialog';
 import { TagSearchInput } from './tag-search-input';
 import { SelectedTagsDisplay } from './selected-tags-display';
 import { TagSelectionList } from './tag-selection-list';
-import { createFilePath } from '../../../utils/path';
+import { createFilePath } from '@utils/path';
 
 /**
  * Dialog body for editing tags across one or more selected notes. Renders the

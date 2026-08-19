@@ -1,6 +1,6 @@
 import type { MotionValue } from 'motion/react';
-import { dragItem } from '../../../utils/draggable';
-import type { FileDimensions } from '../../editor/nodes/types';
+import { dragItem } from '@utils/draggable';
+import type { FileDimensions } from '@components/editor/nodes/types';
 
 const MIN_WIDTH = 64;
 

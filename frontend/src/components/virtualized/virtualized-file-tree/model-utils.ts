@@ -9,8 +9,8 @@ import {
   createFilePath,
   createFolderPath,
   splitPathSegments,
-} from '../../../utils/path';
-import { navigateToPath } from '../../../utils/routes';
+} from '@utils/path';
+import { navigateToPath } from '@utils/routes';
 
 export function navigateToTreePath(path: string) {
   const targetPath = path.endsWith('/')

@@ -1,5 +1,5 @@
-import { RenderNoteIcon } from '../../../icons/render-note-icon';
-import { type FilePath } from '../../../utils/path';
+import { RenderNoteIcon } from '@/icons/render-note-icon';
+import { type FilePath } from '@utils/path';
 
 export function ListNoteSidebarItem({
   sidebarNotePath,

@@ -3,11 +3,11 @@ import type {
   FileTreeRenameEvent,
 } from '@pierre/trees';
 import { toast } from 'sonner';
-import type { AddTreeItemVariables } from '../../../hooks/tree-items';
-import { DEFAULT_SONNER_OPTIONS } from '../../../utils/general';
-import { splitPathSegments } from '../../../utils/path';
-import { QueryError } from '../../../utils/query';
-import { FILE_TYPE, FOLDER_TYPE } from '../../../utils/tree-item-types';
+import type { AddTreeItemVariables } from '@hooks/tree-items';
+import { DEFAULT_SONNER_OPTIONS } from '@utils/general';
+import { splitPathSegments } from '@utils/path';
+import { QueryError } from '@utils/query';
+import { FILE_TYPE, FOLDER_TYPE } from '@utils/tree-item-types';
 
 export type TreeItemType = typeof FOLDER_TYPE | typeof FILE_TYPE;
 

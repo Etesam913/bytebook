@@ -1,7 +1,7 @@
 import { mergeRegister } from '@lexical/utils';
 import { useQuery } from '@tanstack/react-query';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { isEventInCurrentWindow, SEARCH_NOTE } from '../../../utils/events';
+import { isEventInCurrentWindow, SEARCH_NOTE } from '@utils/events';
 import {
   $getSelection,
   $isNodeSelection,
@@ -35,14 +35,10 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { GetNoteMarkdownWithCodeResults } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
+import { GetNoteMarkdownWithCodeResults } from '@bindings/services/noteservice';
 import { draggedGhostElementAtom, previousMarkdownAtom } from '../atoms';
-import type {
-  EditorBlockTypes,
-  FloatingDataType,
-  Frontmatter,
-} from '../../../types';
-import { QueryError } from '../../../utils/query';
+import type { EditorBlockTypes, FloatingDataType, Frontmatter } from '@/types';
+import { QueryError } from '@utils/query';
 import { CUSTOM_TRANSFORMERS } from '../transformers';
 import {
   overrideClickCommand,
@@ -55,14 +51,14 @@ import { handleMarkdownPaste } from '../utils/paste';
 import { handleKeyboardShortcuts } from '../utils/hotkeys';
 import { parseFrontMatter } from '../utils/note-metadata';
 import { updateToolbar } from '../utils/toolbar';
-import { useWailsEvent } from '../../../hooks/events';
+import { useWailsEvent } from '@hooks/events';
 import { $convertFromMarkdownString } from '@lexical/markdown';
 import { showTableCellActionsButton } from '../utils/table';
 import type { PlaceholderLineData } from '../types';
 import { updatePlaceholderLineData } from '../utils/placeholder-line';
 import { applyCodeResultsSidecar } from '../utils/code-results';
-import { createFilePath } from '../../../utils/path';
-import { queryKeys } from '../../../utils/query-keys';
+import { createFilePath } from '@utils/path';
+import { queryKeys } from '@utils/query-keys';
 
 /** Gets note markdown from local system on mount */
 export function useNoteMarkdown({

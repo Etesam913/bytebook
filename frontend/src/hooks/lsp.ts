@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { NotifyNoteClosed } from '../../bindings/github.com/etesam913/bytebook/internal/services/lspservice';
+import { NotifyNoteClosed } from '@bindings/services/lspservice';
 import { useDecodedNotesWildcardPath } from './routes';
 
 /**

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useLocation, useRoute, useSearchParams } from 'wouter';
-import { isFileMaximizedAtom, mostRecentItemsAtom } from '../atoms';
+import { isFileMaximizedAtom, mostRecentItemsAtom } from '@/atoms';
 import {
   type FolderPath,
   type FilePath,
@@ -9,13 +9,13 @@ import {
   createFolderPath,
   createFilePath,
   safeDecodeURIComponent,
-} from '../utils/path';
+} from '@utils/path';
 import {
   type NotesRouteParams,
   type SavedSearchRouteParams,
   type SearchRouteParams,
   routeUrls,
-} from '../utils/routes';
+} from '@utils/routes';
 
 function normalizeWildcardPath(path: string | undefined): string | null {
   if (!path) {

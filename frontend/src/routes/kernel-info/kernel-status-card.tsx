@@ -1,17 +1,17 @@
-import { Play } from '../../icons/circle-play';
-import { HourglassStart } from '../../icons/hourglass-start';
-import { Loader } from '../../icons/loader';
-import { PowerOff } from '../../icons/power-off';
-import { cn } from '../../utils/string-formatting';
-import { KernelHeartbeat } from '../../components/file-sidebar/my-kernels-accordion/kernel-heartbeat';
-import { KernelInstanceData } from '../../types';
-import { useShutdownKernelMutation } from '../../hooks/code';
-import { MotionButton } from '../../components/buttons';
-import { getDefaultButtonVariants } from '../../animations';
-import { Tooltip } from '../../components/tooltip';
-import { createFilePath, safeDecodeURIComponent } from '../../utils/path';
+import { Play } from '@/icons/circle-play';
+import { HourglassStart } from '@/icons/hourglass-start';
+import { Loader } from '@/icons/loader';
+import { PowerOff } from '@/icons/power-off';
+import { cn } from '@utils/string-formatting';
+import { KernelHeartbeat } from '@components/file-sidebar/my-kernels-accordion/kernel-heartbeat';
+import { KernelInstanceData } from '@/types';
+import { useShutdownKernelMutation } from '@hooks/code';
+import { MotionButton } from '@components/buttons';
+import { getDefaultButtonVariants } from '@/animations';
+import { Tooltip } from '@components/tooltip';
+import { createFilePath, safeDecodeURIComponent } from '@utils/path';
 import { Link } from 'wouter';
-import { RenderNoteIcon } from '../../icons/render-note-icon';
+import { RenderNoteIcon } from '@/icons/render-note-icon';
 
 export function KernelStatusCard({
   instance,

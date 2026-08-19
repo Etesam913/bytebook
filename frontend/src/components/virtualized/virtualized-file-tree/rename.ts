@@ -2,7 +2,7 @@ import type {
   FileTree as PierreFileTree,
   FileTreeRenameEvent,
 } from '@pierre/trees';
-import { createFilePath, splitPathSegments } from '../../../utils/path';
+import { createFilePath, splitPathSegments } from '@utils/path';
 import type { RenameTreeItemPayload } from './hooks/tree-item-mutations';
 
 /**

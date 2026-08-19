@@ -3,7 +3,7 @@ import {
   AppearanceProjectSettingsJson,
   CodeProjectSettingsJson,
   ProjectSettingsJson,
-} from '../bindings/github.com/etesam913/bytebook/internal/config/models';
+} from '@bindings/config/models';
 import { RangeSelection } from 'lexical';
 
 // Supported image file extensions that can be displayed as inline attachments in notes.

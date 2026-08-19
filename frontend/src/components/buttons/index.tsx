@@ -1,7 +1,7 @@
 import { motion, type HTMLMotionProps } from 'motion/react';
 import type { ReactNode } from 'react';
 import { Button, type ButtonProps } from 'react-aria-components/Button';
-import { cn } from '../../utils/string-formatting';
+import { cn } from '@utils/string-formatting';
 
 /** Props shared between React DOM events and motion that have incompatible signatures. */
 type ConflictingDOMProps =

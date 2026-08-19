@@ -1,19 +1,19 @@
 import { useRef } from 'react';
 import { useAtomValue } from 'jotai/react';
 import { TextField, Input } from 'react-aria-components/TextField';
-import { ArrowRotateAnticlockwise } from '../../../icons/arrow-rotate-anticlockwise';
-import { projectSettingsAtom } from '../../../atoms';
-import { getDefaultButtonVariants } from '../../../animations';
-import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
+import { ArrowRotateAnticlockwise } from '@/icons/arrow-rotate-anticlockwise';
+import { projectSettingsAtom } from '@/atoms';
+import { getDefaultButtonVariants } from '@/animations';
+import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
 import {
   DEFAULT_EDITOR_LINE_HEIGHT,
   EDITOR_LINE_HEIGHT_STEP,
   MAX_EDITOR_LINE_HEIGHT,
   MIN_EDITOR_LINE_HEIGHT,
   validateEditorLineHeight,
-} from '../../../utils/project-settings';
-import { MotionIconButton } from '../../buttons';
-import { Tooltip } from '../../tooltip';
+} from '@utils/project-settings';
+import { MotionIconButton } from '@components/buttons';
+import { Tooltip } from '@components/tooltip';
 import { SettingsRow } from '../settings-row';
 
 export function LineHeightRow() {

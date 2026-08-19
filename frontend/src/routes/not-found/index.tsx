@@ -1,4 +1,4 @@
-import { Ufo } from '../../icons/ufo';
+import { Ufo } from '@/icons/ufo';
 
 export function NotFound() {
   return (

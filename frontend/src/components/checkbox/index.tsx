@@ -1,5 +1,5 @@
 import { Checkbox, type CheckboxProps } from 'react-aria-components/Checkbox';
-import { cn } from '../../utils/string-formatting';
+import { cn } from '@utils/string-formatting';
 
 /** Styled checkbox with support for selected, indeterminate, and disabled states. */
 export function AppCheckbox({ className, children, ...props }: CheckboxProps) {

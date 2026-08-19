@@ -2,7 +2,7 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { useAtomValue } from 'jotai/react';
 import { type RefObject, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { projectSettingsAtom } from '../../../atoms';
+import { projectSettingsAtom } from '@/atoms';
 import type { Dispatch, SetStateAction } from 'react';
 import type { PlaceholderLineData } from '../types';
 import { useRefState } from '../hooks/ref-state';

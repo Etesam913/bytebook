@@ -4,7 +4,7 @@ import {
   type TableOfContentsEntry,
 } from '@lexical/react/LexicalTableOfContentsPlugin';
 import { ListBox, ListBoxItem } from 'react-aria-components/ListBox';
-import { cn } from '../../../utils/string-formatting';
+import { cn } from '@utils/string-formatting';
 
 function getPadding(level: string) {
   switch (level) {

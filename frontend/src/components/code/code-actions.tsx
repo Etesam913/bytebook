@@ -1,26 +1,31 @@
 import type { Key } from 'react-aria-components/Breadcrumbs';
 import { Button } from 'react-aria-components/Button';
-import { MotionIconButton } from '../buttons';
-import { Duplicate2 } from '../../icons/duplicate-2';
-import { Maximize } from '../../icons/maximize';
-import { Minimize } from '../../icons/minimize';
-import { HorizontalDots } from '../../icons/horizontal-dots';
-import { SquareTerminal } from '../../icons/square-terminal';
-import { Subtitles } from '../../icons/subtitles';
-import { AppMenu, AppMenuItem, AppMenuPopover, AppMenuTrigger } from '../menu';
-import { Tooltip } from '../tooltip';
+import { MotionIconButton } from '@components/buttons';
+import { Duplicate2 } from '@/icons/duplicate-2';
+import { Maximize } from '@/icons/maximize';
+import { Minimize } from '@/icons/minimize';
+import { HorizontalDots } from '@/icons/horizontal-dots';
+import { SquareTerminal } from '@/icons/square-terminal';
+import { Subtitles } from '@/icons/subtitles';
+import {
+  AppMenu,
+  AppMenuItem,
+  AppMenuPopover,
+  AppMenuTrigger,
+} from '@components/menu';
+import { Tooltip } from '@components/tooltip';
 import { PlayButton } from './play-button';
 import type {
   CodeBlockExecutionProps,
   CodeBlockIdentityProps,
   CodeBlockShellProps,
 } from './types';
-import { LANGUAGES, languagesWithKernelsSet } from '../../types';
-import { routeUrls } from '../../utils/routes';
+import { LANGUAGES, languagesWithKernelsSet } from '@/types';
+import { routeUrls } from '@utils/routes';
 import { navigate } from 'wouter/use-browser-location';
-import { Trash } from '../../icons/trash';
-import { removeDecoratorNode } from '../../utils/commands';
-import { cn } from '../../utils/string-formatting';
+import { Trash } from '@/icons/trash';
+import { removeDecoratorNode } from '@utils/commands';
+import { cn } from '@utils/string-formatting';
 import { UNSAFE_PortalProvider } from '@react-aria/overlays';
 
 export function CodeActions({

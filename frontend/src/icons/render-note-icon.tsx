@@ -1,12 +1,12 @@
 import { FileBan } from './file-ban';
 import { FilePen } from './file-pen';
-import { ImageIcon } from '../icons/image';
+import { ImageIcon } from '@/icons/image';
 import { Note } from './page';
 import { PDFIcon } from './pdf-icon';
 import { VideoIcon } from './video';
-import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '../types';
-import { FilePath } from '../utils/path';
-import { cn } from '../utils/string-formatting';
+import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '@/types';
+import { FilePath } from '@utils/path';
+import { cn } from '@utils/string-formatting';
 
 export function RenderNoteIcon({
   filePath,

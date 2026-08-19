@@ -1,7 +1,7 @@
-import '../../test/setup';
+import '@/test/setup';
 import { describe, it, expect } from 'bun:test';
-import type { SearchResult } from '../../hooks/search';
-import { createFilePath } from '../../utils/path';
+import type { SearchResult } from '@hooks/search';
+import { createFilePath } from '@utils/path';
 import { dataItemToKey, dataItemToString } from './utils';
 
 function makeNoteResult(path: string): SearchResult {

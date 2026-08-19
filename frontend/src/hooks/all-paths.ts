@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { GetAllPaths } from '../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
+import { GetAllPaths } from '@bindings/services/filetreeservice';
 import { useWailsEvent } from './events';
 import {
   FILE_CREATE,
@@ -8,9 +8,9 @@ import {
   FOLDER_CREATE,
   FOLDER_DELETE,
   FOLDER_RENAME,
-} from '../utils/events';
-import { QueryError } from '../utils/query';
-import { queryKeys } from '../utils/query-keys';
+} from '@utils/events';
+import { QueryError } from '@utils/query';
+import { queryKeys } from '@utils/query-keys';
 
 /**
  * Loads every file and folder path under the notes directory in a single

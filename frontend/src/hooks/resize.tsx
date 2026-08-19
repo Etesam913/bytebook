@@ -1,8 +1,8 @@
 import { useSetAtom } from 'jotai/react';
 import { useWailsEvent, WailsEvent } from './events';
-import { ZOOM_IN, ZOOM_OUT, ZOOM_RESET, FULLSCREEN } from '../utils/events';
-import { logger } from '../utils/logging';
-import { isFullscreenAtom } from '../atoms';
+import { ZOOM_IN, ZOOM_OUT, ZOOM_RESET, FULLSCREEN } from '@utils/events';
+import { logger } from '@utils/logging';
+import { isFullscreenAtom } from '@/atoms';
 import { useEffect, useRef } from 'react';
 
 const MIN_ZOOM = 0.75;

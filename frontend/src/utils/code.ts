@@ -1,12 +1,12 @@
 import { UseMutateFunction } from '@tanstack/react-query';
-import type { CodeMirrorRef } from '../components/code/types';
+import type { CodeMirrorRef } from '@components/code/types';
 import {
   CodeBlockStatus,
   KernelInstanceData,
   LANGUAGES,
   Languages,
   LanguagesWithKernels,
-} from '../types';
+} from '@/types';
 import { createLeadingThrottle } from './general';
 
 /**

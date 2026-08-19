@@ -1,4 +1,4 @@
-import { Loader } from '../../icons/loader';
+import { Loader } from '@/icons/loader';
 
 export function LoadingSpinner({
   height,

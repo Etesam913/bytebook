@@ -1,10 +1,10 @@
 import type { LegacyAnimationControls } from 'motion/react';
 import { useAtom } from 'jotai';
-import { MotionIconButton } from '.';
-import { easingFunctions, getDefaultButtonVariants } from '../../animations';
-import { isFileMaximizedAtom } from '../../atoms';
-import { SidebarRightCollapse } from '../../icons/sidebar-right-collapse';
-import { Tooltip } from '../tooltip';
+import { MotionIconButton } from '@components/buttons';
+import { easingFunctions, getDefaultButtonVariants } from '@/animations';
+import { isFileMaximizedAtom } from '@/atoms';
+import { SidebarRightCollapse } from '@/icons/sidebar-right-collapse';
+import { Tooltip } from '@components/tooltip';
 
 export function MaximizeNoteButton({
   animationControls,

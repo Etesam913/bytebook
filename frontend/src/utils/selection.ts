@@ -1,5 +1,5 @@
 import type { Dispatch, KeyboardEvent, SetStateAction } from 'react';
-import { SidebarContentType } from '../types';
+import { SidebarContentType } from '@/types';
 
 /** Selects are represent as strings with a separator between the prefix and value.
  *

@@ -14,15 +14,15 @@ import {
   type LexicalNode,
   type NodeSelection,
 } from 'lexical';
-import { isDecoratorNodeSelected } from '../../../utils/commands';
-import { debounce } from '../../../utils/general';
+import { isDecoratorNodeSelected } from '@utils/commands';
+import { debounce } from '@utils/general';
 import {
   createFilePath,
   createFolderPath,
   safeDecodeURIComponent,
   type FilePath,
-} from '../../../utils/path';
-import { WAILS_URL } from '../../../utils/general';
+} from '@utils/path';
+import { WAILS_URL } from '@utils/general';
 import type { FilePayload } from '../nodes/file';
 import { $createLinkNode } from '../nodes/link';
 import { INSERT_FILES_COMMAND } from '../plugins/file';

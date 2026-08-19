@@ -1,7 +1,7 @@
 import type { LexicalNode } from 'lexical';
 import { createRoot } from 'react-dom/client';
-import { PDFIcon } from '../../../icons/pdf-icon';
-import { VideoIcon } from '../../../icons/video';
+import { PDFIcon } from '@/icons/pdf-icon';
+import { VideoIcon } from '@/icons/video';
 import type { FileNode } from '../nodes/file';
 /**
  * Constructs a ghost element for dragging based on the type of node

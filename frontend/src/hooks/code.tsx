@@ -1,8 +1,8 @@
 import { useAtomValue, useSetAtom } from 'jotai';
-import { logger } from '../utils/logging';
-import { CodeNode } from '../components/editor/nodes/code';
+import { logger } from '@utils/logging';
+import { CodeNode } from '@components/editor/nodes/code';
 import { useWailsEvent } from './events';
-import { kernelInstancesAtom } from '../atoms';
+import { kernelInstancesAtom } from '@/atoms';
 import {
   CodeBlockStatus,
   isValidKernelLanguage,
@@ -13,7 +13,7 @@ import {
   Languages,
   LanguagesWithKernels,
   ProjectSettings,
-} from '../types';
+} from '@/types';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   EnsureKernel,
@@ -24,12 +24,12 @@ import {
   SendInterruptRequest,
   ShutdownKernel,
   ShutdownKernelsByLanguage,
-} from '../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
-import { QueryError } from '../utils/query';
-import { queryKeys } from '../utils/query-keys';
+} from '@bindings/services/codeservice';
+import { QueryError } from '@utils/query';
+import { queryKeys } from '@utils/query-keys';
 import { $nodesOfType, LexicalEditor } from 'lexical';
 import { toast } from 'sonner';
-import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
+import { DEFAULT_SONNER_OPTIONS } from '@utils/general';
 import {
   CODE_BLOCK_STATUS,
   CODE_BLOCK_EXECUTE_RESULT,
@@ -44,7 +44,7 @@ import {
   KERNEL_INSTANCE_HEARTBEAT,
   KERNEL_INSTANCE_LAUNCH_ERROR,
   KERNEL_INSTANCE_EXITED,
-} from '../utils/events';
+} from '@utils/events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
 import { Dispatch, SetStateAction, useEffect } from 'react';
 

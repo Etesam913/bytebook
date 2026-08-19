@@ -1,14 +1,11 @@
 import { useAtomValue, useSetAtom } from 'jotai';
-import { cn } from '../../../utils/string-formatting';
+import { cn } from '@utils/string-formatting';
 import { navigate } from 'wouter/use-browser-location';
-import {
-  contextMenuDataAtom,
-  kernelInstancesByLanguageAtom,
-} from '../../../atoms';
-import { PowerOff } from '../../../icons/power-off';
-import { ShutdownKernelsByLanguage } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
-import type { Languages, LanguagesWithKernels } from '../../../types';
-import { routeUrls } from '../../../utils/routes';
+import { contextMenuDataAtom, kernelInstancesByLanguageAtom } from '@/atoms';
+import { PowerOff } from '@/icons/power-off';
+import { ShutdownKernelsByLanguage } from '@bindings/services/codeservice';
+import type { Languages, LanguagesWithKernels } from '@/types';
+import { routeUrls } from '@utils/routes';
 import { getKernelIcon } from './index';
 
 export function KernelAccordionButton({

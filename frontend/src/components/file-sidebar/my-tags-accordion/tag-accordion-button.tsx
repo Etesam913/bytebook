@@ -3,20 +3,17 @@ import {
   contextMenuDataAtom,
   dialogDataAtom,
   sidebarSelectionAtom,
-} from '../../../atoms';
-import { useDeleteTagsMutation } from '../../../hooks/tags';
-import { TagIcon } from '../../../icons/tag';
-import { TagSlash } from '../../../icons/tag-slash';
+} from '@/atoms';
+import { useDeleteTagsMutation } from '@hooks/tags';
+import { TagIcon } from '@/icons/tag';
+import { TagSlash } from '@/icons/tag-slash';
 import {
   handleContextMenuSelection,
   type SetSelectionUpdater,
-} from '../../../utils/selection';
-import {
-  cn,
-  getTagNameFromSelectionRange,
-} from '../../../utils/string-formatting';
+} from '@utils/selection';
+import { cn, getTagNameFromSelectionRange } from '@utils/string-formatting';
 import { navigate } from 'wouter/use-browser-location';
-import { routeUrls } from '../../../utils/routes';
+import { routeUrls } from '@utils/routes';
 import { TagDialogChildren } from './tag-dialog-children';
 
 export function TagAccordionButton({

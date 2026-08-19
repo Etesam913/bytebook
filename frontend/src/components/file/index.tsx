@@ -1,14 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { type JSX, useEffect } from 'react';
-import { Loader } from '../../icons/loader';
-import type { FileType } from '../editor/nodes/file';
-import { getFileElementTypeFromExtensionAndHead } from '../editor/utils/file-node';
+import { Loader } from '@/icons/loader';
+import type { FileType } from '@components/editor/nodes/file';
+import { getFileElementTypeFromExtensionAndHead } from '@components/editor/utils/file-node';
 import { FileError } from './error';
 import { Image } from './media/image';
 import { Pdf } from './pdf';
 import { Video } from './media/video';
-import { FileDimensions } from '../editor/nodes/types';
-import { queryKeys } from '../../utils/query-keys';
+import { FileDimensions } from '@components/editor/nodes/types';
+import { queryKeys } from '@utils/query-keys';
 
 function getFileUrlFromSrc(src: string): string {
   if (src.startsWith('wails://')) {

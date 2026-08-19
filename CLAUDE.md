@@ -28,7 +28,7 @@ function abc({ a, b, c }: { a: string; b: number; c: boolean });
 
 The app is a Wails v3 desktop app. The Go process runs the backend; the frontend is a React SPA served from the embedded `frontend/dist` asset bundle (in dev mode Vite serves it at port 5173). Communication happens through:
 
-- **Wails service bindings** — Go structs with exported methods are registered as `application.Service` instances in `main.go`. Wails auto-generates TypeScript bindings into `frontend/bindings/`. The frontend imports and calls these directly (e.g., `SetNoteMarkdown(...)` from `bindings/.../noteservice`).
+- **Wails service bindings** — Go structs with exported methods are registered as `application.Service` instances in `main.go`. Wails auto-generates TypeScript bindings into `frontend/bindings/`. The frontend imports and calls these directly (e.g., `SetNoteMarkdown(...)` from `@bindings/services/noteservice`).
 - **Wails events** — bidirectional event bus. All event name strings are centrally defined in `internal/util/events.go`. The backend emits events (e.g., file watcher changes) and the frontend listens with `useWailsEvent()` (`frontend/src/hooks/events.tsx`).
 
 ### Go backend (`internal/`)

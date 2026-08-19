@@ -2,11 +2,11 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import { AnimatePresence } from 'motion/react';
 import { useRef } from 'react';
-import { Paperclip } from '../../icons/paperclip-2';
-import { TriangleWarning } from '../../icons/triangle-warning';
-import { cn } from '../../utils/string-formatting';
-import { NoteComponentControls } from '../note-component-container/component-controls';
-import { SelectionHighlight } from '../selection-highlight';
+import { Paperclip } from '@/icons/paperclip-2';
+import { TriangleWarning } from '@/icons/triangle-warning';
+import { cn } from '@utils/string-formatting';
+import { NoteComponentControls } from '@components/note-component-container/component-controls';
+import { SelectionHighlight } from '@components/selection-highlight';
 
 export function FileError({
   src,

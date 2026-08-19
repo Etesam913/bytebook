@@ -1,6 +1,6 @@
-import { getDefaultButtonVariants } from '../../../animations';
-import { MagnifierSlash } from '../../../icons/magnifier-slash';
-import { MotionButton } from '../../buttons';
+import { getDefaultButtonVariants } from '@/animations';
+import { MagnifierSlash } from '@/icons/magnifier-slash';
+import { MotionButton } from '@components/buttons';
 
 export function SavedSearchDialogChildren({
   searchesToDelete,

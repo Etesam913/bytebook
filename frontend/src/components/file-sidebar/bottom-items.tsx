@@ -1,4 +1,4 @@
-import { SettingsButton } from '../buttons/settings';
+import { SettingsButton } from '@components/buttons/settings';
 
 export function BottomItems() {
   return (

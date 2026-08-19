@@ -10,23 +10,23 @@ import { type Dispatch, type ReactNode, type SetStateAction } from 'react';
 import { Button } from 'react-aria-components/Button';
 import { ToggleButton } from 'react-aria-components/ToggleButton';
 import { Toolbar } from 'react-aria-components/Toolbar';
-import { ListCheckbox } from '../../../icons/list-checkbox';
-import { OrderedList } from '../../../icons/ordered-list';
-import { Redo } from '../../../icons/redo';
-import { TextBold } from '../../../icons/text-bold';
-import { TextItalic } from '../../../icons/text-italic';
-import { TextStrikethrough } from '../../../icons/text-strikethrough';
-import { Undo } from '../../../icons/undo';
-import { UnorderedList } from '../../../icons/unordered-list';
-import type { EditorBlockTypes, FloatingDataType } from '../../../types';
-import { cn } from '../../../utils/string-formatting';
+import { ListCheckbox } from '@/icons/list-checkbox';
+import { OrderedList } from '@/icons/ordered-list';
+import { Redo } from '@/icons/redo';
+import { TextBold } from '@/icons/text-bold';
+import { TextItalic } from '@/icons/text-italic';
+import { TextStrikethrough } from '@/icons/text-strikethrough';
+import { Undo } from '@/icons/undo';
+import { UnorderedList } from '@/icons/unordered-list';
+import type { EditorBlockTypes, FloatingDataType } from '@/types';
+import { cn } from '@utils/string-formatting';
 import {
   handleToolbarBlockElementClick,
   handleToolbarTextFormattingClick,
-} from '../../editor/utils/toolbar';
-import { Link } from '../../../icons/link';
-import { $isLinkNode } from '../../editor/nodes/link';
-import { Tooltip } from '../../tooltip';
+} from '@components/editor/utils/toolbar';
+import { Link } from '@/icons/link';
+import { $isLinkNode } from '@components/editor/nodes/link';
+import { Tooltip } from '@components/tooltip';
 
 const buttonClasses =
   'p-1.5 rounded-md relative z-10 outline-none focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-650 hover:bg-zinc-100 dark:hover:bg-zinc-650 disabled:opacity-50 disabled:cursor-not-allowed bg-transparent border-0';

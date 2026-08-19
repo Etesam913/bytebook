@@ -2,12 +2,12 @@ import { Browser } from '@wailsio/runtime';
 import { type TargetAndTransition, motion } from 'motion/react';
 import type { LexicalEditor } from 'lexical';
 import type { ReactNode } from 'react';
-import { getDefaultButtonVariants } from '../../animations';
-import { Maximize } from '../../icons/maximize';
-import { Link } from '../../icons/link';
-import { Trash } from '../../icons/trash';
-import { removeDecoratorNode } from '../../utils/commands';
-import { createFilePath } from '../../utils/path';
+import { getDefaultButtonVariants } from '@/animations';
+import { Maximize } from '@/icons/maximize';
+import { Link } from '@/icons/link';
+import { Trash } from '@/icons/trash';
+import { removeDecoratorNode } from '@utils/commands';
+import { createFilePath } from '@utils/path';
 import { navigate } from 'wouter/use-browser-location';
 
 export function NoteComponentControls({

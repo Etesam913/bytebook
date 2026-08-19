@@ -1,7 +1,7 @@
 import { useEffect, type RefObject } from 'react';
 import { navigate } from 'wouter/use-browser-location';
-import { routeUrls } from '../../../../utils/routes';
-import { safeDecodeURIComponent } from '../../../../utils/path';
+import { routeUrls } from '@utils/routes';
+import { safeDecodeURIComponent } from '@utils/path';
 
 /**
  * Automatically navigates to the first search result after a short debounce

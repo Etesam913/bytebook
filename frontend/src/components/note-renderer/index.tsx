@@ -1,11 +1,11 @@
 import { motion, useAnimationControls } from 'motion/react';
-import { FileBan } from '../../icons/file-ban';
-import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '../../types';
-import { FilePath } from '../../utils/path';
-import { NotesEditor } from '../editor';
+import { FileBan } from '@/icons/file-ban';
+import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '@/types';
+import { FilePath } from '@utils/path';
+import { NotesEditor } from '@components/editor';
 import { ImageRenderer } from './image-renderer';
 import { VideoRenderer } from './video-renderer';
-import { NonMarkdownToolbar } from '../../routes/notes-sidebar/render-note/non-markdown-toolbar';
+import { NonMarkdownToolbar } from '@/routes/notes-sidebar/render-note/non-markdown-toolbar';
 
 export function NoteRenderer({ filePath }: { filePath: FilePath }) {
   const { extension } = filePath;

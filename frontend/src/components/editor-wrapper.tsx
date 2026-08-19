@@ -1,13 +1,13 @@
 import { useAnimationControls } from 'motion/react';
 import { useEffect } from 'react';
 import { navigate } from 'wouter/use-browser-location';
-import { NoteRenderer } from './note-renderer';
-import { FolderRenderer } from './folder-renderer';
-import { useFilePathFromRoute, useFolderPathFromRoute } from '../hooks/routes';
-import { useNoteExists } from '../hooks/notes';
-import { RouteFallback } from './route-fallback';
-import { NotFound } from '../routes/not-found';
-import { routeUrls } from '../utils/routes';
+import { NoteRenderer } from '@components/note-renderer';
+import { FolderRenderer } from '@components/folder-renderer';
+import { useFilePathFromRoute, useFolderPathFromRoute } from '@hooks/routes';
+import { useNoteExists } from '@hooks/notes';
+import { RouteFallback } from '@components/route-fallback';
+import { NotFound } from '@/routes/not-found';
+import { routeUrls } from '@utils/routes';
 
 export function EditorWrapper() {
   const filePath = useFilePathFromRoute();

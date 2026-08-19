@@ -1,30 +1,27 @@
 import { useAtom, useAtomValue } from 'jotai';
 import type { RefObject } from 'react';
 import { useRoute } from 'wouter';
-import { VirtualizedListAccordion } from '../../virtualized/virtualized-list/accordion';
-import { AccordionButton } from '../../accordion/accordion-button';
+import { VirtualizedListAccordion } from '@components/virtualized/virtualized-list/accordion';
+import { AccordionButton } from '@components/accordion/accordion-button';
 import {
   isValidKernelLanguage,
   LANGUAGES,
   languagesWithKernelsSet,
-} from '../../../types';
-import {
-  routeUrls,
-  type KernelWithFilesRouteParams,
-} from '../../../utils/routes';
+} from '@/types';
+import { routeUrls, type KernelWithFilesRouteParams } from '@utils/routes';
 import { KernelAccordionButton } from './kernel-accordion-button';
 import {
   fileSidebarOpenStateAtom,
   kernelInstancesByLanguageAtom,
-} from '../../../atoms';
-import { SquareTerminal } from '../../../icons/square-terminal';
-import { PythonLogo } from '../../../icons/python-logo';
-import { GolangLogo } from '../../../icons/golang-logo';
-import { JavascriptLogo } from '../../../icons/javascript-logo';
-import { JavaLogo } from '../../../icons/java-logo';
-import { Languages } from '../../../types';
+} from '@/atoms';
+import { SquareTerminal } from '@/icons/square-terminal';
+import { PythonLogo } from '@/icons/python-logo';
+import { GolangLogo } from '@/icons/golang-logo';
+import { JavascriptLogo } from '@/icons/javascript-logo';
+import { JavaLogo } from '@/icons/java-logo';
+import { Languages } from '@/types';
 import { SidebarAccordionPanel } from '../sidebar-accordion-panel';
-import type { SidebarFlexWeights } from '../../../atoms';
+import type { SidebarFlexWeights } from '@/atoms';
 import type { FlexWeightMVs } from '../index';
 
 export function getKernelIcon(kernel: Languages, size: string = '1.125rem') {

@@ -6,11 +6,11 @@ import {
 } from '@tanstack/react-query';
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App.tsx';
-import './index.css';
+import App from '@/App';
+import '@/index.css';
 import { toast } from 'sonner';
-import { DEFAULT_SONNER_OPTIONS } from './utils/general.ts';
-import { QueryError } from './utils/query.ts';
+import { DEFAULT_SONNER_OPTIONS } from '@utils/general';
+import { QueryError } from '@utils/query';
 
 const rootElem = document.getElementById('root');
 if (!rootElem) {

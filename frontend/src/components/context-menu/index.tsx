@@ -2,12 +2,9 @@ import { useAtom, useAtomValue } from 'jotai/react';
 import { useRef } from 'react';
 import type { Key } from 'react-aria-components/Breadcrumbs';
 import { Popover } from 'react-aria-components/Popover';
-import { contextMenuDataAtom, sidebarSelectionAtom } from '../../atoms';
-import { AppMenu, AppMenuItem } from '../menu';
-import {
-  createSelectionKey,
-  FILE_SELECTION_PREFIX,
-} from '../../utils/selection';
+import { contextMenuDataAtom, sidebarSelectionAtom } from '@/atoms';
+import { AppMenu, AppMenuItem } from '@components/menu';
+import { createSelectionKey, FILE_SELECTION_PREFIX } from '@utils/selection';
 
 export function ContextMenu() {
   const [{ isShowing, items, x, y, targetId }, setContextMenuData] =

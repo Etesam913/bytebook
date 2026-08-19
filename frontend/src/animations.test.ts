@@ -1,6 +1,6 @@
-import './test/setup';
+import '@/test/setup';
 import { describe, it, expect } from 'bun:test';
-import { getDefaultButtonVariants, easingFunctions } from './animations';
+import { getDefaultButtonVariants, easingFunctions } from '@/animations';
 
 describe('getDefaultButtonVariants', () => {
   it('returns an empty object when disabled', () => {

@@ -1,11 +1,11 @@
-import { logger } from '../utils/logging';
+import { logger } from '@utils/logging';
 import { hoverTooltip, type Tooltip } from '@codemirror/view';
 import { Browser } from '@wailsio/runtime';
 import { toast } from 'sonner';
-import { SendInspectRequest } from '../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
-import { Languages } from '../types';
-import { CODE_BLOCK_INSPECT_REPLY } from '../utils/events';
-import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
+import { SendInspectRequest } from '@bindings/services/codeservice';
+import { Languages } from '@/types';
+import { CODE_BLOCK_INSPECT_REPLY } from '@utils/events';
+import { DEFAULT_SONNER_OPTIONS } from '@utils/general';
 import { useWailsEvent } from './events';
 
 type HoverTooltipData = {

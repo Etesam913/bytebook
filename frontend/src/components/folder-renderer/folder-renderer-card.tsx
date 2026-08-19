@@ -1,8 +1,8 @@
-import { type FilePath, type FolderPath } from '../../utils/path';
-import { navigateToPath } from '../../utils/routes';
-import { Folder as FolderIcon } from '../../icons/folder';
-import { RenderNoteIcon } from '../../icons/render-note-icon';
-import { FILE_TYPE, FOLDER_TYPE } from '../../utils/tree-item-types';
+import { type FilePath, type FolderPath } from '@utils/path';
+import { navigateToPath } from '@utils/routes';
+import { Folder as FolderIcon } from '@/icons/folder';
+import { RenderNoteIcon } from '@/icons/render-note-icon';
+import { FILE_TYPE, FOLDER_TYPE } from '@utils/tree-item-types';
 
 type RendererItem = {
   id: string;

@@ -8,8 +8,8 @@ import type {
 } from 'lexical';
 import { $applyNodeReplacement, DecoratorNode } from 'lexical';
 import type { JSX } from 'react';
-import { Code } from '../../code';
-import { CodeBlockStatus, Languages } from '../../../types';
+import { Code } from '@components/code';
+import { CodeBlockStatus, Languages } from '@/types';
 
 export interface CodePayload {
   id: string;

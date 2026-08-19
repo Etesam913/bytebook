@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import type { FileDimensions } from '../../editor/nodes/types';
+import type { FileDimensions } from '@components/editor/nodes/types';
 import { MediaContainer } from './index';
 
 export function Video({

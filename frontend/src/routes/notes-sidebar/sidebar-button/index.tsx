@@ -1,13 +1,13 @@
 import { useSetAtom, useAtomValue } from 'jotai';
-import { handleKeyNavigation } from '../../../utils/selection';
-import { type FilePath } from '../../../utils/path';
+import { handleKeyNavigation } from '@utils/selection';
+import { type FilePath } from '@utils/path';
 import { ListNoteSidebarItem } from './list-note-sidebar-item';
 import { navigate } from 'wouter/use-browser-location';
-import { routeUrls } from '../../../utils/routes';
-import { cn } from '../../../utils/string-formatting';
-import { contextMenuDataAtom, projectSettingsAtom } from '../../../atoms';
-import { useContextMenuItems } from '../../../components/context-menu/items';
-import { Tooltip } from '../../../components/tooltip';
+import { routeUrls } from '@utils/routes';
+import { cn } from '@utils/string-formatting';
+import { contextMenuDataAtom, projectSettingsAtom } from '@/atoms';
+import { useContextMenuItems } from '@components/context-menu/items';
+import { Tooltip } from '@components/tooltip';
 
 export function NoteSidebarButton({
   searchQuery,

@@ -2,17 +2,17 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import type { CodeMirrorRef } from './types';
 import { EditorSelection } from '@codemirror/state';
 import { $getRoot, $isElementNode, type LexicalNode } from 'lexical';
-import { Loader } from '../../icons/loader';
+import { Loader } from '@/icons/loader';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
-import { cn } from '../../utils/string-formatting';
-import { CodeBlockStatus, Languages } from '../../types';
+import { cn } from '@utils/string-formatting';
+import { CodeBlockStatus, Languages } from '@/types';
 import { AnimatePresence, motion } from 'motion/react';
 import { CodeActions } from './code-actions';
 import { CodeResult } from './code-result';
 import { languageDisplayConfig } from './language-config';
-import { useNodeInNodeSelection } from '../../hooks/lexical';
-import { SelectionHighlight } from '../selection-highlight';
+import { useNodeInNodeSelection } from '@hooks/lexical';
+import { SelectionHighlight } from '@components/selection-highlight';
 
 const CodeMirrorEditor = lazy(() =>
   import('./codemirror-editor').then((module) => ({

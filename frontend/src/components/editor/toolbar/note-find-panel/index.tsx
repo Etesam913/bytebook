@@ -1,12 +1,12 @@
 import { Dispatch, SetStateAction, useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { easingFunctions } from '../../../../animations';
+import { easingFunctions } from '@/animations';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { XMark } from '../../../../icons/circle-xmark';
-import { Magnifier } from '../../../../icons/magnifier';
+import { XMark } from '@/icons/circle-xmark';
+import { Magnifier } from '@/icons/magnifier';
 import { NavigationControls } from './navigation-controls';
-import { AppTextField } from '../../../input';
-import { useOnClickOutside } from '../../../../hooks/general';
+import { AppTextField } from '@components/input';
+import { useOnClickOutside } from '@hooks/general';
 import { useFindPanelSearch, useMatchNavigation } from './hooks/find-panel';
 import { clearHighlight } from './utils/highlight';
 

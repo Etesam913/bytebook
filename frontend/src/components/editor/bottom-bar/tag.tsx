@@ -1,5 +1,5 @@
-import { cn } from '../../../utils/string-formatting';
-import { Xmark } from '../../../icons/xmark';
+import { cn } from '@utils/string-formatting';
+import { Xmark } from '@/icons/xmark';
 
 export function Tag({
   tagName,

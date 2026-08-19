@@ -6,7 +6,7 @@ import {
   getQueryParamValue,
   removeQueryParam,
   unescapeFileContentFromMarkdown,
-} from '../../../utils/string-formatting';
+} from '@utils/string-formatting';
 
 const srcRegex = /\/notes\/([^/]+)\/([^/]+)\//;
 

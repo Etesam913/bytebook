@@ -18,12 +18,12 @@ import {
   draggedGhostElementAtom,
   editorAtom,
 } from './atoms';
-import { isFileMaximizedAtom } from '../../atoms';
-import { projectSettingsAtom } from '../../atoms';
-import type { FloatingDataType, Frontmatter } from '../../types.ts';
-import { isTableOfContentsVisible } from '../../utils/project-settings';
-import { handleEditorEscape } from '../../utils/selection.ts';
-import { cn } from '../../utils/string-formatting';
+import { isFileMaximizedAtom } from '@/atoms';
+import { projectSettingsAtom } from '@/atoms';
+import type { FloatingDataType, Frontmatter } from '@/types';
+import { isTableOfContentsVisible } from '@utils/project-settings';
+import { handleEditorEscape } from '@utils/selection';
+import { cn } from '@utils/string-formatting';
 import { BottomBar } from './bottom-bar';
 import { editorConfig } from './editor-config';
 import { NoteTitle } from './note-title';
@@ -45,15 +45,15 @@ import { TableOfContentsPlugin } from './plugins/table-of-contents.tsx';
 import { Toolbar } from './toolbar';
 import { CUSTOM_TRANSFORMERS } from './transformers';
 import { debouncedNoteHandleChange } from './utils/note-commands.ts';
-import { useAutoScrollDuringDrag } from '../../hooks/draggable.tsx';
+import { useAutoScrollDuringDrag } from '@hooks/draggable';
 import { useCodeCleanup } from './hooks/code';
-import { useLspNoteLifecycle } from '../../hooks/lsp';
+import { useLspNoteLifecycle } from '@hooks/lsp';
 import { useNoteIntersectionObserver } from './hooks/intersection-observer';
-import { FilePath } from '../../utils/path';
+import { FilePath } from '@utils/path';
 import type { PlaceholderLineData } from './types';
 import TableHoverActionsV2Plugin from './plugins/table/table-hover-actions.tsx';
 import TableActionMenuPlugin from './plugins/table/table-actions-menu.tsx';
-import { usePreventBoundaryOverscrollFlicker } from '../virtualized/virtualized-list/hooks.tsx';
+import { usePreventBoundaryOverscrollFlicker } from '@components/virtualized/virtualized-list/hooks';
 // import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 // import { TreeView } from '@lexical/react/LexicalTreeView';
 

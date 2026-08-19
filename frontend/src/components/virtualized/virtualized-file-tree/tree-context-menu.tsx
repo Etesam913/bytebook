@@ -7,24 +7,24 @@ import { useAtomValue } from 'jotai';
 import { useRef } from 'react';
 import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { AppMenu, AppMenuItem } from '../../menu';
-import { projectSettingsAtom } from '../../../atoms';
+import { AppMenu, AppMenuItem } from '@components/menu';
+import { projectSettingsAtom } from '@/atoms';
 import {
   createFilePath,
   createFolderPath,
   stripTrailingSlash,
-} from '../../../utils/path';
+} from '@utils/path';
 import {
   ICON_PROPS,
   MenuItemLabel,
   useContextMenuItems,
-} from '../../context-menu/items';
-import type { DropdownItem } from '../../../types';
-import { Blog } from '../../../icons/blog';
-import { FolderPen } from '../../../icons/folder-pen';
-import { PaperclipPlus } from '../../../icons/paperclip-plus';
+} from '@components/context-menu/items';
+import type { DropdownItem } from '@/types';
+import { Blog } from '@/icons/blog';
+import { FolderPen } from '@/icons/folder-pen';
+import { PaperclipPlus } from '@/icons/paperclip-plus';
 import type { TreeItemType } from './create';
-import { FILE_TYPE, FOLDER_TYPE } from '../../../utils/tree-item-types';
+import { FILE_TYPE, FOLDER_TYPE } from '@utils/tree-item-types';
 
 type MenuRow = {
   key: string;

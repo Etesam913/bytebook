@@ -1,6 +1,6 @@
 import type { FileTree as PierreFileTree } from '@pierre/trees';
 import { useEffect, useRef, useState } from 'react';
-import { AppSearchField } from '../../input';
+import { AppSearchField } from '@components/input';
 
 export function TreeSearchInput({ model }: { model: PierreFileTree }) {
   const [searchQuery, setSearchQuery] = useState('');

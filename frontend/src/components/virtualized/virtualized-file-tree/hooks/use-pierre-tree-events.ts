@@ -2,7 +2,7 @@ import type {
   FileTree as PierreFileTree,
   FileTreeBatchOperation,
 } from '@pierre/trees';
-import { useWailsEvent, type WailsEvent } from '../../../../hooks/events';
+import { useWailsEvent, type WailsEvent } from '@hooks/events';
 import {
   FILE_CREATE,
   FILE_DELETE,
@@ -10,7 +10,7 @@ import {
   FOLDER_CREATE,
   FOLDER_DELETE,
   FOLDER_RENAME,
-} from '../../../../utils/events';
+} from '@utils/events';
 
 type PathPayload = { filePath?: string; folderPath?: string };
 type RenamePayload = {

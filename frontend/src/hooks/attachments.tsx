@@ -1,8 +1,8 @@
 import { useMutation } from '@tanstack/react-query';
 import { useSetAtom } from 'jotai/react';
 import { $getSelection, type BaseSelection, type LexicalEditor } from 'lexical';
-import { backendQueryAtom } from '../atoms';
-import { insertAttachmentFromFile } from '../components/editor/utils/toolbar';
+import { backendQueryAtom } from '@/atoms';
+import { insertAttachmentFromFile } from '@components/editor/utils/toolbar';
 
 // Opens a file picker and inserts the selected file as an attachment at the current editor selection position.
 export function useAttachmentsMutation({

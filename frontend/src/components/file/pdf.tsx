@@ -2,9 +2,9 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import { AnimatePresence } from 'motion/react';
 import { useAtomValue } from 'jotai';
-import { draggedGhostElementAtom } from '../editor/atoms';
-import { cn } from '../../utils/string-formatting';
-import { NoteComponentControls } from '../note-component-container/component-controls';
+import { draggedGhostElementAtom } from '@components/editor/atoms';
+import { cn } from '@utils/string-formatting';
+import { NoteComponentControls } from '@components/note-component-container/component-controls';
 
 export function Pdf({
   src,

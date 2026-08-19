@@ -1,20 +1,20 @@
 import { vscodeLight, vscodeDark } from '@uiw/codemirror-theme-vscode';
 import { useAtomValue } from 'jotai/react';
-import { isDarkModeOnAtom, projectSettingsAtom } from '../../atoms';
+import { isDarkModeOnAtom, projectSettingsAtom } from '@/atoms';
 import CodeMirror, { type ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { EditorView, tooltips } from '@codemirror/view';
 import type { Extension } from '@codemirror/state';
-import { debounce } from '../../utils/general';
+import { debounce } from '@utils/general';
 import {
   useEnsureKernelMutation,
   useSendExecuteRequestMutation,
   useSendInterruptRequestMutation,
-} from '../../hooks/code';
-import { useDecodedNotesWildcardPath } from '../../hooks/routes';
-import { useInspectTooltip } from '../../hooks/code-codemirror';
-import { useCompletionExtension } from '../../hooks/code-completion';
-import { getCodemirrorKeymap } from '../../utils/codemirror';
-import { focusEditor } from '.';
+} from '@hooks/code';
+import { useDecodedNotesWildcardPath } from '@hooks/routes';
+import { useInspectTooltip } from '@hooks/code-codemirror';
+import { useCompletionExtension } from '@hooks/code-completion';
+import { getCodemirrorKeymap } from '@utils/codemirror';
+import { focusEditor } from '@components/code';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import type {
   CodeBlockDocumentProps,
@@ -22,16 +22,16 @@ import type {
   CodeBlockIdentityProps,
   CodeBlockShellProps,
 } from './types';
-import { cn } from '../../utils/string-formatting';
-import { LANGUAGES, type Languages } from '../../types';
-import { useNodeInNodeSelection } from '../../hooks/lexical';
+import { cn } from '@utils/string-formatting';
+import { LANGUAGES, type Languages } from '@/types';
+import { useNodeInNodeSelection } from '@hooks/lexical';
 import { useEffect, useRef, useState, type WheelEvent } from 'react';
 import { languageDisplayConfig } from './language-config';
 import type { BasicSetupOptions } from '@uiw/react-codemirror';
 import {
   NotifyBlockEdit,
   NotifyBlockRemoved,
-} from '../../../bindings/github.com/etesam913/bytebook/internal/services/lspservice';
+} from '@bindings/services/lspservice';
 import {
   getLoadedLanguageExtension,
   loadLanguageExtension,

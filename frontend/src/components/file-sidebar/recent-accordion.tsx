@@ -1,15 +1,15 @@
 import { useAtom } from 'jotai';
 import { type RefObject, useEffect, useRef } from 'react';
-import { fileSidebarOpenStateAtom, mostRecentItemsAtom } from '../../atoms.ts';
-import { HourglassStart } from '../../icons/hourglass-start';
-import { AccordionItem } from '../accordion/accordion-item.tsx';
-import { AccordionButton } from '../accordion/accordion-button';
-import { useRecentItemFromRoute } from '../../hooks/routes.tsx';
+import { fileSidebarOpenStateAtom, mostRecentItemsAtom } from '@/atoms';
+import { HourglassStart } from '@/icons/hourglass-start';
+import { AccordionItem } from '@components/accordion/accordion-item';
+import { AccordionButton } from '@components/accordion/accordion-button';
+import { useRecentItemFromRoute } from '@hooks/routes';
 import { motion } from 'motion/react';
 import { SidebarAccordionPanel } from './sidebar-accordion-panel';
-import { Folder as FolderIcon } from '../../icons/folder';
-import { usePreventBoundaryOverscrollFlicker } from '../virtualized/virtualized-list/hooks.tsx';
-import type { SidebarFlexWeights } from '../../atoms';
+import { Folder as FolderIcon } from '@/icons/folder';
+import { usePreventBoundaryOverscrollFlicker } from '@components/virtualized/virtualized-list/hooks';
+import type { SidebarFlexWeights } from '@/atoms';
 import type { FlexWeightMVs } from './index';
 
 export function RecentAccordion({

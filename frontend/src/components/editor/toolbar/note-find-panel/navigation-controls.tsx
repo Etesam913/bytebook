@@ -1,6 +1,6 @@
-import { ArrowUp } from '../../../../icons/arrow-up';
-import { ArrowDown } from '../../../../icons/arrow-down';
-import { Tooltip } from '../../../tooltip';
+import { ArrowUp } from '@/icons/arrow-up';
+import { ArrowDown } from '@/icons/arrow-down';
+import { Tooltip } from '@components/tooltip';
 
 export function NavigationControls({
   totalMatches,

@@ -1,11 +1,11 @@
 import { useAtomValue } from 'jotai/react';
-import { isDarkModeOnAtom, projectSettingsAtom } from '../../../atoms';
-import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
+import { isDarkModeOnAtom, projectSettingsAtom } from '@/atoms';
+import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
 import { SettingsRow } from '../settings-row';
-import { AppCheckbox } from '../../../components/checkbox';
-import lightImagePlaceholder from '../../../assets/images/empty-line-placeholder-light.jpg';
-import darkImagePlaceholder from '../../../assets/images/empty-line-placeholder-dark.jpg';
-import { SettingImage } from '.';
+import { AppCheckbox } from '@components/checkbox';
+import lightImagePlaceholder from '@/assets/images/empty-line-placeholder-light.jpg';
+import darkImagePlaceholder from '@/assets/images/empty-line-placeholder-dark.jpg';
+import { SettingImage } from '@components/settings-dialog/appearance';
 
 export function EmptyLinePlaceholderRow() {
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();

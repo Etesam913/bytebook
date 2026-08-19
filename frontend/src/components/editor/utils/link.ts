@@ -1,6 +1,6 @@
 import { Browser } from '@wailsio/runtime';
 import { toast } from 'sonner';
-import { DEFAULT_SONNER_OPTIONS } from '../../../utils/general';
+import { DEFAULT_SONNER_OPTIONS } from '@utils/general';
 
 /** Opens the link in the browser when clicked */
 export function handleATagClick(target: HTMLElement) {

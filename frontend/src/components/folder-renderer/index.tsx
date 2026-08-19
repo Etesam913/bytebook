@@ -5,26 +5,26 @@ import {
   type GridListProps,
   type ScrollerProps,
 } from 'react-virtuoso';
-import { Loader } from '../../icons/loader';
-import { useToggleSidebarEvent } from '../../routes/notes-sidebar/render-note/hooks';
+import { Loader } from '@/icons/loader';
+import { useToggleSidebarEvent } from '@/routes/notes-sidebar/render-note/hooks';
 import {
   type FolderPath,
   createFilePath,
   createFolderPath,
   stripTrailingSlash,
-} from '../../utils/path';
-import { NotFound } from '../../routes/not-found';
+} from '@utils/path';
+import { NotFound } from '@/routes/not-found';
 import { motion, type LegacyAnimationControls } from 'motion/react';
-import { cn } from '../../utils/string-formatting';
-import { useAllPaths } from '../../hooks/all-paths';
-import { FILE_TYPE, FOLDER_TYPE } from '../../utils/tree-item-types';
+import { cn } from '@utils/string-formatting';
+import { useAllPaths } from '@hooks/all-paths';
+import { FILE_TYPE, FOLDER_TYPE } from '@utils/tree-item-types';
 import {
   FolderRendererCard,
   type FolderRendererItem,
 } from './folder-renderer-card';
 import { FolderRendererCreateItemCard } from './folder-renderer-create-item-card';
 import { FolderRendererHeader } from './folder-renderer-header';
-import { usePreventBoundaryOverscrollFlicker } from '../virtualized/virtualized-list/hooks';
+import { usePreventBoundaryOverscrollFlicker } from '@components/virtualized/virtualized-list/hooks';
 
 const folderGridComponents = {
   Scroller: ({ children, ...props }: ScrollerProps) => (

@@ -3,7 +3,7 @@ import { useAtom, useSetAtom } from 'jotai';
 import { $nodesOfType } from 'lexical';
 import { editorAtom, noteContainerRefAtom } from '../atoms';
 import { CodeNode } from '../nodes/code';
-import { useSendInterruptRequestMutation } from '../../../hooks/code';
+import { useSendInterruptRequestMutation } from '@hooks/code';
 
 export function useCodeCleanup(
   noteContainerRef: React.RefObject<HTMLDivElement | null>

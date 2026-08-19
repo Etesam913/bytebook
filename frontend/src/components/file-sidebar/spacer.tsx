@@ -1,10 +1,10 @@
 import type { MotionValue } from 'motion/react';
 import { useSetAtom } from 'jotai';
 import { useRef, useState } from 'react';
-import { draggedGhostElementAtom } from '../editor/atoms';
-import { dragItem } from '../../utils/draggable';
-import { MAX_SIDEBAR_WIDTH } from '../../utils/general';
-import { cn } from '../../utils/string-formatting';
+import { draggedGhostElementAtom } from '@components/editor/atoms';
+import { dragItem } from '@utils/draggable';
+import { MAX_SIDEBAR_WIDTH } from '@utils/general';
+import { cn } from '@utils/string-formatting';
 
 const MIN_SIDEBAR_WIDTH = 265;
 

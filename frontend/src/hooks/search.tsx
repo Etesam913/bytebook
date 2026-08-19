@@ -14,25 +14,25 @@ import {
   AddSavedSearch,
   RemoveSavedSearch,
   RegenerateSearchIndex,
-} from '../../bindings/github.com/etesam913/bytebook/internal/services/searchservice';
+} from '@bindings/services/searchservice';
 import {
   type FullTextSearchPage,
   HighlightResult,
-} from '../../bindings/github.com/etesam913/bytebook/internal/search/models';
-import { useWailsEvent } from '../hooks/events';
+} from '@bindings/search/models';
+import { useWailsEvent } from '@hooks/events';
 import {
   SAVED_SEARCH_UPDATE,
   FILE_DELETE,
   FILE_RENAME,
   FOLDER_DELETE,
   FOLDER_RENAME,
-} from '../utils/events';
+} from '@utils/events';
 import { useEffect, useRef } from 'react';
-import { createFilePath, type FilePath } from '../utils/path';
-import { routeUrls } from '../utils/routes';
+import { createFilePath, type FilePath } from '@utils/path';
+import { routeUrls } from '@utils/routes';
 import { toast } from 'sonner';
-import { QueryError } from '../utils/query';
-import { queryKeys } from '../utils/query-keys';
+import { QueryError } from '@utils/query';
+import { queryKeys } from '@utils/query-keys';
 
 export type NoteSearchResult = {
   type: 'note';

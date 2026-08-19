@@ -1,8 +1,8 @@
 import { useAtomValue } from 'jotai';
 import { Dialog as AriaDialog } from 'react-aria-components/Dialog';
 import { Modal, ModalOverlay } from 'react-aria-components/Modal';
-import { backendQueryAtom } from '../../atoms';
-import { Loader } from '../../icons/loader';
+import { backendQueryAtom } from '@/atoms';
+import { Loader } from '@/icons/loader';
 
 export function LoadingModal() {
   const backendQuery = useAtomValue(backendQueryAtom);

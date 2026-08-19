@@ -1,5 +1,5 @@
 import type { RefCallback } from 'react';
-import { AppSearchField } from '../../../components/input';
+import { AppSearchField } from '@components/input';
 
 /**
  * Text input used inside the Edit Tags dialog for filtering the tag list and

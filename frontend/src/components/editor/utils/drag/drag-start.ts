@@ -4,7 +4,7 @@ import {
   type LexicalEditor,
 } from 'lexical';
 import type { Dispatch, SetStateAction } from 'react';
-import { createGhostElementFromHtmlElement } from '../../../../utils/draggable';
+import { createGhostElementFromHtmlElement } from '@utils/draggable';
 import { constructGhostElementForNode } from '../ghost-elements';
 import { DRAGGABLE_BLOCK_MENU_CLASSNAME, DRAG_DATA_FORMAT } from './constants';
 

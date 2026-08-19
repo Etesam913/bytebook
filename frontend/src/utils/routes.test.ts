@@ -1,4 +1,4 @@
-import '../test/setup';
+import '@/test/setup';
 import { describe, it, expect } from 'bun:test';
 import { ROUTE_PATTERNS, routeUrls } from './routes';
 

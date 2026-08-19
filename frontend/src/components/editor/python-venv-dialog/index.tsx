@@ -2,24 +2,24 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   ChooseCustomVirtualEnvironmentPath,
   GetPythonVirtualEnvironments,
-} from '../../../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
-import { Loader } from '../../../icons/loader';
-import { AppRadio, AppRadioGroup } from '../../radio-button';
+} from '@bindings/services/codeservice';
+import { Loader } from '@/icons/loader';
+import { AppRadio, AppRadioGroup } from '@components/radio-button';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { backendQueryAtom, projectSettingsAtom } from '../../../atoms';
-import { ShareRight } from '../../../icons/share-right';
-import { MotionButton, MotionIconButton } from '../../buttons';
-import { getDefaultButtonVariants } from '../../../animations';
-import { QueryError } from '../../../utils/query';
-import { PlainCodeSnippet } from '../../plain-code-snippet';
-import { FloppyDisk } from '../../../icons/floppy-disk';
-import { DialogErrorText } from '../../dialog';
+import { backendQueryAtom, projectSettingsAtom } from '@/atoms';
+import { ShareRight } from '@/icons/share-right';
+import { MotionButton, MotionIconButton } from '@components/buttons';
+import { getDefaultButtonVariants } from '@/animations';
+import { QueryError } from '@utils/query';
+import { PlainCodeSnippet } from '@components/plain-code-snippet';
+import { FloppyDisk } from '@/icons/floppy-disk';
+import { DialogErrorText } from '@components/dialog';
 import { useState } from 'react';
-import { SidebarAccordion } from '../../accordion';
-import { DesktopArrowDown } from '../../../icons/desktop-arrow-down';
-import { cn } from '../../../utils/string-formatting';
-import { RevealFolderOrFileInFinder } from '../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
-import { queryKeys } from '../../../utils/query-keys';
+import { SidebarAccordion } from '@components/accordion';
+import { DesktopArrowDown } from '@/icons/desktop-arrow-down';
+import { cn } from '@utils/string-formatting';
+import { RevealFolderOrFileInFinder } from '@bindings/services/noteservice';
+import { queryKeys } from '@utils/query-keys';
 
 export function PythonVenvDialog({ errorText }: { errorText: string }) {
   const [customVenvPath, setCustomVenvPath] = useState<string | null>(null);

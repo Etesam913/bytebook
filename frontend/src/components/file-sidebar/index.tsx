@@ -7,7 +7,7 @@ import {
 import { useAtomValue } from 'jotai';
 import { Activity, useRef } from 'react';
 import { useLocation } from 'wouter';
-import { getDefaultButtonVariants } from '../../animations.ts';
+import { getDefaultButtonVariants } from '@/animations';
 import {
   DEFAULT_SIDEBAR_FLEX_WEIGHTS,
   fileSidebarOpenStateAtom,
@@ -17,8 +17,8 @@ import {
   SIDEBAR_PANEL_KEYS,
   type SidebarFlexWeights,
   type SidebarPanelKey,
-} from '../../atoms.ts';
-import { MotionIconButton } from '../buttons/index.tsx';
+} from '@/atoms';
+import { MotionIconButton } from '@components/buttons/index';
 import { BottomItems } from './bottom-items.tsx';
 import { MyFilesAccordion } from './my-files-accordion/index.tsx';
 import { MyTagsAccordion } from './my-tags-accordion/index.tsx';
@@ -27,13 +27,13 @@ import { RecentAccordion } from './recent-accordion.tsx';
 import { SidebarModeToggle } from './sidebar-mode-toggle.tsx';
 import { SearchSidebarPanel } from './search-sidebar-panel/index.tsx';
 import { Spacer } from './spacer.tsx';
-import { CircleArrowLeft } from '../../icons/circle-arrow-left.tsx';
-import { CircleArrowRight } from '../../icons/circle-arrow-right.tsx';
+import { CircleArrowLeft } from '@/icons/circle-arrow-left';
+import { CircleArrowRight } from '@/icons/circle-arrow-right';
 import { MyKernelsAccordion } from './my-kernels-accordion/index.tsx';
 import { MySavedSearchesAccordion } from './my-saved-searches-accordion/index.tsx';
-import { Tooltip } from '../tooltip/index.tsx';
-import { isSearchSidebarRoute, routeUrls } from '../../utils/routes.ts';
-import { cn } from '../../utils/string-formatting.ts';
+import { Tooltip } from '@components/tooltip/index';
+import { isSearchSidebarRoute, routeUrls } from '@utils/routes';
+import { cn } from '@utils/string-formatting';
 
 export type FlexWeightMVs = Record<SidebarPanelKey, MotionValue<number>>;
 

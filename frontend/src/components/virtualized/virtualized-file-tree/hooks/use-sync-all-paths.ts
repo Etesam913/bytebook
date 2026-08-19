@@ -11,7 +11,7 @@ import {
   isDirectoryHandle,
   setSortedTreePaths,
 } from '../model-utils';
-import { useAllPaths } from '../../../../hooks/all-paths';
+import { useAllPaths } from '@hooks/all-paths';
 
 /**
  * Keeps the @pierre/trees model in sync when `allPaths` refetches (such as

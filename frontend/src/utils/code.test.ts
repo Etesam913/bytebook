@@ -1,7 +1,7 @@
-import '../test/setup';
+import '@/test/setup';
 import { describe, it, expect } from 'bun:test';
 import { getDefaultCodeForLanguage } from './code';
-import { LANGUAGES } from '../types';
+import { LANGUAGES } from '@/types';
 
 describe('getDefaultCodeForLanguage', () => {
   it.each([
