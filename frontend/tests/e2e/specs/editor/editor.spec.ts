@@ -1,8 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { mockBinding } from '../../utils/mock-binding';
 import {
-  MOCK_TOP_LEVEL_ITEMS_RESPONSE,
-  MOCK_ECONOMICS_FOLDER_CHILDREN_RESPONSE,
   MOCK_NOTE_EXISTS_RESPONSE,
   MOCK_NOTE_MARKDOWN_RESPONSE,
   MOCK_PROJECT_SETTINGS_RESPONSE,
@@ -15,22 +13,6 @@ const STRIKETHROUGH_TOOLTIP = 'Strikethrough (⌘⇧X)';
 
 test.describe('Editor', () => {
   test.beforeEach(async ({ context }) => {
-    // Mock file tree dependencies
-    await mockBinding(
-      context,
-      { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetTopLevelItems' },
-      MOCK_TOP_LEVEL_ITEMS_RESPONSE
-    );
-
-    await mockBinding(
-      context,
-      {
-        file: SERVICE_FILES.FILE_TREE_SERVICE,
-        method: 'GetChildrenOfFolderBasedOnPath',
-      },
-      MOCK_ECONOMICS_FOLDER_CHILDREN_RESPONSE
-    );
-
     await mockBinding(
       context,
       { file: SERVICE_FILES.NOTE_SERVICE, method: 'DoesNoteExist' },
