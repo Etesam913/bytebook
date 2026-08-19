@@ -14,9 +14,17 @@ import {
   createFolderPath,
   stripTrailingSlash,
 } from '../../../utils/path';
-import { MenuItemLabel, useContextMenuItems } from '../../context-menu/items';
+import {
+  ICON_PROPS,
+  MenuItemLabel,
+  useContextMenuItems,
+} from '../../context-menu/items';
 import type { DropdownItem } from '../../../types';
+import { Blog } from '../../../icons/blog';
+import { FolderPen } from '../../../icons/folder-pen';
 import { PaperclipPlus } from '../../../icons/paperclip-plus';
+import type { TreeItemType } from './create';
+import { FILE_TYPE, FOLDER_TYPE } from '../../../utils/tree-item-types';
 
 type MenuRow = {
   key: string;
@@ -44,12 +52,14 @@ export function TreeContextMenu({
   selectedPaths,
   onAddFolderAttachments,
   onStartRename,
+  onStartCreate,
 }: {
   item: FileTreeContextMenuItem;
   context: FileTreeContextMenuOpenContext;
   selectedPaths: readonly string[];
   onAddFolderAttachments: (folderPath: string) => void;
   onStartRename: (path: string) => void;
+  onStartCreate: (args: { folderPath: string; itemType: TreeItemType }) => void;
 }) {
   const { editTags, moveToTrash, pin, rename, revealInFinder } =
     useContextMenuItems();
@@ -73,9 +83,58 @@ export function TreeContextMenu({
 
   const rows: MenuRow[] = [];
 
+  // The rename and create rows hand focus to pierre's inline input, so they
+  // close the menu themselves with restoreFocus: false — restoring focus to
+  // the tree row would yank it away from the input.
+  const renameRow = (): MenuRow => ({
+    ...dropdownItemToMenuRow(
+      rename({
+        onRename: () => {
+          // Pass pierre's original (possibly slashed) path so startRenaming
+          // finds the right node.
+          context.close({ restoreFocus: false });
+          onStartRename(item.path);
+        },
+      })
+    ),
+    keepFocus: true,
+  });
+
   const revealTarget = filePath ?? folderPath;
   if (revealTarget) {
     rows.push(dropdownItemToMenuRow(revealInFinder({ path: revealTarget })));
+  }
+
+  if (isFolder && !isMultiSelection) {
+    rows.push(
+      {
+        key: 'create-folder',
+        content: (
+          <MenuItemLabel icon={<FolderPen {...ICON_PROPS} />}>
+            Create Folder
+          </MenuItemLabel>
+        ),
+        keepFocus: true,
+        onSelect: () => {
+          context.close({ restoreFocus: false });
+          onStartCreate({ folderPath: item.path, itemType: FOLDER_TYPE });
+        },
+      },
+      {
+        key: 'create-note',
+        content: (
+          <MenuItemLabel icon={<Blog {...ICON_PROPS} />}>
+            Create Note
+          </MenuItemLabel>
+        ),
+        keepFocus: true,
+        onSelect: () => {
+          context.close({ restoreFocus: false });
+          onStartCreate({ folderPath: item.path, itemType: FILE_TYPE });
+        },
+      },
+      renameRow()
+    );
   }
 
   if (isFolder) {
@@ -142,22 +201,9 @@ export function TreeContextMenu({
     );
   }
 
-  if (!isMultiSelection) {
-    rows.push({
-      ...dropdownItemToMenuRow(
-        rename({
-          onRename: () => {
-            // Close the menu *first* without restoring focus to the row — the
-            // inline rename input will own focus once the model enters renaming
-            // mode. Pass pierre's original (possibly slashed) path so
-            // startRenaming finds the right node.
-            context.close({ restoreFocus: false });
-            onStartRename(item.path);
-          },
-        })
-      ),
-      keepFocus: true,
-    });
+  // Folder menus already placed their rename row next to the create rows.
+  if (!isMultiSelection && !isFolder) {
+    rows.push(renameRow());
   }
 
   rows.push(dropdownItemToMenuRow(moveToTrash({ paths: [...targetPaths] })));

@@ -34,7 +34,11 @@ export function getPlaceholderPath({
     const base = `${parentPath}${name}`;
     if (itemType === FOLDER_TYPE) {
       if (!hasItem(`${base}/`) && !hasItem(base)) return `${base}/`;
-    } else if (!hasItem(base) && !hasItem(`${base}.md`) && !hasItem(`${base}/`)) {
+    } else if (
+      !hasItem(base) &&
+      !hasItem(`${base}.md`) &&
+      !hasItem(`${base}/`)
+    ) {
       return base;
     }
   }
