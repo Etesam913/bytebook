@@ -33,11 +33,7 @@ import { TreeContextMenu } from './tree-context-menu';
 import { TreeHeader } from './tree-header';
 import { TreeSearchInput } from './tree-search-input';
 
-/**
- * `prepareFileTreeInput` sorts the whole path list, and only the first result
- * ever reaches the model — every later list arrives through `useSyncAllPaths`
- * — so compute it once per component instance rather than on every render.
- */
+// Later path updates sync directly into the model, so prepare only once.
 function usePreparedTreeInput(paths: readonly string[]) {
   const preparedInputRef = useRef<ReturnType<
     typeof prepareFileTreeInput
@@ -46,8 +42,7 @@ function usePreparedTreeInput(paths: readonly string[]) {
   return preparedInputRef.current;
 }
 
-// Every ancestor of the route target is a folder, so it must end in '/'.
-// Expands the parent directory hierarchy leading to the initial route target.
+// Expand the folder hierarchy above the initial route target.
 function getInitialExpandedPaths(routeTargetPath: string | null) {
   if (!routeTargetPath) return [];
   const segments = splitPathSegments(routeTargetPath);
@@ -56,7 +51,6 @@ function getInitialExpandedPaths(routeTargetPath: string | null) {
     .map((_, index) => `${segments.slice(0, index + 1).join('/')}/`);
 }
 
-// The sidebar file tree, backed by @pierre/trees using useFileTree.
 export function VirtualizedFileTree({
   ref,
 }: {
@@ -83,8 +77,7 @@ function PierreFileTreeInner({
   // ── Navigation state ─────────────────────────────────────────────────
   const routeTargetPath = usePierreRouteTargetPath();
 
-  // Tracks the last navigated path to prevent redundant navigation loops when
-  // route changes synchronize selection back to the tree.
+  // Prevent route-selection sync from causing navigation loops.
   const lastNavigatedRef = useRef<string | null>(routeTargetPath);
 
   useEffect(() => {
@@ -97,11 +90,13 @@ function PierreFileTreeInner({
   const { mutate: addFolderAttachments } = useAddFolderAttachmentsMutation();
   const { mutateAsync: addTreeItem } = useAddTreeItemMutation();
 
-  // A live inline-create placeholder, so the shared rename handlers can tell
-  // a committed placeholder apart from a genuine rename.
+  // Distinguishes inline creation from a normal rename. `unsubscribe` releases
+  // the placeholder-removal listener; every exit from the create flow must call
+  // it, since only the cancel path removes the placeholder.
   const pendingCreateRef = useRef<{
     placeholderPath: string;
     parentFolderPath: string;
+    unsubscribe: () => void;
   } | null>(null);
 
   // ── Tree model ───────────────────────────────────────────────────────
@@ -112,9 +107,12 @@ function PierreFileTreeInner({
     initialExpansion: 'closed',
     initialExpandedPaths: getInitialExpandedPaths(routeTargetPath),
     initialSelectedPaths: routeTargetPath ? [routeTargetPath] : [],
+    // getVisibleRowIndex counts one row per path; pierre's default flattening
+    // merges single-child directory chains into one row, which would make every
+    // reveal/deep-link scroll land off by the number of merged chains.
+    flattenEmptyDirectories: false,
     stickyFolders: true,
     icons: 'minimal',
-    searchBlurBehavior: 'retain',
     unsafeCSS: FILE_TREE_UNSAFE_CSS,
     composition: {
       contextMenu: {
@@ -124,6 +122,11 @@ function PierreFileTreeInner({
     onSelectionChange: (selectedPaths) => {
       if (selectedPaths.length !== 1) return;
       const path = selectedPaths[0];
+
+      // startRenaming() bumps the selection version and emits, so beginning an
+      // inline create reports the placeholder as selected. Never route to it —
+      // the path does not exist on disk until the name is committed.
+      if (path === pendingCreateRef.current?.placeholderPath) return;
 
       if (lastNavigatedRef.current === path) return;
       lastNavigatedRef.current = path;
@@ -144,10 +147,11 @@ function PierreFileTreeInner({
       onRename: (event) => {
         const pending = pendingCreateRef.current;
         if (pending && event.sourcePath === pending.placeholderPath) {
+          // A committed placeholder is moved, not removed, so the removal
+          // listener would never fire — release it here.
+          pending.unsubscribe();
           pendingCreateRef.current = null;
-          // Defer: pierre moves the placeholder to destinationPath *after*
-          // this callback returns; applyTreeCreate reconciles against that
-          // post-move state.
+          // Pierre moves the placeholder after this callback returns.
           queueMicrotask(() =>
             applyTreeCreate({
               model,
@@ -158,10 +162,7 @@ function PierreFileTreeInner({
           );
           return;
         }
-        // Pierre's optimistic move re-points selection at the typed path
-        // while the backend rename is still in flight; suppress that
-        // navigation and only navigate once disk agrees, so the note view
-        // never chases a path that does not exist yet.
+        // Wait for the backend rename before navigating to the new path.
         const wasCurrent = lastNavigatedRef.current === event.sourcePath;
         if (wasCurrent) lastNavigatedRef.current = event.destinationPath;
         applyTreeRename({
@@ -174,9 +175,9 @@ function PierreFileTreeInner({
         });
       },
       onError: (error) => {
-        // A colliding/invalid committed name exits rename mode but keeps the
-        // placeholder in the model — drop it so no phantom row survives.
+        // Remove failed create placeholders from the model.
         const pending = pendingCreateRef.current;
+        if (pending) pending.unsubscribe();
         if (pending && model.getItem(pending.placeholderPath)) {
           model.remove(
             pending.placeholderPath,
@@ -195,13 +196,17 @@ function PierreFileTreeInner({
   usePierreTreeEvents(model);
   usePierreRouteFocus(model);
 
-  const filter = useTreeFilter();
+  const {
+    searchValue,
+    onSearchChange,
+    isFilterMode,
+    filteredPaths,
+    isFilterLoading,
+  } = useTreeFilter();
 
   function handleStartRename(path: string) {
     if (!model.startRenaming(path)) return;
-    // Match editor conventions: pre-select only the name part so typing
-    // replaces the name and leaves the extension alone. The rename input
-    // mounts and focuses on the next frame.
+    // Select the name while preserving the file extension.
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         const input = getRenameInput(model);
@@ -224,13 +229,7 @@ function PierreFileTreeInner({
       itemType,
       hasItem: (path) => model.getItem(path) !== null,
     });
-    model.add(placeholderPath);
-    pendingCreateRef.current = {
-      placeholderPath,
-      parentFolderPath: folderPath,
-    };
-    // Escape / empty commit removes the placeholder; clear the pending marker
-    // when that removal lands so a later genuine rename can't be misread.
+    // Clear pending state when creation is canceled.
     const unsubscribe = model.onMutation('remove', (event) => {
       if (event.path !== placeholderPath) return;
       if (pendingCreateRef.current?.placeholderPath === placeholderPath) {
@@ -238,17 +237,29 @@ function PierreFileTreeInner({
       }
       unsubscribe();
     });
+    // Set before startRenaming: it re-selects the placeholder and emits, which
+    // onSelectionChange must recognize as a create rather than a navigation.
+    pendingCreateRef.current = {
+      placeholderPath,
+      parentFolderPath: folderPath,
+      unsubscribe,
+    };
+    model.add(placeholderPath);
     if (!model.startRenaming(placeholderPath, { removeIfCanceled: true })) {
+      unsubscribe();
+      pendingCreateRef.current = null;
+      model.remove(
+        placeholderPath,
+        placeholderPath.endsWith('/') ? { recursive: true } : undefined
+      );
       return;
     }
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         const input = getRenameInput(model);
         if (!input) return;
-        // Committing the unchanged seed name fires no rename callback and
-        // would leave a phantom row, so start empty (VS Code style). The
-        // rename editor is a controlled input — the DOM clear must be echoed
-        // to the controller via an input event; select() backstops a miss.
+        // Start empty because unchanged seed names do not trigger onRename.
+        // Notify the controlled input after clearing the DOM value.
         input.value = '';
         input.dispatchEvent(new Event('input', { bubbles: true }));
         input.select();
@@ -257,11 +268,7 @@ function PierreFileTreeInner({
   }
 
   // ── Keyboard handling ────────────────────────────────────────────────
-  // @pierre/trees only binds renaming to F2. Enter on a focused row is
-  // unhandled there, so it bubbles out of the shadow root (retargeted to the
-  // tree's host element) and we can start the rename here. The host-element
-  // check keeps light-DOM children like the create-folder input unaffected,
-  // and a commit-Enter never reaches this handler (the tree stops it).
+  // Pierre handles F2 but not Enter for renaming focused rows.
   function handleKeyDown(event: React.KeyboardEvent) {
     if (event.key !== 'Enter') return;
     if (event.target !== getTreeHost(model)) return;
@@ -273,10 +280,7 @@ function PierreFileTreeInner({
   }
 
   // ── Render ───────────────────────────────────────────────────────────
-  // The tree's shadow stylesheet sets `color-scheme: light dark` on :host,
-  // which makes its light-dark() colors follow the OS preference — not the
-  // app's chosen theme. An inline style on the host element wins over the
-  // shadow :host rule, so pin the scheme to the app's resolved mode.
+  // Override the tree's OS-based color scheme with the app theme.
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
   const hostStyle: React.CSSProperties = {
     ...FILE_TREE_HOST_STYLE,
@@ -292,18 +296,11 @@ function PierreFileTreeInner({
       className="relative flex flex-1 flex-col min-h-0 overflow-hidden text-sm"
       onKeyDown={handleKeyDown}
     >
-      {/* Rendered outside the tree's shadow-DOM header slot on purpose: the
-          tree's internal key/focus handlers sit between slotted content and
-          the page, which breaks the inline create-folder input. */}
+      {/* Keep the header outside shadow DOM so its input retains key events. */}
       <TreeHeader />
-      <TreeSearchInput
-        value={filter.searchValue}
-        onChange={filter.onSearchChange}
-      />
-      {/* The main tree stays mounted while a filter query is active: the sync
-          hooks keep mutating it invisibly, and expansion/selection/scroll all
-          survive un-hiding when the query clears. */}
-      <div className={cn('contents', filter.isFilterMode && 'hidden')}>
+      <TreeSearchInput value={searchValue} onChange={onSearchChange} />
+      {/* Keep tree state and sync active while filtered results are shown. */}
+      <div className={cn('contents', isFilterMode && 'hidden')}>
         <FileTree
           model={model}
           renderContextMenu={(item, context) => (
@@ -319,10 +316,10 @@ function PierreFileTreeInner({
           style={hostStyle}
         />
       </div>
-      {filter.isFilterMode && (
+      {isFilterMode && (
         <FilteredFileTree
-          paths={filter.filteredPaths}
-          isLoading={filter.isFilterLoading}
+          paths={filteredPaths}
+          isLoading={isFilterLoading}
           hostStyle={hostStyle}
           routeTargetPath={routeTargetPath}
         />

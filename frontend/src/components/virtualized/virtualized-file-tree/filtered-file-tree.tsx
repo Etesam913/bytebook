@@ -59,9 +59,10 @@ function FilteredTreeHost({
     preparedInput: prepareFileTreeInput(treePaths),
     initialExpansion: 'open',
     initialSelectedPaths: routeTargetPath ? [routeTargetPath] : [],
+    // Match the canonical tree so both index rows the same way.
+    flattenEmptyDirectories: false,
     stickyFolders: true,
     icons: 'minimal',
-    searchBlurBehavior: 'retain',
     unsafeCSS: FILE_TREE_UNSAFE_CSS,
     onSelectionChange: (selectedPaths) => {
       if (selectedPaths.length !== 1) return;
