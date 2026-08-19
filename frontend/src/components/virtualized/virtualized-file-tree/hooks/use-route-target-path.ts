@@ -1,7 +1,4 @@
-import {
-  useFilePathFromRoute,
-  useFolderPathFromRoute,
-} from '../../../../hooks/routes';
+import { useFilePathFromRoute, useFolderPathFromRoute } from '@hooks/routes';
 
 /**
  * The current `/notes/*` route target: files are slashless, directories carry

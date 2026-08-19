@@ -5,12 +5,9 @@ import {
   type ReactNode,
   type SetStateAction,
 } from 'react';
-import { sidebarSelectionAtom } from '../../../atoms';
-import {
-  createSelectionKey,
-  keepSelectionWithPrefix,
-} from '../../../utils/selection';
-import { SidebarContentType } from '../../../types';
+import { sidebarSelectionAtom } from '@/atoms';
+import { createSelectionKey, keepSelectionWithPrefix } from '@utils/selection';
+import { SidebarContentType } from '@/types';
 import type { SelectionOptions } from './index';
 
 export function VirtualizedListItem<T>({

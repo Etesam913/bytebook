@@ -1,5 +1,5 @@
 import { motion, type HTMLMotionProps } from 'motion/react';
-import { cn } from '../utils/string-formatting';
+import { cn } from '@utils/string-formatting';
 
 export function SelectionHighlight({
   className,

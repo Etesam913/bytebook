@@ -3,6 +3,7 @@ import reactCompiler from 'babel-plugin-react-compiler';
 import { defineConfig, loadEnv } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import { visualizer } from 'rollup-plugin-visualizer';
+import path from 'node:path';
 
 const ReactCompilerConfig = {
   // Your react-compiler options here
@@ -29,6 +30,16 @@ export default defineConfig(({ mode }) => {
       host: '127.0.0.1',
     },
     resolve: {
+      alias: {
+        '@bindings': path.resolve(
+          import.meta.dirname,
+          './bindings/github.com/etesam913/bytebook/internal'
+        ),
+        '@components': path.resolve(import.meta.dirname, './src/components'),
+        '@hooks': path.resolve(import.meta.dirname, './src/hooks'),
+        '@utils': path.resolve(import.meta.dirname, './src/utils'),
+        '@': path.resolve(import.meta.dirname, './src'),
+      },
       // Ensure all wrappers/plugins share one CodeMirror module instance.
       dedupe: [
         '@codemirror/state',

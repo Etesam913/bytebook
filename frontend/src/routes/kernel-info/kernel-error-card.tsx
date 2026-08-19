@@ -1,4 +1,4 @@
-import { XMark } from '../../icons/circle-xmark';
+import { XMark } from '@/icons/circle-xmark';
 
 export function KernelErrorCard({ errorMessage }: { errorMessage: string }) {
   return (

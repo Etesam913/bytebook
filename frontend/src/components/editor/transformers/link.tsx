@@ -6,8 +6,8 @@ import {
   decodeLinkAltText,
   isInternalLink,
   unescapeUnderscore,
-} from '../../../utils/string-formatting';
-import { WAILS_URL } from '../../../utils/general';
+} from '@utils/string-formatting';
+import { WAILS_URL } from '@utils/general';
 import {
   $createLinkNode,
   $isAutoLinkNode,

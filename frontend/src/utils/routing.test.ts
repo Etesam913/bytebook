@@ -1,4 +1,4 @@
-import '../test/setup';
+import '@/test/setup';
 import { afterEach, describe, expect, it, spyOn } from 'bun:test';
 
 const { disableBackspaceNavigation } = await import('./routing');

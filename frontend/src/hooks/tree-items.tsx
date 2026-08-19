@@ -1,18 +1,18 @@
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
-import { AddFolder } from '../../bindings/github.com/etesam913/bytebook/internal/services/folderservice';
-import { AddAttachmentsFromPaths } from '../../bindings/github.com/etesam913/bytebook/internal/services/nodeservice';
-import { AddNoteToFolder } from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
+import { AddFolder } from '@bindings/services/folderservice';
+import { AddAttachmentsFromPaths } from '@bindings/services/nodeservice';
+import { AddNoteToFolder } from '@bindings/services/noteservice';
 import {
   createFilePath,
   createFolderPath,
   joinPath,
   stripTrailingSlash,
-} from '../utils/path';
-import { QueryError } from '../utils/query';
-import { navigateToPath } from '../utils/routes';
-import { NAME_CHARS } from '../utils/string-formatting';
-import { FILE_TYPE, FOLDER_TYPE } from '../utils/tree-item-types';
+} from '@utils/path';
+import { QueryError } from '@utils/query';
+import { navigateToPath } from '@utils/routes';
+import { NAME_CHARS } from '@utils/string-formatting';
+import { FILE_TYPE, FOLDER_TYPE } from '@utils/tree-item-types';
 
 type TreeItemType = typeof FOLDER_TYPE | typeof FILE_TYPE;
 

@@ -5,7 +5,7 @@ import {
   type RadioGroupProps,
   type RadioProps,
 } from 'react-aria-components/RadioGroup';
-import { cn } from '../../utils/string-formatting';
+import { cn } from '@utils/string-formatting';
 
 export function AppRadioGroup({
   className,

@@ -1,8 +1,8 @@
 import { type ReactNode, type RefObject, useEffect } from 'react';
 import { animate, motion } from 'motion/react';
-import { cn } from '../../utils/string-formatting';
-import { easingFunctions } from '../../animations';
-import type { SidebarFlexWeights, SidebarPanelKey } from '../../atoms';
+import { cn } from '@utils/string-formatting';
+import { easingFunctions } from '@/animations';
+import type { SidebarFlexWeights, SidebarPanelKey } from '@/atoms';
 import { PanelResizeHandle } from './panel-resize-handle';
 import type { FlexWeightMVs } from './index';
 

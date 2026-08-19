@@ -8,34 +8,34 @@ import {
   isFullscreenAtom,
   isFileMaximizedAtom,
   projectSettingsAtom,
-} from '../../../atoms';
-import { MaximizeNoteButton } from '../../../components/buttons/maximize-note';
+} from '@/atoms';
+import { MaximizeNoteButton } from '@components/buttons/maximize-note';
 import {
   AppMenu,
   AppMenuItem,
   AppMenuPopover,
   AppMenuTrigger,
-} from '../../../components/menu';
-import { Tooltip } from '../../../components/tooltip';
+} from '@components/menu';
+import { Tooltip } from '@components/tooltip';
 import {
   useMoveToTrashMutation,
   useRevealInFinderMutation,
-} from '../../../hooks/notes';
-import { useEditTagsFormMutation } from '../../../hooks/tags';
-import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
-import { EditTagDialogChildren } from '../edit-tag-dialog-children';
-import { Finder } from '../../../icons/finder';
-import { FolderOpen } from '../../../icons/folder-open';
-import { HorizontalDots } from '../../../icons/horizontal-dots';
-import { PinTack2 } from '../../../icons/pin-tack-2';
-import { TagPlus } from '../../../icons/tag-plus';
-import { Trash } from '../../../icons/trash';
-import { cn } from '../../../utils/string-formatting';
-import { FilePath } from '../../../utils/path';
-import { ROUTE_PATTERNS } from '../../../utils/routes';
+} from '@hooks/notes';
+import { useEditTagsFormMutation } from '@hooks/tags';
+import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
+import { EditTagDialogChildren } from '@/routes/notes-sidebar/edit-tag-dialog-children';
+import { Finder } from '@/icons/finder';
+import { FolderOpen } from '@/icons/folder-open';
+import { HorizontalDots } from '@/icons/horizontal-dots';
+import { PinTack2 } from '@/icons/pin-tack-2';
+import { TagPlus } from '@/icons/tag-plus';
+import { Trash } from '@/icons/trash';
+import { cn } from '@utils/string-formatting';
+import { FilePath } from '@utils/path';
+import { ROUTE_PATTERNS } from '@utils/routes';
 import type { LegacyAnimationControls } from 'motion/react';
 import { useToggleSidebarEvent } from './hooks';
-import { MediaMetadata } from '../../../components/note-renderer/media-metadata';
+import { MediaMetadata } from '@components/note-renderer/media-metadata';
 
 export function NonMarkdownToolbar({
   animationControls,

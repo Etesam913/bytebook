@@ -13,31 +13,31 @@ import {
   useFullTextSearchQuery,
   useSavedSearchSyncEvents,
   useSearchFocus,
-} from '../../../hooks/search';
-import { useCombobox } from '../../../hooks/combobox';
-import { useSaveSearchDialog } from '../../../hooks/dialogs';
+} from '@hooks/search';
+import { useCombobox } from '@hooks/combobox';
+import { useSaveSearchDialog } from '@hooks/dialogs';
 import {
   VirtualizedList,
   type VirtualizedListHandle,
-} from '../../virtualized/virtualized-list';
+} from '@components/virtualized/virtualized-list';
 import { SearchSidebarResultItem } from './search-sidebar-result-item';
 import { SearchSidebarInput } from './search-sidebar-input';
 import { SearchSidebarHelp } from './search-sidebar-help';
-import { ErrorText } from '../../error-text';
-import { Loader } from '../../../icons/loader';
-import { FileRefresh } from '../../../icons/file-refresh';
-import { BookBookmark } from '../../../icons/book-bookmark';
-import { createFilePath, safeDecodeURIComponent } from '../../../utils/path';
-import { dataItemToKey, dataItemToString } from '../../../routes/search/utils';
+import { ErrorText } from '@components/error-text';
+import { Loader } from '@/icons/loader';
+import { FileRefresh } from '@/icons/file-refresh';
+import { BookBookmark } from '@/icons/book-bookmark';
+import { createFilePath, safeDecodeURIComponent } from '@utils/path';
+import { dataItemToKey, dataItemToString } from '@/routes/search/utils';
 import {
   ROUTE_PATTERNS,
   routeUrls,
   type SearchRouteParams,
-} from '../../../utils/routes';
+} from '@utils/routes';
 import { useAutoNavigateToFirstResult } from './hooks/use-auto-navigate-to-first-result';
-import { MotionIconButton } from '../../buttons';
-import { getDefaultButtonVariants } from '../../../animations';
-import { Tooltip } from '../../tooltip';
+import { MotionIconButton } from '@components/buttons';
+import { getDefaultButtonVariants } from '@/animations';
+import { Tooltip } from '@components/tooltip';
 
 export function SearchSidebarPanel({
   lastSearchRouteRef,

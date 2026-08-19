@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { LoadingSpinner } from '../loading-spinner';
+import { LoadingSpinner } from '@components/loading-spinner';
 
 export function RouteFallback({
   height,

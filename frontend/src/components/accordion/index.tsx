@@ -7,8 +7,8 @@ import {
   DisclosureStateContext,
   Heading,
 } from 'react-aria-components/Disclosure';
-import { ChevronDown } from '../../icons/chevron-down';
-import { cn } from '../../utils/string-formatting';
+import { ChevronDown } from '@/icons/chevron-down';
+import { cn } from '@utils/string-formatting';
 
 function DisclosureChevron() {
   const state = useContext(DisclosureStateContext);

@@ -24,12 +24,12 @@ import {
   useInteractions,
   useDismiss,
 } from '@floating-ui/react';
-import { easingFunctions, getDefaultButtonVariants } from '../../../animations';
-import { SubmitLink } from '../../../icons/submit-link';
-import type { FloatingDataType } from '../../../types';
-import { MotionButton } from '../../buttons';
+import { easingFunctions, getDefaultButtonVariants } from '@/animations';
+import { SubmitLink } from '@/icons/submit-link';
+import type { FloatingDataType } from '@/types';
+import { MotionButton } from '@components/buttons';
 import { TOGGLE_LINK_COMMAND } from '../nodes/link';
-import { AppTextField } from '../../input';
+import { AppTextField } from '@components/input';
 import { $setSelection } from 'lexical';
 
 export function FloatingMenuPlugin({

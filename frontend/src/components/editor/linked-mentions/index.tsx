@@ -7,18 +7,18 @@ import {
 } from 'react-aria-components/Disclosure';
 import { Virtuoso } from 'react-virtuoso';
 import { Link } from 'wouter';
-import { ChevronDown } from '../../../icons/chevron-down';
-import { Folder } from '../../../icons/folder';
-import { Loader } from '../../../icons/loader';
-import { RenderNoteIcon } from '../../../icons/render-note-icon';
+import { ChevronDown } from '@/icons/chevron-down';
+import { Folder } from '@/icons/folder';
+import { Loader } from '@/icons/loader';
+import { RenderNoteIcon } from '@/icons/render-note-icon';
 import {
   type FilePath,
   createFilePath,
   safeDecodeURIComponent,
-} from '../../../utils/path';
-import { cn } from '../../../utils/string-formatting';
+} from '@utils/path';
+import { cn } from '@utils/string-formatting';
 import { useLinkedMentionsQuery } from '../hooks/linked-mentions';
-import { TriangleWarning } from '../../../icons/triangle-warning';
+import { TriangleWarning } from '@/icons/triangle-warning';
 
 export function LinkedMentions({ filePath }: { filePath: FilePath }) {
   const { data, isLoading, isError } = useLinkedMentionsQuery(filePath);

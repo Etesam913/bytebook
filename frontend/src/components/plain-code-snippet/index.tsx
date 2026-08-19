@@ -1,6 +1,6 @@
-import { getDefaultButtonVariants } from '../../animations';
-import { Duplicate2 } from '../../icons/duplicate-2';
-import { MotionButton } from '../buttons';
+import { getDefaultButtonVariants } from '@/animations';
+import { Duplicate2 } from '@/icons/duplicate-2';
+import { MotionButton } from '@components/buttons';
 
 // using a MotionButton leads to layout shift for some reason...
 export function PlainCodeSnippet({ code }: { code: string }) {

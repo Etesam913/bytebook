@@ -1,5 +1,5 @@
 import { type RefObject } from 'react';
-import { cn } from '../../utils/string-formatting';
+import { cn } from '@utils/string-formatting';
 
 export function FilePlaceholder({
   loaderRef,

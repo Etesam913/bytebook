@@ -10,8 +10,8 @@ import {
   type LexicalEditor,
 } from 'lexical';
 import { CUSTOM_TRANSFORMERS } from '../transformers';
-import { preloadLanguageExtensions } from '../../code/language-extensions';
-import { allLanguagesSet, type Languages } from '../../../types';
+import { preloadLanguageExtensions } from '@components/code/language-extensions';
+import { allLanguagesSet, type Languages } from '@/types';
 
 // Matches the syntax handled by the inline / block transformers in
 // CUSTOM_TRANSFORMERS (bold, italic, inline code, strikethrough, links,

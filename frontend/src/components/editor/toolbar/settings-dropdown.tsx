@@ -4,39 +4,35 @@ import type { Key } from 'react-aria-components/Breadcrumbs';
 import { Button } from 'react-aria-components/Button';
 import { useRoute } from 'wouter';
 import { navigate } from 'wouter/use-browser-location';
-import {
-  dialogDataAtom,
-  isFullscreenAtom,
-  projectSettingsAtom,
-} from '../../../atoms';
+import { dialogDataAtom, isFullscreenAtom, projectSettingsAtom } from '@/atoms';
 import {
   useMoveToTrashMutation,
   useRevealInFinderMutation,
-} from '../../../hooks/notes';
-import { createFilePath } from '../../../utils/path';
-import { isTableOfContentsVisible } from '../../../utils/project-settings';
-import { ROUTE_PATTERNS } from '../../../utils/routes';
-import { useEditTagsFormMutation } from '../../../hooks/tags';
-import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
-import { EditTagDialogChildren } from '../../../routes/notes-sidebar/edit-tag-dialog-children';
-import { Finder } from '../../../icons/finder';
-import { FolderOpen } from '../../../icons/folder-open';
-import { HorizontalDots } from '../../../icons/horizontal-dots';
-import { PinTack2 } from '../../../icons/pin-tack-2';
-import { TagPlus } from '../../../icons/tag-plus';
-import { Table } from '../../../icons/table';
-import { Trash } from '../../../icons/trash';
-import type { ProjectSettings } from '../../../types';
+} from '@hooks/notes';
+import { createFilePath } from '@utils/path';
+import { isTableOfContentsVisible } from '@utils/project-settings';
+import { ROUTE_PATTERNS } from '@utils/routes';
+import { useEditTagsFormMutation } from '@hooks/tags';
+import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
+import { EditTagDialogChildren } from '@/routes/notes-sidebar/edit-tag-dialog-children';
+import { Finder } from '@/icons/finder';
+import { FolderOpen } from '@/icons/folder-open';
+import { HorizontalDots } from '@/icons/horizontal-dots';
+import { PinTack2 } from '@/icons/pin-tack-2';
+import { TagPlus } from '@/icons/tag-plus';
+import { Table } from '@/icons/table';
+import { Trash } from '@/icons/trash';
+import type { ProjectSettings } from '@/types';
 import {
   AppMenu,
   AppMenuItem,
   AppMenuPopover,
   AppMenuTrigger,
-} from '../../menu';
+} from '@components/menu';
 import { SAVE_MARKDOWN_CONTENT } from '../plugins/save';
-import type { Frontmatter } from '../../../types';
-import { Tooltip } from '../../tooltip';
-import { cn } from '../../../utils/string-formatting';
+import type { Frontmatter } from '@/types';
+import { Tooltip } from '@components/tooltip';
+import { cn } from '@utils/string-formatting';
 
 export function SettingsDropdown({
   folder,

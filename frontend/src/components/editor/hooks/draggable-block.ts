@@ -12,11 +12,11 @@ import {
 } from 'lexical';
 import { type RefObject, useEffect } from 'react';
 import { draggableBlockElementAtom, draggedGhostElementAtom } from '../atoms';
-import { useWailsEvent, type WailsEvent } from '../../../hooks/events';
-import { EDITOR_CONTENT_DROP } from '../../../utils/events';
-import { createFilePath, type FilePath } from '../../../utils/path';
-import { throttle } from '../../../utils/draggable';
-import { useAddDroppedFilesToFolderMutation } from '../../../hooks/tree-items';
+import { useWailsEvent, type WailsEvent } from '@hooks/events';
+import { EDITOR_CONTENT_DROP } from '@utils/events';
+import { createFilePath, type FilePath } from '@utils/path';
+import { throttle } from '@utils/draggable';
+import { useAddDroppedFilesToFolderMutation } from '@hooks/tree-items';
 import type { FilePayload } from '../nodes/file';
 import { INSERT_FILES_COMMAND } from '../plugins/file';
 import {
@@ -31,7 +31,7 @@ import {
 } from '../utils/drag';
 import { setSelectionFromPointerInNoteEditor } from '../utils/note-commands';
 import { FILE_TREE_GHOST_ID } from '../utils/drag/context';
-import { installWailsDragHandlers } from '../../../hooks/wails-drag';
+import { installWailsDragHandlers } from '@hooks/wails-drag';
 
 /** Prefix stripped from paths returned by `addDroppedFilesToFolder`. */
 const NOTES_PREFIX = 'notes/';

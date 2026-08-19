@@ -5,20 +5,20 @@ import {
   navigate,
   useSearch as useBrowserSearch,
 } from 'wouter/use-browser-location';
-import { useWailsEvent } from '../../hooks/events';
-import { MotionIconButton } from '../buttons';
-import { getDefaultButtonVariants } from '../../animations';
-import { isFileMaximizedAtom } from '../../atoms';
-import { Note } from '../../icons/page';
-import { Magnifier } from '../../icons/magnifier';
-import { Tooltip } from '../tooltip';
-import { isSearchSidebarRoute } from '../../utils/routes';
-import { cn } from '../../utils/string-formatting';
+import { useWailsEvent } from '@hooks/events';
+import { MotionIconButton } from '@components/buttons';
+import { getDefaultButtonVariants } from '@/animations';
+import { isFileMaximizedAtom } from '@/atoms';
+import { Note } from '@/icons/page';
+import { Magnifier } from '@/icons/magnifier';
+import { Tooltip } from '@components/tooltip';
+import { isSearchSidebarRoute } from '@utils/routes';
+import { cn } from '@utils/string-formatting';
 import {
   isEventInCurrentWindow,
   SIDEBAR_FILES_OPEN,
   SIDEBAR_SEARCH_OPEN,
-} from '../../utils/events';
+} from '@utils/events';
 
 export function SidebarModeToggle({
   lastFilesRouteRef,

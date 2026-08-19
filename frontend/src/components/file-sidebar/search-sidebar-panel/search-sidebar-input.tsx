@@ -6,8 +6,8 @@ import {
   useId,
   useState,
 } from 'react';
-import { AppSearchField } from '../../input';
-import type { ComboboxInputProps } from '../../../hooks/combobox';
+import { AppSearchField } from '@components/input';
+import type { ComboboxInputProps } from '@hooks/combobox';
 
 function shouldShowPrefixDropdown(value: string): boolean {
   if (value.length === 0) return true;

@@ -18,7 +18,7 @@ import { createPortal } from 'react-dom';
 import type { LexicalEditor } from 'lexical';
 
 import { draggedGhostElementAtom, noteContainerRefAtom } from '../atoms';
-import { VerticalDots } from '../../../icons/vertical-dots';
+import { VerticalDots } from '@/icons/vertical-dots';
 import { useDraggableBlock, useNodeDragEvents } from '../hooks/draggable-block';
 import {
   handleDragStart,
@@ -26,7 +26,7 @@ import {
   type DragAndDropCaretMotionValues,
 } from '../utils/drag';
 import { useRefState } from '../hooks/ref-state';
-import type { FilePath } from '../../../utils/path';
+import type { FilePath } from '@utils/path';
 
 function useDragAndDropCaret(): DragAndDropCaretMotionValues {
   const x = useMotionValue(0);

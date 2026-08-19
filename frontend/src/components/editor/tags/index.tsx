@@ -7,18 +7,18 @@ import {
 } from 'react-aria-components/Disclosure';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { motion } from 'motion/react';
-import { dialogDataAtom, isFileMaximizedAtom } from '../../../atoms';
-import { ChevronDown } from '../../../icons/chevron-down';
-import { Loader } from '../../../icons/loader';
-import { TagPlus } from '../../../icons/tag-plus';
+import { dialogDataAtom, isFileMaximizedAtom } from '@/atoms';
+import { ChevronDown } from '@/icons/chevron-down';
+import { Loader } from '@/icons/loader';
+import { TagPlus } from '@/icons/tag-plus';
 import {
   useDeleteTagFromNoteMutation,
   useEditTagsFormMutation,
   useTagsForNotesQuery,
-} from '../../../hooks/tags';
-import { EditTagDialogChildren } from '../../../routes/notes-sidebar/edit-tag-dialog-children';
-import { FilePath } from '../../../utils/path';
-import { cn } from '../../../utils/string-formatting';
+} from '@hooks/tags';
+import { EditTagDialogChildren } from '@/routes/notes-sidebar/edit-tag-dialog-children';
+import { FilePath } from '@utils/path';
+import { cn } from '@utils/string-formatting';
 import { Tag } from '../bottom-bar/tag';
 
 export function Tags({ filePath }: { filePath: FilePath }) {

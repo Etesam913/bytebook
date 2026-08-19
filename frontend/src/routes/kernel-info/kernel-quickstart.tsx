@@ -1,15 +1,15 @@
-import { LANGUAGES, Languages } from '../../types';
-import { DEFAULT_SONNER_OPTIONS } from '../../utils/general';
+import { LANGUAGES, Languages } from '@/types';
+import { DEFAULT_SONNER_OPTIONS } from '@utils/general';
 import { toast } from 'sonner';
-import { PlainCodeSnippet } from '../../components/plain-code-snippet';
-import { MotionButton } from '../../components/buttons';
-import { getDefaultButtonVariants } from '../../animations';
-import { FolderOpen } from '../../icons/folder-open';
+import { PlainCodeSnippet } from '@components/plain-code-snippet';
+import { MotionButton } from '@components/buttons';
+import { getDefaultButtonVariants } from '@/animations';
+import { FolderOpen } from '@/icons/folder-open';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { dialogDataAtom, projectSettingsAtom } from '../../atoms';
-import { PythonVenvDialog } from '../../components/editor/python-venv-dialog';
-import { usePythonVenvSubmitMutation } from '../../hooks/code';
-import { RevealFolderOrFileInFinder } from '../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
+import { dialogDataAtom, projectSettingsAtom } from '@/atoms';
+import { PythonVenvDialog } from '@components/editor/python-venv-dialog';
+import { usePythonVenvSubmitMutation } from '@hooks/code';
+import { RevealFolderOrFileInFinder } from '@bindings/services/noteservice';
 import { ReactNode } from 'react';
 import { Browser } from '@wailsio/runtime';
 

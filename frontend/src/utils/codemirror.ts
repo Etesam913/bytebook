@@ -1,13 +1,13 @@
 import { UseMutateFunction } from '@tanstack/react-query';
 import { Prec } from '@codemirror/state';
 import { keymap } from '@codemirror/view';
-import type { CodeMirrorRef } from '../components/code/types';
+import type { CodeMirrorRef } from '@components/code/types';
 import {
   CodeBlockStatus,
   KernelInstanceData,
   Languages,
   LanguagesWithKernels,
-} from '../types';
+} from '@/types';
 import {
   KEY_ARROW_DOWN_COMMAND,
   KEY_ARROW_UP_COMMAND,
@@ -15,7 +15,7 @@ import {
 } from 'lexical';
 import { handleRunOrInterruptCode, type EnsureKernelFunction } from './code';
 import { getDefaultStore } from 'jotai';
-import { kernelInstancesAtom } from '../atoms';
+import { kernelInstancesAtom } from '@/atoms';
 
 /**
  * Looks up the live kernel instance for (noteId, language) in the global jotai store.

@@ -1,4 +1,4 @@
-import { cn } from '../../../utils/string-formatting';
+import { cn } from '@utils/string-formatting';
 
 export function SettingImage({
   isActive,

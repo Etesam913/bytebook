@@ -1,18 +1,18 @@
 import { useSetAtom } from 'jotai/react';
 import { navigate } from 'wouter/use-browser-location';
-import { cn, formatDate } from '../../../utils/string-formatting';
-import { ImageIcon } from '../../../icons/image';
-import { Note } from '../../../icons/page';
+import { cn, formatDate } from '@utils/string-formatting';
+import { ImageIcon } from '@/icons/image';
+import { Note } from '@/icons/page';
 import {
   type AttachmentSearchResult,
   type NoteSearchResult,
   type SearchResult,
-} from '../../../hooks/search';
-import { routeUrls } from '../../../utils/routes';
-import { Tag } from '../../editor/bottom-bar/tag';
-import { contextMenuDataAtom } from '../../../atoms';
-import { useContextMenuItems } from '../../context-menu/items';
-import type { FilePath } from '../../../utils/path';
+} from '@hooks/search';
+import { routeUrls } from '@utils/routes';
+import { Tag } from '@components/editor/bottom-bar/tag';
+import { contextMenuDataAtom } from '@/atoms';
+import { useContextMenuItems } from '@components/context-menu/items';
+import type { FilePath } from '@utils/path';
 
 function SearchResultTags({ tags }: { tags: string[] }) {
   if (tags.length === 0) return null;

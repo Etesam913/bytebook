@@ -1,25 +1,25 @@
-import { Play } from '../../icons/circle-play';
+import { Play } from '@/icons/circle-play';
 import {
   useEnsureKernelMutation,
   useSendExecuteRequestMutation,
   useSendInterruptRequestMutation,
-} from '../../hooks/code';
-import { handleRunOrInterruptCode } from '../../utils/code';
+} from '@hooks/code';
+import { handleRunOrInterruptCode } from '@utils/code';
 import type { CodeMirrorRef } from './types';
 import {
   CodeBlockStatus,
   KernelInstanceData,
   Languages,
   LanguagesWithKernels,
-} from '../../types';
-import { MediaStop } from '../../icons/media-stop';
-import { Loader } from '../../icons/loader';
+} from '@/types';
+import { MediaStop } from '@/icons/media-stop';
+import { Loader } from '@/icons/loader';
 import { getDefaultStore } from 'jotai';
-import { kernelInstancesAtom } from '../../atoms';
-import { Tooltip } from '../tooltip';
-import { MotionIconButton } from '../buttons';
+import { kernelInstancesAtom } from '@/atoms';
+import { Tooltip } from '@components/tooltip';
+import { MotionIconButton } from '@components/buttons';
 import type { RefObject } from 'react';
-import { useDecodedNotesWildcardPath } from '../../hooks/routes';
+import { useDecodedNotesWildcardPath } from '@hooks/routes';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 
 function getInstanceForNote(

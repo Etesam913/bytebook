@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { FILE_TYPE, FOLDER_TYPE } from '../../../utils/tree-item-types';
+import { FILE_TYPE, FOLDER_TYPE } from '@utils/tree-item-types';
 import { getPlaceholderPath } from './create';
 
 function hasItemFrom(paths: readonly string[]) {

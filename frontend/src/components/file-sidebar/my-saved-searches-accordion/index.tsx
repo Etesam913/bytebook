@@ -1,27 +1,21 @@
 import { motion } from 'motion/react';
 import { useAtom } from 'jotai';
 import type { RefObject } from 'react';
-import { VirtualizedListAccordion } from '../../virtualized/virtualized-list/accordion';
-import { AccordionButton } from '../../accordion/accordion-button';
-import {
-  ROUTE_PATTERNS,
-  type SavedSearchRouteParams,
-} from '../../../utils/routes';
-import {
-  useSavedSearchesQuery,
-  useSavedSearchUpdates,
-} from '../../../hooks/search';
+import { VirtualizedListAccordion } from '@components/virtualized/virtualized-list/accordion';
+import { AccordionButton } from '@components/accordion/accordion-button';
+import { ROUTE_PATTERNS, type SavedSearchRouteParams } from '@utils/routes';
+import { useSavedSearchesQuery, useSavedSearchUpdates } from '@hooks/search';
 
 import { useRoute } from 'wouter';
 import { SavedSearchAccordionButton } from './saved-search-accordion-button';
-import { Box2Search } from '../../../icons/box-2-search';
-import { SavedSearch } from '../../../../bindings/github.com/etesam913/bytebook/internal/search/models';
-import { fileSidebarOpenStateAtom } from '../../../atoms';
-import { ErrorText } from '../../error-text';
-import { ArrowRotateAnticlockwise } from '../../../icons/arrow-rotate-anticlockwise';
-import { Loader } from '../../../icons/loader';
+import { Box2Search } from '@/icons/box-2-search';
+import { SavedSearch } from '@bindings/search/models';
+import { fileSidebarOpenStateAtom } from '@/atoms';
+import { ErrorText } from '@components/error-text';
+import { ArrowRotateAnticlockwise } from '@/icons/arrow-rotate-anticlockwise';
+import { Loader } from '@/icons/loader';
 import { SidebarAccordionPanel } from '../sidebar-accordion-panel';
-import type { SidebarFlexWeights } from '../../../atoms';
+import type { SidebarFlexWeights } from '@/atoms';
 import type { FlexWeightMVs } from '../index';
 export function MySavedSearchesAccordion({
   containerRef,

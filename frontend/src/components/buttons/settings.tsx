@@ -1,7 +1,7 @@
 import { useSetAtom } from 'jotai/react';
-import { dialogDataAtom } from '../../atoms';
-import { Gear } from '../../icons/gear';
-import { SettingsDialog } from '../settings-dialog';
+import { dialogDataAtom } from '@/atoms';
+import { Gear } from '@/icons/gear';
+import { SettingsDialog } from '@components/settings-dialog';
 
 export function SettingsButton() {
   const setDialogData = useSetAtom(dialogDataAtom);

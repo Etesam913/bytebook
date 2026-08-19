@@ -1,11 +1,11 @@
 import { SettingsRow } from './settings-row';
-import { MotionButton } from '../buttons';
-import { getDefaultButtonVariants } from '../../animations';
-import { useRegenerateSearchIndexMutation } from '../../hooks/search';
-import { SearchContent2 } from '../../icons/search-content-2';
-import { Loader } from '../../icons/loader';
-import { cn } from '../../utils/string-formatting';
-import { Tooltip } from '../tooltip';
+import { MotionButton } from '@components/buttons';
+import { getDefaultButtonVariants } from '@/animations';
+import { useRegenerateSearchIndexMutation } from '@hooks/search';
+import { SearchContent2 } from '@/icons/search-content-2';
+import { Loader } from '@/icons/loader';
+import { cn } from '@utils/string-formatting';
+import { Tooltip } from '@components/tooltip';
 
 export function SearchPage() {
   const { mutate: regenerateSearchIndex, isPending } =

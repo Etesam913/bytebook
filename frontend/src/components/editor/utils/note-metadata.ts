@@ -1,4 +1,4 @@
-import type { Frontmatter } from '../../../types';
+import type { Frontmatter } from '@/types';
 
 const frontMatterRegex = /^---[\s\S]+?---/;
 

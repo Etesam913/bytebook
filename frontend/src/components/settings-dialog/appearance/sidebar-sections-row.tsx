@@ -1,9 +1,9 @@
 import { useAtomValue } from 'jotai/react';
 import { CheckboxGroup } from 'react-aria-components/CheckboxGroup';
-import { projectSettingsAtom } from '../../../atoms';
-import { useUpdateProjectSettingsMutation } from '../../../hooks/project-settings';
-import type { SidebarVisibility } from '../../../types';
-import { AppCheckbox } from '../../checkbox';
+import { projectSettingsAtom } from '@/atoms';
+import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
+import type { SidebarVisibility } from '@/types';
+import { AppCheckbox } from '@components/checkbox';
 import { SettingsRow } from '../settings-row';
 
 type SectionKey = 'pinned' | 'recent' | 'kernels' | 'tags' | 'savedSearches';

@@ -11,7 +11,7 @@ import {
   TextField,
   type TextFieldProps,
 } from 'react-aria-components/TextField';
-import { cn } from '../../utils/string-formatting';
+import { cn } from '@utils/string-formatting';
 
 const labelStyles =
   'text-sm cursor-pointer pb-2 text-zinc-500 dark:text-zinc-300';

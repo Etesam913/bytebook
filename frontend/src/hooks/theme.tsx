@@ -4,8 +4,8 @@ import {
   isDarkModeOnAtom,
   projectSettingsAtom,
   projectSettingsLoadedAtom,
-} from '../atoms';
-import { addColorSchemeClassToBody } from '../utils/color-scheme';
+} from '@/atoms';
+import { addColorSchemeClassToBody } from '@utils/color-scheme';
 
 /**
  * Custom hook to manage and apply the dark mode setting based on project settings.

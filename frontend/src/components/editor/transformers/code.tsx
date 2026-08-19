@@ -1,8 +1,8 @@
 import type { MultilineElementTransformer } from '@lexical/markdown';
 import { type LexicalNode } from 'lexical';
-import { LANGUAGES, Languages, allLanguagesSet } from '../../../types';
-import { escapeQuotes } from '../../../utils/string-formatting';
-import { getDefaultCodeForLanguage } from '../../../utils/code';
+import { LANGUAGES, Languages, allLanguagesSet } from '@/types';
+import { escapeQuotes } from '@utils/string-formatting';
+import { getDefaultCodeForLanguage } from '@utils/code';
 import { $createCodeNode, $isCodeNode, CodeNode } from '../nodes/code';
 
 const CODE_START_REGEX = /^```(\w{1,10})?(?:\s+(.+))?\s*$/;

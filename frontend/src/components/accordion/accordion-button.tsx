@@ -1,7 +1,7 @@
 import { motion } from 'motion/react';
 import type { ButtonHTMLAttributes, MouseEventHandler, ReactNode } from 'react';
-import { ChevronDown } from '../../icons/chevron-down';
-import { cn } from '../../utils/string-formatting';
+import { ChevronDown } from '@/icons/chevron-down';
+import { cn } from '@utils/string-formatting';
 
 export function AccordionButton({
   icon,

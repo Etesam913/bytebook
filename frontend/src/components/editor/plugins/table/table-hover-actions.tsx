@@ -23,12 +23,12 @@ import {
 import { $getNearestNodeFromDOMNode, isHTMLElement } from 'lexical';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { TableColNewRight2 } from '../../../../icons/table-col-new-right-2';
-import { MotionIconButton } from '../../../buttons';
-import { getDefaultButtonVariants } from '../../../../animations';
+import { TableColNewRight2 } from '@/icons/table-col-new-right-2';
+import { MotionIconButton } from '@components/buttons';
+import { getDefaultButtonVariants } from '@/animations';
 import { motion } from 'motion/react';
-import { TableRowNewBottom2 } from '../../../../icons/table-row-new-bottom-2';
-import { Tooltip } from '../../../tooltip';
+import { TableRowNewBottom2 } from '@/icons/table-row-new-bottom-2';
+import { Tooltip } from '@components/tooltip';
 import { MAX_TABLE_COLUMNS, MAX_TABLE_ROWS } from '../../utils/table';
 
 const INDICATOR_SIZE_PX = 18;

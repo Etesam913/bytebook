@@ -1,19 +1,19 @@
 import { useSetAtom } from 'jotai/react';
-import { getDefaultButtonVariants } from '../animations';
-import { dialogDataAtom } from '../atoms';
-import { MotionButton } from '../components/buttons';
-import { DialogErrorText } from '../components/dialog';
-import { AppTextField } from '../components/input';
+import { getDefaultButtonVariants } from '@/animations';
+import { dialogDataAtom } from '@/atoms';
+import { MotionButton } from '@components/buttons';
+import { DialogErrorText } from '@components/dialog';
+import { AppTextField } from '@components/input';
 import { useSaveSearchMutation } from './search';
-import { BookBookmark } from '../icons/book-bookmark';
-import { Table } from '../icons/table';
+import { BookBookmark } from '@/icons/book-bookmark';
+import { Table } from '@/icons/table';
 import type { LexicalEditor, RangeSelection } from 'lexical';
 import { INSERT_TABLE_COMMAND } from '@lexical/table';
 import { $setSelection } from 'lexical';
 import {
   MAX_TABLE_COLUMNS,
   MAX_TABLE_ROWS,
-} from '../components/editor/utils/table';
+} from '@components/editor/utils/table';
 
 /**
  * Custom hook that returns a function to open a "Save Search" dialog.

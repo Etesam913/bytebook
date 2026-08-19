@@ -1,11 +1,11 @@
 import { useSetAtom } from 'jotai';
-import { isFileMaximizedAtom } from '../../../atoms';
-import { useWailsEvent, type WailsEvent } from '../../../hooks/events';
-import { isEventInCurrentWindow, TOGGLE_SIDEBAR } from '../../../utils/events';
+import { isFileMaximizedAtom } from '@/atoms';
+import { useWailsEvent, type WailsEvent } from '@hooks/events';
+import { isEventInCurrentWindow, TOGGLE_SIDEBAR } from '@utils/events';
 import { LegacyAnimationControls } from 'motion';
-import { easingFunctions } from '../../../animations';
-import { logger } from '../../../utils/logging';
-import { createLeadingThrottle } from '../../../utils/general';
+import { easingFunctions } from '@/animations';
+import { logger } from '@utils/logging';
+import { createLeadingThrottle } from '@utils/general';
 
 const throttleSidebarToggle = createLeadingThrottle(250);
 

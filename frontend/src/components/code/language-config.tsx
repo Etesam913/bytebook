@@ -1,10 +1,10 @@
 import { JSX } from 'react';
-import { PythonLogo } from '../../icons/python-logo';
-import { GolangLogo } from '../../icons/golang-logo';
-import { JavascriptLogo } from '../../icons/javascript-logo';
-import { JavaLogo } from '../../icons/java-logo';
-import { SquareCode } from '../../icons/square-code';
-import { Languages } from '../../types';
+import { PythonLogo } from '@/icons/python-logo';
+import { GolangLogo } from '@/icons/golang-logo';
+import { JavascriptLogo } from '@/icons/javascript-logo';
+import { JavaLogo } from '@/icons/java-logo';
+import { SquareCode } from '@/icons/square-code';
+import { Languages } from '@/types';
 
 type LanguageDisplayConfig = {
   icon: JSX.Element;

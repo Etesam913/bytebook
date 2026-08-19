@@ -1,13 +1,13 @@
 import { useDeferredValue } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { NoteRenderer } from '../../components/note-renderer';
-import { RouteFallback } from '../../components/route-fallback';
-import { useNoteExists } from '../../hooks/notes';
-import { createFilePath, type FilePath } from '../../utils/path';
-import { TriangleWarning } from '../../icons/triangle-warning';
-import { ArrowRotateAnticlockwise } from '../../icons/arrow-rotate-anticlockwise';
-import { MotionButton } from '../../components/buttons';
-import { getDefaultButtonVariants } from '../../animations';
+import { NoteRenderer } from '@components/note-renderer';
+import { RouteFallback } from '@components/route-fallback';
+import { useNoteExists } from '@hooks/notes';
+import { createFilePath, type FilePath } from '@utils/path';
+import { TriangleWarning } from '@/icons/triangle-warning';
+import { ArrowRotateAnticlockwise } from '@/icons/arrow-rotate-anticlockwise';
+import { MotionButton } from '@components/buttons';
+import { getDefaultButtonVariants } from '@/animations';
 
 function SearchFileContent({ filePath }: { filePath: FilePath }) {
   const { data: noteExists, isLoading, error } = useNoteExists(filePath);

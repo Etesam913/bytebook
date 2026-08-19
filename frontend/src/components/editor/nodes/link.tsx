@@ -31,11 +31,11 @@ import {
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { navigate } from 'wouter/use-browser-location';
-import { Note } from '../../../icons/page';
-import { isInternalLink } from '../../../utils/string-formatting';
+import { Note } from '@/icons/page';
+import { isInternalLink } from '@utils/string-formatting';
 import type { AutoLinkAttributes } from '../plugins/link-matcher';
 import { handleATagClick, sanitizeUrl } from '../utils/link';
-import { WAILS_URL } from '../../../utils/general';
+import { WAILS_URL } from '@utils/general';
 
 type LinkAttributes = {
   rel?: null | string;

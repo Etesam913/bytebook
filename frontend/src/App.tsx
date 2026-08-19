@@ -1,52 +1,52 @@
 import { Activity, lazy, Suspense } from 'react';
-import { NotFound } from './routes/not-found';
+import { NotFound } from '@/routes/not-found';
 import { useMotionValue } from 'motion/react';
 import { useAtomValue, useSetAtom } from 'jotai/react';
 import { Toaster } from 'sonner';
 import { Route, Switch } from 'wouter';
-import { contextMenuDataAtom, isFileMaximizedAtom } from './atoms';
-import { ContextMenu } from './components/context-menu';
-import { Dialog } from './components/dialog';
-import { FileSidebar } from './components/file-sidebar';
-import { LoadingModal } from './components/loading-modal';
-import { useProjectSettings } from './hooks/project-settings';
-import { useTagEvents } from './hooks/tags';
-import { useThemeSetting } from './hooks/theme';
-import { MAX_SIDEBAR_WIDTH } from './utils/general';
-import { disableBackspaceNavigation } from './utils/routing';
+import { contextMenuDataAtom, isFileMaximizedAtom } from '@/atoms';
+import { ContextMenu } from '@components/context-menu';
+import { Dialog } from '@components/dialog';
+import { FileSidebar } from '@components/file-sidebar';
+import { LoadingModal } from '@components/loading-modal';
+import { useProjectSettings } from '@hooks/project-settings';
+import { useTagEvents } from '@hooks/tags';
+import { useThemeSetting } from '@hooks/theme';
+import { MAX_SIDEBAR_WIDTH } from '@utils/general';
+import { disableBackspaceNavigation } from '@utils/routing';
 import {
   routeUrls,
   type SavedSearchRouteParams,
   type SearchRouteParams,
-} from './utils/routes';
-import { RouteFallback } from './components/route-fallback';
-import { useZoom, useFullscreen } from './hooks/resize';
+} from '@utils/routes';
+import { RouteFallback } from '@components/route-fallback';
+import { useZoom, useFullscreen } from '@hooks/resize';
 import {
   useRestoreLastVisitedOnLaunch,
   useSyncFileMaximizedWithRoute,
-} from './hooks/routes';
-import { EditorWrapper } from './components/editor-wrapper';
-import { RouteDebugView } from './components/route-debug-view';
-import { safeDecodeURIComponent } from './utils/path';
-import { isRegularMouseClick } from './utils/mouse';
-import { isE2ETestEnvironment } from './utils/e2e';
-import { useKernelInstanceEvents, useKernelInstancesQuery } from './hooks/code';
-import { useAllPathsInvalidation } from './hooks/all-paths';
+} from '@hooks/routes';
+import { EditorWrapper } from '@components/editor-wrapper';
+import { RouteDebugView } from '@components/route-debug-view';
+import { safeDecodeURIComponent } from '@utils/path';
+import { isRegularMouseClick } from '@utils/mouse';
+import { isE2ETestEnvironment } from '@utils/e2e';
+import { useKernelInstanceEvents, useKernelInstancesQuery } from '@hooks/code';
+import { useAllPathsInvalidation } from '@hooks/all-paths';
 
 const KernelInfo = lazy(() =>
-  import('./routes/kernel-info').then((module) => ({
+  import('@/routes/kernel-info').then((module) => ({
     default: module.KernelInfo,
   }))
 );
 
 const SavedSearchPage = lazy(() =>
-  import('./routes/saved-search').then((module) => ({
+  import('@/routes/saved-search').then((module) => ({
     default: module.SavedSearchPage,
   }))
 );
 
 const SearchContentArea = lazy(() =>
-  import('./routes/search/search-content-area').then((module) => ({
+  import('@/routes/search/search-content-area').then((module) => ({
     default: module.SearchContentArea,
   }))
 );

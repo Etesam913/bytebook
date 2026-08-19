@@ -1,18 +1,18 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSetAtom } from 'jotai';
-import { MoveItemsToFolder } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/filetreeservice';
-import { RenameFolder } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/folderservice';
-import { AddAttachments } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/nodeservice';
-import { RenameFile } from '../../../../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
-import { backendQueryAtom } from '../../../../atoms';
+import { MoveItemsToFolder } from '@bindings/services/filetreeservice';
+import { RenameFolder } from '@bindings/services/folderservice';
+import { AddAttachments } from '@bindings/services/nodeservice';
+import { RenameFile } from '@bindings/services/noteservice';
+import { backendQueryAtom } from '@/atoms';
 import {
   replaceLastPathSegment,
   stripTrailingSlash,
   type FilePath,
-} from '../../../../utils/path';
-import { QueryError } from '../../../../utils/query';
-import { queryKeys } from '../../../../utils/query-keys';
-import { NAME_CHARS } from '../../../../utils/string-formatting';
+} from '@utils/path';
+import { QueryError } from '@utils/query';
+import { queryKeys } from '@utils/query-keys';
+import { NAME_CHARS } from '@utils/string-formatting';
 
 export type RenameTreeItemPayload = (
   | RenameFolderPayload

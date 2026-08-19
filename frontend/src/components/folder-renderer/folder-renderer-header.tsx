@@ -2,19 +2,24 @@ import { useAtomValue } from 'jotai';
 import { navigate } from 'wouter/use-browser-location';
 import type { Key } from 'react-aria-components/Breadcrumbs';
 import { Button } from 'react-aria-components/Button';
-import { isFileMaximizedAtom, projectSettingsAtom } from '../../atoms';
-import { MaximizeNoteButton } from '../buttons/maximize-note';
-import { useContextMenuItems } from '../context-menu/items';
-import { AppMenu, AppMenuItem, AppMenuPopover, AppMenuTrigger } from '../menu';
-import { Tooltip } from '../tooltip';
-import { HorizontalDots } from '../../icons/horizontal-dots';
-import { Magnifier } from '../../icons/magnifier';
-import { stripTrailingSlash, type FolderPath } from '../../utils/path';
-import { routeUrls } from '../../utils/routes';
-import { cn } from '../../utils/string-formatting';
+import { isFileMaximizedAtom, projectSettingsAtom } from '@/atoms';
+import { MaximizeNoteButton } from '@components/buttons/maximize-note';
+import { useContextMenuItems } from '@components/context-menu/items';
+import {
+  AppMenu,
+  AppMenuItem,
+  AppMenuPopover,
+  AppMenuTrigger,
+} from '@components/menu';
+import { Tooltip } from '@components/tooltip';
+import { HorizontalDots } from '@/icons/horizontal-dots';
+import { Magnifier } from '@/icons/magnifier';
+import { stripTrailingSlash, type FolderPath } from '@utils/path';
+import { routeUrls } from '@utils/routes';
+import { cn } from '@utils/string-formatting';
 import type { LegacyAnimationControls } from 'motion/react';
-import { MotionIconButton } from '../buttons';
-import { getDefaultButtonVariants } from '../../animations';
+import { MotionIconButton } from '@components/buttons';
+import { getDefaultButtonVariants } from '@/animations';
 
 export function FolderRendererHeader({
   folderPath,

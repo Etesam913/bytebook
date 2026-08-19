@@ -17,33 +17,33 @@ import {
 import { type JSX, useState } from 'react';
 import { useAtomValue } from 'jotai/react';
 import { createPortal } from 'react-dom';
-import { projectSettingsAtom } from '../../../atoms';
-import { useAttachmentsMutation } from '../../../hooks/attachments';
-import { useCreateTableDialog } from '../../../hooks/dialogs';
-import { GolangLogo } from '../../../icons/golang-logo';
-import { Heading1 } from '../../../icons/heading-1';
-import { Heading2 } from '../../../icons/heading-2';
-import { Heading3 } from '../../../icons/heading-3';
-import { Heading4 } from '../../../icons/heading-4';
-import { Heading5 } from '../../../icons/heading-5';
-import { Heading6 } from '../../../icons/heading-6';
-import { JavaLogo } from '../../../icons/java-logo';
-import { PythonLogo } from '../../../icons/python-logo';
-import { Text } from '../../../icons/text';
+import { projectSettingsAtom } from '@/atoms';
+import { useAttachmentsMutation } from '@hooks/attachments';
+import { useCreateTableDialog } from '@hooks/dialogs';
+import { GolangLogo } from '@/icons/golang-logo';
+import { Heading1 } from '@/icons/heading-1';
+import { Heading2 } from '@/icons/heading-2';
+import { Heading3 } from '@/icons/heading-3';
+import { Heading4 } from '@/icons/heading-4';
+import { Heading5 } from '@/icons/heading-5';
+import { Heading6 } from '@/icons/heading-6';
+import { JavaLogo } from '@/icons/java-logo';
+import { PythonLogo } from '@/icons/python-logo';
+import { Text } from '@/icons/text';
 import {
   ComponentPickerMenuItem,
   DropdownPickerOption,
-} from '../../dropdown/dropdown-picker';
+} from '@components/dropdown/dropdown-picker';
 import { attachmentCommandData, listCommandData } from '../utils/toolbar';
 import { INSERT_CODE_COMMAND } from './code';
-import { LANGUAGES, Languages } from '../../../types';
-import { getDefaultCodeForLanguage } from '../../../utils/code';
-import { JavascriptLogo } from '../../../icons/javascript-logo';
-import { Table } from '../../../icons/table';
-import { QuoteIcon } from '../../../icons/quote';
-import { SquareCode } from '../../../icons/square-code';
+import { LANGUAGES, Languages } from '@/types';
+import { getDefaultCodeForLanguage } from '@utils/code';
+import { JavascriptLogo } from '@/icons/javascript-logo';
+import { Table } from '@/icons/table';
+import { QuoteIcon } from '@/icons/quote';
+import { SquareCode } from '@/icons/square-code';
 import { INSERT_HORIZONTAL_RULE_COMMAND } from '@lexical/react/LexicalHorizontalRuleNode';
-import { DividerYDotted } from '../../../icons/divider-y-dotted';
+import { DividerYDotted } from '@/icons/divider-y-dotted';
 
 const languageCommandData: {
   languageName: Languages;

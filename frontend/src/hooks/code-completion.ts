@@ -5,11 +5,11 @@ import type {
   CompletionResult as CodeMirrorCompletionResult,
   CompletionSource,
 } from '@codemirror/autocomplete';
-import { SendCompleteRequest } from '../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
-import { Completion as LSPCompletion } from '../../bindings/github.com/etesam913/bytebook/internal/services/lspservice';
-import type { CompletionItem as LSPCompletionItem } from '../../bindings/github.com/etesam913/bytebook/internal/lsp/models';
-import type { Languages } from '../types';
-import { CODE_BLOCK_COMPLETE_REPLY } from '../utils/events';
+import { SendCompleteRequest } from '@bindings/services/codeservice';
+import { Completion as LSPCompletion } from '@bindings/services/lspservice';
+import type { CompletionItem as LSPCompletionItem } from '@bindings/lsp/models';
+import type { Languages } from '@/types';
+import { CODE_BLOCK_COMPLETE_REPLY } from '@utils/events';
 import { useWailsEvent } from './events';
 
 type KernelCompletionPayload = {

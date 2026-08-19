@@ -1,6 +1,6 @@
 import { type ReactNode, useRef } from 'react';
 import { VirtualizedList, type VirtualizedListProps } from './index';
-import { useAutoScrollDuringDrag } from '../../../hooks/draggable';
+import { useAutoScrollDuringDrag } from '@hooks/draggable';
 
 export function VirtualizedListAccordion<T>({
   isLoading,

@@ -21,7 +21,14 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "types": ["bun-types", "react", "react-dom"]
+    "types": ["bun-types", "react", "react-dom"],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@bindings/*": ["./bindings/github.com/etesam913/bytebook/internal/*"],
+      "@components/*": ["./src/components/*"],
+      "@hooks/*": ["./src/hooks/*"],
+      "@utils/*": ["./src/utils/*"]
+    }
   },
   "include": ["./src"],
   "exclude": ["node_modules", "dist", "bindings", "src/assets"]

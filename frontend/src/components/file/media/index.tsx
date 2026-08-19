@@ -4,26 +4,29 @@ import { useRef, useState } from 'react';
 import {
   noteContainerRefAtom,
   noteSeenFileNodeKeysAtom,
-} from '../../editor/atoms';
-import { useShowWhenInViewport } from '../../../hooks/observers';
+} from '@components/editor/atoms';
+import { useShowWhenInViewport } from '@hooks/observers';
 import { AnimatePresence, motion, useMotionValue } from 'motion/react';
 import type { MotionValue } from 'motion/react';
-import { draggedGhostElementAtom } from '../../editor/atoms';
+import { draggedGhostElementAtom } from '@components/editor/atoms';
 import { FileError } from '../error';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
-import type { FileDimensions } from '../../editor/nodes/types';
+import type { FileDimensions } from '@components/editor/nodes/types';
 import { onResize, writeMediaDimensionsOnLoad } from '../utils/resize';
 import { FilePlaceholder } from '../placeholder';
-import { createFilePath } from '../../../utils/path';
-import { SelectionHighlight } from '../../selection-highlight';
-import { contextMenuDataAtom } from '../../../atoms';
-import { removeDecoratorNode } from '../../../utils/commands';
-import { Link } from '../../../icons/link';
-import { Trash } from '../../../icons/trash';
+import { createFilePath } from '@utils/path';
+import { SelectionHighlight } from '@components/selection-highlight';
+import { contextMenuDataAtom } from '@/atoms';
+import { removeDecoratorNode } from '@utils/commands';
+import { Link } from '@/icons/link';
+import { Trash } from '@/icons/trash';
 import { Browser } from '@wailsio/runtime';
 import { navigate } from 'wouter/use-browser-location';
-import { MenuItemLabel, useContextMenuItems } from '../../context-menu/items';
+import {
+  MenuItemLabel,
+  useContextMenuItems,
+} from '@components/context-menu/items';
 
 type MediaRenderProps = {
   mediaRef: RefObject<HTMLElement | null>;

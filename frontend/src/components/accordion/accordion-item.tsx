@@ -1,8 +1,8 @@
 import { type ReactNode } from 'react';
 import { Link } from 'wouter';
-import { Note } from '../../icons/page';
-import { createGhostElementFromHtmlElement } from '../../utils/draggable';
-import { Tooltip } from '../tooltip';
+import { Note } from '@/icons/page';
+import { createGhostElementFromHtmlElement } from '@utils/draggable';
+import { Tooltip } from '@components/tooltip';
 
 export function AccordionItem({
   to,

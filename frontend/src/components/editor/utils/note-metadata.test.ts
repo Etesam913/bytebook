@@ -1,4 +1,4 @@
-import '../../../test/setup';
+import '@/test/setup';
 import { describe, it, expect } from 'bun:test';
 import { parseFrontMatter, replaceFrontMatter } from './note-metadata';
 

@@ -1,4 +1,4 @@
-import '../test/setup';
+import '@/test/setup';
 import { describe, expect, it } from 'bun:test';
 import { isSearchSidebarRoute } from './routes';
 

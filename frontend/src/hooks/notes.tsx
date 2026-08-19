@@ -16,27 +16,27 @@ import {
   RenameFile,
   RestoreFromTrash,
   RevealFolderOrFileInFinder,
-} from '../../bindings/github.com/etesam913/bytebook/internal/services/noteservice';
-import { projectSettingsAtom } from '../atoms';
-import { CUSTOM_TRANSFORMERS } from '../components/editor/transformers';
-import { DEFAULT_SONNER_OPTIONS } from '../utils/general';
-import { QueryError } from '../utils/query';
-import { queryKeys } from '../utils/query-keys';
+} from '@bindings/services/noteservice';
+import { projectSettingsAtom } from '@/atoms';
+import { CUSTOM_TRANSFORMERS } from '@components/editor/transformers';
+import { DEFAULT_SONNER_OPTIONS } from '@utils/general';
+import { QueryError } from '@utils/query';
+import { queryKeys } from '@utils/query-keys';
 import {
   createFilePath,
   createFolderPath,
   stripTrailingSlash,
   type FileOrFolderPath,
   type FilePath,
-} from '../utils/path';
+} from '@utils/path';
 import { useWailsEvent } from './events';
-import { CODE_RESULTS_UPDATE, FILE_WRITE } from '../utils/events';
+import { CODE_RESULTS_UPDATE, FILE_WRITE } from '@utils/events';
 import { useUpdateProjectSettingsMutation } from './project-settings';
-import type { Frontmatter, TrashRestoreInfo } from '../types';
+import type { Frontmatter, TrashRestoreInfo } from '@/types';
 import { $convertFromMarkdownString } from '@lexical/markdown';
-import { parseFrontMatter } from '../components/editor/utils/note-metadata';
+import { parseFrontMatter } from '@components/editor/utils/note-metadata';
 import { useFilePathFromRoute, useFolderPathFromRoute } from './routes';
-import { applyCodeResultsSidecar } from '../components/editor/utils/code-results';
+import { applyCodeResultsSidecar } from '@components/editor/utils/code-results';
 
 const noteQueries = {
   doesNoteExist: (filePath: FilePath | null) =>

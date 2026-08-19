@@ -1,5 +1,5 @@
 import type { Extension } from '@codemirror/state';
-import type { Languages } from '../../types';
+import type { Languages } from '@/types';
 
 // Lazy-loaded language extensions. Each grammar lives in its own chunk
 // (chunk-lang-*.js) so unused languages aren't shipped on initial load.

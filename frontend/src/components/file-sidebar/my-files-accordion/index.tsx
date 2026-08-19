@@ -1,12 +1,12 @@
 import { useAtom } from 'jotai';
 import { type RefObject, useRef } from 'react';
-import { fileSidebarOpenStateAtom } from '../../../atoms';
-import { VirtualizedFileTree } from '../../virtualized/virtualized-file-tree';
-import { Note } from '../../../icons/page';
-import { AccordionButton } from '../../accordion/accordion-button';
+import { fileSidebarOpenStateAtom } from '@/atoms';
+import { VirtualizedFileTree } from '@components/virtualized/virtualized-file-tree';
+import { Note } from '@/icons/page';
+import { AccordionButton } from '@components/accordion/accordion-button';
 import { SidebarAccordionPanel } from '../sidebar-accordion-panel';
-import { useAutoScrollDuringDrag } from '../../../hooks/draggable';
-import type { SidebarFlexWeights } from '../../../atoms';
+import { useAutoScrollDuringDrag } from '@hooks/draggable';
+import type { SidebarFlexWeights } from '@/atoms';
 import type { FlexWeightMVs } from '../index';
 export function MyFilesAccordion({
   containerRef,

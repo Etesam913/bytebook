@@ -2,7 +2,7 @@ import { motion, useDragControls, useMotionValue } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useLocation, useRoute, useSearchParams } from 'wouter';
-import { ROUTE_PATTERNS } from '../utils/routes';
+import { ROUTE_PATTERNS } from '@utils/routes';
 
 const MAX_HISTORY = 20;
 

@@ -1,7 +1,7 @@
 import { Tabs, TabPanel } from 'react-aria-components/Tabs';
 import { SettingsSidebar } from './sidebar';
-import { MotionButton } from '../buttons';
-import { getDefaultButtonVariants } from '../../animations';
+import { MotionButton } from '@components/buttons';
+import { getDefaultButtonVariants } from '@/animations';
 import { CodeBlockPage } from './code-block-page';
 import { SearchPage } from './search-page';
 import { GeneralPage } from './general-page';

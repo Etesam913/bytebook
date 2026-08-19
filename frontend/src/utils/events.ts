@@ -1,5 +1,5 @@
 import { Window } from '@wailsio/runtime';
-import { WailsEvent } from '../hooks/events';
+import { WailsEvent } from '@hooks/events';
 
 // Event name constants — mirrors internal/util/events.go
 // Frontend-only events are noted below.

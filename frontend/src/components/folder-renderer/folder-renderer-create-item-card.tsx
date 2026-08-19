@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
-import { getDefaultButtonVariants } from '../../animations';
-import { MotionButton } from '../buttons';
-import { Blog } from '../../icons/blog';
-import { Folder as FolderIcon } from '../../icons/folder';
-import { useCreateTreeItemForm } from '../../hooks/tree-items';
-import { FILE_TYPE, FOLDER_TYPE } from '../../utils/tree-item-types';
-import type { FolderPath } from '../../utils/path';
+import { getDefaultButtonVariants } from '@/animations';
+import { MotionButton } from '@components/buttons';
+import { Blog } from '@/icons/blog';
+import { Folder as FolderIcon } from '@/icons/folder';
+import { useCreateTreeItemForm } from '@hooks/tree-items';
+import { FILE_TYPE, FOLDER_TYPE } from '@utils/tree-item-types';
+import type { FolderPath } from '@utils/path';
 
 export function FolderRendererCreateItemCard({
   folderPath,

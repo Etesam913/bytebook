@@ -4,20 +4,20 @@ import {
   contextMenuDataAtom,
   projectSettingsAtom,
   fileSidebarOpenStateAtom,
-} from '../../atoms';
-import { PinTack2 } from '../../icons/pin-tack-2';
-import { Folder as FolderIcon } from '../../icons/folder';
-import { AccordionButton } from '../accordion/accordion-button';
-import { AccordionItem } from '../accordion/accordion-item';
-import { VirtualizedListAccordion } from '../virtualized/virtualized-list/accordion';
+} from '@/atoms';
+import { PinTack2 } from '@/icons/pin-tack-2';
+import { Folder as FolderIcon } from '@/icons/folder';
+import { AccordionButton } from '@components/accordion/accordion-button';
+import { AccordionItem } from '@components/accordion/accordion-item';
+import { VirtualizedListAccordion } from '@components/virtualized/virtualized-list/accordion';
 import {
   createFilePath,
   createFolderPath,
   type FileOrFolderPath,
-} from '../../utils/path';
+} from '@utils/path';
 import { SidebarAccordionPanel } from './sidebar-accordion-panel';
-import { useContextMenuItems } from '../context-menu/items';
-import type { SidebarFlexWeights } from '../../atoms';
+import { useContextMenuItems } from '@components/context-menu/items';
+import type { SidebarFlexWeights } from '@/atoms';
 import type { FlexWeightMVs } from './index';
 
 export function PinnedAccordion({

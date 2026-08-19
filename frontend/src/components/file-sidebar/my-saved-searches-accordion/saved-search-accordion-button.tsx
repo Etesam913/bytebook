@@ -3,20 +3,20 @@ import {
   contextMenuDataAtom,
   dialogDataAtom,
   sidebarSelectionAtom,
-} from '../../../atoms';
-import { Magnifier } from '../../../icons/magnifier';
+} from '@/atoms';
+import { Magnifier } from '@/icons/magnifier';
 import {
   handleContextMenuSelection,
   type SetSelectionUpdater,
-} from '../../../utils/selection';
-import { cn } from '../../../utils/string-formatting';
+} from '@utils/selection';
+import { cn } from '@utils/string-formatting';
 import { navigate } from 'wouter/use-browser-location';
-import { routeUrls } from '../../../utils/routes';
-import { SavedSearch } from '../../../../bindings/github.com/etesam913/bytebook/internal/search/models';
-import { MagnifierSlash } from '../../../icons/magnifier-slash';
+import { routeUrls } from '@utils/routes';
+import { SavedSearch } from '@bindings/search/models';
+import { MagnifierSlash } from '@/icons/magnifier-slash';
 import { SavedSearchDialogChildren } from './saved-search-dialog-children';
-import { useDeleteSavedSearchMutation } from '../../../hooks/search';
-import { Tooltip } from '../../tooltip';
+import { useDeleteSavedSearchMutation } from '@hooks/search';
+import { Tooltip } from '@components/tooltip';
 
 export function SavedSearchAccordionButton({
   savedSearches,

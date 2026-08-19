@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Switch, type SwitchProps } from 'react-aria-components/Switch';
 import { motion } from 'motion/react';
-import { cn } from '../../utils/string-formatting';
+import { cn } from '@utils/string-formatting';
 
 export function AppSwitch({
   className,

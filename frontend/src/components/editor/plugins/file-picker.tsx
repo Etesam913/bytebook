@@ -13,22 +13,19 @@ import {
 } from 'lexical';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { mostRecentItemsAtom } from '../../../atoms';
-import { WAILS_URL } from '../../../utils/general';
+import { mostRecentItemsAtom } from '@/atoms';
+import { WAILS_URL } from '@utils/general';
 import {
   DropdownPickerOption,
   FilePickerMenuItem,
   type FilePickerMenuItemData,
-} from '../../dropdown/dropdown-picker';
+} from '@components/dropdown/dropdown-picker';
 import { $createLinkNode } from '../nodes/link';
 import { INSERT_FILES_COMMAND } from './file';
-import { RenderNoteIcon } from '../../../icons/render-note-icon';
-import { FILE_TYPE } from '../../../utils/tree-item-types';
-import {
-  useFilePickerSearchQuery,
-  type SearchResult,
-} from '../../../hooks/search';
-import { useFilePathFromRoute } from '../../../hooks/routes';
+import { RenderNoteIcon } from '@/icons/render-note-icon';
+import { FILE_TYPE } from '@utils/tree-item-types';
+import { useFilePickerSearchQuery, type SearchResult } from '@hooks/search';
+import { useFilePathFromRoute } from '@hooks/routes';
 
 type FilePickerOption = {
   item: Extract<FilePickerMenuItemData, { kind: 'file' }>;

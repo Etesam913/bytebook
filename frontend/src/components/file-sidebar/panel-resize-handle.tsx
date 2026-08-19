@@ -6,9 +6,9 @@ import {
   SIDEBAR_PANEL_KEYS,
   type SidebarFlexWeights,
   type SidebarPanelKey,
-} from '../../atoms';
-import { dragItem } from '../../utils/draggable';
-import { cn } from '../../utils/string-formatting';
+} from '@/atoms';
+import { dragItem } from '@utils/draggable';
+import { cn } from '@utils/string-formatting';
 import type { FlexWeightMVs } from './index';
 
 /**

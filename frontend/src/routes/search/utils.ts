@@ -1,4 +1,4 @@
-import { SearchResult } from '../../hooks/search';
+import { SearchResult } from '@hooks/search';
 
 /**
  * Returns a unique string key for each search result item.

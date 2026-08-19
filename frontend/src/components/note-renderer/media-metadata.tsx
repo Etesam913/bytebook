@@ -1,19 +1,19 @@
 import { Fragment } from 'react';
 import { motion } from 'motion/react';
-import { Tag } from '../editor/bottom-bar/tag';
-import { Folder } from '../../icons/folder';
-import { Loader } from '../../icons/loader';
-import { RenderNoteIcon } from '../../icons/render-note-icon';
+import { Tag } from '@components/editor/bottom-bar/tag';
+import { Folder } from '@/icons/folder';
+import { Loader } from '@/icons/loader';
+import { RenderNoteIcon } from '@/icons/render-note-icon';
 import {
   useTagsForNotesQuery,
   useDeleteTagFromNoteMutation,
-} from '../../hooks/tags';
+} from '@hooks/tags';
 import {
   FilePath,
   createFolderPath,
   safeDecodeURIComponent,
-} from '../../utils/path';
-import { cn } from '../../utils/string-formatting';
+} from '@utils/path';
+import { cn } from '@utils/string-formatting';
 import { BreadcrumbItem } from './breadcrumb-item';
 
 export function MediaMetadata({

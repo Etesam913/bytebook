@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { SquareTerminal } from '../../icons/square-terminal';
-import { Languages } from '../../types';
-import { GetKernelDescriptor } from '../../../bindings/github.com/etesam913/bytebook/internal/services/codeservice';
-import { Duplicate2 } from '../../icons/duplicate-2';
-import { LoadingSpinner } from '../../components/loading-spinner';
-import { queryKeys } from '../../utils/query-keys';
+import { SquareTerminal } from '@/icons/square-terminal';
+import { Languages } from '@/types';
+import { GetKernelDescriptor } from '@bindings/services/codeservice';
+import { Duplicate2 } from '@/icons/duplicate-2';
+import { LoadingSpinner } from '@components/loading-spinner';
+import { queryKeys } from '@utils/query-keys';
 
 export function KernelInfoCard({ language }: { language: Languages }) {
   const { data: response, isPending } = useQuery({

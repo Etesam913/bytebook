@@ -1,6 +1,6 @@
 import { useAtomValue } from 'jotai/react';
 import { type RefObject, useEffect } from 'react';
-import { noteIntersectionObserverAtom } from '../components/editor/atoms';
+import { noteIntersectionObserverAtom } from '@components/editor/atoms';
 
 /**
  * Custom hook for showing an element when it enters the viewport.

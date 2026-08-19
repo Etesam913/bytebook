@@ -10,20 +10,16 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { isFullscreenAtom, isFileMaximizedAtom } from '../../../atoms';
+import { isFullscreenAtom, isFileMaximizedAtom } from '@/atoms';
 import { isToolbarDisabledAtom, noteSelectionAtom } from '../atoms';
-import { useAttachmentsMutation } from '../../../hooks/attachments';
-import { useNoteWriteEvent } from '../../../hooks/notes';
-import { useCreateTableDialog } from '../../../hooks/dialogs';
-import type {
-  EditorBlockTypes,
-  FloatingDataType,
-  Frontmatter,
-} from '../../../types';
-import { cn } from '../../../utils/string-formatting';
-import { MaximizeNoteButton } from '../../buttons/maximize-note';
-import { ToolbarButtons } from '../../buttons/toolbar';
-import { Dropdown } from '../../dropdown';
+import { useAttachmentsMutation } from '@hooks/attachments';
+import { useNoteWriteEvent } from '@hooks/notes';
+import { useCreateTableDialog } from '@hooks/dialogs';
+import type { EditorBlockTypes, FloatingDataType, Frontmatter } from '@/types';
+import { cn } from '@utils/string-formatting';
+import { MaximizeNoteButton } from '@components/buttons/maximize-note';
+import { ToolbarButtons } from '@components/buttons/toolbar';
+import { Dropdown } from '@components/dropdown';
 import {
   useNoteMarkdown,
   useSearchNoteEvent,
@@ -46,10 +42,10 @@ import {
   useCodeBlockStatus,
   useCodeBlockStream,
   useKernelCodeNodeCleanupEvents,
-} from '../../../hooks/code';
+} from '@hooks/code';
 import { NoteFindPanel } from './note-find-panel/index';
-import { useToggleSidebarEvent } from '../../../routes/notes-sidebar/render-note/hooks';
-import { routeUrls } from '../../../utils/routes';
+import { useToggleSidebarEvent } from '@/routes/notes-sidebar/render-note/hooks';
+import { routeUrls } from '@utils/routes';
 import { navigate } from 'wouter/use-browser-location';
 
 export function Toolbar({

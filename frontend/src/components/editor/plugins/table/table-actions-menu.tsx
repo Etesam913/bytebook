@@ -44,20 +44,20 @@ import { ReactPortal, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Key } from 'react-aria-components/Breadcrumbs';
 import { Button } from 'react-aria-components/Button';
-import { ChevronDown } from '../../../../icons/chevron-down';
-import { TableColNewLeft2 } from '../../../../icons/table-col-new-left-2';
-import { TableColNewRight2 } from '../../../../icons/table-col-new-right-2';
-import { TableColsMinus2 } from '../../../../icons/table-cols-minus-2';
-import { TableRowNewBottom2 } from '../../../../icons/table-row-new-bottom-2';
-import { TableRowNewTop2 } from '../../../../icons/table-row-new-top-2';
-import { TableRowsMinus2 } from '../../../../icons/table-rows-minus-2';
-import { Trash } from '../../../../icons/trash';
+import { ChevronDown } from '@/icons/chevron-down';
+import { TableColNewLeft2 } from '@/icons/table-col-new-left-2';
+import { TableColNewRight2 } from '@/icons/table-col-new-right-2';
+import { TableColsMinus2 } from '@/icons/table-cols-minus-2';
+import { TableRowNewBottom2 } from '@/icons/table-row-new-bottom-2';
+import { TableRowNewTop2 } from '@/icons/table-row-new-top-2';
+import { TableRowsMinus2 } from '@/icons/table-rows-minus-2';
+import { Trash } from '@/icons/trash';
 import {
   AppMenu,
   AppMenuItem,
   AppMenuPopover,
   AppMenuTrigger,
-} from '../../../menu';
+} from '@components/menu';
 import { MAX_TABLE_COLUMNS, MAX_TABLE_ROWS } from '../../utils/table';
 
 function computeSelectionCount(selection: TableSelection): {

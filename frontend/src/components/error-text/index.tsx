@@ -1,7 +1,7 @@
 import { type ReactNode } from 'react';
-import { getDefaultButtonVariants } from '../../animations';
-import { MotionButton } from '../buttons';
-import { cn } from '../../utils/string-formatting';
+import { getDefaultButtonVariants } from '@/animations';
+import { MotionButton } from '@components/buttons';
+import { cn } from '@utils/string-formatting';
 
 export function ErrorText({
   message,

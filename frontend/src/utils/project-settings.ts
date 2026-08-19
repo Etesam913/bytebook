@@ -3,7 +3,7 @@ import {
   type Frontmatter,
   type Languages,
   type ProjectSettings,
-} from '../types';
+} from '@/types';
 
 type ValidatedProjectSettings = {
   theme: 'light' | 'dark' | 'system';

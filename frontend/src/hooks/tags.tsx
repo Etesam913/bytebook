@@ -1,18 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useWailsEvent } from './events';
-import { TAGS_INDEX_UPDATE } from '../utils/events';
-import { logger } from '../utils/logging';
+import { TAGS_INDEX_UPDATE } from '@utils/events';
+import { logger } from '@utils/logging';
 import {
   DeleteTags,
   GetTags,
   GetTagsForNotes,
   SetTagsOnNotes,
-} from '../../bindings/github.com/etesam913/bytebook/internal/services/tagsservice';
-import { QueryError } from '../utils/query';
-import { queryKeys } from '../utils/query-keys';
+} from '@bindings/services/tagsservice';
+import { QueryError } from '@utils/query';
+import { queryKeys } from '@utils/query-keys';
 import { Dispatch, SetStateAction } from 'react';
-import { getSelectionValue } from '../utils/selection';
-import { createFilePath } from '../utils/path';
+import { getSelectionValue } from '@utils/selection';
+import { createFilePath } from '@utils/path';
 
 /**
  * Handles the `tags-folder:create`, "tags-folder:delete", and "tags:update" events.

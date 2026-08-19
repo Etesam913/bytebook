@@ -1,18 +1,18 @@
 import { Fragment, useEffect, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { KernelHeartbeats } from './kernel-heartbeats';
-import { Folder } from '../../../icons/folder';
-import { isFileMaximizedAtom } from '../../../atoms';
+import { Folder } from '@/icons/folder';
+import { isFileMaximizedAtom } from '@/atoms';
 import { timeSince } from '../utils/bottom-bar';
-import { RenderNoteIcon } from '../../../icons/render-note-icon';
-import { Frontmatter } from '../../../types';
-import { cn } from '../../../utils/string-formatting';
+import { RenderNoteIcon } from '@/icons/render-note-icon';
+import { Frontmatter } from '@/types';
+import { cn } from '@utils/string-formatting';
 import {
   FilePath,
   createFolderPath,
   safeDecodeURIComponent,
-} from '../../../utils/path';
-import { BreadcrumbItem } from '../../note-renderer/breadcrumb-item';
+} from '@utils/path';
+import { BreadcrumbItem } from '@components/note-renderer/breadcrumb-item';
 
 export function BottomBar({
   frontmatter,

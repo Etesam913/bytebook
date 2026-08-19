@@ -2,27 +2,27 @@ import { motion } from 'motion/react';
 import type { Key } from 'react-aria-components/Breadcrumbs';
 import { Button } from 'react-aria-components/Button';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { dialogDataAtom, projectSettingsAtom } from '../../../atoms';
-import { kernelInstanceForNoteAtomFamily } from '../../../atoms';
-import type { Languages, LanguagesWithKernels } from '../../../types';
-import { cn } from '../../../utils/string-formatting';
-import { FolderOpen } from '../../../icons/folder-open';
-import { ChevronDown } from '../../../icons/chevron-down';
-import { PowerOff } from '../../../icons/power-off';
+import { dialogDataAtom, projectSettingsAtom } from '@/atoms';
+import { kernelInstanceForNoteAtomFamily } from '@/atoms';
+import type { Languages, LanguagesWithKernels } from '@/types';
+import { cn } from '@utils/string-formatting';
+import { FolderOpen } from '@/icons/folder-open';
+import { ChevronDown } from '@/icons/chevron-down';
+import { PowerOff } from '@/icons/power-off';
 import { PythonVenvDialog } from '../python-venv-dialog';
 import {
   useEnsureKernelMutation,
   usePythonVenvSubmitMutation,
   useShutdownKernelMutation,
-} from '../../../hooks/code';
-import { KernelHeartbeat } from '../../file-sidebar/my-kernels-accordion/kernel-heartbeat';
+} from '@hooks/code';
+import { KernelHeartbeat } from '@components/file-sidebar/my-kernels-accordion/kernel-heartbeat';
 import {
   AppMenu,
   AppMenuItem,
   AppMenuPopover,
   AppMenuTrigger,
-} from '../../menu';
-import { useDecodedNotesWildcardPath } from '../../../hooks/routes';
+} from '@components/menu';
+import { useDecodedNotesWildcardPath } from '@hooks/routes';
 
 interface KernelOption {
   id: string;

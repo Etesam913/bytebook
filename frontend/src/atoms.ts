@@ -7,19 +7,19 @@ import {
   type KernelInstanceData,
   type LanguagesWithKernels,
   type ProjectSettings,
-} from './types';
+} from '@/types';
 import {
   type FileOrFolderPath,
   createFilePath,
   createFolderPath,
-} from './utils/path';
-import { logger } from './utils/logging';
+} from '@utils/path';
+import { logger } from '@utils/logging';
 import {
   DEFAULT_CODE_BLOCK_FONT_SIZE,
   DEFAULT_CODE_BLOCK_LANGUAGE,
   DEFAULT_EDITOR_FONT_SIZE,
   DEFAULT_EDITOR_LINE_HEIGHT,
-} from './utils/project-settings';
+} from '@utils/project-settings';
 
 /**
  * Creates a jotai atom with automatic STATE logging when values are set.
