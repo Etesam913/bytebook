@@ -15,42 +15,6 @@ type FileTreeService struct {
 	ProjectPath string
 }
 
-func (f *FileTreeService) GetChildrenOfFolderBasedOnLimit(pathToFolder string, parentId string, cursor string, limit int) config.BackendResponseWithData[notes.FileOrFolderPage] {
-	childrenFileOrFolders, err := notes.GetChildrenOfFolderBasedOnLimit(f.ProjectPath, pathToFolder, parentId, cursor, limit)
-
-	if err != nil {
-		return config.BackendResponseWithData[notes.FileOrFolderPage]{
-			Success: false,
-			Message: err.Error(),
-		}
-	}
-
-	return config.BackendResponseWithData[notes.FileOrFolderPage]{
-		Success: true,
-		Message: "Successfully retrieved children",
-		Data:    childrenFileOrFolders,
-	}
-}
-
-func (f *FileTreeService) GetChildrenOfFolderBasedOnPath(
-	pathToFolder, parentId, cursor, endCursor string,
-) config.BackendResponseWithData[notes.FileOrFolderPage] {
-	childrenFileOrFolders, err := notes.GetChildrenOfFolderBasedOnPath(f.ProjectPath, pathToFolder, parentId, cursor, endCursor)
-
-	if err != nil {
-		return config.BackendResponseWithData[notes.FileOrFolderPage]{
-			Success: false,
-			Message: err.Error(),
-		}
-	}
-
-	return config.BackendResponseWithData[notes.FileOrFolderPage]{
-		Success: true,
-		Message: "Successfully retrieved children",
-		Data:    childrenFileOrFolders,
-	}
-}
-
 // GetAllPaths returns every file and folder path under the notes directory,
 // sorted, with directories marked by a trailing slash.
 func (f *FileTreeService) GetAllPaths() config.BackendResponseWithData[[]string] {
@@ -69,22 +33,6 @@ func (f *FileTreeService) GetAllPaths() config.BackendResponseWithData[[]string]
 		Success: true,
 		Message: "Successfully retrieved all paths",
 		Data:    paths,
-	}
-}
-
-func (f *FileTreeService) GetTopLevelItems() config.BackendResponseWithData[[]notes.FileOrFolder] {
-	fileOrFolders, err := notes.GetTopLevelItems(f.ProjectPath)
-	if err != nil {
-		return config.BackendResponseWithData[[]notes.FileOrFolder]{
-			Success: false,
-			Message: err.Error(),
-		}
-	}
-
-	return config.BackendResponseWithData[[]notes.FileOrFolder]{
-		Success: true,
-		Message: "Sucessfully retrieved top level items",
-		Data:    fileOrFolders,
 	}
 }
 

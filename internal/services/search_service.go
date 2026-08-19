@@ -2,6 +2,7 @@ package services
 
 import (
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -167,9 +168,11 @@ func (s *SearchService) SearchFileNamesFromQuery(searchQuery string) []FilePicke
 }
 
 // GetPathsFromSearchQuery runs the given filter-syntax query against the search
-// index and returns the matching note and attachment paths in the form
-// "<folder>/<fileName>". Returns an empty slice on error or when nothing matches.
-func (s *SearchService) GetPathsFromSearchQuery(searchQuery string) []string {
+// index and returns the matching note and attachment paths, sorted, in the form
+// "<folder>/<fileName>" (or just "<fileName>" at the notes root). Returns
+// Success: false when the index cannot be searched, so the tree can tell a
+// broken index apart from a query that simply matched nothing.
+func (s *SearchService) GetPathsFromSearchQuery(searchQuery string) config.BackendResponseWithData[[]string] {
 	// The sort option is discarded: the file tree has a fixed sort order. A
 	// query containing only a sort token degenerates to MatchAll ("show
 	// everything"), which is acceptable for tree filtering.
@@ -187,7 +190,11 @@ func (s *SearchService) GetPathsFromSearchQuery(searchQuery string) []string {
 	}()
 	if err != nil {
 		log.Println("tree filter search failed:", err)
-		return []string{}
+		return config.BackendResponseWithData[[]string]{
+			Success: false,
+			Message: "Search index is unavailable",
+			Data:    []string{},
+		}
 	}
 
 	paths := []string{}
@@ -201,18 +208,30 @@ func (s *SearchService) GetPathsFromSearchQuery(searchQuery string) []string {
 		if docType != search.MARKDOWN_NOTE_TYPE && docType != search.ATTACHMENT_TYPE {
 			continue
 		}
-		if folder == "" || fileName == "" {
+		if fileName == "" {
 			continue
 		}
 
-		path := folder + "/" + fileName
+		// Notes at the root of the vault index with an empty folder.
+		path := fileName
+		if folder != "" {
+			path = folder + "/" + fileName
+		}
 		if seen.Has(path) {
 			continue
 		}
 		seen.Add(path)
 		paths = append(paths, path)
 	}
-	return paths
+
+	// Match GetAllPaths' sorted contract: relevance order is unstable across
+	// reindexes, and the filtered tree is keyed off the joined path list.
+	sort.Strings(paths)
+	return config.BackendResponseWithData[[]string]{
+		Success: true,
+		Message: "Successfully retrieved paths",
+		Data:    paths,
+	}
 }
 
 // GetAllSavedSearches returns all saved searches for the project

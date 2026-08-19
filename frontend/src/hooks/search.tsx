@@ -117,7 +117,7 @@ const searchQueries = {
     }),
 };
 
-// Path-only backend search powering the file tree's filter-syntax mode.
+// Path-only backend search powering the file tree's filter mode.
 // keepPreviousData avoids the tree flashing empty between keystrokes.
 export function useTreeFilterPathsQuery({
   searchQuery,
@@ -128,7 +128,12 @@ export function useTreeFilterPathsQuery({
 }) {
   return useQuery({
     queryKey: queryKeys.treeFilterPaths(searchQuery),
-    queryFn: () => GetPathsFromSearchQuery(searchQuery),
+    queryFn: async () => {
+      const res = await GetPathsFromSearchQuery(searchQuery);
+      // Distinguishes a broken index from a query that matched nothing.
+      if (!res.success) throw new QueryError(res.message);
+      return res.data ?? [];
+    },
     enabled,
     placeholderData: keepPreviousData,
     refetchOnWindowFocus: false,
