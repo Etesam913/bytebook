@@ -171,12 +171,20 @@ func addResultsToIndex(bleveIndex bleve.Index, bleveBatch *bleve.Batch, results 
 // top-level folder under notesPath.
 func populateJobs(folders []os.DirEntry, notesPath string, jobs chan<- DocumentJob) error {
 	for _, folder := range folders {
-		if !folder.IsDir() {
+		// Skip hidden top-level entries, files and folders alike.
+		if strings.HasPrefix(folder.Name(), ".") {
 			continue
 		}
 
-		// Skip hidden top-level folders
-		if strings.HasPrefix(folder.Name(), ".") {
+		// Files sitting at the notes root index with an empty folder, so they
+		// stay reachable from tree filtering like any nested note.
+		if !folder.IsDir() {
+			jobs <- DocumentJob{
+				entryPath: filepath.Join(notesPath, folder.Name()),
+				entryId:   folder.Name(),
+				folder:    "",
+				entryName: folder.Name(),
+			}
 			continue
 		}
 

@@ -70,9 +70,10 @@ func TestGetPathsFromSearchQuery(t *testing.T) {
 		writeTestNote(t, projectPath, "cooking/notes.md", "# Plain note")
 		indexTestNotes(t, projectPath, index, "cooking/pasta.md", "cooking/notes.md")
 
-		paths := service.GetPathsFromSearchQuery("#recipe")
+		res := service.GetPathsFromSearchQuery("#recipe")
 
-		assert.Equal(t, []string{"cooking/pasta.md"}, paths)
+		assert.True(t, res.Success)
+		assert.Equal(t, []string{"cooking/pasta.md"}, res.Data)
 	})
 
 	t.Run("matches notes by filename filter", func(t *testing.T) {
@@ -81,9 +82,10 @@ func TestGetPathsFromSearchQuery(t *testing.T) {
 		writeTestNote(t, projectPath, "work/meeting.md", "# Meeting")
 		indexTestNotes(t, projectPath, index, "cooking/pasta.md", "work/meeting.md")
 
-		paths := service.GetPathsFromSearchQuery("f:pasta")
+		res := service.GetPathsFromSearchQuery("f:pasta")
 
-		assert.Equal(t, []string{"cooking/pasta.md"}, paths)
+		assert.True(t, res.Success)
+		assert.Equal(t, []string{"cooking/pasta.md"}, res.Data)
 	})
 
 	t.Run("type filter returns only attachments", func(t *testing.T) {
@@ -92,9 +94,10 @@ func TestGetPathsFromSearchQuery(t *testing.T) {
 		writeTestNote(t, projectPath, "cooking/photo.png", "binary-ish")
 		indexTestNotes(t, projectPath, index, "cooking/pasta.md", "cooking/photo.png")
 
-		paths := service.GetPathsFromSearchQuery("type:attachment")
+		res := service.GetPathsFromSearchQuery("type:attachment")
 
-		assert.Equal(t, []string{"cooking/photo.png"}, paths)
+		assert.True(t, res.Success)
+		assert.Equal(t, []string{"cooking/photo.png"}, res.Data)
 	})
 
 	t.Run("supports negation and OR operators", func(t *testing.T) {
@@ -105,10 +108,10 @@ func TestGetPathsFromSearchQuery(t *testing.T) {
 		indexTestNotes(t, projectPath, index, "cooking/pasta.md", "cooking/soup.md", "work/meeting.md")
 
 		negated := service.GetPathsFromSearchQuery("#recipe -#draft")
-		assert.Equal(t, []string{"cooking/pasta.md"}, negated)
+		assert.Equal(t, []string{"cooking/pasta.md"}, negated.Data)
 
 		ored := service.GetPathsFromSearchQuery("f:soup OR f:meeting")
-		assert.ElementsMatch(t, []string{"cooking/soup.md", "work/meeting.md"}, ored)
+		assert.ElementsMatch(t, []string{"cooking/soup.md", "work/meeting.md"}, ored.Data)
 	})
 
 	t.Run("excludes documents that are not notes or attachments", func(t *testing.T) {
@@ -121,9 +124,10 @@ func TestGetPathsFromSearchQuery(t *testing.T) {
 			"file_name": "cooking",
 		}))
 
-		paths := service.GetPathsFromSearchQuery("f:cooking")
+		res := service.GetPathsFromSearchQuery("f:cooking")
 
-		assert.Equal(t, []string{"cooking/pasta.md"}, paths)
+		assert.True(t, res.Success)
+		assert.Equal(t, []string{"cooking/pasta.md"}, res.Data)
 	})
 
 	t.Run("empty query matches nothing", func(t *testing.T) {
@@ -131,7 +135,36 @@ func TestGetPathsFromSearchQuery(t *testing.T) {
 		writeTestNote(t, projectPath, "cooking/pasta.md", "# Pasta")
 		indexTestNotes(t, projectPath, index, "cooking/pasta.md")
 
-		assert.Empty(t, service.GetPathsFromSearchQuery(""))
+		res := service.GetPathsFromSearchQuery("")
+
+		assert.True(t, res.Success)
+		assert.Empty(t, res.Data)
+		// Must be an empty slice, not nil: nil crosses the Wails boundary as null.
+		assert.NotNil(t, res.Data)
+	})
+
+	t.Run("matches notes at the vault root", func(t *testing.T) {
+		service, projectPath, index := newService(t)
+		writeTestNote(t, projectPath, "scratch.md", "# Scratch")
+		writeTestNote(t, projectPath, "cooking/pasta.md", "# Pasta")
+		indexTestNotes(t, projectPath, index, "scratch.md", "cooking/pasta.md")
+
+		res := service.GetPathsFromSearchQuery("f:scratch")
+
+		assert.True(t, res.Success)
+		assert.Equal(t, []string{"scratch.md"}, res.Data)
+	})
+
+	t.Run("returns sorted paths", func(t *testing.T) {
+		service, projectPath, index := newService(t)
+		writeTestNote(t, projectPath, "b/zeta.md", "# Common word")
+		writeTestNote(t, projectPath, "a/alpha.md", "# Common word")
+		indexTestNotes(t, projectPath, index, "b/zeta.md", "a/alpha.md")
+
+		res := service.GetPathsFromSearchQuery("type:note")
+
+		assert.True(t, res.Success)
+		assert.Equal(t, []string{"a/alpha.md", "b/zeta.md"}, res.Data)
 	})
 }
 
