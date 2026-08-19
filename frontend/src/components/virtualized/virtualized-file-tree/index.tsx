@@ -14,6 +14,10 @@ import {
   useRenameTreeItemMutation,
 } from './hooks/tree-item-mutations';
 import { useAllPaths } from '../../../hooks/all-paths';
+import { useAddTreeItemMutation } from '../../../hooks/tree-items';
+import { toast } from 'sonner';
+import { DEFAULT_SONNER_OPTIONS } from '../../../utils/general';
+import { applyTreeCreate } from './create';
 import { usePierreRouteFocus } from './hooks/use-pierre-route-focus';
 import { usePierreTreeEvents } from './hooks/use-pierre-tree-events';
 import { usePierreRouteTargetPath } from './hooks/use-route-target-path';
@@ -103,6 +107,14 @@ function PierreFileTreeInner({
   const { mutateAsync: renameTreeItem } = useRenameTreeItemMutation();
   const { mutateAsync: moveItems } = useMoveTreeItemsMutation();
   const { mutate: addFolderAttachments } = useAddFolderAttachmentsMutation();
+  const { mutateAsync: addTreeItem } = useAddTreeItemMutation();
+
+  // A live inline-create placeholder, so the shared rename handlers can tell
+  // a committed placeholder apart from a genuine rename.
+  const pendingCreateRef = useRef<{
+    placeholderPath: string;
+    parentFolderPath: string;
+  } | null>(null);
 
   // ── Tree model ───────────────────────────────────────────────────────
   const preparedInput = usePreparedTreeInput(initialPaths);
@@ -142,6 +154,22 @@ function PierreFileTreeInner({
     },
     renaming: {
       onRename: (event) => {
+        const pending = pendingCreateRef.current;
+        if (pending && event.sourcePath === pending.placeholderPath) {
+          pendingCreateRef.current = null;
+          // Defer: pierre moves the placeholder to destinationPath *after*
+          // this callback returns; applyTreeCreate reconciles against that
+          // post-move state.
+          queueMicrotask(() =>
+            applyTreeCreate({
+              model,
+              event,
+              parentFolderPath: pending.parentFolderPath,
+              addTreeItem,
+            })
+          );
+          return;
+        }
         // Pierre's optimistic move re-points selection at the typed path
         // while the backend rename is still in flight; suppress that
         // navigation and only navigate once disk agrees, so the note view
@@ -156,6 +184,21 @@ function PierreFileTreeInner({
             ? () => navigateToTreePath(event.destinationPath)
             : undefined,
         });
+      },
+      onError: (error) => {
+        // A colliding/invalid committed name exits rename mode but keeps the
+        // placeholder in the model — drop it so no phantom row survives.
+        const pending = pendingCreateRef.current;
+        if (pending && model.getItem(pending.placeholderPath)) {
+          model.remove(
+            pending.placeholderPath,
+            pending.placeholderPath.endsWith('/')
+              ? { recursive: true }
+              : undefined
+          );
+        }
+        pendingCreateRef.current = null;
+        toast.error(error, DEFAULT_SONNER_OPTIONS);
       },
     },
   });
@@ -178,6 +221,7 @@ function PierreFileTreeInner({
       });
     });
   }
+
 
   // ── Keyboard handling ────────────────────────────────────────────────
   // @pierre/trees only binds renaming to F2. Enter on a focused row is
