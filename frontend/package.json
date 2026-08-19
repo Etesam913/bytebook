@@ -44,7 +44,7 @@
     "@lexical/selection": "^0.41.0",
     "@lexical/table": "^0.41.0",
     "@lexical/utils": "^0.41.0",
-    "@pierre/trees": "1.0.0-beta.3",
+    "@pierre/trees": "1.0.0-beta.6",
     "@react-aria/overlays": "^3.32.0",
     "@replit/codemirror-vim": "^6.3.0",
     "@tanstack/react-query": "^5.90.21",
@@ -101,6 +101,6 @@
     "vite": "^8.0.0"
   },
   "patchedDependencies": {
-    "@pierre/trees@1.0.0-beta.3": "patches/@pierre%2Ftrees@1.0.0-beta.3.patch"
+    "@pierre/trees@1.0.0-beta.6": "patches/@pierre%2Ftrees@1.0.0-beta.6.patch"
   }
 }

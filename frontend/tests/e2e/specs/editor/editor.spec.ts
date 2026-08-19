@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { mockBinding } from '../../utils/mock-binding';
 import {
+  MOCK_ALL_PATHS_RESPONSE,
   MOCK_NOTE_EXISTS_RESPONSE,
   MOCK_NOTE_MARKDOWN_RESPONSE,
   MOCK_PROJECT_SETTINGS_RESPONSE,
@@ -13,6 +14,12 @@ const STRIKETHROUGH_TOOLTIP = 'Strikethrough (⌘⇧X)';
 
 test.describe('Editor', () => {
   test.beforeEach(async ({ context }) => {
+    await mockBinding(
+      context,
+      { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetAllPaths' },
+      MOCK_ALL_PATHS_RESPONSE
+    );
+
     await mockBinding(
       context,
       { file: SERVICE_FILES.NOTE_SERVICE, method: 'DoesNoteExist' },
@@ -67,7 +74,11 @@ test.describe('Editor', () => {
 
     // Verify the file sidebar is visible initially
     const fileSidebar = page.getByTestId('file-sidebar');
+    const economicsFolder = fileSidebar.getByRole('treeitem', {
+      name: 'Economics Notes',
+    });
     await expect(fileSidebar).toBeVisible();
+    await expect(economicsFolder).toBeVisible();
 
     // Find the maximize button in the toolbar
     const toolbar = page.locator('nav').first();
@@ -84,6 +95,7 @@ test.describe('Editor', () => {
     // Click again to minimize and verify sidebar is visible again
     await maximizeBtn.click();
     await expect(fileSidebar).toBeVisible();
+    await expect(economicsFolder).toBeVisible();
   });
 
   test.describe('Error handling', () => {

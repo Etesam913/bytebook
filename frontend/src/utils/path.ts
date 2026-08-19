@@ -23,13 +23,69 @@ export function splitPathSegments(path: string): string[] {
 
 /**
  * Removes a single trailing slash (e.g. `"folder/"` → `"folder"`).
- * Folder paths carry a trailing slash in the frontend (the @pierre/trees
- * convention), while the Go backend, routes/URLs, and persisted formats
- * (Bleve index, settings.json, watcher payloads) are slashless — this
- * converts at those boundaries.
+ * Folder paths carry a trailing slash in the @pierre/trees model, while the
+ * backend, routes/URLs, and persisted formats are slashless. This converts at
+ * those boundaries.
  */
 export function stripTrailingSlash(path: string): string {
   return path.endsWith('/') ? path.slice(0, -1) : path;
+}
+
+/**
+ * Returns `path` rewritten through a rename, or null when unaffected. A
+ * folder rename matches the folder itself and every descendant. Handles the
+ * mixed slash conventions: rename sources/targets and `path` may or may not
+ * carry a trailing folder slash, which is preserved in the result.
+ */
+export function remapPathThroughRename({
+  path,
+  oldPath,
+  newPath,
+  isFolder,
+}: {
+  path: string;
+  oldPath: string;
+  newPath: string;
+  isFolder: boolean;
+}): string | null {
+  if (!oldPath || !newPath) return null;
+  if (isFolder) {
+    const strippedOldPath = stripTrailingSlash(oldPath);
+    const strippedNewPath = stripTrailingSlash(newPath);
+    const oldPrefix = `${strippedOldPath}/`;
+    if (path === strippedOldPath) {
+      return strippedNewPath;
+    }
+    if (path.startsWith(oldPrefix)) {
+      return `${strippedNewPath}/${path.slice(oldPrefix.length)}`;
+    }
+    return null;
+  }
+  return path === oldPath ? newPath : null;
+}
+
+export type PathRename = { oldPath: string; newPath: string };
+
+/** Returns `path` rewritten by the first matching rename in a watcher batch. */
+export function remapPathThroughRenames({
+  path,
+  renames,
+  isFolder,
+}: {
+  path: string;
+  renames: readonly PathRename[];
+  isFolder: boolean;
+}): string | null {
+  for (const { oldPath, newPath } of renames) {
+    const remapped = remapPathThroughRename({
+      path,
+      oldPath,
+      newPath,
+      isFolder,
+    });
+    if (remapped) return remapped;
+  }
+  return null;
 }
 
 /**

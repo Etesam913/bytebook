@@ -5,7 +5,7 @@ import {
   useMotionValue,
 } from 'motion/react';
 import { useAtomValue } from 'jotai';
-import { Activity, useRef } from 'react';
+import { useRef } from 'react';
 import { useLocation } from 'wouter';
 import { getDefaultButtonVariants } from '@/animations';
 import {
@@ -123,7 +123,7 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
             </Tooltip>
           </span>
         </header>
-        <Activity mode={isSearchSidebar ? 'hidden' : 'visible'}>
+        <div className={cn('contents', isSearchSidebar && 'hidden')}>
           <section
             ref={panelContainerRef}
             className="flex flex-1 flex-col min-h-0 pt-1.5 pb-1"
@@ -169,13 +169,13 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
               />
             )}
           </section>
-        </Activity>
-        <Activity mode={isSearchSidebar ? 'visible' : 'hidden'}>
+        </div>
+        <div className={cn('contents', !isSearchSidebar && 'hidden')}>
           <SearchSidebarPanel
             lastSearchRouteRef={lastSearchRouteRef}
             lastFilesRouteRef={lastFilesRouteRef}
           />
-        </Activity>
+        </div>
         <BottomItems />
       </motion.aside>
       <Spacer width={width} />

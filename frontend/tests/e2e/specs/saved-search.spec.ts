@@ -52,9 +52,10 @@ test.describe('Saved Search Page', () => {
 
   test('displays result count when results exist', async ({ page }) => {
     await page.goto('/saved-search/research/');
+    const mainContent = page.locator('#main-content');
 
     // Should show 3 results (total from mock)
-    await expect(page.getByText('3 results')).toBeVisible();
+    await expect(mainContent.getByText('3 results')).toBeVisible();
   });
 
   test('displays search results in the sidebar', async ({ page }) => {
@@ -171,13 +172,16 @@ test.describe('Saved Search Page', () => {
       );
 
       await page.goto('/saved-search/test/');
+      const mainContent = page.locator('#main-content');
 
       await expect(
-        page.getByText(
+        mainContent.getByText(
           'Something went wrong when retrieving the search results'
         )
       ).toBeVisible();
-      await expect(page.getByText('Retry')).toBeVisible();
+      await expect(
+        mainContent.getByRole('button', { name: 'Retry' })
+      ).toBeVisible();
     });
   });
 

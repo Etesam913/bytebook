@@ -17,12 +17,10 @@ export function applyTreeRename({
   model,
   event,
   renameTreeItem,
-  onSuccess,
 }: {
   model: PierreFileTree;
   event: FileTreeRenameEvent;
   renameTreeItem: (payload: RenameTreeItemPayload) => Promise<unknown>;
-  onSuccess?: () => void;
 }) {
   const { sourcePath, destinationPath, isFolder } = event;
   if (sourcePath === destinationPath) return;
@@ -39,7 +37,6 @@ export function applyTreeRename({
       itemType: 'folder',
       folderPath: sourcePath,
       newName,
-      onSuccess,
     }).catch(revert);
     return;
   }
@@ -51,6 +48,5 @@ export function applyTreeRename({
     itemType: 'file',
     filePath,
     newName,
-    onSuccess,
   }).catch(revert);
 }

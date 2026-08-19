@@ -47,7 +47,7 @@ export function useSyncAllPaths({
     // The ref is seeded with the construction list, so a content-identical
     // refetch (react-query structural sharing returns the same reference)
     // needs no work — even when the tree mounts long after the model was
-    // built (the sidebar hides it with <Activity>).
+    // built (the sidebar can be CSS-hidden).
     if (!allPaths || lastSyncedPathsRef.current === allPaths) return;
     const previousPaths = lastSyncedPathsRef.current;
     lastSyncedPathsRef.current = allPaths;
