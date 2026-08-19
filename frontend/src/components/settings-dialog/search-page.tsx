@@ -24,6 +24,7 @@ export function SearchPage() {
               ? 'Regenerating search index...'
               : 'Regenerate search index'
           }
+          showWhenDisabled={isPending}
         >
           <MotionButton
             className={cn(

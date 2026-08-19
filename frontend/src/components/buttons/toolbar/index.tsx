@@ -180,7 +180,12 @@ export function ToolbarButtons({
       : tooltip;
 
     return (
-      <Tooltip key={key} content={tooltipContent} delay={{ open: 450 }}>
+      <Tooltip
+        key={key}
+        content={tooltipContent}
+        delay={{ open: 450 }}
+        showWhenDisabled={itemDisabled}
+      >
         <Button
           onPress={onPress}
           isDisabled={itemDisabled}
@@ -205,7 +210,12 @@ export function ToolbarButtons({
       : tooltip;
 
     return (
-      <Tooltip key={key} content={tooltipContent} delay={{ open: 450 }}>
+      <Tooltip
+        key={key}
+        content={tooltipContent}
+        delay={{ open: 450 }}
+        showWhenDisabled={disabled}
+      >
         <ToggleButton
           isSelected={isSelected && !disabled}
           onChange={onToggle}

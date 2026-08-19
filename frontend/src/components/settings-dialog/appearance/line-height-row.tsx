@@ -81,6 +81,10 @@ export function LineHeightRow() {
               ? 'Already set to default'
               : 'Reset to default'
           }
+          showWhenDisabled={
+            projectSettings.appearance.editorLineHeight ===
+            DEFAULT_EDITOR_LINE_HEIGHT
+          }
         >
           <MotionIconButton
             {...getDefaultButtonVariants()}

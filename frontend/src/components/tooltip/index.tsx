@@ -23,6 +23,7 @@ export function Tooltip({
   placement = 'top',
   delay = { open: 250, close: 100 },
   disabled = false,
+  showWhenDisabled = false,
   withArrow = true,
   className,
   root,
@@ -32,6 +33,10 @@ export function Tooltip({
   placement?: Placement;
   delay?: LegacyDelay;
   disabled?: boolean;
+  // Wrap the trigger so a natively disabled child still gets hover and focus.
+  // Disabled form controls emit no pointer events and are not focusable, so
+  // without this the tooltip can never open.
+  showWhenDisabled?: boolean;
   withArrow?: boolean;
   className?: string;
   /** Optional portal container. Pass an element ref to render the tooltip inside that element (e.g. inside an open dialog). */
@@ -48,7 +53,13 @@ export function Tooltip({
       isDisabled={disabled}
     >
       <Focusable ref={triggerRef} isDisabled={disabled}>
-        {children as Parameters<typeof Focusable>[0]['children']}
+        {showWhenDisabled ? (
+          <span className="inline-flex" tabIndex={0}>
+            {children}
+          </span>
+        ) : (
+          (children as Parameters<typeof Focusable>[0]['children'])
+        )}
       </Focusable>
       <RACTooltip
         placement={placement}
