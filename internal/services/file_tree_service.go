@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"log"
 	"path/filepath"
 	"strings"
 
@@ -55,9 +56,12 @@ func (f *FileTreeService) GetChildrenOfFolderBasedOnPath(
 func (f *FileTreeService) GetAllPaths() config.BackendResponseWithData[[]string] {
 	paths, err := notes.GetAllPaths(f.ProjectPath)
 	if err != nil {
+		log.Printf("GetAllPaths: %v", err)
 		return config.BackendResponseWithData[[]string]{
 			Success: false,
-			Message: err.Error(),
+			// The raw error carries the user's absolute home path.
+			Message: "Failed to read the notes directory",
+			Data:    []string{},
 		}
 	}
 

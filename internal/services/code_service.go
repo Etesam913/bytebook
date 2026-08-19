@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/kernel_manager"
@@ -30,6 +31,7 @@ type SendExecuteRequestResponse struct {
 func (c *CodeService) SendExecuteRequest(noteID, codeBlockID, executionID, language, code string) config.BackendResponseWithData[SendExecuteRequestResponse] {
 	projectSettings, err := config.GetProjectSettings(c.ProjectPath)
 	if err != nil {
+		log.Printf("SendExecuteRequest: read project settings: %v", err)
 		return config.BackendResponseWithData[SendExecuteRequestResponse]{
 			Success: false,
 			Message: "Failed to get project settings. Please check if the settings.json file exists.",
@@ -53,6 +55,7 @@ func (c *CodeService) SendExecuteRequest(noteID, codeBlockID, executionID, langu
 				Message: fmt.Sprintf("Stop another %s kernel to start this one.", language),
 			}
 		}
+		log.Printf("get-or-create %s kernel for note %s: %v", language, noteID, err)
 		return config.BackendResponseWithData[SendExecuteRequestResponse]{
 			Success: false,
 			Message: "Failed to start kernel",
@@ -77,6 +80,7 @@ func (c *CodeService) SendExecuteRequest(noteID, codeBlockID, executionID, langu
 					Message: fmt.Sprintf("Stop another %s kernel to start this one.", language),
 				}
 			}
+			log.Printf("SendExecuteRequest: restart %s kernel for note %s: %v", language, noteID, err)
 			return config.BackendResponseWithData[SendExecuteRequestResponse]{
 				Success: false,
 				Message: "Failed to restart kernel",
@@ -103,6 +107,7 @@ func (c *CodeService) SendExecuteRequest(noteID, codeBlockID, executionID, langu
 func (c *CodeService) EnsureKernel(noteID, language string) config.BackendResponseWithData[SendExecuteRequestResponse] {
 	projectSettings, err := config.GetProjectSettings(c.ProjectPath)
 	if err != nil {
+		log.Printf("EnsureKernel: read project settings: %v", err)
 		return config.BackendResponseWithData[SendExecuteRequestResponse]{
 			Success: false,
 			Message: "Failed to retrieve project settings.",
@@ -123,6 +128,7 @@ func (c *CodeService) EnsureKernel(noteID, language string) config.BackendRespon
 				Message: fmt.Sprintf("Stop another %s kernel to start this one.", language),
 			}
 		}
+		log.Printf("get-or-create %s kernel for note %s: %v", language, noteID, err)
 		return config.BackendResponseWithData[SendExecuteRequestResponse]{
 			Success: false,
 			Message: "Failed to start kernel",
@@ -200,6 +206,7 @@ func (c *CodeService) SendInspectRequest(kernelInstanceID, codeBlockID, executio
 	}
 	messageID, err := inst.SendInspect(codeBlockID, executionID, code, cursorPos, detailLevel)
 	if err != nil {
+		log.Printf("SendInspectRequest: send inspect for block %s: %v", codeBlockID, err)
 		return config.BackendResponseWithData[SendInspectRequestResponse]{
 			Success: false,
 			Message: "Failed to send inspect request",
@@ -233,6 +240,7 @@ func (c *CodeService) SendCompleteRequest(kernelInstanceID, codeBlockID, executi
 	}
 	messageID, err := inst.SendComplete(codeBlockID, executionID, code, cursorPos)
 	if err != nil {
+		log.Printf("SendCompleteRequest: send complete for block %s: %v", codeBlockID, err)
 		return config.BackendResponseWithData[SendCompleteRequestResponse]{
 			Success: false,
 			Message: "Failed to send complete request",
@@ -258,6 +266,7 @@ func (c *CodeService) ListKernels() config.BackendResponseWithData[[]kernel_mana
 func (c *CodeService) GetPythonVirtualEnvironments() config.BackendResponseWithData[[]string] {
 	projectSettings, err := config.GetProjectSettings(c.ProjectPath)
 	if err != nil {
+		log.Printf("GetPythonVirtualEnvironments: read project settings: %v", err)
 		return config.BackendResponseWithData[[]string]{
 			Success: false,
 			Message: "Failed to retrieve project settings",
@@ -269,6 +278,7 @@ func (c *CodeService) GetPythonVirtualEnvironments() config.BackendResponseWithD
 		projectSettings.Code.CustomPythonVenvPaths,
 	)
 	if err != nil {
+		log.Printf("GetPythonVirtualEnvironments: locate venvs: %v", err)
 		return config.BackendResponseWithData[[]string]{
 			Success: false,
 			Message: "Failed to locate virtual environments",
@@ -316,6 +326,7 @@ func (c *CodeService) ChooseCustomVirtualEnvironmentPath() config.BackendRespons
 		PromptForSingleSelection()
 
 	if err != nil {
+		log.Printf("ChooseCustomVirtualEnvironmentPath: open file dialog: %v", err)
 		return config.BackendResponseWithData[string]{
 			Success: false,
 			Message: "Failed to open file dialog",
@@ -334,6 +345,7 @@ func (c *CodeService) ChooseCustomVirtualEnvironmentPath() config.BackendRespons
 func (c *CodeService) GetKernelDescriptor(language string) config.BackendResponseWithData[*config.KernelJson] {
 	all, err := config.GetAllKernels(c.ProjectPath)
 	if err != nil {
+		log.Printf("GetKernelDescriptor: read kernels for %s: %v", language, err)
 		return config.BackendResponseWithData[*config.KernelJson]{
 			Success: false,
 			Message: "Failed to read kernel descriptor",

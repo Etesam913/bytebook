@@ -410,10 +410,17 @@ func (p *procRWC) Close() error {
 	return err2
 }
 
-// drainStderr reads pyright's stderr so the OS pipe buffer does not fill.
+// drainStderr reads pyright's stderr so the OS pipe buffer does not fill, and
+// logs it: it is the only place that explains why a language server died.
 func drainStderr(stderr io.Reader) {
 	scanner := bufio.NewScanner(stderr)
 	for scanner.Scan() {
-		// Pyright stderr is consumed
+		log.Printf("pyright stderr: %s", scanner.Text())
+	}
+	if err := scanner.Err(); err != nil {
+		// A line past bufio.Scanner's 64 KiB cap stops the scan. Keep draining
+		// so the pipe cannot fill and block pyright's next write.
+		log.Printf("pyright stderr drain stopped: %v", err)
+		_, _ = io.Copy(io.Discard, stderr)
 	}
 }

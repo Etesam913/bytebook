@@ -3,6 +3,7 @@ package notes
 import (
 	"fmt"
 	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -214,10 +215,19 @@ func GetAllPaths(projectPath string) ([]string, error) {
 		return nil, fmt.Errorf("%s is not a directory", notesRoot)
 	}
 
-	paths := []string{}
+	paths := make([]string, 0, 512)
 	err = filepath.WalkDir(notesRoot, func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
-			return err
+			// A single unreadable entry must not blank the whole tree, which is
+			// what returning the error here would do. Only the root is fatal.
+			if p == notesRoot {
+				return err
+			}
+			log.Printf("GetAllPaths: skipping %s: %v", p, err)
+			if d != nil && d.IsDir() {
+				return filepath.SkipDir
+			}
+			return nil
 		}
 		if p == notesRoot {
 			return nil

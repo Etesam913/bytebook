@@ -1,7 +1,6 @@
 package search
 
 import (
-	"fmt"
 	"io/fs"
 	"log"
 	"os"
@@ -163,7 +162,7 @@ func addResultsToIndex(bleveIndex bleve.Index, bleveBatch *bleve.Batch, results 
 		}
 	}
 
-	fmt.Printf("Indexed %d documents", indexCount)
+	log.Printf("Indexed %d documents", indexCount)
 
 	return bleveBatch, nil
 }

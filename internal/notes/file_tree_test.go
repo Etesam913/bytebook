@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // findChildByName is a test helper that finds a child by name from a slice of FileOrFolder
@@ -338,5 +339,25 @@ func TestGetAllPaths(t *testing.T) {
 	t.Run("errors when notes directory does not exist", func(t *testing.T) {
 		_, err := GetAllPaths(filepath.Join(tempDir, "nonexistent"))
 		assert.Error(t, err)
+	})
+
+	t.Run("skips unreadable directories instead of failing the whole walk", func(t *testing.T) {
+		isolatedDir := t.TempDir()
+		isolatedNotes := filepath.Join(isolatedDir, "notes")
+		require.NoError(t, os.MkdirAll(filepath.Join(isolatedNotes, "readable"), 0755))
+		require.NoError(t, os.WriteFile(filepath.Join(isolatedNotes, "readable", "a.md"), []byte("content"), 0644))
+
+		locked := filepath.Join(isolatedNotes, "locked")
+		require.NoError(t, os.Mkdir(locked, 0755))
+		require.NoError(t, os.Chmod(locked, 0000))
+		// Restore permissions so t.TempDir's cleanup can remove the directory.
+		t.Cleanup(func() { _ = os.Chmod(locked, 0755) })
+
+		paths, err := GetAllPaths(isolatedDir)
+		require.NoError(t, err)
+		assert.Contains(t, paths, "readable/")
+		assert.Contains(t, paths, "readable/a.md")
+		// The directory itself is still listed; only its contents are skipped.
+		assert.Contains(t, paths, "locked/")
 	})
 }
