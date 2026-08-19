@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useWailsEvent } from '@hooks/events';
+import { useDebouncedValue } from '@hooks/general';
 import { useTreeFilterPathsQuery } from '@hooks/search';
 import {
   FILE_CREATE,
@@ -13,15 +14,6 @@ import {
 import { queryKeys } from '@utils/query-keys';
 
 const FILTER_DEBOUNCE_MS = 150;
-
-function useDebouncedValue(value: string, delayMs: number): string {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const timeout = setTimeout(() => setDebounced(value), delayMs);
-    return () => clearTimeout(timeout);
-  }, [value, delayMs]);
-  return debounced;
-}
 
 /**
  * Resolves the tree search bar's query through the backend search index, so
