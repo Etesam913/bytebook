@@ -678,6 +678,9 @@ func (fw *FileWatcher) resolvePendingRenames(isFolder bool) {
 
 	for _, pending := range recentCreates {
 		path := pending.event.Name
+		if !util.ExactPathExists(path) {
+			continue
+		}
 		if !isFolder {
 			fw.hasFileChanged(path)
 		}

@@ -47,6 +47,12 @@ export function setSortedTreePaths(
   sortedPathsByModel.set(model, paths);
 }
 
+export function getSortedTreePaths(
+  model: PierreFileTree
+): readonly string[] | undefined {
+  return sortedPathsByModel.get(model);
+}
+
 // Seeds the row order at model construction. No-op when an entry already
 // exists — a later tree effect must not clobber a fresher list with the
 // stale construction-time one.

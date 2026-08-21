@@ -98,17 +98,16 @@ func Delete(projectPath, folder, fileName string) error {
 // No-op when the source sidecar does not exist; errors when a sidecar already exists at the destination.
 func Move(oldFilePath, newFilePath string) error {
 	oldSidecarPath := PathFor(oldFilePath)
-	if _, err := os.Stat(oldSidecarPath); errors.Is(err, os.ErrNotExist) {
+	newSidecarPath := PathFor(newFilePath)
+
+	collides, err := util.DestinationCollides(oldSidecarPath, newSidecarPath)
+	if errors.Is(err, os.ErrNotExist) {
 		return nil
 	} else if err != nil {
 		return err
 	}
-
-	newSidecarPath := PathFor(newFilePath)
-	if _, err := os.Stat(newSidecarPath); err == nil {
+	if collides {
 		return errors.New("sidecar already exists at destination")
-	} else if !errors.Is(err, os.ErrNotExist) {
-		return err
 	}
 
 	if err := os.MkdirAll(filepath.Dir(newSidecarPath), 0755); err != nil {

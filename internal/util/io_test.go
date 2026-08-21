@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type TestWriteJson struct {
@@ -420,6 +421,85 @@ func TestFileOrFolderExists(t *testing.T) {
 	if exists {
 		t.Errorf("Non-existent path should not exist but FileOrFolderExists returned true")
 	}
+}
+
+func TestDestinationCollides(t *testing.T) {
+	t.Run("returns false when destination does not exist", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		oldPath := filepath.Join(tmpDir, "file1.txt")
+		newPath := filepath.Join(tmpDir, "file2.txt")
+		require.NoError(t, os.WriteFile(oldPath, []byte("content"), 0644))
+
+		collides, err := DestinationCollides(oldPath, newPath)
+		assert.NoError(t, err)
+		assert.False(t, collides)
+	})
+
+	t.Run("returns true when destination exists as distinct file", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		oldPath := filepath.Join(tmpDir, "file1.txt")
+		newPath := filepath.Join(tmpDir, "file2.txt")
+		require.NoError(t, os.WriteFile(oldPath, []byte("content1"), 0644))
+		require.NoError(t, os.WriteFile(newPath, []byte("content2"), 0644))
+
+		collides, err := DestinationCollides(oldPath, newPath)
+		assert.NoError(t, err)
+		assert.True(t, collides)
+	})
+
+	t.Run("returns false for case-only rename of same file", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		oldPath := filepath.Join(tmpDir, "file.txt")
+		newPath := filepath.Join(tmpDir, "File.txt")
+		require.NoError(t, os.WriteFile(oldPath, []byte("content"), 0644))
+
+		collides, err := DestinationCollides(oldPath, newPath)
+		assert.NoError(t, err)
+		assert.False(t, collides)
+	})
+
+	t.Run("returns error when source file does not exist", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		oldPath := filepath.Join(tmpDir, "missing.txt")
+		newPath := filepath.Join(tmpDir, "new.txt")
+
+		_, err := DestinationCollides(oldPath, newPath)
+		assert.Error(t, err)
+	})
+}
+
+func TestExactPathExists(t *testing.T) {
+	t.Run("returns true when file exists with exact case", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		filePath := filepath.Join(tmpDir, "BUgS.md")
+		require.NoError(t, os.WriteFile(filePath, []byte("content"), 0644))
+
+		assert.True(t, ExactPathExists(filePath))
+	})
+
+	t.Run("returns false when file casing differs from disk", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		filePath := filepath.Join(tmpDir, "BUgS.md")
+		require.NoError(t, os.WriteFile(filePath, []byte("content"), 0644))
+
+		assert.False(t, ExactPathExists(filepath.Join(tmpDir, "bugs.md")))
+		assert.False(t, ExactPathExists(filepath.Join(tmpDir, "BugS.md")))
+		assert.False(t, ExactPathExists(filepath.Join(tmpDir, "bugS.md")))
+	})
+
+	t.Run("returns false when file does not exist", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		assert.False(t, ExactPathExists(filepath.Join(tmpDir, "missing.md")))
+	})
+
+	t.Run("returns true when directory exists with exact case", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		dirPath := filepath.Join(tmpDir, "MyFolder")
+		require.NoError(t, os.MkdirAll(dirPath, 0755))
+
+		assert.True(t, ExactPathExists(dirPath))
+		assert.False(t, ExactPathExists(filepath.Join(tmpDir, "myfolder")))
+	})
 }
 
 // TestCreateUniqueNameForFileIfExists tests the CreateUniqueNameForFileIfExists function.

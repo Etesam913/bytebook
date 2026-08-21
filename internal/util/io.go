@@ -2,6 +2,7 @@ package util
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -185,6 +186,51 @@ func IsDirectory(path string) bool {
 	}
 
 	return info.IsDir()
+}
+
+// DestinationCollides reports whether newPath exists on disk and points to a
+// distinct item from oldPath (i.e. not a case-only rename of the same item on a
+// case-insensitive filesystem).
+func DestinationCollides(oldPath, newPath string) (bool, error) {
+	oldInfo, err := os.Stat(oldPath)
+	if err != nil {
+		return false, err
+	}
+	newInfo, err := os.Stat(newPath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return false, nil
+		}
+		return false, err
+	}
+	return !os.SameFile(oldInfo, newInfo), nil
+}
+
+// ExactPathExists reports whether a file or directory exists at path with the
+// exact casing on disk (preventing false positives on case-insensitive filesystems).
+func ExactPathExists(path string) bool {
+	if _, err := os.Lstat(path); err != nil {
+		return false
+	}
+
+	dir := filepath.Dir(path)
+	base := filepath.Base(path)
+	if dir == path || base == "." || base == "/" {
+		return true
+	}
+
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return false
+	}
+
+	for _, entry := range entries {
+		if entry.Name() == base {
+			return true
+		}
+	}
+
+	return false
 }
 
 // DedupeDescendantPaths returns a copy of paths with duplicates and

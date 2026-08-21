@@ -7,6 +7,7 @@ import {
 import { useEffect, useRef } from 'react';
 import {
   applySortedTreePathMutation,
+  getSortedTreePaths,
   initializeSortedTreePaths,
   isDirectoryHandle,
   setSortedTreePaths,
@@ -64,7 +65,10 @@ export function useSyncAllPaths({
     const added = allPaths.filter(
       (path) => !previous.has(path) && !model.getItem(path)
     );
-    const removedWithChildren = previousPaths.filter(
+    const currentModelPaths = Array.from(
+      new Set([...previousPaths, ...(getSortedTreePaths(model) ?? [])])
+    );
+    const removedWithChildren = currentModelPaths.filter(
       (path) => !next.has(path) && model.getItem(path) !== null
     );
     // A recursive folder remove takes its children with it, so drop child

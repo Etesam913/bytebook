@@ -67,9 +67,14 @@ func (f *FolderService) RenameFolder(oldFolderName string, newFolderName string)
 		}
 	}
 
-	info, err := os.Stat(pathToNewFolder)
-
-	if err == nil && info.IsDir() {
+	collides, err := util.DestinationCollides(pathToOldFolder, pathToNewFolder)
+	if err != nil {
+		return config.BackendResponseWithoutData{
+			Success: false,
+			Message: fmt.Sprintf("Source folder does not exist: %s", oldFolderName),
+		}
+	}
+	if collides {
 		return config.BackendResponseWithoutData{
 			Success: false,
 			Message: fmt.Sprintf(

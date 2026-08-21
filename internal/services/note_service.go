@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -29,9 +30,8 @@ func (n *NoteService) RenameFile(oldFolderNotePath string, newFolderNotePath str
 		return config.BackendResponseWithData[string]{Success: false, Message: err.Error(), Data: ""}
 	}
 
-	// Check if the old file or folder exists
-	exists, err := util.FileOrFolderExists(oldPath)
-	if !exists || err != nil {
+	collides, err := util.DestinationCollides(oldPath, newPath)
+	if err != nil {
 		return config.BackendResponseWithData[string]{
 			Success: false,
 			Message: "Source file or folder does not exist",
@@ -39,28 +39,8 @@ func (n *NoteService) RenameFile(oldFolderNotePath string, newFolderNotePath str
 		}
 	}
 
-	// Get file info to determine if it's a directory or file
-	oldInfo, err := os.Stat(oldPath)
-	if err != nil {
-		return config.BackendResponseWithData[string]{
-			Success: false,
-			Message: err.Error(),
-			Data:    "",
-		}
-	}
-	isDir := oldInfo.IsDir()
-
-	// Check if the new path already exists
-	newExists, err := util.FileOrFolderExists(newPath)
-	if err != nil {
-		return config.BackendResponseWithData[string]{
-			Success: false,
-			Message: err.Error(),
-			Data:    "",
-		}
-	}
-
-	if newExists {
+	isDir := util.IsDirectory(oldPath)
+	if collides {
 		itemType := "file"
 		if isDir {
 			itemType = "folder"
@@ -87,26 +67,19 @@ func (n *NoteService) RenameFile(oldFolderNotePath string, newFolderNotePath str
 
 	if !isDir {
 		oldSidecarPath := sidecar.PathFor(oldPath)
-		if sidecarExists, err := util.FileOrFolderExists(oldSidecarPath); err != nil {
+		sidecarCollides, err := util.DestinationCollides(oldSidecarPath, sidecar.PathFor(newPath))
+		if err != nil && !errors.Is(err, os.ErrNotExist) {
 			return config.BackendResponseWithData[string]{
 				Success: false,
 				Message: err.Error(),
 				Data:    "",
 			}
-		} else if sidecarExists {
-			newSidecarPath := sidecar.PathFor(newPath)
-			if newSidecarExists, err := util.FileOrFolderExists(newSidecarPath); err != nil {
-				return config.BackendResponseWithData[string]{
-					Success: false,
-					Message: err.Error(),
-					Data:    "",
-				}
-			} else if newSidecarExists {
-				return config.BackendResponseWithData[string]{
-					Success: false,
-					Message: "Sidecar already exists at destination",
-					Data:    "",
-				}
+		}
+		if sidecarCollides {
+			return config.BackendResponseWithData[string]{
+				Success: false,
+				Message: "Sidecar already exists at destination",
+				Data:    "",
 			}
 		}
 	}

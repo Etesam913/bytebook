@@ -175,4 +175,19 @@ func TestMove(t *testing.T) {
 		err := Move(oldFilePath, newFilePath)
 		assert.Error(t, err)
 	})
+
+	t.Run("succeeds on case-only sidecar rename", func(t *testing.T) {
+		projectPath := setupTestDir(t)
+		oldFilePath := filepath.Join(projectPath, "notes", "testfolder", "photo.jpg")
+		newFilePath := filepath.Join(projectPath, "notes", "testfolder", "Photo.jpg")
+		require.NoError(t, os.WriteFile(oldFilePath, []byte("image"), 0644))
+		require.NoError(t, WriteTags(projectPath, "testfolder", "photo.jpg", []string{"tag1"}))
+
+		err := Move(oldFilePath, newFilePath)
+		assert.NoError(t, err)
+
+		tags, err := ReadTags(projectPath, "testfolder", "Photo.jpg")
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{"tag1"}, tags)
+	})
 }
