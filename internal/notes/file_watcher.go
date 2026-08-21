@@ -23,6 +23,20 @@ const (
 	debounceTimeout = 50 * time.Millisecond
 )
 
+// CodeResultsUpdateEventData is the payload for code-results:update events,
+// emitted when a note's code-results sidecar file changes on disk.
+type CodeResultsUpdateEventData struct {
+	FilePath    string              `json:"filePath"`
+	CodeResults sidecar.CodeResults `json:"codeResults"`
+}
+
+func init() {
+	// These events are named in util but their payload types live here / in
+	// config, which util cannot import without a cycle.
+	application.RegisterEvent[config.ProjectSettingsJson](util.EventSettingsUpdate)
+	application.RegisterEvent[CodeResultsUpdateEventData](util.EventCodeResultsUpdate)
+}
+
 type pendingWatcherEvent struct {
 	event fsnotify.Event
 }
@@ -104,7 +118,7 @@ func (fw *FileWatcher) handleFolderEvents(event fsnotify.Event) {
 		fw.pendingFolderRenameEvents = addPendingWatcherEvent(fw.pendingFolderRenameEvents, event)
 	} else if event.Has(fsnotify.Remove) {
 		fw.removeFolderTreeWatches(event.Name)
-		fw.appendDebouncedEvent(util.Events.FolderDelete, map[string]string{
+		fw.appendDebouncedEvent(util.EventFolderDelete, map[string]string{
 			"folderPath": fw.pathFromNotes(event.Name),
 		})
 	}
@@ -145,7 +159,7 @@ func (fw *FileWatcher) handleFileEvents(event fsnotify.Event) {
 
 	if event.Has(fsnotify.Remove) {
 		fw.clearFileState(filePath)
-		fw.appendDebouncedEvent(util.Events.FileDelete, map[string]string{
+		fw.appendDebouncedEvent(util.EventFileDelete, map[string]string{
 			"filePath": fw.pathFromNotes(filePath),
 		})
 		fw.handleDebounceReset()
@@ -165,7 +179,7 @@ func (fw *FileWatcher) handleSettingsUpdate() {
 	err := util.ReadJsonFromPath(filepath.Join(fw.projectPath, "settings", "settings.json"), &projectSettings)
 	if err == nil {
 		fw.app.Event.EmitEvent(&application.CustomEvent{
-			Name: util.Events.SettingsUpdate,
+			Name: util.EventSettingsUpdate,
 			Data: projectSettings,
 		})
 	}
@@ -178,7 +192,7 @@ func (fw *FileWatcher) handleSavedSearchUpdate(event fsnotify.Event) {
 		event.Has(fsnotify.Remove) ||
 		event.Has(fsnotify.Rename) {
 		fw.app.Event.EmitEvent(&application.CustomEvent{
-			Name: util.Events.SavedSearchUpdate,
+			Name: util.EventSavedSearchUpdate,
 			Data: nil,
 		})
 	}
@@ -188,8 +202,8 @@ func (fw *FileWatcher) handleSavedSearchUpdate(event fsnotify.Event) {
 // that were also the "new*Path" (for create) or "old*Path" (for delete) target of a rename event within the same debounce cycle.
 // This prevents redundant creation/deletion events for items that were simply renamed/moved.
 func filterUnneededDebouncedEvents(events map[string][]map[string]string) map[string][]map[string]string {
-	fileRenameEvents := events[util.Events.FileRename]
-	folderRenameEvents := events[util.Events.FolderRename]
+	fileRenameEvents := events[util.EventFileRename]
+	folderRenameEvents := events[util.EventFolderRename]
 	if len(fileRenameEvents) == 0 && len(folderRenameEvents) == 0 {
 		return events
 	}
@@ -226,7 +240,7 @@ func filterUnneededDebouncedEvents(events map[string][]map[string]string) map[st
 	filteredEvents := make(map[string][]map[string]string, len(events))
 	for eventKey, data := range events {
 		switch eventKey {
-		case util.Events.FileCreate:
+		case util.EventFileCreate:
 			kept := make([]map[string]string, 0, len(data))
 			for _, payload := range data {
 				filePath := payload["filePath"]
@@ -239,7 +253,7 @@ func filterUnneededDebouncedEvents(events map[string][]map[string]string) map[st
 			if len(kept) > 0 {
 				filteredEvents[eventKey] = kept
 			}
-		case util.Events.FolderCreate:
+		case util.EventFolderCreate:
 			kept := make([]map[string]string, 0, len(data))
 			for _, payload := range data {
 				folderPath := payload["folderPath"]
@@ -251,7 +265,7 @@ func filterUnneededDebouncedEvents(events map[string][]map[string]string) map[st
 			if len(kept) > 0 {
 				filteredEvents[eventKey] = kept
 			}
-		case util.Events.FileDelete:
+		case util.EventFileDelete:
 			kept := make([]map[string]string, 0, len(data))
 			for _, payload := range data {
 				filePath := payload["filePath"]
@@ -264,7 +278,7 @@ func filterUnneededDebouncedEvents(events map[string][]map[string]string) map[st
 			if len(kept) > 0 {
 				filteredEvents[eventKey] = kept
 			}
-		case util.Events.FolderDelete:
+		case util.EventFolderDelete:
 			kept := make([]map[string]string, 0, len(data))
 			for _, payload := range data {
 				folderPath := payload["folderPath"]
@@ -507,10 +521,10 @@ func (fw *FileWatcher) emitCodeResultsSidecarUpdateEvent(sidecarPath string) {
 		return
 	}
 	fw.app.Event.EmitEvent(&application.CustomEvent{
-		Name: util.Events.CodeResultsUpdate,
-		Data: map[string]any{
-			"filePath":    fw.pathFromNotes(notePath),
-			"codeResults": results,
+		Name: util.EventCodeResultsUpdate,
+		Data: CodeResultsUpdateEventData{
+			FilePath:    fw.pathFromNotes(notePath),
+			CodeResults: results,
 		},
 	})
 }
@@ -531,7 +545,7 @@ func (fw *FileWatcher) emitFileWriteEvent(filePath string) {
 		}
 	}
 
-	fw.appendDebouncedEvent(util.Events.FileWrite, eventData)
+	fw.appendDebouncedEvent(util.EventFileWrite, eventData)
 }
 
 // processEvent handles a single filesystem event
@@ -594,14 +608,14 @@ func (fw *FileWatcher) resolvePendingRenames(isFolder bool) {
 
 	if isFolder {
 		pendingRenames, recentCreates = fw.pendingFolderRenameEvents, fw.mostRecentFolderCreatedEvents
-		deleteEventKey, renameEventKey = util.Events.FolderDelete, util.Events.FolderRename
-		createEventKey = util.Events.FolderCreate
+		deleteEventKey, renameEventKey = util.EventFolderDelete, util.EventFolderRename
+		createEventKey = util.EventFolderCreate
 		deletePathPayload, renameOldPathPayload, renameNewPathPayload = "folderPath", "oldFolderPath", "newFolderPath"
 		createPathPayload = "folderPath"
 	} else {
 		pendingRenames, recentCreates = fw.pendingFileRenameEvents, fw.mostRecentFileCreatedEvents
-		deleteEventKey, renameEventKey = util.Events.FileDelete, util.Events.FileRename
-		createEventKey = util.Events.FileCreate
+		deleteEventKey, renameEventKey = util.EventFileDelete, util.EventFileRename
+		createEventKey = util.EventFileCreate
 		deletePathPayload, renameOldPathPayload, renameNewPathPayload = "filePath", "oldFilePath", "newFilePath"
 		createPathPayload = "filePath"
 	}
@@ -681,13 +695,13 @@ func (fw *FileWatcher) resolvePendingRenames(isFolder bool) {
 
 func orderedDebouncedEventKeys(events map[string][]map[string]string) []string {
 	order := []string{
-		util.Events.FolderRename,
-		util.Events.FileRename,
-		util.Events.FolderDelete,
-		util.Events.FileDelete,
-		util.Events.FolderCreate,
-		util.Events.FileCreate,
-		util.Events.FileWrite,
+		util.EventFolderRename,
+		util.EventFileRename,
+		util.EventFolderDelete,
+		util.EventFileDelete,
+		util.EventFolderCreate,
+		util.EventFileCreate,
+		util.EventFileWrite,
 	}
 
 	keys := []string{}
@@ -710,6 +724,68 @@ func orderedDebouncedEventKeys(events map[string][]map[string]string) []string {
 	return keys
 }
 
+// typedDebouncedEventPayload converts a batch of accumulated map payloads into
+// the payload type registered for eventKey. Registered events are validated on
+// emit against their exact registered type, so the raw maps used internally by
+// the debounce pipeline cannot be emitted directly.
+func typedDebouncedEventPayload(eventKey string, data []map[string]string) any {
+	switch eventKey {
+	case util.EventFileCreate:
+		out := make([]util.FileCreateEventData, len(data))
+		for i, payload := range data {
+			out[i] = util.FileCreateEventData{FilePath: payload["filePath"]}
+		}
+		return out
+	case util.EventFileDelete:
+		out := make([]util.FileDeleteEventData, len(data))
+		for i, payload := range data {
+			out[i] = util.FileDeleteEventData{FilePath: payload["filePath"]}
+		}
+		return out
+	case util.EventFileRename:
+		out := make([]util.FileRenameEventData, len(data))
+		for i, payload := range data {
+			out[i] = util.FileRenameEventData{
+				OldFilePath: payload["oldFilePath"],
+				NewFilePath: payload["newFilePath"],
+			}
+		}
+		return out
+	case util.EventFileWrite:
+		out := make([]util.FileWriteEventData, len(data))
+		for i, payload := range data {
+			out[i] = util.FileWriteEventData{
+				FilePath: payload["filePath"],
+				Markdown: payload["markdown"],
+			}
+		}
+		return out
+	case util.EventFolderCreate:
+		out := make([]util.FolderCreateEventData, len(data))
+		for i, payload := range data {
+			out[i] = util.FolderCreateEventData{FolderPath: payload["folderPath"]}
+		}
+		return out
+	case util.EventFolderDelete:
+		out := make([]util.FolderDeleteEventData, len(data))
+		for i, payload := range data {
+			out[i] = util.FolderDeleteEventData{FolderPath: payload["folderPath"]}
+		}
+		return out
+	case util.EventFolderRename:
+		out := make([]util.FolderRenameEventData, len(data))
+		for i, payload := range data {
+			out[i] = util.FolderRenameEventData{
+				OldFolderPath: payload["oldFolderPath"],
+				NewFolderPath: payload["newFolderPath"],
+			}
+		}
+		return out
+	default:
+		return data
+	}
+}
+
 // emitDebouncedEvents sends all accumulated events to the application
 func (fw *FileWatcher) emitDebouncedEvents() {
 	fw.resolvePendingRenames(false) // files first
@@ -726,7 +802,7 @@ func (fw *FileWatcher) emitDebouncedEvents() {
 		data := filteredEvents[eventKey]
 		fw.app.Event.EmitEvent(&application.CustomEvent{
 			Name: eventKey,
-			Data: data,
+			Data: typedDebouncedEventPayload(eventKey, data),
 		})
 	}
 	// Clear the debounced events

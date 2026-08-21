@@ -3,6 +3,7 @@ import reactCompiler from 'babel-plugin-react-compiler';
 import { defineConfig, loadEnv } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import { visualizer } from 'rollup-plugin-visualizer';
+import wailsTypedEvents from '@wailsio/runtime/plugins/vite';
 import path from 'node:path';
 
 const ReactCompilerConfig = {
@@ -54,6 +55,9 @@ export default defineConfig(({ mode }) => {
           plugins: [[reactCompiler, ReactCompilerConfig]],
         },
       }),
+      // Injects the generated eventcreate glue into the runtime so event data
+      // arrives as the typed model classes declared in bindings/.../eventdata.d.ts.
+      wailsTypedEvents(path.resolve(import.meta.dirname, './bindings')),
       ...visualizerPlugin,
       tailwindcss(),
     ],

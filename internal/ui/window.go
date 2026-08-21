@@ -37,7 +37,7 @@ func CreateWindow(app *application.App, url string, backgroundColor application.
 	window.OnWindowEvent(events.Common.WindowFullscreen, func(e *application.WindowEvent) {
 		log.Println("Window entered fullscreen mode!")
 		app.Event.EmitEvent(&application.CustomEvent{
-			Name: util.Events.Fullscreen,
+			Name: util.EventFullscreen,
 			Data: true,
 		})
 	})
@@ -45,7 +45,7 @@ func CreateWindow(app *application.App, url string, backgroundColor application.
 	window.OnWindowEvent(events.Common.WindowUnFullscreen, func(e *application.WindowEvent) {
 		log.Println("Window exited fullscreen mode!")
 		app.Event.EmitEvent(&application.CustomEvent{
-			Name: util.Events.Fullscreen,
+			Name: util.EventFullscreen,
 			Data: false,
 		})
 	})

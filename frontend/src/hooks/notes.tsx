@@ -270,10 +270,7 @@ export function useNoteWriteEvent({
 }) {
   useWailsEvent(FILE_WRITE, (e) => {
     void (async () => {
-      const data = e.data as {
-        filePath: string;
-        markdown?: string;
-      }[];
+      const data = e.data;
 
       const isWindowFocused = await Window.IsFocused();
 
@@ -315,10 +312,7 @@ export function useNoteWriteEvent({
   });
 
   useWailsEvent(CODE_RESULTS_UPDATE, (e) => {
-    const data = e.data as {
-      filePath: string;
-      codeResults?: Parameters<typeof applyCodeResultsSidecar>[0];
-    };
+    const data = e.data;
     const filePath = createFilePath(data.filePath);
 
     if (

@@ -1,108 +1,66 @@
 package util
 
-var Events = struct {
+import "github.com/wailsapp/wails/v3/pkg/application"
+
+// Event name constants. Every custom Wails event used by the app is named here.
+// Events whose payload types live in this package are registered in init below;
+// events with payload types in other packages (config, notes, kernel_manager,
+// jupyter_protocol/sockets) are registered in those packages' init functions.
+// Each event must be registered exactly once — application.RegisterEvent panics
+// on duplicates — and registration gives emit-time payload validation plus
+// generated TypeScript typings for the frontend.
+const (
 	// File events
-	FileCreate string
-	FileDelete string
-	FileRename string
-	FileWrite  string
+	EventFileCreate = "file:create"
+	EventFileDelete = "file:delete"
+	EventFileRename = "file:rename"
+	EventFileWrite  = "file:write"
 
 	// Folder events
-	FolderRename string
-	FolderDelete string
-	FolderCreate string
+	EventFolderRename = "folder:rename"
+	EventFolderDelete = "folder:delete"
+	EventFolderCreate = "folder:create"
 
 	// UI events
-	ZoomIn              string
-	ZoomOut             string
-	ZoomReset           string
-	SettingsOpen        string
-	SearchNote          string
-	Fullscreen          string
-	ToggleSidebar       string
-	SidebarFilesOpen    string
-	SidebarSearchOpen   string
-	FileTreeContentDrop string
-	EditorContentDrop   string
+	EventZoomIn              = "zoom:in"
+	EventZoomOut             = "zoom:out"
+	EventZoomReset           = "zoom:reset"
+	EventSettingsOpen        = "settings:open"
+	EventSearchNote          = "search:note"
+	EventFullscreen          = "window:fullscreen"
+	EventToggleSidebar       = "sidebar:toggle"
+	EventSidebarFilesOpen    = "sidebar:files:open"
+	EventSidebarSearchOpen   = "sidebar:search:open"
+	EventFileTreeContentDrop = "file-tree:content-drop"
+	EventEditorContentDrop   = "editor:content-drop"
 
 	// File watcher events
-	SettingsUpdate    string
-	TagsUpdate        string
-	TagsIndexUpdate   string
-	SavedSearchUpdate string
-	CodeResultsUpdate string
+	EventSettingsUpdate    = "settings:update"
+	EventTagsUpdate        = "tags:update"
+	EventTagsIndexUpdate   = "tags:index_update"
+	EventSavedSearchUpdate = "saved-search:update"
+	EventCodeResultsUpdate = "code-results:update"
 
 	// Kernel instance events (per-instance, not per-language)
-	KernelInstanceCreated     string
-	KernelInstanceShutdown    string
-	KernelInstanceStatus      string
-	KernelInstanceHeartbeat   string
-	KernelInstanceLaunchError string
-	KernelInstanceExited      string
+	EventKernelInstanceCreated     = "kernel:instance:created"
+	EventKernelInstanceShutdown    = "kernel:instance:shutdown"
+	EventKernelInstanceStatus      = "kernel:instance:status"
+	EventKernelInstanceHeartbeat   = "kernel:instance:heartbeat"
+	EventKernelInstanceLaunchError = "kernel:instance:launch_error"
+	EventKernelInstanceExited      = "kernel:instance:exited"
 
-	// Code block events (scoped by messageId, unchanged)
-	CodeBlockStream        string
-	CodeBlockExecuteResult string
-	CodeBlockDisplayData   string
-	CodeBlockExecuteInput  string
-	CodeBlockStatus        string
-	CodeBlockIopubError    string
-	CodeBlockInputRequest  string
-	CodeBlockInspectReply  string
-	CodeBlockCompleteReply string
-	CodeBlockExecuteReply  string
-}{
-	// File events
-	FileCreate: "file:create",
-	FileDelete: "file:delete",
-	FileRename: "file:rename",
-	FileWrite:  "file:write",
-
-	// Folder events
-	FolderRename: "folder:rename",
-	FolderDelete: "folder:delete",
-	FolderCreate: "folder:create",
-
-	// UI events
-	ZoomIn:              "zoom:in",
-	ZoomOut:             "zoom:out",
-	ZoomReset:           "zoom:reset",
-	SettingsOpen:        "settings:open",
-	SearchNote:          "search:note",
-	Fullscreen:          "window:fullscreen",
-	ToggleSidebar:       "sidebar:toggle",
-	SidebarFilesOpen:    "sidebar:files:open",
-	SidebarSearchOpen:   "sidebar:search:open",
-	FileTreeContentDrop: "file-tree:content-drop",
-	EditorContentDrop:   "editor:content-drop",
-
-	// File watcher events
-	SettingsUpdate:    "settings:update",
-	TagsUpdate:        "tags:update",
-	TagsIndexUpdate:   "tags:index_update",
-	SavedSearchUpdate: "saved-search:update",
-	CodeResultsUpdate: "code-results:update",
-
-	// Kernel instance events
-	KernelInstanceCreated:     "kernel:instance:created",
-	KernelInstanceShutdown:    "kernel:instance:shutdown",
-	KernelInstanceStatus:      "kernel:instance:status",
-	KernelInstanceHeartbeat:   "kernel:instance:heartbeat",
-	KernelInstanceLaunchError: "kernel:instance:launch_error",
-	KernelInstanceExited:      "kernel:instance:exited",
-
-	// Code block events
-	CodeBlockStream:        "code:code-block:stream",
-	CodeBlockExecuteResult: "code:code-block:execute_result",
-	CodeBlockDisplayData:   "code:code-block:display_data",
-	CodeBlockExecuteInput:  "code:code-block:execute_input",
-	CodeBlockStatus:        "code:code-block:status",
-	CodeBlockIopubError:    "code:code-block:iopub_error",
-	CodeBlockInputRequest:  "code:code-block:input_request",
-	CodeBlockInspectReply:  "code:code-block:inspect_reply",
-	CodeBlockCompleteReply: "code:code-block:complete_reply",
-	CodeBlockExecuteReply:  "code:code-block:execute_reply",
-}
+	// Code block events (scoped by messageId)
+	EventCodeBlockStream        = "code:code-block:stream"
+	EventCodeBlockExecuteResult = "code:code-block:execute_result"
+	EventCodeBlockDisplayData   = "code:code-block:display_data"
+	EventCodeBlockExecuteInput  = "code:code-block:execute_input"
+	EventCodeBlockStatus        = "code:code-block:status"
+	EventCodeBlockIopubError    = "code:code-block:iopub_error"
+	EventCodeBlockInputRequest  = "code:code-block:input_request"
+	EventCodeBlockInspectReply  = "code:code-block:inspect_reply"
+	EventCodeBlockCompleteReply = "code:code-block:complete_reply"
+	EventCodeBlockExecuteReply  = "code:code-block:execute_reply"
+)
 
 // A map of folderAndNoteNames to tags
 type TagsUpdateEventData map[string][]string
@@ -152,4 +110,32 @@ type ContentDropEventData struct {
 	TargetElementID string   `json:"targetElementId,omitempty"`
 	X               int      `json:"x"`
 	Y               int      `json:"y"`
+}
+
+func init() {
+	// File and folder events are emitted as batches accumulated per debounce
+	// cycle by the file watcher, hence the slice payloads.
+	application.RegisterEvent[[]FileCreateEventData](EventFileCreate)
+	application.RegisterEvent[[]FileDeleteEventData](EventFileDelete)
+	application.RegisterEvent[[]FileRenameEventData](EventFileRename)
+	application.RegisterEvent[[]FileWriteEventData](EventFileWrite)
+	application.RegisterEvent[[]FolderCreateEventData](EventFolderCreate)
+	application.RegisterEvent[[]FolderDeleteEventData](EventFolderDelete)
+	application.RegisterEvent[[]FolderRenameEventData](EventFolderRename)
+
+	application.RegisterEvent[application.Void](EventZoomIn)
+	application.RegisterEvent[application.Void](EventZoomOut)
+	application.RegisterEvent[application.Void](EventZoomReset)
+	application.RegisterEvent[application.Void](EventSettingsOpen)
+	application.RegisterEvent[application.Void](EventSearchNote)
+	application.RegisterEvent[bool](EventFullscreen)
+	application.RegisterEvent[application.Void](EventToggleSidebar)
+	application.RegisterEvent[application.Void](EventSidebarFilesOpen)
+	application.RegisterEvent[application.Void](EventSidebarSearchOpen)
+	application.RegisterEvent[ContentDropEventData](EventFileTreeContentDrop)
+	application.RegisterEvent[ContentDropEventData](EventEditorContentDrop)
+
+	application.RegisterEvent[TagsUpdateEventData](EventTagsUpdate)
+	application.RegisterEvent[application.Void](EventTagsIndexUpdate)
+	application.RegisterEvent[application.Void](EventSavedSearchUpdate)
 }

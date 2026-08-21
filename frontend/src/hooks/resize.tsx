@@ -1,5 +1,5 @@
 import { useSetAtom } from 'jotai/react';
-import { useWailsEvent, WailsEvent } from './events';
+import { useWailsEvent } from './events';
 import { ZOOM_IN, ZOOM_OUT, ZOOM_RESET, FULLSCREEN } from '@utils/events';
 import { logger } from '@utils/logging';
 import { isFullscreenAtom } from '@/atoms';
@@ -95,8 +95,8 @@ export function useZoom() {
 export function useFullscreen() {
   const setIsFullscreen = useSetAtom(isFullscreenAtom);
 
-  useWailsEvent(FULLSCREEN, (event: WailsEvent) => {
-    const isFullscreen = event.data as boolean;
+  useWailsEvent(FULLSCREEN, (event) => {
+    const isFullscreen = event.data;
     logger.event(FULLSCREEN, isFullscreen);
     setIsFullscreen(isFullscreen);
   });

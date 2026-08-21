@@ -2,7 +2,7 @@ import type {
   FileTree as PierreFileTree,
   FileTreeBatchOperation,
 } from '@pierre/trees';
-import { useWailsEvent, type WailsEvent } from '@hooks/events';
+import { useWailsEvent } from '@hooks/events';
 import {
   FILE_CREATE,
   FILE_DELETE,
@@ -12,45 +12,14 @@ import {
   FOLDER_RENAME,
 } from '@utils/events';
 
-type PathPayload = { filePath?: string; folderPath?: string };
-type RenamePayload = {
-  oldFilePath?: string;
-  newFilePath?: string;
-  oldFolderPath?: string;
-  newFolderPath?: string;
-};
-
 /**
  * The frontend (and @pierre/trees) mark directories with a trailing slash,
  * but the Go file-watcher payloads always send slashless paths — this is the
  * Go → frontend boundary where the folder marker is restored.
  */
-function toPierrePath(rawPath: string, isFolder: boolean): string {
-  if (!rawPath || !isFolder || rawPath.endsWith('/')) return rawPath;
+function toPierrePath(rawPath: string): string {
+  if (!rawPath || rawPath.endsWith('/')) return rawPath;
   return `${rawPath}/`;
-}
-
-function extractPath(item: PathPayload, isFolder: boolean): string {
-  return toPierrePath(
-    (isFolder ? item.folderPath : item.filePath) ?? '',
-    isFolder
-  );
-}
-
-function extractRename(
-  item: RenamePayload,
-  isFolder: boolean
-): { oldPath: string; newPath: string } {
-  if (isFolder) {
-    return {
-      oldPath: toPierrePath(item.oldFolderPath ?? '', true),
-      newPath: toPierrePath(item.newFolderPath ?? '', true),
-    };
-  }
-  return {
-    oldPath: item.oldFilePath ?? '',
-    newPath: item.newFilePath ?? '',
-  };
 }
 
 /**
@@ -60,38 +29,57 @@ function extractRename(
  */
 export function usePierreTreeEvents(model: PierreFileTree | null) {
   useWailsEvent(FOLDER_CREATE, (body) =>
-    handleCreate({ model, body, isFolder: true })
+    handleCreate({
+      model,
+      paths: body.data.map((item) => toPierrePath(item.folderPath)),
+    })
   );
   useWailsEvent(FILE_CREATE, (body) =>
-    handleCreate({ model, body, isFolder: false })
+    handleCreate({ model, paths: body.data.map((item) => item.filePath) })
   );
   useWailsEvent(FOLDER_DELETE, (body) =>
-    handleDelete({ model, body, isFolder: true })
+    handleDelete({
+      model,
+      paths: body.data.map((item) => toPierrePath(item.folderPath)),
+      recursive: true,
+    })
   );
   useWailsEvent(FILE_DELETE, (body) =>
-    handleDelete({ model, body, isFolder: false })
+    handleDelete({
+      model,
+      paths: body.data.map((item) => item.filePath),
+      recursive: false,
+    })
   );
   useWailsEvent(FOLDER_RENAME, (body) =>
-    handleRename({ model, body, isFolder: true })
+    handleRename({
+      model,
+      renames: body.data.map((item) => ({
+        oldPath: toPierrePath(item.oldFolderPath),
+        newPath: toPierrePath(item.newFolderPath),
+      })),
+    })
   );
   useWailsEvent(FILE_RENAME, (body) =>
-    handleRename({ model, body, isFolder: false })
+    handleRename({
+      model,
+      renames: body.data.map((item) => ({
+        oldPath: item.oldFilePath,
+        newPath: item.newFilePath,
+      })),
+    })
   );
 }
 
 function handleCreate({
   model,
-  body,
-  isFolder,
+  paths,
 }: {
   model: PierreFileTree | null;
-  body: WailsEvent;
-  isFolder: boolean;
+  paths: string[];
 }) {
   if (!model) return;
-  const items = (body.data as PathPayload[]) ?? [];
-  const ops = items
-    .map((item) => extractPath(item, isFolder))
+  const ops = paths
     .filter((path) => path && !model.getItem(path))
     .map((path) => ({ type: 'add' as const, path }));
   if (ops.length === 0) return;
@@ -102,22 +90,20 @@ function handleCreate({
 
 function handleDelete({
   model,
-  body,
-  isFolder,
+  paths,
+  recursive,
 }: {
   model: PierreFileTree | null;
-  body: WailsEvent;
-  isFolder: boolean;
+  paths: string[];
+  recursive: boolean;
 }) {
   if (!model) return;
-  const items = (body.data as PathPayload[]) ?? [];
-  const ops = items
-    .map((item) => extractPath(item, isFolder))
+  const ops = paths
     .filter((path) => path && model.getItem(path))
     .map((path) => ({
       type: 'remove' as const,
       path,
-      recursive: isFolder,
+      recursive,
     }));
   if (ops.length === 0) return;
   model.batch(ops);
@@ -125,18 +111,14 @@ function handleDelete({
 
 function handleRename({
   model,
-  body,
-  isFolder,
+  renames,
 }: {
   model: PierreFileTree | null;
-  body: WailsEvent;
-  isFolder: boolean;
+  renames: Array<{ oldPath: string; newPath: string }>;
 }) {
   if (!model) return;
-  const items = (body.data as RenamePayload[]) ?? [];
   const ops: FileTreeBatchOperation[] = [];
-  for (const item of items) {
-    const { oldPath, newPath } = extractRename(item, isFolder);
+  for (const { oldPath, newPath } of renames) {
     if (!oldPath || !newPath) continue;
     if (!model.getItem(oldPath)) continue;
     if (model.getItem(newPath)) continue;

@@ -17,35 +17,35 @@ type ioPubSocket struct {
 	socket *zmq4.Socket
 }
 
-type executeResultEvent struct {
+type ExecuteResultEvent struct {
 	MessageId string            `json:"messageId"`
 	Data      map[string]string `json:"data"`
 }
 
-type executeInputEvent struct {
+type ExecuteInputEvent struct {
 	MessageId      string `json:"messageId"`
 	Code           string `json:"code"`
 	ExecutionCount int    `json:"executionCount"`
 }
 
-type kernelStatusEvent struct {
+type KernelStatusEvent struct {
 	ID     string `json:"id"`
 	Status string `json:"status"`
 }
 
-type codeBlockStatusEvent struct {
+type CodeBlockStatusEvent struct {
 	MessageId string `json:"messageId"`
 	Status    string `json:"status"`
 	Duration  string `json:"duration"`
 }
 
-type streamEvent struct {
+type StreamEvent struct {
 	MessageId string `json:"messageId"`
 	Name      string `json:"name"`
 	Text      string `json:"text"`
 }
 
-type errorEvent struct {
+type IopubErrorEvent struct {
 	MessageId      string   `json:"messageId"`
 	ErrorName      string   `json:"errorName"`
 	ErrorValue     string   `json:"errorValue"`
@@ -114,35 +114,35 @@ func (i *ioPubSocket) Listen(p CreateParams) {
 				if isNameString && isTextString && app != nil {
 					htmlStr := string(ansihtml.ConvertToHTML([]byte(text)))
 					app.Event.EmitEvent(&application.CustomEvent{
-						Name: util.Events.CodeBlockStream,
-						Data: streamEvent{MessageId: msgId, Name: name, Text: htmlStr},
+						Name: util.EventCodeBlockStream,
+						Data: StreamEvent{MessageId: msgId, Name: name, Text: htmlStr},
 					})
 				}
 			case IOPubSocket.ExecuteResult:
 				dataMap, exists := msg.Content["data"].(map[string]any)
 				if exists && app != nil {
-					executionResult := executeResultEvent{MessageId: msgId, Data: map[string]string{}}
+					executionResult := ExecuteResultEvent{MessageId: msgId, Data: map[string]string{}}
 					for mimeType, content := range dataMap {
 						if contentStr, ok := content.(string); ok {
 							executionResult.Data[mimeType] = contentStr
 						}
 					}
 					app.Event.EmitEvent(&application.CustomEvent{
-						Name: util.Events.CodeBlockExecuteResult,
+						Name: util.EventCodeBlockExecuteResult,
 						Data: executionResult,
 					})
 				}
 			case IOPubSocket.DisplayData:
 				dataMap, exists := msg.Content["data"].(map[string]any)
 				if exists && app != nil {
-					displayData := executeResultEvent{MessageId: msgId, Data: map[string]string{}}
+					displayData := ExecuteResultEvent{MessageId: msgId, Data: map[string]string{}}
 					for mimeType, content := range dataMap {
 						if contentStr, ok := content.(string); ok {
 							displayData.Data[mimeType] = contentStr
 						}
 					}
 					app.Event.EmitEvent(&application.CustomEvent{
-						Name: util.Events.CodeBlockDisplayData,
+						Name: util.EventCodeBlockDisplayData,
 						Data: displayData,
 					})
 				}
@@ -151,8 +151,8 @@ func (i *ioPubSocket) Listen(p CreateParams) {
 				executionCount, isExecutionCountFloat := msg.Content["execution_count"].(float64)
 				if isCodeString && isExecutionCountFloat && app != nil {
 					app.Event.EmitEvent(&application.CustomEvent{
-						Name: util.Events.CodeBlockExecuteInput,
-						Data: executeInputEvent{
+						Name: util.EventCodeBlockExecuteInput,
+						Data: ExecuteInputEvent{
 							MessageId:      msgId,
 							Code:           code,
 							ExecutionCount: int(executionCount),
@@ -166,8 +166,8 @@ func (i *ioPubSocket) Listen(p CreateParams) {
 				}
 				if app != nil {
 					app.Event.EmitEvent(&application.CustomEvent{
-						Name: util.Events.KernelInstanceStatus,
-						Data: kernelStatusEvent{ID: p.InstanceID, Status: status},
+						Name: util.EventKernelInstanceStatus,
+						Data: KernelStatusEvent{ID: p.InstanceID, Status: status},
 					})
 				}
 				parentMessageType, ok := msg.ParentHeader["msg_type"].(string)
@@ -194,8 +194,8 @@ func (i *ioPubSocket) Listen(p CreateParams) {
 					}
 					if app != nil {
 						app.Event.EmitEvent(&application.CustomEvent{
-							Name: util.Events.CodeBlockStatus,
-							Data: codeBlockStatusEvent{MessageId: msgId, Status: status, Duration: duration},
+							Name: util.EventCodeBlockStatus,
+							Data: CodeBlockStatusEvent{MessageId: msgId, Status: status, Duration: duration},
 						})
 					}
 				} else if parentMessageType == "shutdown_request" && status == "idle" {
@@ -221,8 +221,8 @@ func (i *ioPubSocket) Listen(p CreateParams) {
 				}
 				if app != nil {
 					app.Event.EmitEvent(&application.CustomEvent{
-						Name: util.Events.CodeBlockIopubError,
-						Data: errorEvent{
+						Name: util.EventCodeBlockIopubError,
+						Data: IopubErrorEvent{
 							MessageId:      msgId,
 							ErrorName:      errorName,
 							ErrorValue:     errorValue,

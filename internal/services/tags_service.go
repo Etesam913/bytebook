@@ -72,7 +72,7 @@ func (t *TagsService) SetTagsOnNotes(
 	if app != nil {
 		// Will handle bleve indexing and frontend updates
 		app.Event.EmitEvent(&application.CustomEvent{
-			Name: util.Events.TagsUpdate,
+			Name: util.EventTagsUpdate,
 			Data: eventData,
 		})
 	}
@@ -234,7 +234,7 @@ func (t *TagsService) DeleteTags(tagsToDelete []string) config.BackendResponseWi
 	app := application.Get()
 	if app != nil && len(eventData) > 0 {
 		app.Event.EmitEvent(&application.CustomEvent{
-			Name: util.Events.TagsUpdate,
+			Name: util.EventTagsUpdate,
 			Data: eventData,
 		})
 	}

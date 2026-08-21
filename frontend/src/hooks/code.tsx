@@ -48,35 +48,14 @@ import {
 import { useUpdateProjectSettingsMutation } from './project-settings';
 import { Dispatch, SetStateAction, useEffect } from 'react';
 
-type InstanceCreatedPayload = {
-  id: string;
-  language: LanguagesWithKernels;
-  noteId: string;
-  scopeType: string;
-  heartbeat: KernelHeartbeatStatus;
-  lastActivityAt: number;
-  activeExecutions: number;
-};
-type InstanceStatusPayload = { id: string; status: KernelStatus };
-type InstanceHeartbeatPayload = { id: string; status: KernelHeartbeatStatus };
-type InstanceShutdownPayload = {
-  id: string;
-  language: LanguagesWithKernels;
-  noteId: string;
-  reason: string;
-};
-type InstanceLaunchErrorPayload = {
-  id: string;
-  language: LanguagesWithKernels;
-  noteId: string;
-  errorMessage: string;
-};
-type InstanceExitedPayload = { id: string; exitCode: number };
-
 function isKernelHeartbeatStatus(
   status: unknown
 ): status is KernelHeartbeatStatus {
   return status === 'success' || status === 'failure' || status === 'idle';
+}
+
+function isKernelStatus(status: unknown): status is KernelStatus {
+  return status === 'busy' || status === 'idle' || status === 'starting';
 }
 
 /**
@@ -135,16 +114,19 @@ export function useKernelInstanceEvents() {
 
   useWailsEvent(KERNEL_INSTANCE_CREATED, (body) => {
     logger.event(KERNEL_INSTANCE_CREATED);
-    const data = body.data as InstanceCreatedPayload;
-    if (!isValidKernelLanguage(data.language)) return;
+    const data = body.data;
+    const language = data.language;
+    if (!isValidKernelLanguage(language)) return;
     setInstances((prev) => ({
       ...prev,
       [data.id]: {
         id: data.id,
-        language: data.language,
+        language,
         noteId: data.noteId,
         status: 'starting',
-        heartbeat: data.heartbeat,
+        heartbeat: isKernelHeartbeatStatus(data.heartbeat)
+          ? data.heartbeat
+          : 'idle',
         errorMessage: null,
         lastActivityAt: data.lastActivityAt,
       },
@@ -153,7 +135,9 @@ export function useKernelInstanceEvents() {
 
   useWailsEvent(KERNEL_INSTANCE_STATUS, (body) => {
     logger.event(KERNEL_INSTANCE_STATUS);
-    const data = body.data as InstanceStatusPayload;
+    const data = body.data;
+    if (!isKernelStatus(data.status)) return;
+    const status = data.status;
     setInstances((prev) => {
       const existing = prev[data.id];
       if (!existing) return prev;
@@ -161,7 +145,7 @@ export function useKernelInstanceEvents() {
         ...prev,
         [data.id]: {
           ...existing,
-          status: data.status,
+          status,
           lastActivityAt: Date.now(),
         },
       };
@@ -170,17 +154,19 @@ export function useKernelInstanceEvents() {
 
   useWailsEvent(KERNEL_INSTANCE_HEARTBEAT, (body) => {
     logger.event(KERNEL_INSTANCE_HEARTBEAT);
-    const data = body.data as InstanceHeartbeatPayload;
+    const data = body.data;
+    if (!isKernelHeartbeatStatus(data.status)) return;
+    const heartbeat = data.status;
     setInstances((prev) => {
       const existing = prev[data.id];
       if (!existing) return prev;
-      return { ...prev, [data.id]: { ...existing, heartbeat: data.status } };
+      return { ...prev, [data.id]: { ...existing, heartbeat } };
     });
   });
 
   useWailsEvent(KERNEL_INSTANCE_SHUTDOWN, (body) => {
     logger.event(KERNEL_INSTANCE_SHUTDOWN);
-    const data = body.data as InstanceShutdownPayload;
+    const data = body.data;
     setInstances((prev) => {
       const next = { ...prev };
       delete next[data.id];
@@ -190,7 +176,7 @@ export function useKernelInstanceEvents() {
 
   useWailsEvent(KERNEL_INSTANCE_EXITED, (body) => {
     logger.event(KERNEL_INSTANCE_EXITED);
-    const data = body.data as InstanceExitedPayload;
+    const data = body.data;
     setInstances((prev) => {
       const next = { ...prev };
       delete next[data.id];
@@ -200,7 +186,7 @@ export function useKernelInstanceEvents() {
 
   useWailsEvent(KERNEL_INSTANCE_LAUNCH_ERROR, (body) => {
     logger.event(KERNEL_INSTANCE_LAUNCH_ERROR);
-    const data = body.data as InstanceLaunchErrorPayload;
+    const data = body.data;
     toast.error(data.errorMessage, DEFAULT_SONNER_OPTIONS);
     setInstances((prev) => {
       const existing = prev[data.id];
@@ -218,18 +204,15 @@ export function useKernelInstanceEvents() {
  */
 export function useKernelCodeNodeCleanupEvents(editor: LexicalEditor) {
   useWailsEvent(KERNEL_INSTANCE_SHUTDOWN, (body) => {
-    const data = body.data as InstanceShutdownPayload;
-    resetCodeNodesForInstance(editor, data.id);
+    resetCodeNodesForInstance(editor, body.data.id);
   });
 
   useWailsEvent(KERNEL_INSTANCE_EXITED, (body) => {
-    const data = body.data as InstanceExitedPayload;
-    resetCodeNodesForInstance(editor, data.id);
+    resetCodeNodesForInstance(editor, body.data.id);
   });
 
   useWailsEvent(KERNEL_INSTANCE_LAUNCH_ERROR, (body) => {
-    const data = body.data as InstanceLaunchErrorPayload;
-    resetCodeNodesForInstance(editor, data.id);
+    resetCodeNodesForInstance(editor, body.data.id);
   });
 }
 
@@ -273,14 +256,12 @@ function updateCodeBlock(
 export function useCodeBlockStatus(editor: LexicalEditor) {
   useWailsEvent(CODE_BLOCK_STATUS, (body) => {
     logger.event(CODE_BLOCK_STATUS);
-    const data = body.data as {
-      status: KernelStatus;
-      messageId: string;
-      duration: string;
-    };
+    const data = body.data;
+    if (!isKernelStatus(data.status)) return;
+    const status = data.status;
     const [codeBlockId] = data.messageId.split('|');
     updateCodeBlock(editor, codeBlockId, (codeNode) => {
-      codeNode.setStatus(data.status, editor);
+      codeNode.setStatus(status, editor);
       codeNode.setDuration(data.duration, editor);
     });
   });
@@ -290,14 +271,13 @@ export function useCodeBlockStatus(editor: LexicalEditor) {
 export function useCodeBlockExecuteResult(editor: LexicalEditor) {
   useWailsEvent(CODE_BLOCK_EXECUTE_RESULT, (body) => {
     logger.event(CODE_BLOCK_EXECUTE_RESULT);
-    const data = body.data as {
-      messageId: string;
-      data: Record<string, string>;
-    };
+    const data = body.data;
     const [codeBlockId, executionId] = data.messageId.split('|');
     const executionResultContent: string[] = [];
     for (const content of Object.values(data.data)) {
-      executionResultContent.push(content);
+      if (content !== undefined) {
+        executionResultContent.push(content);
+      }
     }
     updateCodeBlock(
       editor,
@@ -314,11 +294,7 @@ export function useCodeBlockExecuteResult(editor: LexicalEditor) {
 export function useCodeBlockExecuteInput(editor: LexicalEditor) {
   useWailsEvent(CODE_BLOCK_EXECUTE_INPUT, (body) => {
     logger.event(CODE_BLOCK_EXECUTE_INPUT);
-    const data = body.data as {
-      messageId: string;
-      code: string;
-      executionCount: number;
-    };
+    const data = body.data;
     const [codeBlockId, executionId] = data.messageId.split('|');
     updateCodeBlock(
       editor,
@@ -335,11 +311,7 @@ export function useCodeBlockExecuteInput(editor: LexicalEditor) {
 export function useCodeBlockStream(editor: LexicalEditor) {
   useWailsEvent(CODE_BLOCK_STREAM, (body) => {
     logger.event(CODE_BLOCK_STREAM);
-    const data = body.data as {
-      messageId: string;
-      name: 'stdout' | 'stderr';
-      text: string;
-    };
+    const data = body.data;
     const [codeBlockId, executionId] = data.messageId.split('|');
     updateCodeBlock(
       editor,
@@ -356,12 +328,7 @@ export function useCodeBlockStream(editor: LexicalEditor) {
 export function useCodeBlockIOPubError(editor: LexicalEditor) {
   useWailsEvent(CODE_BLOCK_IOPUB_ERROR, (body) => {
     logger.event(CODE_BLOCK_IOPUB_ERROR, body);
-    const data = body.data as {
-      messageId: string;
-      errorName: string;
-      errorValue: string;
-      errorTraceback: string[];
-    };
+    const data = body.data;
     const [codeBlockId, executionId] = data.messageId.split('|');
     updateCodeBlock(
       editor,
@@ -389,16 +356,19 @@ export function useCodeBlockIOPubError(editor: LexicalEditor) {
 // Listens for display_data messages and sets rich display output (e.g. images, HTML) on the matching code block node.
 export function useCodeBlockDisplayData(editor: LexicalEditor) {
   useWailsEvent(CODE_BLOCK_DISPLAY_DATA, (body) => {
-    const data = body.data as {
-      messageId: string;
-      data: Record<string, string>;
-    };
+    const data = body.data;
     const [codeBlockId, executionId] = data.messageId.split('|');
+    const displayData: Record<string, string> = {};
+    for (const [mimeType, content] of Object.entries(data.data)) {
+      if (content !== undefined) {
+        displayData[mimeType] = content;
+      }
+    }
     updateCodeBlock(
       editor,
       codeBlockId,
       (codeNode) => {
-        codeNode.setDisplayResult(data.data, editor);
+        codeNode.setDisplayResult(displayData, editor);
       },
       executionId
     );
@@ -409,11 +379,7 @@ export function useCodeBlockDisplayData(editor: LexicalEditor) {
 export function useCodeBlockInputRequest(editor: LexicalEditor) {
   useWailsEvent(CODE_BLOCK_INPUT_REQUEST, (body) => {
     logger.event(CODE_BLOCK_INPUT_REQUEST, body);
-    const data = body.data as {
-      messageId: string;
-      prompt: string | null;
-      password: boolean | null;
-    };
+    const data = body.data;
     const [codeBlockId, executionId] = data.messageId.split('|');
     updateCodeBlock(
       editor,
@@ -421,8 +387,8 @@ export function useCodeBlockInputRequest(editor: LexicalEditor) {
       (codeNode) => {
         codeNode.setInputPrompt(
           {
-            prompt: data.prompt ?? '',
-            isPassword: data.password ?? false,
+            prompt: data.prompt,
+            isPassword: data.password,
           },
           editor
         );

@@ -16,70 +16,40 @@ import (
 // handleFileCreateEvent handles the event when a file is created.
 // It extracts the file data from the event and adds the created notes to the search index.
 func handleFileCreateEvent(params EventParams, event *application.CustomEvent) {
-	data, ok := event.Data.([]map[string]string)
+	data, ok := event.Data.([]util.FileCreateEventData)
 	if !ok {
-		log.Println("File create event data is not a map")
+		log.Println("File create event data is not []util.FileCreateEventData")
 		return
 	}
-	addCreatedNotesToIndex(params, convertFilePathData(data))
+	converted := make([]map[string]string, len(data))
+	for i, item := range data {
+		converted[i] = filePathToFolderNote(item.FilePath, "")
+	}
+	addCreatedNotesToIndex(params, converted)
 }
 
-// convertFilePathData converts event data from "filePath" format to "folder"/"note" format.
-func convertFilePathData(data []map[string]string) []map[string]string {
-	result := make([]map[string]string, len(data))
-	for i, note := range data {
-		if _, hasFolder := note["folder"]; hasFolder {
-			// Already in folder/note format
-			result[i] = note
-			continue
-		}
-		if filePath, ok := note["filePath"]; ok {
-			converted := map[string]string{
-				"folder": filepath.Dir(filePath),
-				"note":   filepath.Base(filePath),
-			}
-			// Copy any additional keys (e.g., "markdown")
-			for k, v := range note {
-				if k != "filePath" {
-					converted[k] = v
-				}
-			}
-			result[i] = converted
-		} else {
-			result[i] = note
-		}
+// filePathToFolderNote converts a notes-relative file path (plus optional
+// markdown content) into the "folder"/"note" map format used by the index helpers.
+func filePathToFolderNote(filePath, markdown string) map[string]string {
+	converted := map[string]string{
+		"folder": filepath.Dir(filePath),
+		"note":   filepath.Base(filePath),
 	}
-	return result
+	if markdown != "" {
+		converted["markdown"] = markdown
+	}
+	return converted
 }
 
-// convertRenamePathData converts event data from "oldFilePath"/"newFilePath" format to "oldFolder"/"oldNote"/"newFolder"/"newNote" format.
-func convertRenamePathData(data []map[string]string) []map[string]string {
-	result := make([]map[string]string, len(data))
-	for i, note := range data {
-		if _, hasOldFolder := note["oldFolder"]; hasOldFolder {
-			result[i] = note
-			continue
-		}
-		oldFilePath, hasOld := note["oldFilePath"]
-		newFilePath, hasNew := note["newFilePath"]
-		if hasOld && hasNew {
-			converted := map[string]string{
-				"oldFolder": filepath.Dir(oldFilePath),
-				"oldNote":   filepath.Base(oldFilePath),
-				"newFolder": filepath.Dir(newFilePath),
-				"newNote":   filepath.Base(newFilePath),
-			}
-			for k, v := range note {
-				if k != "oldFilePath" && k != "newFilePath" {
-					converted[k] = v
-				}
-			}
-			result[i] = converted
-		} else {
-			result[i] = note
-		}
+// renamePathsToFolderNote converts notes-relative old/new file paths into the
+// "oldFolder"/"oldNote"/"newFolder"/"newNote" map format used by the index helpers.
+func renamePathsToFolderNote(oldFilePath, newFilePath string) map[string]string {
+	return map[string]string{
+		"oldFolder": filepath.Dir(oldFilePath),
+		"oldNote":   filepath.Base(oldFilePath),
+		"newFolder": filepath.Dir(newFilePath),
+		"newNote":   filepath.Base(newFilePath),
 	}
-	return result
 }
 
 // addCreatedNotesToIndex adds newly created notes to the search index in a batch operation.
@@ -156,24 +126,20 @@ func addCreatedNotesToIndex(params EventParams, data []map[string]string) {
 // It extracts the rename data from the event, updates the search index,
 // and replaces local links in other notes that reference the renamed file.
 func handleFileRenameEvent(params EventParams, event *application.CustomEvent) {
-	data, ok := event.Data.([]map[string]string)
+	data, ok := event.Data.([]util.FileRenameEventData)
 	if !ok {
-		log.Println("File rename event data is not a map")
+		log.Println("File rename event data is not []util.FileRenameEventData")
 		return
 	}
 
-	for _, item := range data {
-		oldFilePath, hasOld := item["oldFilePath"]
-		newFilePath, hasNew := item["newFilePath"]
-		if !hasOld || !hasNew {
-			continue
+	converted := make([]map[string]string, len(data))
+	for i, item := range data {
+		if err := config.RenamePinnedFile(params.ProjectPath, item.OldFilePath, item.NewFilePath); err != nil {
+			log.Printf("Error updating pinned notes for file rename %s -> %s: %v", item.OldFilePath, item.NewFilePath, err)
 		}
-		if err := config.RenamePinnedFile(params.ProjectPath, oldFilePath, newFilePath); err != nil {
-			log.Printf("Error updating pinned notes for file rename %s -> %s: %v", oldFilePath, newFilePath, err)
-		}
+		converted[i] = renamePathsToFolderNote(item.OldFilePath, item.NewFilePath)
 	}
 
-	converted := convertRenamePathData(data)
 	renameFilesInIndex(params, converted)
 	replaceLocalLinksInNotes(params, converted)
 }
@@ -258,23 +224,21 @@ func renameFilesInIndex(params EventParams, data []map[string]string) {
 // handleFileDeleteEvent handles the event when a file is deleted.
 // It removes the note from the search index and cleans up any attachment tag associations.
 func handleFileDeleteEvent(params EventParams, event *application.CustomEvent) {
-	data, ok := event.Data.([]map[string]string)
+	data, ok := event.Data.([]util.FileDeleteEventData)
 	if !ok {
-		log.Println("File delete event data is not a map")
+		log.Println("File delete event data is not []util.FileDeleteEventData")
 		return
 	}
 
-	for _, item := range data {
-		filePath, ok := item["filePath"]
-		if !ok {
-			continue
+	converted := make([]map[string]string, len(data))
+	for i, item := range data {
+		if err := config.DeletePinnedFile(params.ProjectPath, item.FilePath); err != nil {
+			log.Printf("Error updating pinned notes for file delete %s: %v", item.FilePath, err)
 		}
-		if err := config.DeletePinnedFile(params.ProjectPath, filePath); err != nil {
-			log.Printf("Error updating pinned notes for file delete %s: %v", filePath, err)
-		}
+		converted[i] = filePathToFolderNote(item.FilePath, "")
 	}
 
-	deleteNotesFromIndex(params, convertFilePathData(data))
+	deleteNotesFromIndex(params, converted)
 }
 
 // deleteNotesFromIndex removes notes from the search index in a batch operation.
@@ -315,12 +279,16 @@ func deleteNotesFromIndex(params EventParams, data []map[string]string) {
 // handleFileWriteEvent handles the event when a file is written/updated.
 // It extracts the file data from the event and updates the search index with the new content.
 func handleFileWriteEvent(params EventParams, event *application.CustomEvent) {
-	data, ok := event.Data.([]map[string]string)
+	data, ok := event.Data.([]util.FileWriteEventData)
 	if !ok {
-		log.Println("File write event data is not a map")
+		log.Println("File write event data is not []util.FileWriteEventData")
 		return
 	}
-	updateNotesInIndex(params, convertFilePathData(data))
+	converted := make([]map[string]string, len(data))
+	for i, item := range data {
+		converted[i] = filePathToFolderNote(item.FilePath, item.Markdown)
+	}
+	updateNotesInIndex(params, converted)
 }
 
 // updateNotesInIndex updates the search index with the new note content for multiple notes.

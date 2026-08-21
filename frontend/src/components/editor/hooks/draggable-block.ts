@@ -36,13 +36,6 @@ import { installWailsDragHandlers } from '@hooks/wails-drag';
 /** Prefix stripped from paths returned by `addDroppedFilesToFolder`. */
 const NOTES_PREFIX = 'notes/';
 
-type EditorContentDropEventData = {
-  droppedFiles?: string[];
-  targetElementId?: string;
-  x?: number;
-  y?: number;
-};
-
 // ---------------------------------------------------------------------------
 // useDraggableBlock — tracks which block the pointer is hovering so the drag
 // handle can position itself next to it. This is used to position the drag handle
@@ -117,12 +110,12 @@ function useInsertFilesOnEditorDrop({
   const { mutateAsync: addDroppedFilesToFolder } =
     useAddDroppedFilesToFolderMutation();
 
-  function onEditorContentDrop(event: WailsEvent) {
+  function onEditorContentDrop(event: WailsEvent<typeof EDITOR_CONTENT_DROP>) {
     setTimeout(() => {
       // timeout helps to avoid issue with stale caret
       dragAndDropCaretMotionValues.opacity.set(0);
     }, 100);
-    const data = event.data as EditorContentDropEventData;
+    const data = event.data;
     const droppedFiles = data.droppedFiles ?? [];
     if (droppedFiles.length === 0) return;
 

@@ -82,7 +82,7 @@ func (s *stdinSocket) Listen(p CreateParams) {
 				password, _ := msg.Content["password"].(bool)
 				if app != nil {
 					app.Event.EmitEvent(&application.CustomEvent{
-						Name: util.Events.CodeBlockInputRequest,
+						Name: util.EventCodeBlockInputRequest,
 						Data: InputRequestEvent{MessageId: msgId, Prompt: prompt, Password: password},
 					})
 				}

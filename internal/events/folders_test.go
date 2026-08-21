@@ -7,6 +7,7 @@ import (
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/etesam913/bytebook/internal/search"
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -53,9 +54,9 @@ func TestAddFoldersToIndex(t *testing.T) {
 		createMarkdownNoteInFolder(t, params.ProjectPath, "folder1", "one.md", "# one")
 		createMarkdownNoteInFolder(t, params.ProjectPath, "folder2", "two.md", "# two")
 
-		data := []map[string]string{
-			{"folderPath": "folder1"},
-			{"folderPath": "folder2"},
+		data := []util.FolderCreateEventData{
+			{FolderPath: "folder1"},
+			{FolderPath: "folder2"},
 		}
 
 		addFoldersToIndex(params, data)
@@ -72,10 +73,10 @@ func TestAddFoldersToIndex(t *testing.T) {
 	t.Run("should skip invalid entries", func(t *testing.T) {
 		params := createTestParams(t)
 		createMarkdownNoteInFolder(t, params.ProjectPath, "f.1", "note.md", "# note")
-		data := []map[string]string{
-			{"folderPath": "f.1"},
-			{"bad": "v"},
-			{"folderPath": ""},
+		data := []util.FolderCreateEventData{
+			{FolderPath: "f.1"},
+			{},
+			{FolderPath: ""},
 		}
 		addFoldersToIndex(params, data)
 
@@ -91,8 +92,8 @@ func TestDeleteFoldersFromIndex(t *testing.T) {
 		createMarkdownNoteInFolder(t, params.ProjectPath, "folder2", "two.md", "# two")
 		require.NoError(t, search.IndexAllFiles(params.ProjectPath, rawIndex(params)))
 
-		deleteData := []map[string]string{
-			{"folderPath": "folder1"},
+		deleteData := []util.FolderDeleteEventData{
+			{FolderPath: "folder1"},
 		}
 		deleteFoldersFromIndex(params, deleteData)
 
@@ -117,8 +118,8 @@ func TestDeleteFoldersFromIndex(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, doc)
 
-		deleteFoldersFromIndex(params, []map[string]string{
-			{"folderPath": filepath.Join("Foo", "Bar")},
+		deleteFoldersFromIndex(params, []util.FolderDeleteEventData{
+			{FolderPath: filepath.Join("Foo", "Bar")},
 		})
 
 		doc, err = rawIndex(params).Document(docID)
@@ -132,11 +133,11 @@ func TestDeleteFoldersFromIndex(t *testing.T) {
 		createMarkdownNoteInFolder(t, params.ProjectPath, "folder2", "two.md", "# two")
 		require.NoError(t, search.IndexAllFiles(params.ProjectPath, rawIndex(params)))
 
-		deleteData := []map[string]string{
-			{"folderPath": "folder1"},
-			{"other_key": "some_value"},
-			{"folderPath": ""},
-			{"folderPath": "non-existent"},
+		deleteData := []util.FolderDeleteEventData{
+			{FolderPath: "folder1"},
+			{},
+			{FolderPath: ""},
+			{FolderPath: "non-existent"},
 		}
 		deleteFoldersFromIndex(params, deleteData)
 

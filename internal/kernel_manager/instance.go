@@ -295,7 +295,7 @@ func (i *KernelInstance) shutdown(reason string, restart bool) error {
 	if app := application.Get(); app != nil {
 		app.Event.EmitEvent(&application.CustomEvent{
 			Name: kernelInstanceShutdownEvent,
-			Data: shutdownPayload{
+			Data: KernelShutdownEventData{
 				ID:       i.id,
 				Language: i.language,
 				NoteID:   i.scopeID,

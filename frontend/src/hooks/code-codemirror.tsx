@@ -28,17 +28,7 @@ export function useInspectTooltip({
 }) {
   useWailsEvent(CODE_BLOCK_INSPECT_REPLY, (body) => {
     logger.event('code:code-block:inspect_reply', body);
-    const data = body.data as {
-      found: boolean;
-      messageId: string;
-      data: Record<string, string>;
-    }[];
-
-    if (data.length === 0) {
-      return;
-    }
-
-    const inspectData = data[0];
+    const inspectData = body.data;
     if (!inspectData.found) {
       // Resolve the pending promise with null so the tooltip knows there's nothing to show
       const resolve = pendingInspections.get(inspectData.messageId);
@@ -53,13 +43,21 @@ export function useInspectTooltip({
       return;
     }
 
+    // The inspect payload's data is a mimetype -> content map with untyped
+    // values, so only accept string content for the tooltip.
+    const rawMessage = [
+      inspectData.data['text/plain'],
+      inspectData.data['text/html'],
+      inspectData.data['text/markdown'],
+    ].find(
+      (content): content is string =>
+        typeof content === 'string' && content.length > 0
+    );
+
     const tooltipData: HoverTooltipData = {
       found: inspectData.found,
       messageId: inspectData.messageId,
-      message:
-        inspectData.data['text/plain'] ||
-        inspectData.data['text/html'] ||
-        inspectData.data['text/markdown'],
+      message: rawMessage ?? '',
     };
 
     // Resolve the pending promise if it exists

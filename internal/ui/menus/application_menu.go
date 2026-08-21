@@ -40,7 +40,7 @@ func configureSettingsMenu(app *application.App, menu *application.Menu) {
 	settings.OnClick(func(ctx *application.Context) {
 		win := app.Window.Current()
 		if win != nil {
-			win.EmitEvent(util.Events.SettingsOpen)
+			win.EmitEvent(util.EventSettingsOpen)
 		} else {
 			log.Println(
 				"Current window could not be found: settings:open event could not be emitted",
@@ -86,7 +86,7 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 	toggleSidebar.OnClick(func(ctx *application.Context) {
 		win := app.Window.Current()
 		if win != nil {
-			win.EmitEvent(util.Events.ToggleSidebar, map[string]any{})
+			win.EmitEvent(util.EventToggleSidebar)
 		} else {
 			log.Println(
 				"Current window could not be found: sidebar:toggle event could not be emitted",
@@ -99,7 +99,7 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 	openFileSidebar.OnClick(func(ctx *application.Context) {
 		win := app.Window.Current()
 		if win != nil {
-			win.EmitEvent(util.Events.SidebarFilesOpen, map[string]any{})
+			win.EmitEvent(util.EventSidebarFilesOpen)
 		} else {
 			log.Println(
 				"Current window could not be found: sidebar:files:open event could not be emitted",
@@ -112,7 +112,7 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 	openSearchSidebar.OnClick(func(ctx *application.Context) {
 		win := app.Window.Current()
 		if win != nil {
-			win.EmitEvent(util.Events.SidebarSearchOpen, map[string]any{})
+			win.EmitEvent(util.EventSidebarSearchOpen)
 		} else {
 			log.Println(
 				"Current window could not be found: sidebar:search:open event could not be emitted",
@@ -125,7 +125,7 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 	searchNote.OnClick(func(ctx *application.Context) {
 		win := app.Window.Current()
 		if win != nil {
-			win.EmitEvent(util.Events.SearchNote, map[string]any{})
+			win.EmitEvent(util.EventSearchNote)
 		} else {
 			log.Println(
 				"Current window could not be found: search:note event could not be emitted",
@@ -159,19 +159,19 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 	actualSize = sub.Add("Actual Size")
 	actualSize.SetAccelerator("cmdorctrl+0")
 	actualSize.OnClick(func(ctx *application.Context) {
-		app.Event.Emit(util.Events.ZoomReset)
+		app.Event.Emit(util.EventZoomReset)
 	})
 
 	// Adds custom zoom items that drive the frontend UI scale.
 	zoomIn = sub.Add("Zoom In")
 	zoomIn.SetAccelerator("cmdorctrl+plus")
 	zoomIn.OnClick(func(ctx *application.Context) {
-		app.Event.Emit(util.Events.ZoomIn)
+		app.Event.Emit(util.EventZoomIn)
 	})
 
 	zoomOut = sub.Add("Zoom Out")
 	zoomOut.SetAccelerator("cmdorctrl+-")
 	zoomOut.OnClick(func(ctx *application.Context) {
-		app.Event.Emit(util.Events.ZoomOut)
+		app.Event.Emit(util.EventZoomOut)
 	})
 }

@@ -18,45 +18,45 @@ type EventParams struct {
 
 func ListenToEvents(params EventParams) {
 	// File Events
-	params.App.Event.On(util.Events.FileCreate, func(event *application.CustomEvent) {
-		log.Printf("%s: %+v", util.Events.FileCreate, event.Data)
+	params.App.Event.On(util.EventFileCreate, func(event *application.CustomEvent) {
+		log.Printf("%s: %+v", util.EventFileCreate, event.Data)
 		handleFileCreateEvent(params, event)
 	})
 
-	params.App.Event.On(util.Events.FileRename, func(event *application.CustomEvent) {
-		log.Printf("%s: %+v", util.Events.FileRename, event.Data)
+	params.App.Event.On(util.EventFileRename, func(event *application.CustomEvent) {
+		log.Printf("%s: %+v", util.EventFileRename, event.Data)
 		handleFileRenameEvent(params, event)
 	})
 
-	params.App.Event.On(util.Events.FileDelete, func(event *application.CustomEvent) {
-		log.Printf("%s: %+v", util.Events.FileDelete, event.Data)
+	params.App.Event.On(util.EventFileDelete, func(event *application.CustomEvent) {
+		log.Printf("%s: %+v", util.EventFileDelete, event.Data)
 		handleFileDeleteEvent(params, event)
 	})
 
-	params.App.Event.On(util.Events.FileWrite, func(event *application.CustomEvent) {
-		log.Printf("%s: %+v", util.Events.FileWrite, event.Data)
+	params.App.Event.On(util.EventFileWrite, func(event *application.CustomEvent) {
+		log.Printf("%s: %+v", util.EventFileWrite, event.Data)
 		handleFileWriteEvent(params, event)
 	})
 
 	// Folder Events
-	params.App.Event.On(util.Events.FolderRename, func(event *application.CustomEvent) {
-		log.Printf("%s: %+v", util.Events.FolderRename, event.Data)
+	params.App.Event.On(util.EventFolderRename, func(event *application.CustomEvent) {
+		log.Printf("%s: %+v", util.EventFolderRename, event.Data)
 		handleFolderRenameEvent(params, event)
 	})
 
-	params.App.Event.On(util.Events.FolderDelete, func(event *application.CustomEvent) {
-		log.Printf("%s: %+v", util.Events.FolderDelete, event.Data)
+	params.App.Event.On(util.EventFolderDelete, func(event *application.CustomEvent) {
+		log.Printf("%s: %+v", util.EventFolderDelete, event.Data)
 		handleFolderDeleteEvent(params, event)
 	})
 
-	params.App.Event.On(util.Events.FolderCreate, func(event *application.CustomEvent) {
-		log.Printf("%s: %+v", util.Events.FolderCreate, event.Data)
+	params.App.Event.On(util.EventFolderCreate, func(event *application.CustomEvent) {
+		log.Printf("%s: %+v", util.EventFolderCreate, event.Data)
 		handleFolderCreateEvent(params, event)
 	})
 
 	// Tag Events
-	params.App.Event.On(util.Events.TagsUpdate, func(event *application.CustomEvent) {
-		log.Printf("%s: %+v", util.Events.TagsUpdate, event.Data)
+	params.App.Event.On(util.EventTagsUpdate, func(event *application.CustomEvent) {
+		log.Printf("%s: %+v", util.EventTagsUpdate, event.Data)
 		handleTagsUpdateEvent(params, event)
 	})
 }

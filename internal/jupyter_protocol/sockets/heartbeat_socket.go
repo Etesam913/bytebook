@@ -21,7 +21,7 @@ type heartbeatSocket struct {
 	maxConsecutiveFailures int
 }
 
-type heartbeatEvent struct {
+type HeartbeatEvent struct {
 	ID     string `json:"id"`
 	Status string `json:"status"`
 }
@@ -100,8 +100,8 @@ func (h *heartbeatSocket) Listen(p CreateParams) {
 			h.heartbeatState.UpdateHeartbeatStatus(true)
 			if app != nil {
 				app.Event.EmitEvent(&application.CustomEvent{
-					Name: util.Events.KernelInstanceHeartbeat,
-					Data: heartbeatEvent{ID: p.InstanceID, Status: "success"},
+					Name: util.EventKernelInstanceHeartbeat,
+					Data: HeartbeatEvent{ID: p.InstanceID, Status: "success"},
 				})
 			}
 		}
@@ -112,8 +112,8 @@ func (h *heartbeatSocket) handleFailure(instanceID string, app *application.App)
 	h.heartbeatState.UpdateHeartbeatStatus(false)
 	if app != nil {
 		app.Event.EmitEvent(&application.CustomEvent{
-			Name: util.Events.KernelInstanceHeartbeat,
-			Data: heartbeatEvent{ID: instanceID, Status: "failure"},
+			Name: util.EventKernelInstanceHeartbeat,
+			Data: HeartbeatEvent{ID: instanceID, Status: "failure"},
 		})
 	}
 }

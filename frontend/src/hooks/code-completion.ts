@@ -8,18 +8,10 @@ import type {
 import { SendCompleteRequest } from '@bindings/services/codeservice';
 import { Completion as LSPCompletion } from '@bindings/services/lspservice';
 import type { CompletionItem as LSPCompletionItem } from '@bindings/lsp/models';
+import type { CompleteReplyEvent } from '@bindings/jupyter_protocol/sockets/models';
 import type { Languages } from '@/types';
 import { CODE_BLOCK_COMPLETE_REPLY } from '@utils/events';
 import { useWailsEvent } from './events';
-
-type KernelCompletionPayload = {
-  status: string;
-  messageId: string;
-  matches: string[];
-  cursorStart: number;
-  cursorEnd: number;
-  metadata: Record<string, unknown>;
-};
 
 type CompletionInputs = {
   language: Languages;
@@ -35,7 +27,7 @@ const KERNEL_CLEANUP_MS = 3000;
 
 const pendingCompletions = new Map<
   string,
-  (data: KernelCompletionPayload) => void
+  (data: CompleteReplyEvent) => void
 >();
 
 function lspKindToCodeMirrorType(kind?: number): Completion['type'] {
@@ -299,9 +291,8 @@ export function useCompletionExtension({
   executionId,
 }: CompletionInputs): Extension {
   useWailsEvent(CODE_BLOCK_COMPLETE_REPLY, (body) => {
-    const data = body.data as KernelCompletionPayload[];
-    const completionData = data[0];
-    if (!completionData?.messageId) return;
+    const completionData = body.data;
+    if (!completionData.messageId) return;
 
     pendingCompletions.get(completionData.messageId)?.(completionData);
   });

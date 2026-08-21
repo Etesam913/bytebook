@@ -26,19 +26,18 @@ var (
 )
 
 func handleFolderDeleteEvent(params EventParams, event *application.CustomEvent) {
-	data, ok := event.Data.([]map[string]string)
+	data, ok := event.Data.([]util.FolderDeleteEventData)
 	if !ok {
-		log.Println("Folder delete event data is not of type []map[string]string")
+		log.Println("Folder delete event data is not []util.FolderDeleteEventData")
 		return
 	}
 
 	for _, item := range data {
-		folderPath, ok := item["folderPath"]
-		if !ok {
+		if item.FolderPath == "" {
 			continue
 		}
-		if err := config.DeletePinnedFolder(params.ProjectPath, folderPath); err != nil {
-			log.Printf("Error updating pinned notes for folder delete %s: %v", folderPath, err)
+		if err := config.DeletePinnedFolder(params.ProjectPath, item.FolderPath); err != nil {
+			log.Printf("Error updating pinned notes for folder delete %s: %v", item.FolderPath, err)
 		}
 	}
 
@@ -46,20 +45,19 @@ func handleFolderDeleteEvent(params EventParams, event *application.CustomEvent)
 }
 
 func handleFolderCreateEvent(params EventParams, event *application.CustomEvent) {
-	data, ok := event.Data.([]map[string]string)
+	data, ok := event.Data.([]util.FolderCreateEventData)
 	if !ok {
-		log.Println("Folder create event data is not of type []map[string]string")
+		log.Println("Folder create event data is not []util.FolderCreateEventData")
 		return
 	}
 
 	if params.ImportCoordinator != nil {
 		for _, folder := range data {
-			folderPath := folder["folderPath"]
-			if folderPath == "" {
+			if folder.FolderPath == "" {
 				log.Println("Folder create event data missing folderPath")
 				continue
 			}
-			params.ImportCoordinator.EnqueueFolderImport(folderPath)
+			params.ImportCoordinator.EnqueueFolderImport(folder.FolderPath)
 		}
 		return
 	}
@@ -67,14 +65,14 @@ func handleFolderCreateEvent(params EventParams, event *application.CustomEvent)
 	addFoldersToIndex(params, data)
 }
 
-func addFoldersToIndex(params EventParams, data []map[string]string) {
+func addFoldersToIndex(params EventParams, data []util.FolderCreateEventData) {
 	idx := params.Index.RLock()
 	defer params.Index.RUnlock()
 	batch := idx.NewBatch()
 
 	for _, folder := range data {
-		folderPath, ok := folder["folderPath"]
-		if !ok || folderPath == "" {
+		folderPath := folder.FolderPath
+		if folderPath == "" {
 			log.Println("Folder create event data missing folderPath")
 			continue
 		}
@@ -117,14 +115,14 @@ func createFolderAndDescendantsQuery(folderPath string) query.Query {
 	return folderQuery
 }
 
-func deleteFoldersFromIndex(params EventParams, data []map[string]string) {
+func deleteFoldersFromIndex(params EventParams, data []util.FolderDeleteEventData) {
 	idx := params.Index.RLock()
 	defer params.Index.RUnlock()
 	batch := idx.NewBatch()
 
 	for _, eventData := range data {
-		folderPath, exists := eventData["folderPath"]
-		if !exists || folderPath == "" {
+		folderPath := eventData.FolderPath
+		if folderPath == "" {
 			log.Println("Folder delete event data missing folderPath")
 			continue
 		}
@@ -162,23 +160,23 @@ func deleteFoldersFromIndex(params EventParams, data []map[string]string) {
 }
 
 func handleFolderRenameEvent(params EventParams, event *application.CustomEvent) {
-	data, ok := event.Data.([]map[string]string)
+	data, ok := event.Data.([]util.FolderRenameEventData)
 	if !ok {
-		log.Println("Folder rename event data is not of type []map[string]string")
+		log.Println("Folder rename event data is not []util.FolderRenameEventData")
 		return
 	}
 
 	// Update markdown files before re-indexing so the new folder's indexed links
 	// reflect the rewritten file contents immediately.
 	for _, eventData := range data {
-		oldFolderPath, oldExists := eventData["oldFolderPath"]
-		newFolderPath, newExists := eventData["newFolderPath"]
+		oldFolderPath := eventData.OldFolderPath
+		newFolderPath := eventData.NewFolderPath
 
-		if !oldExists || oldFolderPath == "" {
+		if oldFolderPath == "" {
 			log.Println("Folder rename event data missing oldFolderPath")
 			continue
 		}
-		if !newExists || newFolderPath == "" {
+		if newFolderPath == "" {
 			log.Println("Folder rename event data missing newFolderPath")
 			continue
 		}
@@ -193,19 +191,19 @@ func handleFolderRenameEvent(params EventParams, event *application.CustomEvent)
 	renameFoldersInIndex(params, data)
 }
 
-func renameFoldersInIndex(params EventParams, data []map[string]string) {
+func renameFoldersInIndex(params EventParams, data []util.FolderRenameEventData) {
 	idx := params.Index.RLock()
 	defer params.Index.RUnlock()
 	// Process each folder rename event in the batch
 	for _, eventData := range data {
-		oldFolderPath, oldExists := eventData["oldFolderPath"]
-		newFolderPath, newExists := eventData["newFolderPath"]
+		oldFolderPath := eventData.OldFolderPath
+		newFolderPath := eventData.NewFolderPath
 
-		if !oldExists || oldFolderPath == "" {
+		if oldFolderPath == "" {
 			log.Println("Folder rename event data missing oldFolderPath")
 			continue
 		}
-		if !newExists || newFolderPath == "" {
+		if newFolderPath == "" {
 			log.Println("Folder rename event data missing newFolderPath")
 			continue
 		}

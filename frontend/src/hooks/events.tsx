@@ -1,16 +1,19 @@
 import { Events as WailsEvents } from '@wailsio/runtime';
 import { useEffect, useRef } from 'react';
 
-export type WailsEvent = {
-  name: string;
-  sender: string;
-  data: unknown;
-};
+/**
+ * A Wails event. For event names registered on the backend, `data` is typed
+ * via the generated `Events.CustomEvents` augmentation in
+ * bindings/github.com/wailsapp/wails/v3/internal/eventdata.d.ts.
+ */
+export type WailsEvent<
+  E extends WailsEvents.WailsEventName = WailsEvents.WailsEventName,
+> = WailsEvents.WailsEvent<E>;
 
 /** Helper to do something when a wails event is emitted from the backend */
-export function useWailsEvent(
-  eventName: string,
-  callback: (res: WailsEvent) => void
+export function useWailsEvent<E extends WailsEvents.WailsEventName>(
+  eventName: E,
+  callback: (res: WailsEvents.WailsEvent<E>) => void
 ) {
   // Latest-ref pattern: callers commonly pass inline arrow functions, so the
   // `callback` identity changes every render. Holding it in a ref lets the
@@ -24,8 +27,7 @@ export function useWailsEvent(
   });
 
   useEffect(() => {
-    // @ts-expect-error the events function can be returned
-    return WailsEvents.On(eventName, (res: WailsEvent) => {
+    return WailsEvents.On(eventName, (res) => {
       callbackRef.current(res);
     });
   }, [eventName]);

@@ -19,7 +19,7 @@ type shellSocket struct {
 	socket *zmq4.Socket
 }
 
-type executeReplyEvent struct {
+type ExecuteReplyEvent struct {
 	Status         string   `json:"status"`
 	MessageId      string   `json:"messageId"`
 	ErrorName      string   `json:"errorName"`
@@ -27,7 +27,7 @@ type executeReplyEvent struct {
 	ErrorTraceback []string `json:"errorTraceback"`
 }
 
-type inspectReplyEvent struct {
+type InspectReplyEvent struct {
 	Status    string         `json:"status"`
 	MessageId string         `json:"messageId"`
 	Found     bool           `json:"found"`
@@ -35,7 +35,7 @@ type inspectReplyEvent struct {
 	Metadata  map[string]any `json:"metadata"`
 }
 
-type completeReplyEvent struct {
+type CompleteReplyEvent struct {
 	Status      string         `json:"status"`
 	MessageId   string         `json:"messageId"`
 	Matches     []string       `json:"matches"`
@@ -129,8 +129,8 @@ func (s *shellSocket) Listen(p CreateParams) {
 				if app != nil {
 					if currentWindow := app.Window.Current(); currentWindow != nil {
 						currentWindow.EmitEvent(
-							util.Events.CodeBlockExecuteReply,
-							executeReplyEvent{
+							util.EventCodeBlockExecuteReply,
+							ExecuteReplyEvent{
 								Status:         status,
 								MessageId:      msgId,
 								ErrorName:      errorName,
@@ -187,8 +187,8 @@ func (s *shellSocket) Listen(p CreateParams) {
 				if app != nil {
 					if currentWindow := app.Window.Current(); currentWindow != nil {
 						currentWindow.EmitEvent(
-							util.Events.CodeBlockInspectReply,
-							inspectReplyEvent{
+							util.EventCodeBlockInspectReply,
+							InspectReplyEvent{
 								Status:    status,
 								MessageId: msgId,
 								Found:     found,
@@ -236,8 +236,8 @@ func (s *shellSocket) Listen(p CreateParams) {
 				if app != nil {
 					if currentWindow := app.Window.Current(); currentWindow != nil {
 						currentWindow.EmitEvent(
-							util.Events.CodeBlockCompleteReply,
-							completeReplyEvent{
+							util.EventCodeBlockCompleteReply,
+							CompleteReplyEvent{
 								Status:      status,
 								MessageId:   msgId,
 								Matches:     matches,

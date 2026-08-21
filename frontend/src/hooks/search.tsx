@@ -394,16 +394,14 @@ export function useSavedSearchSyncEvents({
   // --- Deletes ---
 
   useWailsEvent(FILE_DELETE, (body) => {
-    const rawData = body.data as Array<{ notePath: string }>;
-    const deletedPaths = new Set(rawData.map((item) => item.notePath));
+    const deletedPaths = new Set(body.data.map((item) => item.filePath));
     updateSearchCache(queryClient, (result) =>
       deletedPaths.has(searchResultPath(result)) ? null : result
     );
   });
 
   useWailsEvent(FOLDER_DELETE, (body) => {
-    const rawData = body.data as Array<{ folderPath: string }>;
-    const deletedFolders = rawData.map((item) => item.folderPath);
+    const deletedFolders = body.data.map((item) => item.folderPath);
     updateSearchCache(queryClient, (result) => {
       const path = searchResultPath(result);
       for (const folder of deletedFolders) {
@@ -418,12 +416,8 @@ export function useSavedSearchSyncEvents({
   // --- Renames ---
 
   useWailsEvent(FILE_RENAME, (body) => {
-    const rawData = body.data as Array<{
-      oldFilePath: string;
-      newFilePath: string;
-    }>;
     const renameMap = new Map(
-      rawData.map((item) => [item.oldFilePath, item.newFilePath])
+      body.data.map((item) => [item.oldFilePath, item.newFilePath])
     );
 
     updateSearchCache(queryClient, (result) => {
@@ -448,10 +442,7 @@ export function useSavedSearchSyncEvents({
   });
 
   useWailsEvent(FOLDER_RENAME, (body) => {
-    const rawData = body.data as Array<{
-      oldFolderPath: string;
-      newFolderPath: string;
-    }>;
+    const rawData = body.data;
 
     updateSearchCache(queryClient, (result) => {
       const path = searchResultPath(result);

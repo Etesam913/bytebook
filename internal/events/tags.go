@@ -86,7 +86,7 @@ func reIndexNotesWithUpdatedTags(
 	app := application.Get()
 	if app != nil {
 		app.Event.EmitEvent(&application.CustomEvent{
-			Name: util.Events.TagsIndexUpdate,
+			Name: util.EventTagsIndexUpdate,
 		})
 	}
 }

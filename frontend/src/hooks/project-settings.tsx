@@ -203,8 +203,7 @@ export function useProjectSettings() {
 
   // Re-run the mutation when a 'settings:update' event is received.
   useWailsEvent(SETTINGS_UPDATE, (body) => {
-    const projectSettings = body.data as ProjectSettingsJson;
-    setProjectSettings(validateProjectSettingsWrapper(projectSettings));
+    setProjectSettings(validateProjectSettingsWrapper(body.data));
     setProjectSettingsLoaded(true);
   });
 }
