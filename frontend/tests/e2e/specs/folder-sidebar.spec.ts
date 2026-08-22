@@ -48,7 +48,12 @@ test.describe('File Sidebar', () => {
         file: SERVICE_FILES.SEARCH_SERVICE,
         method: 'GetPathsFromSearchQuery',
       },
-      MOCK_ALL_PATHS_RESPONSE
+      {
+        ...MOCK_ALL_PATHS_RESPONSE,
+        data: MOCK_ALL_PATHS_RESPONSE.data.filter(
+          (path) => !path.endsWith('/')
+        ),
+      }
     );
   });
 
@@ -429,7 +434,11 @@ test.describe('File Sidebar', () => {
 
       await expect(
         sidebar.getByRole('searchbox', { name: 'Filter files' })
-      ).toHaveValue('#economics');
+      ).toHaveValue('#"economics"');
+      await expect(sidebar.getByText('4 results')).toBeVisible();
+      await expect(
+        sidebar.getByRole('button', { name: 'Save search' })
+      ).toBeVisible();
       await expect(page).toHaveURL('/');
       await expect(tagButton).toBeFocused();
     });

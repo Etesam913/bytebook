@@ -35,6 +35,7 @@ import { getRenameInput, getTreeHost, navigateToTreePath } from './model-utils';
 import { applyTreeRename } from './rename';
 import { FILE_TREE_HOST_STYLE, FILE_TREE_UNSAFE_CSS } from './styles';
 import { TreeContextMenu } from './tree-context-menu';
+import { TreeFilterSummary } from './tree-filter-summary';
 import { TreeHeader } from './tree-header';
 import { TreeSearchInput } from './tree-search-input';
 
@@ -321,6 +322,11 @@ function PierreFileTreeInner({
       {/* Keep the header outside shadow DOM so its input retains key events. */}
       <TreeHeader />
       <TreeSearchInput value={searchValue} onChange={onSearchChange} />
+      <TreeFilterSummary
+        query={searchValue}
+        resultCount={filteredPaths?.length ?? 0}
+        isLoading={isFilterLoading}
+      />
       {/* Keep tree state and sync active while filtered results are shown. */}
       <div className={cn('contents', isFilterMode && 'hidden')}>
         <FileTree
