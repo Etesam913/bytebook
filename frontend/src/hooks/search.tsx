@@ -1,13 +1,10 @@
 import {
-  type InfiniteData,
   keepPreviousData,
   queryOptions,
-  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { navigate } from 'wouter/use-browser-location';
 import {
   FullTextSearch,
   GetPathsFromSearchQuery,
@@ -16,21 +13,10 @@ import {
   RemoveSavedSearch,
   RegenerateSearchIndex,
 } from '@bindings/services/searchservice';
-import {
-  type FullTextSearchPage,
-  HighlightResult,
-} from '@bindings/search/models';
+import { HighlightResult } from '@bindings/search/models';
 import { useWailsEvent } from '@hooks/events';
-import {
-  SAVED_SEARCH_UPDATE,
-  FILE_DELETE,
-  FILE_RENAME,
-  FOLDER_DELETE,
-  FOLDER_RENAME,
-} from '@utils/events';
-import { useEffect, useRef } from 'react';
+import { SAVED_SEARCH_UPDATE } from '@utils/events';
 import { createFilePath, type FilePath } from '@utils/path';
-import { routeUrls } from '@utils/routes';
 import { toast } from 'sonner';
 import { QueryError } from '@utils/query';
 import { queryKeys } from '@utils/query-keys';
@@ -159,72 +145,6 @@ export function useFilePickerSearchQuery(searchQuery: string) {
 }
 
 /**
- * Hook to perform a full-text search query using react-query.
- */
-export function useFullTextSearchQuery(searchQuery: string) {
-  const query = useInfiniteQuery({
-    queryKey: queryKeys.fullTextSearch(searchQuery),
-    initialPageParam: undefined as string[] | undefined,
-    queryFn: ({ pageParam }) =>
-      FullTextSearch(searchQuery, pageParam ?? [], null),
-    getNextPageParam: (lastPage) =>
-      lastPage.hasMore ? lastPage.nextSearchAfter : undefined,
-    placeholderData: keepPreviousData,
-  });
-
-  const data = (query.data?.pages ?? []).flatMap((page) =>
-    mapFullTextSearchResults(page.results)
-  );
-
-  // total count is stored in each page, so we just use the first page for it
-  const totalCount = query.data?.pages[0]?.total ?? 0;
-
-  return {
-    ...query,
-    data,
-    totalCount,
-  };
-}
-
-/**
- * Hook to provide a ref to an input element and focus it when "/" is pressed.
- * Ignores the shortcut if the event originates from an editable element.
- */
-export function useSearchFocus() {
-  const inputRef = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (
-        event.key === '/' &&
-        !event.ctrlKey &&
-        !event.metaKey &&
-        !event.altKey
-      ) {
-        const target = event.target;
-        if (
-          event.defaultPrevented ||
-          target instanceof HTMLInputElement ||
-          target instanceof HTMLTextAreaElement ||
-          target instanceof HTMLSelectElement ||
-          (target instanceof HTMLElement && target.isContentEditable)
-        ) {
-          return;
-        }
-
-        event.preventDefault();
-        inputRef.current?.focus();
-        inputRef.current?.select();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  return inputRef;
-}
-
-/**
  * Hook to fetch saved searches from saved-searches.json
  */
 export function useSavedSearchesQuery() {
@@ -310,173 +230,5 @@ export function useRegenerateSearchIndexMutation(
     onSuccess: async () => {
       await options?.onSuccess?.();
     },
-  });
-}
-
-/**
- * Updates all cached full-text-search infinite queries by applying an updater
- * to each page's results array. Adjusts `total` on the first page to reflect
- * the number of removed results.
- */
-function updateSearchCache(
-  queryClient: ReturnType<typeof useQueryClient>,
-  updater: (
-    result: FullTextSearchPage['results'][number]
-  ) => FullTextSearchPage['results'][number] | null
-) {
-  queryClient.setQueriesData<InfiniteData<FullTextSearchPage>>(
-    { queryKey: queryKeys.fullTextSearchAll() },
-    (oldData) => {
-      if (!oldData) return oldData;
-
-      let totalRemoved = 0;
-      const nextPages = oldData.pages.map((page) => {
-        const nextResults: FullTextSearchPage['results'] = [];
-        for (const result of page.results) {
-          const updated = updater(result);
-          if (updated === null) {
-            totalRemoved++;
-          } else {
-            nextResults.push(updated);
-          }
-        }
-        if (
-          nextResults.length === page.results.length &&
-          nextResults.every((r, i) => r === page.results[i])
-        ) {
-          return page;
-        }
-        return { ...page, results: nextResults };
-      });
-
-      // Adjust total on the first page
-      if (totalRemoved > 0 && nextPages.length > 0) {
-        const firstPage = nextPages[0];
-        nextPages[0] = {
-          ...firstPage,
-          total: Math.max(0, firstPage.total - totalRemoved),
-        };
-      }
-
-      if (nextPages.every((p, i) => p === oldData.pages[i])) {
-        return oldData;
-      }
-
-      return { ...oldData, pages: nextPages };
-    }
-  );
-}
-
-/** Returns the full note path for a raw search result. */
-function searchResultPath(result: FullTextSearchPage['results'][number]) {
-  return `${result.folder}/${result.name}`;
-}
-
-/**
- * Keeps cached search results in sync with file-system events.
- *
- * - **Deletes** (note + folder): removes matching entries from the cache.
- * - **Renames** (note + folder): updates folder/note fields in the cache.
- *   If the currently viewed note was renamed, navigates to its new URL.
- */
-export function useSearchResultSyncEvents({
-  searchQuery,
-  activeNotePath,
-}: {
-  searchQuery: string;
-  activeNotePath: FilePath | undefined;
-}) {
-  const queryClient = useQueryClient();
-
-  // --- Deletes ---
-
-  useWailsEvent(FILE_DELETE, (body) => {
-    const deletedPaths = new Set(body.data.map((item) => item.filePath));
-    updateSearchCache(queryClient, (result) =>
-      deletedPaths.has(searchResultPath(result)) ? null : result
-    );
-  });
-
-  useWailsEvent(FOLDER_DELETE, (body) => {
-    const deletedFolders = body.data.map((item) => item.folderPath);
-    updateSearchCache(queryClient, (result) => {
-      const path = searchResultPath(result);
-      for (const folder of deletedFolders) {
-        if (path === folder || path.startsWith(`${folder}/`)) {
-          return null;
-        }
-      }
-      return result;
-    });
-  });
-
-  // --- Renames ---
-
-  useWailsEvent(FILE_RENAME, (body) => {
-    const renameMap = new Map(
-      body.data.map((item) => [item.oldFilePath, item.newFilePath])
-    );
-
-    updateSearchCache(queryClient, (result) => {
-      const path = searchResultPath(result);
-      const newPath = renameMap.get(path);
-      if (!newPath) return result;
-      const newFilePath = createFilePath(newPath);
-      if (!newFilePath) return result;
-      return { ...result, folder: newFilePath.folder, name: newFilePath.note };
-    });
-
-    // Navigate if the active note was renamed
-    if (activeNotePath) {
-      const newPath = renameMap.get(activeNotePath.fullPath);
-      if (newPath) {
-        const newFilePath = createFilePath(newPath);
-        if (newFilePath) {
-          navigate(routeUrls.search(searchQuery, newFilePath.encodedPath));
-        }
-      }
-    }
-  });
-
-  useWailsEvent(FOLDER_RENAME, (body) => {
-    const rawData = body.data;
-
-    updateSearchCache(queryClient, (result) => {
-      const path = searchResultPath(result);
-      for (const { oldFolderPath, newFolderPath } of rawData) {
-        if (
-          path.startsWith(`${oldFolderPath}/`) ||
-          result.folder === oldFolderPath
-        ) {
-          const newFolder = result.folder.replace(oldFolderPath, newFolderPath);
-          return { ...result, folder: newFolder };
-        }
-      }
-      return result;
-    });
-
-    // Navigate if the active note's folder was renamed
-    if (activeNotePath) {
-      for (const { oldFolderPath, newFolderPath } of rawData) {
-        // Anchor at a segment boundary: a bare startsWith would also match a
-        // sibling folder whose name merely begins with the renamed one.
-        if (
-          activeNotePath.folder === oldFolderPath ||
-          activeNotePath.folder.startsWith(`${oldFolderPath}/`)
-        ) {
-          const newFolder = activeNotePath.folder.replace(
-            oldFolderPath,
-            newFolderPath
-          );
-          const newFilePath = createFilePath(
-            `${newFolder}/${activeNotePath.note}`
-          );
-          if (newFilePath) {
-            navigate(routeUrls.search(searchQuery, newFilePath.encodedPath));
-          }
-          break;
-        }
-      }
-    }
   });
 }

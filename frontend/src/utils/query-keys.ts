@@ -25,9 +25,6 @@ export const queryKeys = {
   notesTags: (paths: string[]) => ['notes-tags', paths] as const,
 
   // Search
-  fullTextSearchAll: () => ['full-text-search'] as const,
-  fullTextSearch: (searchQuery: string) =>
-    ['full-text-search', searchQuery] as const,
   filePickerFullTextSearch: (searchQuery: string) =>
     ['file-picker-full-text-search', searchQuery] as const,
   savedSearches: () => ['saved-searches'] as const,

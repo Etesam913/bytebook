@@ -107,15 +107,15 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 		}
 	})
 
-	openSearchSidebar := sub.Add("Open Search Sidebar")
-	openSearchSidebar.SetAccelerator("shift+cmdorctrl+f")
-	openSearchSidebar.OnClick(func(ctx *application.Context) {
+	focusFileFilter := sub.Add("Focus File Filter")
+	focusFileFilter.SetAccelerator("shift+cmdorctrl+f")
+	focusFileFilter.OnClick(func(ctx *application.Context) {
 		win := app.Window.Current()
 		if win != nil {
-			win.EmitEvent(util.EventSidebarSearchOpen)
+			win.EmitEvent(util.EventFileTreeFilterFocus)
 		} else {
 			log.Println(
-				"Current window could not be found: sidebar:search:open event could not be emitted",
+				"Current window could not be found: file-tree:filter:focus event could not be emitted",
 			)
 		}
 	})

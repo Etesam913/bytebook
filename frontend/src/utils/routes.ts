@@ -24,11 +24,6 @@ export type KernelWithFilesRouteParams = {
   note?: string;
 };
 
-export type SearchRouteParams = {
-  searchQuery: string;
-  '*'?: string;
-};
-
 export type NotesRouteParams = {
   '*'?: string;
 };
@@ -38,8 +33,6 @@ export const ROUTE_PATTERNS = {
   ROOT: '/',
   KERNELS: '/kernels/:kernelName',
   KERNELS_WITH_FILES: '/kernels/:kernelName/:folder?/:note?',
-  SEARCH: '/search/:searchQuery?/*',
-  SEARCH_WILDCARD: '/search/:searchQuery/*',
   NOTES: '/notes/*',
   CATCH_ALL: '*',
   NOT_FOUND_FALLBACK: '/404',
@@ -51,17 +44,6 @@ const routeBuilders = {
    * Build root route
    */
   root: () => '/',
-
-  /**
-   * Build search route
-   */
-  search: (searchQuery: string, encodedFilePath?: string) => {
-    const baseRoute = `/search/${encodeURIComponent(searchQuery)}`;
-    if (encodedFilePath) {
-      return `${baseRoute}/${encodedFilePath}`;
-    }
-    return searchQuery ? `${baseRoute}/` : '/search/';
-  },
 
   /**
    * Build kernel route
@@ -87,8 +69,3 @@ export const routeUrls = {
   // Route builders for navigation
   ...routeBuilders,
 } as const;
-
-// Returns true if the given pathname corresponds to the search sidebar route.
-export function isSearchSidebarRoute(pathname: string): boolean {
-  return pathname.startsWith('/search');
-}

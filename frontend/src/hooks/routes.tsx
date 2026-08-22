@@ -17,7 +17,6 @@ import {
 } from '@utils/path';
 import {
   type NotesRouteParams,
-  type SearchRouteParams,
   navigateToPath,
   routeUrls,
 } from '@utils/routes';
@@ -49,24 +48,6 @@ export function useDecodedNotesWildcardPath(): string | null {
 }
 
 /**
- * Hook to get the decoded wildcard path segment from the
- * `/search/:searchQuery/*` route.
- *
- * @returns The normalized file path from the route, or null if not on a
- * search note route.
- */
-function useDecodedSearchWildcardPath(): string | null {
-  const [isSearchRoute, searchParams] = useRoute<SearchRouteParams>(
-    routeUrls.patterns.SEARCH_WILDCARD
-  );
-  if (!isSearchRoute) {
-    return null;
-  }
-
-  return normalizeWildcardPath(searchParams['*']);
-}
-
-/**
  * Hook to get a FilePath object representing the current `/notes/*` route.
  *
  * @returns FilePath object if on a file route, null if not or if invalid.
@@ -89,23 +70,16 @@ export function useFolderPathFromRoute(): FolderPath | null {
 /**
  * Hook to get the current note or folder represented by the active route.
  *
- * Supports both `/notes/*` routes and search note routes.
- *
  * @returns FilePath or FolderPath for the current route, or null if the route
  * does not correspond to a note or folder.
  */
 export function useRecentItemFromRoute(): FileOrFolderPath | null {
   const decodedNotesPath = useDecodedNotesWildcardPath();
-  const decodedSearchPath = useDecodedSearchWildcardPath();
 
   if (decodedNotesPath) {
     return (
       createFilePath(decodedNotesPath) ?? createFolderPath(decodedNotesPath)
     );
-  }
-
-  if (decodedSearchPath) {
-    return createFilePath(decodedSearchPath);
   }
 
   return null;
@@ -127,9 +101,7 @@ export function useSyncFileMaximizedWithRoute(): void {
     }
 
     const isKernelRoute = pathname.startsWith('/kernels');
-    const isSearchRoute = pathname.startsWith('/search');
-
-    if ((isKernelRoute || isSearchRoute) && isFileMaximized) {
+    if (isKernelRoute && isFileMaximized) {
       setIsFileMaximized(false);
     }
   }, [isFileMaximized, pathname, setIsFileMaximized]);

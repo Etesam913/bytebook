@@ -1,9 +1,4 @@
-import {
-  queryOptions,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { queryOptions, useMutation, useQuery } from '@tanstack/react-query';
 import { useAtomValue } from 'jotai/react';
 import { Window } from '@wailsio/runtime';
 import { type LexicalEditor } from 'lexical';
@@ -115,7 +110,6 @@ function getNavigationTargetForDeletedPaths({
  */
 export function useMoveToTrashMutation() {
   const { mutate: restoreFromTrash } = useRestoreFromTrashMutation();
-  const queryClient = useQueryClient();
   const currentRouteFilePath = useFilePathFromRoute();
   const currentRouteFolderPath = useFolderPathFromRoute();
 
@@ -140,10 +134,6 @@ export function useMoveToTrashMutation() {
       }
     },
     onSuccess: (restoreItems) => {
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.fullTextSearchAll(),
-      });
-
       if (restoreItems.length === 0) {
         return;
       }

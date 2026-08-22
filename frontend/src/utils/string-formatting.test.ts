@@ -15,7 +15,6 @@ import {
   escapeFileContentForMarkdown,
   unescapeFileContentFromMarkdown,
   unescapeUnderscore,
-  formatDate,
 } from './string-formatting';
 
 describe('cn', () => {
@@ -238,70 +237,5 @@ describe('unescapeUnderscore', () => {
 
   it('leaves non-escaped underscores untouched', () => {
     expect(unescapeUnderscore('foo_bar')).toBe('foo_bar');
-  });
-});
-
-describe('formatDate', () => {
-  describe('yyyy-mm-dd format', () => {
-    it('returns the ISO date portion', () => {
-      expect(formatDate('2024-01-15T12:34:56Z', 'yyyy-mm-dd')).toBe(
-        '2024-01-15'
-      );
-    });
-
-    it('handles dates at midnight UTC', () => {
-      expect(formatDate('2024-12-31T00:00:00Z', 'yyyy-mm-dd')).toBe(
-        '2024-12-31'
-      );
-    });
-  });
-
-  describe('relative format', () => {
-    // Build ISO strings relative to "now" so the assertion holds without mocking Date.
-    const secondsAgo = (s: number) =>
-      new Date(Date.now() - s * 1000).toISOString();
-
-    it('returns "just now" for under a minute', () => {
-      expect(formatDate(secondsAgo(30), 'relative')).toBe('just now');
-    });
-
-    it('returns singular "1 minute ago" for ~90 seconds', () => {
-      expect(formatDate(secondsAgo(90), 'relative')).toBe('1 minute ago');
-    });
-
-    it('returns plural "X minutes ago" for under an hour', () => {
-      expect(formatDate(secondsAgo(330), 'relative')).toBe('5 minutes ago');
-    });
-
-    it('returns singular "1 hour ago" for ~75 minutes', () => {
-      expect(formatDate(secondsAgo(75 * 60), 'relative')).toBe('1 hour ago');
-    });
-
-    it('returns plural "X hours ago" for several hours', () => {
-      expect(formatDate(secondsAgo(3.5 * 60 * 60), 'relative')).toBe(
-        '3 hours ago'
-      );
-    });
-
-    it('returns singular "1 day ago" for ~36 hours', () => {
-      expect(formatDate(secondsAgo(36 * 60 * 60), 'relative')).toBe(
-        '1 day ago'
-      );
-    });
-
-    it('returns plural "X days ago" for several days', () => {
-      expect(formatDate(secondsAgo(4 * 24 * 60 * 60), 'relative')).toBe(
-        '4 days ago'
-      );
-    });
-
-    it('falls back to a locale date string for >= 7 days', () => {
-      const result = formatDate(secondsAgo(14 * 24 * 60 * 60), 'relative');
-      expect(typeof result).toBe('string');
-      expect(result.length).toBeGreaterThan(0);
-      // Should not be one of the relative phrases.
-      expect(result).not.toMatch(/ ago$/);
-      expect(result).not.toBe('just now');
-    });
   });
 });

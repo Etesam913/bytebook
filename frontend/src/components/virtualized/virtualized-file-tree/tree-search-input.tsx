@@ -1,4 +1,6 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
+import { useSetAtom } from 'jotai';
+import { fileSidebarOpenStateAtom, isFileMaximizedAtom } from '@/atoms';
 import { AppIconButton } from '@components/buttons';
 import { AppSearchField } from '@components/input';
 import {
@@ -7,6 +9,8 @@ import {
 } from '@components/search-help';
 import { Tooltip } from '@components/tooltip';
 import { CircleInfo } from '@/icons/circle-info';
+import { useWailsEvent } from '@hooks/events';
+import { FILE_TREE_FILTER_FOCUS, isEventInCurrentWindow } from '@utils/events';
 
 // The tree filter reuses the search syntax, but result ordering is fixed, so
 // the Sort examples don't apply here.
@@ -22,6 +26,39 @@ export function TreeSearchInput({
   onChange: (value: string) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const setIsFileMaximized = useSetAtom(isFileMaximizedAtom);
+  const setOpenState = useSetAtom(fileSidebarOpenStateAtom);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        (event.metaKey || event.ctrlKey) &&
+        event.shiftKey &&
+        event.key.toLowerCase() === 'f'
+      ) {
+        event.preventDefault();
+        setIsFileMaximized(false);
+        setOpenState((prev) => ({ ...prev, files: true }));
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [setIsFileMaximized, setOpenState]);
+
+  useWailsEvent(FILE_TREE_FILTER_FOCUS, (data) => {
+    void (async () => {
+      if (!(await isEventInCurrentWindow(data))) return;
+      setIsFileMaximized(false);
+      setOpenState((prev) => ({ ...prev, files: true }));
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      });
+    })();
+  });
 
   return (
     <div className="px-2 pb-1.5 w-full">

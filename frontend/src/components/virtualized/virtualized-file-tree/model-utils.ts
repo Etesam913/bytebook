@@ -251,11 +251,6 @@ export function revealTreePath(
 /**
  * Resolves the destination folder path from viewport coordinates (x, y)
  * by querying inside the Pierre tree's shadow root.
- *
- * Returns:
- * - The folder path if dropped directly on a folder item.
- * - The parent folder path if dropped on a file item.
- * - Empty string ("") if dropped on blank space (targeting the root notes folder).
  */
 export function resolveDropTargetFolder({
   model,

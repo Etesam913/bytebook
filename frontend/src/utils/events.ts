@@ -24,7 +24,7 @@ export const SEARCH_NOTE = 'search:note';
 export const FULLSCREEN = 'window:fullscreen';
 export const TOGGLE_SIDEBAR = 'sidebar:toggle';
 export const SIDEBAR_FILES_OPEN = 'sidebar:files:open';
-export const SIDEBAR_SEARCH_OPEN = 'sidebar:search:open';
+export const FILE_TREE_FILTER_FOCUS = 'file-tree:filter:focus';
 export const FILE_TREE_CONTENT_DROP = 'file-tree:content-drop';
 export const EDITOR_CONTENT_DROP = 'editor:content-drop';
 

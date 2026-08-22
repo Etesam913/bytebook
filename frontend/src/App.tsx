@@ -14,7 +14,7 @@ import { useTagEvents } from '@hooks/tags';
 import { useThemeSetting } from '@hooks/theme';
 import { MAX_SIDEBAR_WIDTH } from '@utils/general';
 import { disableBackspaceNavigation } from '@utils/routing';
-import { routeUrls, type SearchRouteParams } from '@utils/routes';
+import { routeUrls } from '@utils/routes';
 import { RouteFallback } from '@components/route-fallback';
 import { useZoom, useFullscreen } from '@hooks/resize';
 import {
@@ -24,7 +24,6 @@ import {
 } from '@hooks/routes';
 import { EditorWrapper } from '@components/editor-wrapper';
 import { RouteDebugView } from '@components/route-debug-view';
-import { safeDecodeURIComponent } from '@utils/path';
 import { isRegularMouseClick } from '@utils/mouse';
 import { isE2ETestEnvironment } from '@utils/e2e';
 import { useKernelInstanceEvents, useKernelInstancesQuery } from '@hooks/code';
@@ -33,12 +32,6 @@ import { useAllPathsInvalidation } from '@hooks/all-paths';
 const KernelInfo = lazy(() =>
   import('@/routes/kernel-info').then((module) => ({
     default: module.KernelInfo,
-  }))
-);
-
-const SearchContentArea = lazy(() =>
-  import('@/routes/search/search-content-area').then((module) => ({
-    default: module.SearchContentArea,
   }))
 );
 
@@ -102,23 +95,6 @@ function App() {
             <Suspense fallback={<RouteFallback />}>
               <KernelInfo />
             </Suspense>
-          </Route>
-
-          <Route path={routeUrls.patterns.SEARCH}>
-            {(params: SearchRouteParams) => (
-              <Suspense fallback={<RouteFallback />}>
-                <SearchContentArea
-                  curPath={
-                    params['*']
-                      ? safeDecodeURIComponent(params['*'])
-                          .split('/')
-                          .filter(Boolean)
-                          .join('/')
-                      : undefined
-                  }
-                />
-              </Suspense>
-            )}
           </Route>
 
           <Route path={routeUrls.patterns.CATCH_ALL}>

@@ -4,13 +4,13 @@ import {
   useMotionTemplate,
   useMotionValue,
 } from 'motion/react';
-import { useAtomValue } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { useRef } from 'react';
-import { useLocation } from 'wouter';
 import { getDefaultButtonVariants } from '@/animations';
 import {
   DEFAULT_SIDEBAR_FLEX_WEIGHTS,
   fileSidebarOpenStateAtom,
+  isFileMaximizedAtom,
   isFullscreenAtom,
   MIN_FLEX_WEIGHT,
   projectSettingsAtom,
@@ -24,16 +24,15 @@ import { MyFilesAccordion } from './my-files-accordion/index.tsx';
 import { MyTagsAccordion } from './my-tags-accordion/index.tsx';
 import { PinnedAccordion } from './pinned-accordion.tsx';
 import { RecentAccordion } from './recent-accordion.tsx';
-import { SidebarModeToggle } from './sidebar-mode-toggle.tsx';
-import { SearchSidebarPanel } from './search-sidebar-panel/index.tsx';
 import { Spacer } from './spacer.tsx';
 import { CircleArrowLeft } from '@/icons/circle-arrow-left';
 import { CircleArrowRight } from '@/icons/circle-arrow-right';
 import { MyKernelsAccordion } from './my-kernels-accordion/index.tsx';
 import { MySavedSearchesAccordion } from './my-saved-searches-accordion/index.tsx';
 import { Tooltip } from '@components/tooltip/index';
-import { isSearchSidebarRoute, routeUrls } from '@utils/routes';
 import { cn } from '@utils/string-formatting';
+import { useWailsEvent } from '@hooks/events';
+import { isEventInCurrentWindow, SIDEBAR_FILES_OPEN } from '@utils/events';
 
 export type FlexWeightMVs = Record<SidebarPanelKey, MotionValue<number>>;
 
@@ -57,15 +56,12 @@ function loadStoredWeights(): SidebarFlexWeights {
 
 export function FileSidebar({ width }: { width: MotionValue<number> }) {
   const isFullscreen = useAtomValue(isFullscreenAtom);
-  const [pathname] = useLocation();
-  const lastFilesRouteRef = useRef(routeUrls.folder(''));
-  const lastSearchRouteRef = useRef(routeUrls.search(''));
-
-  const isSearchSidebar = isSearchSidebarRoute(pathname);
   const panelContainerRef = useRef<HTMLElement | null>(null);
   const scaledWidth = useMotionTemplate`calc(${width}px * var(--ui-scale))`;
 
   const openState = useAtomValue(fileSidebarOpenStateAtom);
+  const setOpenState = useSetAtom(fileSidebarOpenStateAtom);
+  const setIsFileMaximized = useSetAtom(isFileMaximizedAtom);
   const sidebarVisibility =
     useAtomValue(projectSettingsAtom).appearance.sidebarVisibility;
   const storedWeightsRef = useRef<SidebarFlexWeights>(loadStoredWeights());
@@ -82,6 +78,14 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
     ),
   };
 
+  useWailsEvent(SIDEBAR_FILES_OPEN, (data) => {
+    void (async () => {
+      if (!(await isEventInCurrentWindow(data))) return;
+      setIsFileMaximized(false);
+      setOpenState((prev) => ({ ...prev, files: true }));
+    })();
+  });
+
   return (
     <>
       <motion.aside
@@ -92,14 +96,10 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
       >
         <header
           className={cn(
-            'pr-2.5 flex gap-1 flex items-center justify-between w-full pl-[92px] h-[48px] mt-[4px]',
+            'pr-2.5 flex gap-1 flex items-center justify-end w-full pl-[92px] h-[48px] mt-[4px]',
             isFullscreen && 'pl-[8px]'
           )}
         >
-          <SidebarModeToggle
-            lastFilesRouteRef={lastFilesRouteRef}
-            lastSearchRouteRef={lastSearchRouteRef}
-          />
           <span>
             <Tooltip content="Go back">
               <MotionIconButton
@@ -123,59 +123,51 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
             </Tooltip>
           </span>
         </header>
-        <div className={cn('contents', isSearchSidebar && 'hidden')}>
-          <section
-            ref={panelContainerRef}
-            className="flex flex-1 flex-col min-h-0 pt-1.5 pb-1"
-          >
-            <MyFilesAccordion
+        <section
+          ref={panelContainerRef}
+          className="flex flex-1 flex-col min-h-0 pt-1.5 pb-1"
+        >
+          <MyFilesAccordion
+            containerRef={panelContainerRef}
+            flexWeightMVs={flexWeightMVs}
+            storedWeightsRef={storedWeightsRef}
+          />
+          {!sidebarVisibility.hidePinned && (
+            <PinnedAccordion
               containerRef={panelContainerRef}
               flexWeightMVs={flexWeightMVs}
               storedWeightsRef={storedWeightsRef}
             />
-            {!sidebarVisibility.hidePinned && (
-              <PinnedAccordion
-                containerRef={panelContainerRef}
-                flexWeightMVs={flexWeightMVs}
-                storedWeightsRef={storedWeightsRef}
-              />
-            )}
-            {!sidebarVisibility.hideRecent && (
-              <RecentAccordion
-                containerRef={panelContainerRef}
-                flexWeightMVs={flexWeightMVs}
-                storedWeightsRef={storedWeightsRef}
-              />
-            )}
-            {!sidebarVisibility.hideKernels && (
-              <MyKernelsAccordion
-                containerRef={panelContainerRef}
-                flexWeightMVs={flexWeightMVs}
-                storedWeightsRef={storedWeightsRef}
-              />
-            )}
-            {!sidebarVisibility.hideTags && (
-              <MyTagsAccordion
-                containerRef={panelContainerRef}
-                flexWeightMVs={flexWeightMVs}
-                storedWeightsRef={storedWeightsRef}
-              />
-            )}
-            {!sidebarVisibility.hideSavedSearches && (
-              <MySavedSearchesAccordion
-                containerRef={panelContainerRef}
-                flexWeightMVs={flexWeightMVs}
-                storedWeightsRef={storedWeightsRef}
-              />
-            )}
-          </section>
-        </div>
-        <div className={cn('contents', !isSearchSidebar && 'hidden')}>
-          <SearchSidebarPanel
-            lastSearchRouteRef={lastSearchRouteRef}
-            lastFilesRouteRef={lastFilesRouteRef}
-          />
-        </div>
+          )}
+          {!sidebarVisibility.hideRecent && (
+            <RecentAccordion
+              containerRef={panelContainerRef}
+              flexWeightMVs={flexWeightMVs}
+              storedWeightsRef={storedWeightsRef}
+            />
+          )}
+          {!sidebarVisibility.hideKernels && (
+            <MyKernelsAccordion
+              containerRef={panelContainerRef}
+              flexWeightMVs={flexWeightMVs}
+              storedWeightsRef={storedWeightsRef}
+            />
+          )}
+          {!sidebarVisibility.hideTags && (
+            <MyTagsAccordion
+              containerRef={panelContainerRef}
+              flexWeightMVs={flexWeightMVs}
+              storedWeightsRef={storedWeightsRef}
+            />
+          )}
+          {!sidebarVisibility.hideSavedSearches && (
+            <MySavedSearchesAccordion
+              containerRef={panelContainerRef}
+              flexWeightMVs={flexWeightMVs}
+              storedWeightsRef={storedWeightsRef}
+            />
+          )}
+        </section>
         <BottomItems />
       </motion.aside>
       <Spacer width={width} />

@@ -1,8 +1,12 @@
-import { useAtomValue } from 'jotai';
-import { navigate } from 'wouter/use-browser-location';
+import { useAtomValue, useSetAtom } from 'jotai';
 import type { Key } from 'react-aria-components/Breadcrumbs';
 import { Button } from 'react-aria-components/Button';
-import { isFileMaximizedAtom, projectSettingsAtom } from '@/atoms';
+import {
+  fileSidebarOpenStateAtom,
+  isFileMaximizedAtom,
+  projectSettingsAtom,
+  treeFilterQueryAtom,
+} from '@/atoms';
 import { MaximizeNoteButton } from '@components/buttons/maximize-note';
 import { useContextMenuItems } from '@components/context-menu/items';
 import {
@@ -15,7 +19,6 @@ import { Tooltip } from '@components/tooltip';
 import { HorizontalDots } from '@/icons/horizontal-dots';
 import { Magnifier } from '@/icons/magnifier';
 import { stripTrailingSlash, type FolderPath } from '@utils/path';
-import { routeUrls } from '@utils/routes';
 import { cn } from '@utils/string-formatting';
 import type { LegacyAnimationControls } from 'motion/react';
 import { MotionIconButton } from '@components/buttons';
@@ -31,6 +34,9 @@ export function FolderRendererHeader({
   const folderName = folderPath.folder;
   const isFileMaximized = useAtomValue(isFileMaximizedAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
+  const setTreeFilterQuery = useSetAtom(treeFilterQueryAtom);
+  const setFileSidebarOpenState = useSetAtom(fileSidebarOpenStateAtom);
+  const setIsFileMaximized = useSetAtom(isFileMaximizedAtom);
   const { revealInFinder, pin, moveToTrash } = useContextMenuItems();
 
   // pinnedNotes stores slashless paths (the settings.json format).
@@ -74,7 +80,12 @@ export function FolderRendererHeader({
                   aria-label="Search this folder"
                   className="shrink-0"
                   onClick={() => {
-                    navigate(routeUrls.search(`f:"${folderPath.fullPath}"`));
+                    setTreeFilterQuery(`f:"${folderPath.fullPath}"`);
+                    setFileSidebarOpenState((prev) => ({
+                      ...prev,
+                      files: true,
+                    }));
+                    setIsFileMaximized(false);
                   }}
                 >
                   <Magnifier width="0.875rem" height="0.875rem" />

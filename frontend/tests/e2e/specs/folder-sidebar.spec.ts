@@ -63,6 +63,20 @@ test.describe('File Sidebar', () => {
     await expect(sidebar).toBeVisible();
   });
 
+  test('focuses the file filter from the native search shortcut', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    const sidebar = page.getByTestId('file-sidebar');
+    const filterInput = sidebar.getByRole('searchbox', {
+      name: 'Filter files',
+    });
+
+    await page.keyboard.press('Meta+Shift+f');
+
+    await expect(filterInput).toBeFocused();
+  });
+
   test.describe('File Tree', () => {
     // @pierre/trees renders row labels as truncation fragments, so text-based
     // locators can't match a full name — use the treeitem's accessible name.

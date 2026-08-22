@@ -30,7 +30,7 @@ const (
 	EventFullscreen          = "window:fullscreen"
 	EventToggleSidebar       = "sidebar:toggle"
 	EventSidebarFilesOpen    = "sidebar:files:open"
-	EventSidebarSearchOpen   = "sidebar:search:open"
+	EventFileTreeFilterFocus = "file-tree:filter:focus"
 	EventFileTreeContentDrop = "file-tree:content-drop"
 	EventEditorContentDrop   = "editor:content-drop"
 
@@ -131,7 +131,7 @@ func init() {
 	application.RegisterEvent[bool](EventFullscreen)
 	application.RegisterEvent[application.Void](EventToggleSidebar)
 	application.RegisterEvent[application.Void](EventSidebarFilesOpen)
-	application.RegisterEvent[application.Void](EventSidebarSearchOpen)
+	application.RegisterEvent[application.Void](EventFileTreeFilterFocus)
 	application.RegisterEvent[ContentDropEventData](EventFileTreeContentDrop)
 	application.RegisterEvent[ContentDropEventData](EventEditorContentDrop)
 

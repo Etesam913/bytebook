@@ -46,13 +46,11 @@ function useMatchedPatternName(): string {
   // Order matters: check more specific patterns before catch-alls.
   const [isRoot] = useRoute(ROUTE_PATTERNS.ROOT);
   const [isKernels] = useRoute(ROUTE_PATTERNS.KERNELS);
-  const [isSearch] = useRoute(ROUTE_PATTERNS.SEARCH);
   const [isNotes] = useRoute(ROUTE_PATTERNS.NOTES);
   const [isNotFound] = useRoute(ROUTE_PATTERNS.NOT_FOUND_FALLBACK);
 
   if (isRoot) return 'ROOT';
   if (isKernels) return 'KERNELS';
-  if (isSearch) return 'SEARCH';
   if (isNotes) return 'NOTES';
   if (isNotFound) return 'NOT_FOUND_FALLBACK';
   return 'CATCH_ALL';

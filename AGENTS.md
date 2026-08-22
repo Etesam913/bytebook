@@ -69,13 +69,11 @@ bun run test:unit
 Routes are wired in `frontend/src/App.tsx` using `wouter` + `routeUrls.patterns` (from `frontend/src/utils/routes.ts`). Key pages:
 
 - `/notes/*` → `EditorWrapper` (main notes/folder view)
-- `/search` → `SearchPage` (lazy-loaded)
-- `/saved-search/:searchQuery/*` → `SavedSearchPage` (lazy-loaded; supports an optional trailing path)
 - `/kernels/:kernelName` → `KernelInfo` (lazy-loaded)
 - `/404` and `*` → `NotFound` (lazy-loaded)
 - `/` (`ROOT`) currently matches with no component; if you change routing, ensure the root path lands on a meaningful page.
 
-Layout note: `FileSidebar` visibility is toggled in `frontend/src/App.tsx` (hidden when a note is maximized or the location starts with `/search`).
+Layout note: `FileSidebar` visibility is toggled in `frontend/src/App.tsx` when a note is maximized. Full-text filtering is integrated into the file tree rather than a separate route.
 
 ## Key components (frontend)
 
