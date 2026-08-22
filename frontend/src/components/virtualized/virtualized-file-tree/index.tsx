@@ -212,11 +212,6 @@ function PierreFileTreeInner({
     },
   });
 
-  useSyncAllPaths({ model, initialPaths, preparedInput });
-  usePierreTreeEvents(model);
-  usePierreRouteFocus(model);
-  usePierreFileTreeDrop(model);
-
   const {
     searchValue,
     onSearchChange,
@@ -224,6 +219,11 @@ function PierreFileTreeInner({
     filteredPaths,
     isFilterLoading,
   } = useTreeFilter();
+
+  useSyncAllPaths({ model, initialPaths, preparedInput });
+  usePierreTreeEvents(model);
+  usePierreRouteFocus(model, isFilterMode);
+  usePierreFileTreeDrop(model);
 
   function handleStartRename(path: string) {
     if (!model.startRenaming(path)) return;

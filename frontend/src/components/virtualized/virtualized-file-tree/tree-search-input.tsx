@@ -35,7 +35,7 @@ export function TreeSearchInput({
         autoComplete="off"
         autoCorrect="off"
         spellCheck={false}
-        inputClassName="pr-10"
+        inputClassName="pr-8"
         onKeyDown={(e) => {
           if (e.key === 'Escape') {
             e.preventDefault();

@@ -36,6 +36,12 @@ export const FILE_TREE_UNSAFE_CSS = `
     cursor: default !important;
   }
 
+  [data-type='item'][data-external-drop-target='true'] {
+    background-color: var(--trees-selected-bg) !important;
+    outline: 1px solid var(--trees-focus-ring-color) !important;
+    outline-offset: var(--trees-focus-ring-offset) !important;
+  }
+
   [data-file-tree-sticky-overlay-content="true"] {
     border-bottom: 1px solid light-dark(rgb(228, 228, 231), rgb(63, 63, 70));
   }

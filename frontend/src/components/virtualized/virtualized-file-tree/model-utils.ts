@@ -286,3 +286,65 @@ export function resolveDropTargetFolder({
   const segments = itemPath.split('/');
   return segments.length > 1 ? `${segments.slice(0, -1).join('/')}/` : '';
 }
+
+/**
+ * Removes the external drop target highlight attribute from any active row in the Pierre tree.
+ */
+export function clearDropTargetHighlight(model: PierreFileTree | null): void {
+  const shadowRoot = getShadowRoot(model);
+  if (shadowRoot) {
+    for (const el of shadowRoot.querySelectorAll(
+      '[data-external-drop-target], [data-item-drag-target]'
+    )) {
+      el.removeAttribute('data-external-drop-target');
+      el.removeAttribute('data-item-drag-target');
+    }
+  }
+
+  for (const host of document.querySelectorAll('file-tree-container')) {
+    const sr = host.shadowRoot;
+    if (sr) {
+      for (const el of sr.querySelectorAll(
+        '[data-external-drop-target], [data-item-drag-target]'
+      )) {
+        el.removeAttribute('data-external-drop-target');
+        el.removeAttribute('data-item-drag-target');
+      }
+    }
+  }
+}
+
+/**
+ * Updates the external drop target highlight to the row underneath viewport coordinates (x, y).
+ * Clears highlights if the coordinates hit blank space or leave the items.
+ */
+export function updateDropTargetHighlight({
+  model,
+  x,
+  y,
+}: {
+  model: PierreFileTree | null;
+  x: number;
+  y: number;
+}): HTMLElement | null {
+  const shadowRoot = getShadowRoot(model);
+  if (!shadowRoot) return null;
+
+  const hitElement = shadowRoot.elementFromPoint(x, y);
+  const row = hitElement?.closest<HTMLElement>('[data-type="item"]') ?? null;
+  const isFolder = row?.getAttribute('data-item-type') === 'folder';
+  const folderRow = isFolder ? row : null;
+
+  const current = shadowRoot.querySelector<HTMLElement>(
+    '[data-external-drop-target]'
+  );
+  if (current === folderRow) return folderRow;
+
+  if (current) {
+    current.removeAttribute('data-external-drop-target');
+  }
+  if (folderRow) {
+    folderRow.setAttribute('data-external-drop-target', 'true');
+  }
+  return folderRow;
+}

@@ -1,6 +1,10 @@
 import type { FileTree as PierreFileTree } from '@pierre/trees';
 import { useEffect } from 'react';
-import { getRenameInput, revealTreePath } from '../model-utils';
+import {
+  getRenameInput,
+  revealTreePath,
+  scrollTreePathIntoView,
+} from '../model-utils';
 import { usePierreRouteTargetPath } from './use-route-target-path';
 
 // Keeps the @pierre/trees highlighted row in sync with the current `/notes/*`
@@ -8,20 +12,32 @@ import { usePierreRouteTargetPath } from './use-route-target-path';
 // package itself scrolls only on user-driven focus changes, so this also
 // covers the cases it misses: a freshly revealed panel (the sidebar hides the
 // tree after it becomes visible again) and deep links.
-export function usePierreRouteFocus(model: PierreFileTree | null) {
+export function usePierreRouteFocus(
+  model: PierreFileTree | null,
+  isTreeHidden: boolean
+) {
   const targetPath = usePierreRouteTargetPath();
 
   useEffect(() => {
-    if (!model || !targetPath) return;
+    if (!model || !targetPath || isTreeHidden) return;
+    let shouldScrollIntoView = true;
+
     const tryReveal = () => {
       const item = model.getItem(targetPath);
       if (!item) return;
       // Already highlighted: re-revealing would yank the scroll position on
       // unrelated disk changes.
-      if (model.getFocusedPath() === targetPath && item.isSelected()) return;
+      if (model.getFocusedPath() === targetPath && item.isSelected()) {
+        if (shouldScrollIntoView) {
+          shouldScrollIntoView = false;
+          scrollTreePathIntoView(model, targetPath);
+        }
+        return;
+      }
       // Never move focus while the inline rename editor is open — focusPath
       // would blur it, which commits the rename mid-edit.
       if (getRenameInput(model)) return;
+      shouldScrollIntoView = false;
       revealTreePath(model, targetPath);
     };
     tryReveal();
@@ -39,5 +55,5 @@ export function usePierreRouteFocus(model: PierreFileTree | null) {
       isActive = false;
       unsubscribe();
     };
-  }, [model, targetPath]);
+  }, [model, targetPath, isTreeHidden]);
 }

@@ -31,14 +31,14 @@ export function SearchPage() {
               'text-center w-44',
               isPending && 'flex items-center justify-center'
             )}
-            {...getDefaultButtonVariants()}
+            {...getDefaultButtonVariants({ disabled: isPending })}
             isDisabled={isPending}
             onClick={() => {
               regenerateSearchIndex();
             }}
           >
             {isPending ? (
-              <Loader width="1.4375rem" height="1.4375rem" />
+              <Loader width="1.25rem" height="1.25rem" />
             ) : (
               <>
                 <SearchContent2 width="1.25rem" height="1.25rem" />
