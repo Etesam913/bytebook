@@ -22,7 +22,19 @@ paths:
   }) { ... }
   ```
 
-- Any function with 3+ parameters takes a single object parameter.
+- Any function with 3+ parameters takes a single object parameter with inline destructured types:
+
+  ```ts
+  export function resolveSomething({
+    model,
+    x,
+    y,
+  }: {
+    model: Model | null;
+    x: number;
+    y: number;
+  }) { ... }
+  ```
 - Prefer `type` aliases over `interface`. Shared types go in `frontend/src/types.ts`; hook-local types stay in the hook file.
 - Never use `useCallback` or `useMemo` — the React Compiler handles memoization.
 - Use the `ref` prop directly (React 19); never `forwardRef`.

@@ -257,11 +257,15 @@ export function revealTreePath(
  * - The parent folder path if dropped on a file item.
  * - Empty string ("") if dropped on blank space (targeting the root notes folder).
  */
-export function resolveDropTargetFolder(
-  model: PierreFileTree | null,
-  x: number,
-  y: number
-): string {
+export function resolveDropTargetFolder({
+  model,
+  x,
+  y,
+}: {
+  model: PierreFileTree | null;
+  x: number;
+  y: number;
+}): string {
   const shadowRoot = getShadowRoot(model);
   if (!shadowRoot) return '';
 
