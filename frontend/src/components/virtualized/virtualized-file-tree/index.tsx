@@ -23,6 +23,7 @@ import { createDropNavigationGate } from './drop-navigation';
 import { FilteredFileTree } from './filtered-file-tree';
 import { usePierreRouteFocus } from './hooks/use-pierre-route-focus';
 import { usePierreTreeEvents } from './hooks/use-pierre-tree-events';
+import { usePierreFileTreeDrop } from './hooks/use-pierre-file-tree-drop';
 import { usePierreRouteTargetPath } from './hooks/use-route-target-path';
 import { useSyncAllPaths } from './hooks/use-sync-all-paths';
 import { useTreeFilter } from './hooks/use-tree-filter';
@@ -206,6 +207,7 @@ function PierreFileTreeInner({
   useSyncAllPaths({ model, initialPaths, preparedInput });
   usePierreTreeEvents(model);
   usePierreRouteFocus(model);
+  usePierreFileTreeDrop(model);
 
   const {
     searchValue,
@@ -301,6 +303,7 @@ function PierreFileTreeInner({
   return (
     <div
       id="file-tree"
+      data-file-drop-target
       ref={(node) => {
         hostRef.current = node;
       }}
