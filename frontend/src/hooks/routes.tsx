@@ -17,7 +17,6 @@ import {
 } from '@utils/path';
 import {
   type NotesRouteParams,
-  type SavedSearchRouteParams,
   type SearchRouteParams,
   navigateToPath,
   routeUrls,
@@ -47,23 +46,6 @@ export function useDecodedNotesWildcardPath(): string | null {
   }
 
   return normalizeWildcardPath(noteParams['*']);
-}
-
-/**
- * Hook to get the decoded wildcard path segment from the
- * `/saved-search/:searchQuery/*` route.
- *
- * @returns The normalized file path from the route, or null if not on a
- * saved-search note route.
- */
-function useDecodedSavedSearchWildcardPath(): string | null {
-  const [isSavedSearchRoute, savedSearchParams] =
-    useRoute<SavedSearchRouteParams>(routeUrls.patterns.SAVED_SEARCH);
-  if (!isSavedSearchRoute) {
-    return null;
-  }
-
-  return normalizeWildcardPath(savedSearchParams['*']);
 }
 
 /**
@@ -107,24 +89,19 @@ export function useFolderPathFromRoute(): FolderPath | null {
 /**
  * Hook to get the current note or folder represented by the active route.
  *
- * Supports both `/notes/*` routes and saved-search note routes.
+ * Supports both `/notes/*` routes and search note routes.
  *
  * @returns FilePath or FolderPath for the current route, or null if the route
  * does not correspond to a note or folder.
  */
 export function useRecentItemFromRoute(): FileOrFolderPath | null {
   const decodedNotesPath = useDecodedNotesWildcardPath();
-  const decodedSavedSearchPath = useDecodedSavedSearchWildcardPath();
   const decodedSearchPath = useDecodedSearchWildcardPath();
 
   if (decodedNotesPath) {
     return (
       createFilePath(decodedNotesPath) ?? createFolderPath(decodedNotesPath)
     );
-  }
-
-  if (decodedSavedSearchPath) {
-    return createFilePath(decodedSavedSearchPath);
   }
 
   if (decodedSearchPath) {

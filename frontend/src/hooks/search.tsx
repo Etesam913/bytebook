@@ -249,9 +249,6 @@ export function useSaveSearchMutation() {
       }
       return response;
     },
-    onSuccess: (_, variables) => {
-      navigate(routeUrls.savedSearch(variables.searchQuery));
-    },
   });
 }
 
@@ -376,13 +373,13 @@ function searchResultPath(result: FullTextSearchPage['results'][number]) {
 }
 
 /**
- * Keeps cached saved-search results in sync with file-system events.
+ * Keeps cached search results in sync with file-system events.
  *
  * - **Deletes** (note + folder): removes matching entries from the cache.
  * - **Renames** (note + folder): updates folder/note fields in the cache.
  *   If the currently viewed note was renamed, navigates to its new URL.
  */
-export function useSavedSearchSyncEvents({
+export function useSearchResultSyncEvents({
   searchQuery,
   activeNotePath,
 }: {
@@ -435,7 +432,7 @@ export function useSavedSearchSyncEvents({
       if (newPath) {
         const newFilePath = createFilePath(newPath);
         if (newFilePath) {
-          navigate(routeUrls.savedSearch(searchQuery, newFilePath.encodedPath));
+          navigate(routeUrls.search(searchQuery, newFilePath.encodedPath));
         }
       }
     }
@@ -475,9 +472,7 @@ export function useSavedSearchSyncEvents({
             `${newFolder}/${activeNotePath.note}`
           );
           if (newFilePath) {
-            navigate(
-              routeUrls.savedSearch(searchQuery, newFilePath.encodedPath)
-            );
+            navigate(routeUrls.search(searchQuery, newFilePath.encodedPath));
           }
           break;
         }

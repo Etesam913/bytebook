@@ -24,11 +24,6 @@ export type KernelWithFilesRouteParams = {
   note?: string;
 };
 
-export type SavedSearchRouteParams = {
-  searchQuery: string;
-  '*'?: string;
-};
-
 export type SearchRouteParams = {
   searchQuery: string;
   '*'?: string;
@@ -45,7 +40,6 @@ export const ROUTE_PATTERNS = {
   KERNELS_WITH_FILES: '/kernels/:kernelName/:folder?/:note?',
   SEARCH: '/search/:searchQuery?/*',
   SEARCH_WILDCARD: '/search/:searchQuery/*',
-  SAVED_SEARCH: '/saved-search/:searchQuery/*',
   NOTES: '/notes/*',
   CATCH_ALL: '*',
   NOT_FOUND_FALLBACK: '/404',
@@ -83,22 +77,6 @@ const routeBuilders = {
    * Build 404 fallback route
    */
   notFoundFallback: () => '/404',
-
-  /**
-   * Build tag search route (saved search with tag format)
-   */
-  tagSearch: (tagName: string) => routeBuilders.savedSearch('#' + tagName),
-
-  /**
-   * Build saved search route
-   */
-  savedSearch: (searchQuery: string, encodedFilePath?: string) => {
-    const baseRoute = `/saved-search/${encodeURIComponent(searchQuery)}`;
-    if (encodedFilePath) {
-      return `${baseRoute}/${encodedFilePath}`;
-    }
-    return searchQuery ? `${baseRoute}/` : '/saved-search/';
-  },
 };
 
 // Main routeUrls object combining patterns and builders

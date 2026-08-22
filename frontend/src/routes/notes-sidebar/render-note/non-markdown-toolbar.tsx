@@ -57,9 +57,7 @@ export function NonMarkdownToolbar({
   const { mutateAsync: editTags } = useEditTagsFormMutation();
   useToggleSidebarEvent(animationControls);
 
-  const [isSearchRoute] = useRoute(ROUTE_PATTERNS.SEARCH);
-  const [isSavedSearchRoute] = useRoute(ROUTE_PATTERNS.SAVED_SEARCH);
-  const isOnSearchRoute = isSearchRoute || isSavedSearchRoute;
+  const [isOnSearchRoute] = useRoute(ROUTE_PATTERNS.SEARCH);
 
   const items = [
     {

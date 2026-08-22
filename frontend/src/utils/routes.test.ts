@@ -10,7 +10,6 @@ describe('ROUTE_PATTERNS', () => {
     expect(ROUTE_PATTERNS.KERNELS_WITH_FILES).toBe(
       '/kernels/:kernelName/:folder?/:note?'
     );
-    expect(ROUTE_PATTERNS.SAVED_SEARCH).toBe('/saved-search/:searchQuery/*');
     expect(ROUTE_PATTERNS.NOTES).toBe('/notes/*');
     expect(ROUTE_PATTERNS.CATCH_ALL).toBe('*');
     expect(ROUTE_PATTERNS.NOT_FOUND_FALLBACK).toBe('/404');
@@ -93,67 +92,6 @@ describe('routeUrls', () => {
   describe('notFoundFallback', () => {
     it('returns 404 route', () => {
       expect(routeUrls.notFoundFallback()).toBe('/404');
-    });
-  });
-
-  describe('tagSearch', () => {
-    it('builds tag search route with # prefix', () => {
-      expect(routeUrls.tagSearch('economics')).toBe(
-        '/saved-search/%23economics/'
-      );
-      expect(routeUrls.tagSearch('research')).toBe(
-        '/saved-search/%23research/'
-      );
-    });
-
-    it('encodes special characters in tag name', () => {
-      expect(routeUrls.tagSearch('tag name')).toBe(
-        '/saved-search/%23tag%20name/'
-      );
-      expect(routeUrls.tagSearch('tag&more')).toBe(
-        '/saved-search/%23tag%26more/'
-      );
-    });
-
-    it('handles empty tag name', () => {
-      expect(routeUrls.tagSearch('')).toBe('/saved-search/%23/');
-    });
-  });
-
-  describe('savedSearch', () => {
-    it('builds saved search route with encoded query', () => {
-      expect(routeUrls.savedSearch('research')).toBe('/saved-search/research/');
-      expect(routeUrls.savedSearch('economics notes')).toBe(
-        '/saved-search/economics%20notes/'
-      );
-    });
-
-    it('encodes special characters in search query', () => {
-      expect(routeUrls.savedSearch('query & more')).toBe(
-        '/saved-search/query%20%26%20more/'
-      );
-      expect(routeUrls.savedSearch('tag:research')).toBe(
-        '/saved-search/tag%3Aresearch/'
-      );
-    });
-
-    it('handles empty search query', () => {
-      expect(routeUrls.savedSearch('')).toBe('/saved-search/');
-    });
-
-    it('handles queries with # prefix (tags)', () => {
-      expect(routeUrls.savedSearch('#economics')).toBe(
-        '/saved-search/%23economics/'
-      );
-    });
-
-    it('builds saved search route with an encoded file path', () => {
-      expect(routeUrls.savedSearch('economics', 'notes/file.md')).toBe(
-        '/saved-search/economics/notes/file.md'
-      );
-      expect(
-        routeUrls.savedSearch('#tagged', 'My%20Folder/diagrams/image%20(1).png')
-      ).toBe('/saved-search/%23tagged/My%20Folder/diagrams/image%20(1).png');
     });
   });
 });

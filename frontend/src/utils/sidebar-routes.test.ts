@@ -8,7 +8,6 @@ describe('sidebar-routes', () => {
       expect(isSearchSidebarRoute('/search/query/')).toBe(true);
       expect(isSearchSidebarRoute('/search/')).toBe(true);
       expect(isSearchSidebarRoute('/notes/folder/file.md')).toBe(false);
-      expect(isSearchSidebarRoute('/saved-search/query/')).toBe(false);
     });
   });
 });

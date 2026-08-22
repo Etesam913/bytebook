@@ -14,11 +14,7 @@ import { useTagEvents } from '@hooks/tags';
 import { useThemeSetting } from '@hooks/theme';
 import { MAX_SIDEBAR_WIDTH } from '@utils/general';
 import { disableBackspaceNavigation } from '@utils/routing';
-import {
-  routeUrls,
-  type SavedSearchRouteParams,
-  type SearchRouteParams,
-} from '@utils/routes';
+import { routeUrls, type SearchRouteParams } from '@utils/routes';
 import { RouteFallback } from '@components/route-fallback';
 import { useZoom, useFullscreen } from '@hooks/resize';
 import {
@@ -40,12 +36,6 @@ const KernelInfo = lazy(() =>
   }))
 );
 
-const SavedSearchPage = lazy(() =>
-  import('@/routes/saved-search').then((module) => ({
-    default: module.SavedSearchPage,
-  }))
-);
-
 const SearchContentArea = lazy(() =>
   import('@/routes/search/search-content-area').then((module) => ({
     default: module.SearchContentArea,
@@ -57,7 +47,6 @@ disableBackspaceNavigation();
 // Root application component that sets up global event listeners, routing, sidebar, and modal/context-menu overlays.
 function App() {
   const fileSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
-  const notesSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
   const isFileMaximized = useAtomValue(isFileMaximizedAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
 
@@ -101,25 +90,6 @@ function App() {
       <div id="main-content" className="flex-1 min-w-0 h-full">
         <Switch>
           <Route path={routeUrls.patterns.ROOT} />
-          <Route path={routeUrls.patterns.SAVED_SEARCH}>
-            {(params: SavedSearchRouteParams) => (
-              <Suspense fallback={<RouteFallback />}>
-                <SavedSearchPage
-                  searchQuery={safeDecodeURIComponent(params.searchQuery)}
-                  curPath={
-                    params['*']
-                      ? safeDecodeURIComponent(params['*'])
-                          .split('/')
-                          .filter(Boolean)
-                          .join('/')
-                      : undefined
-                  }
-                  width={notesSidebarWidth}
-                />
-              </Suspense>
-            )}
-          </Route>
-
           <Route path={routeUrls.patterns.NOTES}>
             <EditorWrapper />
           </Route>

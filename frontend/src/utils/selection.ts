@@ -89,31 +89,6 @@ export function handleContextMenuSelection({
   return newSelectionRange;
 }
 
-/**
- * Handles key navigation for a button element within a list.
- * @param e - The keyboard event
- * @param liAncestor - The parent list item element
- */
-export function handleKeyNavigation(e: KeyboardEvent) {
-  const buttonElem = e.target as HTMLButtonElement;
-  const liAncestor = buttonElem.parentElement?.parentElement;
-  if (!liAncestor) return;
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    const nextLi = liAncestor.nextElementSibling;
-    if (nextLi) {
-      const nextButton = nextLi.querySelector('button') as HTMLButtonElement;
-      if (nextButton) nextButton.focus();
-    }
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    const prevLi = liAncestor.previousElementSibling;
-    if (prevLi) {
-      const prevButton = prevLi.querySelector('button') as HTMLButtonElement;
-      if (prevButton) prevButton.focus();
-    }
-  }
-}
 // Handles Escape key in the editor: exits maximized mode or moves focus to the selected note button.
 /**
  * Handles escape key behavior in the editor, toggling maximized state and managing focus.

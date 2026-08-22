@@ -11,7 +11,7 @@ import { useRoute } from 'wouter';
 import {
   type SearchResult,
   useFullTextSearchQuery,
-  useSavedSearchSyncEvents,
+  useSearchResultSyncEvents,
   useSearchFocus,
 } from '@hooks/search';
 import { useCombobox } from '@hooks/combobox';
@@ -119,7 +119,7 @@ export function SearchSidebarPanel({
   const { onKeyDown: comboboxInputKeyDown, ...comboboxInputAriaProps } =
     combobox.getInputProps();
 
-  useSavedSearchSyncEvents({
+  useSearchResultSyncEvents({
     searchQuery: routeSearchQuery,
     activeNotePath: activeFilePath ?? undefined,
   });
