@@ -19,6 +19,7 @@ import {
   getPlaceholderPath,
   type TreeItemType,
 } from './create';
+import { createDropNavigationGate } from './drop-navigation';
 import { FilteredFileTree } from './filtered-file-tree';
 import { usePierreRouteFocus } from './hooks/use-pierre-route-focus';
 import { usePierreTreeEvents } from './hooks/use-pierre-tree-events';
@@ -83,6 +84,11 @@ function PierreFileTreeInner({
     lastNavigatedRef.current = routeTargetPath;
   }, [routeTargetPath]);
 
+  // Pierre re-points the selection at a dropped item's new path before
+  // onDropComplete runs; navigating then would 404 since the backend move
+  // hasn't happened yet. The gate lets onDropComplete cancel that navigation.
+  const dropGate = useRef(createDropNavigationGate(navigateToTreePath)).current;
+
   // ── Backend mutations ────────────────────────────────────────────────
   const { mutateAsync: renameTreeItem } = useRenameTreeItemMutation();
   const { mutateAsync: moveItems } = useMoveTreeItemsMutation();
@@ -129,13 +135,16 @@ function PierreFileTreeInner({
 
       if (lastNavigatedRef.current === path) return;
       lastNavigatedRef.current = path;
-      navigateToTreePath(path);
+      dropGate.requestNavigation(path);
     },
     dragAndDrop: {
       canDrop: ({ target }) => target.directoryPath !== null,
       onDropComplete: (result: FileTreeDropResult) => {
         const destination = result.target.directoryPath;
         if (destination === null) return;
+        // The new path isn't on disk yet; useSyncRouteWithRenames moves the
+        // route once the watcher reports the rename.
+        dropGate.swallowPendingNavigation();
         void moveItems({
           itemPaths: result.draggedPaths,
           newFolder: destination,
