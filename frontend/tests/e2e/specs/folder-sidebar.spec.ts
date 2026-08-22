@@ -1,5 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { mockBinding, updateMockBindingResponse } from '../utils/mock-binding';
+import {
+  getMockBindingCalls,
+  mockBinding,
+  updateMockBindingResponse,
+} from '../utils/mock-binding';
 import {
   MOCK_ALL_PATHS_RESPONSE,
   MOCK_NOTE_MARKDOWN_RESPONSE,
@@ -108,6 +112,73 @@ test.describe('File Sidebar', () => {
       ]);
 
       await expect(page).toHaveURL('/notes/Course%20Notes/Inflation.md');
+      await expect(page.locator('#content-editable-editor')).toBeVisible();
+    });
+
+    test('keeps the active note loaded when it is dragged into another folder', async ({
+      page,
+      context,
+    }) => {
+      await setupWailsEvents(context);
+      await mockBinding(
+        context,
+        { file: SERVICE_FILES.NOTE_SERVICE, method: 'DoesNoteExist' },
+        true
+      );
+      await mockBinding(
+        context,
+        {
+          file: SERVICE_FILES.NOTE_SERVICE,
+          method: 'GetNoteMarkdownWithCodeResults',
+        },
+        MOCK_NOTE_MARKDOWN_RESPONSE
+      );
+      await mockBinding(
+        context,
+        { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'MoveItemsToFolder' },
+        MOCK_SUCCESS_RESPONSE
+      );
+      await page.goto('/notes/Economics%20Notes/Inflation.md');
+      await expect(page.locator('#content-editable-editor')).toBeVisible();
+      const sidebar = page.getByTestId('file-sidebar');
+      const noteItem = sidebar.getByRole('treeitem', { name: /Inflation/ });
+      const researchFolder = sidebar.getByRole('treeitem', {
+        name: 'Research Notes',
+      });
+
+      await noteItem.dragTo(researchFolder);
+
+      // The route must not move ahead of the backend: until the watcher
+      // reports the move, the note only exists at its old path.
+      await expect
+        .poll(async () => {
+          const calls = await getMockBindingCalls(page, {
+            file: SERVICE_FILES.FILE_TREE_SERVICE,
+            method: 'MoveItemsToFolder',
+          });
+          return calls.at(-1);
+        })
+        .toEqual([['Economics Notes/Inflation.md'], 'Research Notes']);
+      await expect(page).toHaveURL('/notes/Economics%20Notes/Inflation.md');
+
+      await updateMockBindingResponse(
+        page,
+        { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetAllPaths' },
+        {
+          ...MOCK_ALL_PATHS_RESPONSE,
+          data: MOCK_ALL_PATHS_RESPONSE.data
+            .filter((path) => path !== 'Economics Notes/Inflation.md')
+            .concat('Research Notes/Inflation.md'),
+        }
+      );
+      await emitWailsEvent(page, 'file:rename', [
+        {
+          oldFilePath: 'Economics Notes/Inflation.md',
+          newFilePath: 'Research Notes/Inflation.md',
+        },
+      ]);
+
+      await expect(page).toHaveURL('/notes/Research%20Notes/Inflation.md');
       await expect(page.locator('#content-editable-editor')).toBeVisible();
     });
 
