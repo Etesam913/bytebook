@@ -3,7 +3,11 @@ import { FileTree, useFileTree } from '@pierre/trees/react';
 import { type RefObject, useEffect, useRef } from 'react';
 import { useAtomValue } from 'jotai';
 import { isDarkModeOnAtom } from '@/atoms';
-import { remapPathThroughRename, splitPathSegments } from '@utils/path';
+import {
+  remapPathThroughRename,
+  splitPathSegments,
+  stripTrailingSlash,
+} from '@utils/path';
 import {
   useAddFolderAttachmentsMutation,
   useMoveTreeItemsMutation,
@@ -155,7 +159,11 @@ function PierreFileTreeInner({
     renaming: {
       onRename: (event) => {
         const pending = pendingCreateRef.current;
-        if (pending && event.sourcePath === pending.placeholderPath) {
+        if (
+          pending &&
+          stripTrailingSlash(event.sourcePath) ===
+            stripTrailingSlash(pending.placeholderPath)
+        ) {
           // A committed placeholder is moved, not removed, so the removal
           // listener would never fire — release it here.
           pending.unsubscribe();

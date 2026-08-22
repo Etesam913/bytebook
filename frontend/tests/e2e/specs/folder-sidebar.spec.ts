@@ -238,6 +238,42 @@ test.describe('File Sidebar', () => {
         await expect(input).toHaveValue('Economics Notes');
       });
 
+      test('creates a nested folder via context menu', async ({
+        page,
+        context,
+      }) => {
+        const addFolderBinding = {
+          file: SERVICE_FILES.FOLDER_SERVICE,
+          method: 'AddFolder',
+        };
+        const renameFolderBinding = {
+          file: SERVICE_FILES.FOLDER_SERVICE,
+          method: 'RenameFolder',
+        };
+        await mockBinding(context, addFolderBinding, MOCK_SUCCESS_RESPONSE);
+        await mockBinding(context, renameFolderBinding, MOCK_SUCCESS_RESPONSE);
+
+        await page.goto('/');
+        const sidebar = page.getByTestId('file-sidebar');
+        await sidebar
+          .getByRole('treeitem', { name: 'Economics Notes' })
+          .click({ button: 'right' });
+        await page.getByRole('menu').getByText('Create Folder').click();
+
+        const input = page.getByRole('textbox', { name: 'Rename Untitled' });
+        await expect(input).toBeVisible();
+        await input.fill('My Todos');
+        await input.press('Enter');
+
+        await expect
+          .poll(() => getMockBindingCalls(page, addFolderBinding))
+          .toEqual([['Economics Notes/My Todos']]);
+        await expect
+          .poll(() => getMockBindingCalls(page, renameFolderBinding))
+          .toEqual([]);
+        await expect(page).toHaveURL('/notes/Economics%20Notes/My%20Todos');
+      });
+
       test('shows Edit Tags for a note and opens the dialog', async ({
         page,
         context,
