@@ -111,8 +111,10 @@ export function AppSearchField({
   inputAttrs,
   autoCapitalize,
   spellCheck,
+  suffix,
   ...props
-}: Omit<SearchFieldProps, 'spellCheck'> & SharedExtras) {
+}: Omit<SearchFieldProps, 'spellCheck'> &
+  SharedExtras & { suffix?: ReactNode }) {
   return (
     <SearchField
       {...props}
@@ -131,14 +133,19 @@ export function AppSearchField({
         placeholder={placeholder}
         className={cn(inputStyles, inputClassName)}
       />
-      <Button
-        slot="clear"
-        aria-label="Clear"
+      <div
         className={cn(
-          'absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 group-empty:hidden outline-none focus-visible:ring-2 focus-visible:ring-(--accent-color) rounded',
+          'absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5',
           label && 'top-[calc(50%+0.625rem)]'
         )}
-      />
+      >
+        <Button
+          slot="clear"
+          aria-label="Clear"
+          className="text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 group-empty:hidden outline-none focus-visible:ring-2 focus-visible:ring-(--accent-color) rounded"
+        />
+        {suffix}
+      </div>
       {errorMessage && (
         <FieldError className="text-red-500 text-xs pt-1">
           {errorMessage}
