@@ -20,6 +20,7 @@ Object.assign(globalThis, {
   HTMLAnchorElement: domWindow.HTMLAnchorElement,
   Node: domWindow.Node,
   localStorage: domWindow.localStorage,
+  customElements: domWindow.customElements,
 });
 
 // Align the computed style helper with the JSDOM window.

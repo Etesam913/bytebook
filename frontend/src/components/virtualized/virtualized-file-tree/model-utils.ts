@@ -116,7 +116,7 @@ export function applySortedTreePathMutation(
   }
 }
 
-function getShadowRoot(model: PierreFileTree | null): ShadowRoot | null {
+export function getShadowRoot(model: PierreFileTree | null): ShadowRoot | null {
   if (!model) return null;
   const container = model.getFileTreeContainer();
   if (!container) return null;
@@ -246,4 +246,39 @@ export function revealTreePath(
     model.focusPath(targetPath);
   }
   scrollTreePathIntoView(model, targetPath);
+}
+
+/**
+ * Resolves the destination folder path from viewport coordinates (x, y)
+ * by querying inside the Pierre tree's shadow root.
+ *
+ * Returns:
+ * - The folder path if dropped directly on a folder item.
+ * - The parent folder path if dropped on a file item.
+ * - Empty string ("") if dropped on blank space (targeting the root notes folder).
+ */
+export function resolveDropTargetFolder(
+  model: PierreFileTree | null,
+  x: number,
+  y: number
+): string {
+  const shadowRoot = getShadowRoot(model);
+  if (!shadowRoot) return '';
+
+  const hitElement = shadowRoot.elementFromPoint(x, y);
+  const row = hitElement?.closest<HTMLElement>('[data-type="item"]');
+  if (!row) return '';
+
+  const itemType = row.getAttribute('data-item-type');
+  const itemPath = row.getAttribute('data-item-path') ?? '';
+
+  if (itemType === 'folder') {
+    return itemPath;
+  }
+
+  const parentPath = row.getAttribute('data-item-parent-path');
+  if (parentPath) return parentPath;
+
+  const segments = itemPath.split('/');
+  return segments.length > 1 ? `${segments.slice(0, -1).join('/')}/` : '';
 }
