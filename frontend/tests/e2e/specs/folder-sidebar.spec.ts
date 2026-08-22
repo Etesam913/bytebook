@@ -272,6 +272,14 @@ test.describe('File Sidebar', () => {
           .poll(() => getMockBindingCalls(page, renameFolderBinding))
           .toEqual([]);
         await expect(page).toHaveURL('/notes/Economics%20Notes/My%20Todos');
+        await expect(
+          page.getByRole('heading', { name: 'My Todos' })
+        ).toBeVisible();
+        await expect(
+          page.getByRole('heading', {
+            name: 'Sorry, but this note does not exist.',
+          })
+        ).not.toBeVisible();
       });
 
       test('shows Edit Tags for a note and opens the dialog', async ({

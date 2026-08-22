@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { AddFolder } from '@bindings/services/folderservice';
 import { AddAttachmentsFromPaths } from '@bindings/services/nodeservice';
@@ -10,6 +10,7 @@ import {
   stripTrailingSlash,
 } from '@utils/path';
 import { QueryError } from '@utils/query';
+import { queryKeys } from '@utils/query-keys';
 import { navigateToPath } from '@utils/routes';
 import { NAME_CHARS } from '@utils/string-formatting';
 import { FILE_TYPE, FOLDER_TYPE } from '@utils/tree-item-types';
@@ -29,6 +30,8 @@ export type AddTreeItemVariables = {
  * inserts the new path into the @pierre/trees model.
  */
 export function useAddTreeItemMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async ({
       parentFolderPath,
@@ -62,6 +65,10 @@ export function useAddTreeItemMutation() {
             );
       if (!res.success) throw new QueryError(res.message);
 
+      queryClient.setQueryData<string[]>(queryKeys.allPaths(), (paths) => {
+        if (!paths || paths.includes(newItemPath.fullPath)) return paths;
+        return [...paths, newItemPath.fullPath];
+      });
       navigateToPath(newItemPath);
 
       return { addType, newPath: newItemPath.fullPath };

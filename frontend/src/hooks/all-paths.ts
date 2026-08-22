@@ -30,6 +30,7 @@ import { queryKeys } from '@utils/query-keys';
 export function useAllPaths() {
   return useQuery({
     queryKey: queryKeys.allPaths(),
+    staleTime: Infinity,
     refetchOnWindowFocus: false,
     queryFn: async (): Promise<string[]> => {
       const res = await GetAllPaths();
