@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useAtom } from 'jotai';
+import { treeFilterQueryAtom } from '@/atoms';
 import { useWailsEvent } from '@hooks/events';
 import { useDebouncedValue } from '@hooks/general';
 import { useTreeFilterPathsQuery } from '@hooks/search';
@@ -21,7 +22,7 @@ const FILTER_DEBOUNCE_MS = 150;
  * filename and content matching — the same semantics as the search sidebar.
  */
 export function useTreeFilter() {
-  const [searchValue, setSearchValue] = useState('');
+  const [searchValue, setSearchValue] = useAtom(treeFilterQueryAtom);
   const isFilterMode = searchValue.trim().length > 0;
 
   const debouncedValue = useDebouncedValue(searchValue, FILTER_DEBOUNCE_MS);

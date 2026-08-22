@@ -41,6 +41,15 @@ test.describe('File Sidebar', () => {
       { file: SERVICE_FILES.SEARCH_SERVICE, method: 'GetAllSavedSearches' },
       MOCK_SAVED_SEARCHES_RESPONSE
     );
+
+    await mockBinding(
+      context,
+      {
+        file: SERVICE_FILES.SEARCH_SERVICE,
+        method: 'GetPathsFromSearchQuery',
+      },
+      MOCK_ALL_PATHS_RESPONSE
+    );
   });
 
   test('renders on the landing page', async ({ page }) => {
@@ -401,7 +410,7 @@ test.describe('File Sidebar', () => {
   });
 
   test.describe('Tags Accordion', () => {
-    test('renders tags accordion and navigates on click', async ({ page }) => {
+    test('fills the file filter when a tag is clicked', async ({ page }) => {
       await page.goto('/');
       const sidebar = page.getByTestId('file-sidebar');
       await expect(sidebar).toContainText('Tags');
@@ -412,9 +421,17 @@ test.describe('File Sidebar', () => {
       await expect(sidebar).toContainText('research');
       await expect(sidebar).toContainText('dev');
 
-      // Click on a tag and verify navigation to saved-search route with # prefix
-      await sidebar.getByText('economics', { exact: true }).click();
-      await expect(page).toHaveURL(/\/saved-search\/%23economics/);
+      const tagButton = sidebar.getByRole('button', {
+        name: 'economics',
+        exact: true,
+      });
+      await tagButton.click();
+
+      await expect(
+        sidebar.getByRole('searchbox', { name: 'Filter files' })
+      ).toHaveValue('#economics');
+      await expect(page).toHaveURL('/');
+      await expect(tagButton).toBeFocused();
     });
 
     test.describe('Context menu', () => {
@@ -469,7 +486,7 @@ test.describe('File Sidebar', () => {
   });
 
   test.describe('Saved Searches Accordion', () => {
-    test('renders saved searches accordion and navigates on click', async ({
+    test('fills the file filter when a saved search is clicked', async ({
       page,
     }) => {
       await page.goto('/');
@@ -483,8 +500,17 @@ test.describe('File Sidebar', () => {
       await expect(sidebar).toContainText('My Research');
       await expect(sidebar).toContainText('Economics');
 
-      await sidebar.getByText('My Research').click();
-      await expect(page).toHaveURL(/\/saved-search\/research/);
+      const savedSearchButton = sidebar.getByRole('button', {
+        name: 'My Research',
+        exact: true,
+      });
+      await savedSearchButton.click();
+
+      await expect(
+        sidebar.getByRole('searchbox', { name: 'Filter files' })
+      ).toHaveValue('research');
+      await expect(page).toHaveURL('/');
+      await expect(savedSearchButton).toBeFocused();
     });
 
     test.describe('Context menu', () => {

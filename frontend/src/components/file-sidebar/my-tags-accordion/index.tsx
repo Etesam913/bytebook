@@ -6,8 +6,6 @@ import { TagIcon } from '@/icons/tag';
 import { Loader } from '@/icons/loader';
 import { VirtualizedListAccordion } from '@components/virtualized/virtualized-list/accordion';
 import { AccordionButton } from '@components/accordion/accordion-button';
-import { ROUTE_PATTERNS, type SavedSearchRouteParams } from '@utils/routes';
-import { useRoute } from 'wouter';
 import { TagAccordionButton } from './tag-accordion-button';
 import { fileSidebarOpenStateAtom } from '@/atoms';
 import { ErrorText } from '@components/error-text';
@@ -29,10 +27,6 @@ export function MyTagsAccordion({
   const isOpen = openState.tags;
   const { data: tags, isError, isLoading, refetch } = useTagsQuery();
   const hasTags = tags && tags?.length > 0;
-  const [isSavedSearchRoute, savedSearchRouteParams] =
-    useRoute<SavedSearchRouteParams>(ROUTE_PATTERNS.SAVED_SEARCH);
-  const searchQuery = savedSearchRouteParams?.searchQuery;
-
   return (
     <SidebarAccordionPanel
       isOpen={isOpen}
@@ -111,11 +105,6 @@ export function MyTagsAccordion({
             tags={tags}
             i={i}
             sidebarTagName={sidebarTagName}
-            isActive={
-              isSavedSearchRoute &&
-              !!searchQuery &&
-              decodeURIComponent(searchQuery) === `#${sidebarTagName}`
-            }
           />
         )}
         data={tags ?? null}

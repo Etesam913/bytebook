@@ -1,8 +1,9 @@
-import { useAtom, useSetAtom } from 'jotai/react';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai/react';
 import {
   contextMenuDataAtom,
   dialogDataAtom,
   sidebarSelectionAtom,
+  treeFilterQueryAtom,
 } from '@/atoms';
 import { useDeleteTagsMutation } from '@hooks/tags';
 import { TagIcon } from '@/icons/tag';
@@ -12,20 +13,16 @@ import {
   type SetSelectionUpdater,
 } from '@utils/selection';
 import { cn, getTagNameFromSelectionRange } from '@utils/string-formatting';
-import { navigate } from 'wouter/use-browser-location';
-import { routeUrls } from '@utils/routes';
 import { TagDialogChildren } from './tag-dialog-children';
 
 export function TagAccordionButton({
   tags,
   i,
   sidebarTagName,
-  isActive,
 }: {
   tags: string[] | undefined;
   i: number;
   sidebarTagName: string;
-  isActive: boolean;
 }) {
   const [sidebarSelection, setSidebarSelection] = useAtom(sidebarSelectionAtom);
   const selectionRange = sidebarSelection.selections;
@@ -40,6 +37,9 @@ export function TagAccordionButton({
   const isSelected = tags?.at(i) && selectionRange.has(`tag:${tags[i]}`);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const setDialogData = useSetAtom(dialogDataAtom);
+  const treeFilterQuery = useAtomValue(treeFilterQueryAtom);
+  const setTreeFilterQuery = useSetAtom(treeFilterQueryAtom);
+  const isActive = treeFilterQuery === `#"${sidebarTagName}"`;
 
   return (
     <button
@@ -53,7 +53,7 @@ export function TagAccordionButton({
       )}
       onClick={(e) => {
         if (e.metaKey || e.shiftKey) return;
-        navigate(routeUrls.tagSearch(sidebarTagName));
+        setTreeFilterQuery(`#"${sidebarTagName}"`);
       }}
       onContextMenu={(e) => {
         const newSelectionRange = handleContextMenuSelection({

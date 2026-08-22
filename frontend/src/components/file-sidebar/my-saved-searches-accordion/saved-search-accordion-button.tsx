@@ -1,8 +1,9 @@
-import { useAtom, useSetAtom } from 'jotai/react';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai/react';
 import {
   contextMenuDataAtom,
   dialogDataAtom,
   sidebarSelectionAtom,
+  treeFilterQueryAtom,
 } from '@/atoms';
 import { Magnifier } from '@/icons/magnifier';
 import {
@@ -10,8 +11,6 @@ import {
   type SetSelectionUpdater,
 } from '@utils/selection';
 import { cn } from '@utils/string-formatting';
-import { navigate } from 'wouter/use-browser-location';
-import { routeUrls } from '@utils/routes';
 import { SavedSearch } from '@bindings/search/models';
 import { MagnifierSlash } from '@/icons/magnifier-slash';
 import { SavedSearchDialogChildren } from './saved-search-dialog-children';
@@ -22,12 +21,10 @@ export function SavedSearchAccordionButton({
   savedSearches,
   i,
   sidebarSearchName,
-  isActive,
 }: {
   savedSearches: SavedSearch[] | undefined;
   i: number;
   sidebarSearchName: string;
-  isActive: boolean;
 }) {
   const [sidebarSelection, setSidebarSelection] = useAtom(sidebarSelectionAtom);
   const selectionRange = sidebarSelection.selections;
@@ -44,6 +41,10 @@ export function SavedSearchAccordionButton({
     selectionRange.has(`saved-search:${savedSearches[i].name}`);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
   const setDialogData = useSetAtom(dialogDataAtom);
+  const treeFilterQuery = useAtomValue(treeFilterQueryAtom);
+  const setTreeFilterQuery = useSetAtom(treeFilterQueryAtom);
+  const activeSearch = savedSearches?.at(i);
+  const isActive = activeSearch?.query === treeFilterQuery;
 
   return (
     <Tooltip content={savedSearches?.at(i)?.query} placement="right">
@@ -58,10 +59,9 @@ export function SavedSearchAccordionButton({
         )}
         onClick={(e) => {
           if (e.metaKey || e.shiftKey) return;
-          // Navigate to the saved search query
           const search = savedSearches?.at(i);
           if (search) {
-            navigate(routeUrls.savedSearch(search.query));
+            setTreeFilterQuery(search.query);
           }
         }}
         onContextMenu={(e) => {

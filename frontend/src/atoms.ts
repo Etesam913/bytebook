@@ -126,6 +126,9 @@ export const sidebarSelectionAtom = atomWithLogging<SidebarSelectionState>(
   }
 );
 
+// Holds the query displayed by the file-tree filter.
+export const treeFilterQueryAtom = atom('');
+
 // Reflects whether the application is currently rendering in dark mode.
 export const isDarkModeOnAtom = atom<boolean>(false);
 

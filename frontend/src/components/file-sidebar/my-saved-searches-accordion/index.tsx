@@ -3,10 +3,8 @@ import { useAtom } from 'jotai';
 import type { RefObject } from 'react';
 import { VirtualizedListAccordion } from '@components/virtualized/virtualized-list/accordion';
 import { AccordionButton } from '@components/accordion/accordion-button';
-import { ROUTE_PATTERNS, type SavedSearchRouteParams } from '@utils/routes';
 import { useSavedSearchesQuery, useSavedSearchUpdates } from '@hooks/search';
 
-import { useRoute } from 'wouter';
 import { SavedSearchAccordionButton } from './saved-search-accordion-button';
 import { Box2Search } from '@/icons/box-2-search';
 import { SavedSearch } from '@bindings/search/models';
@@ -36,9 +34,6 @@ export function MySavedSearchesAccordion({
     refetch,
   } = useSavedSearchesQuery();
   const hasSavedSearches = savedSearches.length > 0;
-  const [isSavedSearchRoute, savedSearchRouteParams] =
-    useRoute<SavedSearchRouteParams>(ROUTE_PATTERNS.SAVED_SEARCH);
-  const searchQuery = savedSearchRouteParams?.searchQuery;
 
   return (
     <SidebarAccordionPanel
@@ -117,11 +112,6 @@ export function MySavedSearchesAccordion({
             savedSearches={savedSearches}
             i={i}
             sidebarSearchName={search.name}
-            isActive={
-              isSavedSearchRoute &&
-              !!searchQuery &&
-              decodeURIComponent(searchQuery) === search.query
-            }
           />
         )}
         data={savedSearches}
