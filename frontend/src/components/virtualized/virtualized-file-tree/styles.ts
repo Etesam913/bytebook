@@ -21,6 +21,8 @@ export const FILE_TREE_HOST_STYLE: CSSPropertiesWithVariables = {
   '--trees-font-size-override': '0.875rem',
   '--trees-density-override': 'var(--ui-scale)',
   '--trees-icon-width-override': 'calc(16px * var(--ui-scale))',
+  // Align row edges with the px-2 inset of the header and search input.
+  '--trees-padding-inline-override': '8px',
 };
 
 // Default cursor on rows + context-menu trigger (the only pointer selectors in
@@ -44,5 +46,14 @@ export const FILE_TREE_UNSAFE_CSS = `
 
   [data-file-tree-sticky-overlay-content="true"] {
     border-bottom: 1px solid light-dark(rgb(228, 228, 231), rgb(63, 63, 70));
+  }
+
+  /* Prevent an empty scrollbar gutter on macOS and keep insets symmetric. */
+  [data-file-tree-virtualized-scroll="true"] {
+    scrollbar-gutter: auto !important;
+    padding-inline: max(
+      calc(var(--trees-padding-inline) - var(--trees-item-margin-x)),
+      0px
+    ) !important;
   }
 `;
