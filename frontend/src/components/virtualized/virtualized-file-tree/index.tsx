@@ -23,7 +23,7 @@ import {
   getPlaceholderPath,
   type TreeItemType,
 } from './create';
-import { createDropNavigationGate } from './drop-navigation';
+import { restoreSelectionAfterDrag } from './drag';
 import { FilteredFileTree } from './filtered-file-tree';
 import { usePierreRouteFocus } from './hooks/use-pierre-route-focus';
 import { usePierreTreeEvents } from './hooks/use-pierre-tree-events';
@@ -90,10 +90,11 @@ function PierreFileTreeInner({
     lastNavigatedRef.current = routeTargetPath;
   }, [routeTargetPath]);
 
-  // Pierre re-points the selection at a dropped item's new path before
-  // onDropComplete runs; navigating then would 404 since the backend move
-  // hasn't happened yet. The gate lets onDropComplete cancel that navigation.
-  const dropGate = useRef(createDropNavigationGate(navigateToTreePath)).current;
+  // Set by canDrag (the only pierre hook that runs before startDrag selects the
+  // dragged row) and cleared on dragend. While set, selection emissions must
+  // not route: the drag-start selection and the post-drop re-selection of a
+  // moved item (not yet on disk) would both navigate otherwise.
+  const draggedPathsRef = useRef<readonly string[] | null>(null);
 
   // ── Backend mutations ────────────────────────────────────────────────
   const { mutateAsync: renameTreeItem } = useRenameTreeItemMutation();
@@ -131,6 +132,7 @@ function PierreFileTreeInner({
       },
     },
     onSelectionChange: (selectedPaths) => {
+      if (draggedPathsRef.current) return;
       if (selectedPaths.length !== 1) return;
       const path = selectedPaths[0];
 
@@ -141,16 +143,19 @@ function PierreFileTreeInner({
 
       if (lastNavigatedRef.current === path) return;
       lastNavigatedRef.current = path;
-      dropGate.requestNavigation(path);
+      navigateToTreePath(path);
     },
     dragAndDrop: {
+      canDrag: (paths) => {
+        draggedPathsRef.current = paths;
+        return true;
+      },
       canDrop: ({ target }) => target.directoryPath !== null,
       onDropComplete: (result: FileTreeDropResult) => {
         const destination = result.target.directoryPath;
         if (destination === null) return;
         // The new path isn't on disk yet; useSyncRouteWithRenames moves the
         // route once the watcher reports the rename.
-        dropGate.swallowPendingNavigation();
         void moveItems({
           itemPaths: result.draggedPaths,
           newFolder: destination,
@@ -289,6 +294,12 @@ function PierreFileTreeInner({
     });
   }
 
+  function handleDragEnd() {
+    if (!draggedPathsRef.current) return;
+    draggedPathsRef.current = null;
+    restoreSelectionAfterDrag(model, routeTargetPath);
+  }
+
   // ── Keyboard handling ────────────────────────────────────────────────
   // Pierre handles F2 but not Enter for renaming focused rows.
   function handleKeyDown(event: React.KeyboardEvent) {
@@ -318,6 +329,8 @@ function PierreFileTreeInner({
       }}
       className="relative flex flex-1 flex-col min-h-0 overflow-hidden text-sm"
       onKeyDown={handleKeyDown}
+      // dragend is composed, so it bubbles out of pierre's shadow root to here.
+      onDragEnd={handleDragEnd}
     >
       {/* Keep the header outside shadow DOM so its input retains key events. */}
       <TreeHeader />
