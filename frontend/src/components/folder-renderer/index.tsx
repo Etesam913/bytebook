@@ -6,6 +6,7 @@ import {
   type ScrollerProps,
 } from 'react-virtuoso';
 import { Loader } from '@/icons/loader';
+import { FolderOpen } from '@/icons/folder-open';
 import { useToggleSidebarEvent } from '@/routes/notes-sidebar/render-note/hooks';
 import {
   type FolderPath,
@@ -14,7 +15,11 @@ import {
   stripTrailingSlash,
 } from '@utils/path';
 import { NotFound } from '@/routes/not-found';
-import { motion, type LegacyAnimationControls } from 'motion/react';
+import {
+  AnimatePresence,
+  motion,
+  type LegacyAnimationControls,
+} from 'motion/react';
 import { cn } from '@utils/string-formatting';
 import { useAllPaths } from '@hooks/all-paths';
 import { FILE_TYPE, FOLDER_TYPE } from '@utils/tree-item-types';
@@ -24,6 +29,7 @@ import {
 } from './folder-renderer-card';
 import { FolderRendererCreateItemCard } from './folder-renderer-create-item-card';
 import { FolderRendererHeader } from './folder-renderer-header';
+import { useFolderRendererDrop } from './hooks/use-folder-renderer-drop';
 import { usePreventBoundaryOverscrollFlicker } from '@components/virtualized/virtualized-list/hooks';
 
 const folderGridComponents = {
@@ -106,6 +112,11 @@ export function FolderRenderer({
   usePreventBoundaryOverscrollFlicker({ scrollElementRef: internalListRef });
 
   const { data: allPaths, isLoading } = useAllPaths();
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const { isDropActive, dragProps } = useFolderRendererDrop({
+    folderPath,
+    containerRef,
+  });
 
   if (allPaths && !allPaths.includes(folderPath.fullPath)) {
     return <NotFound />;
@@ -131,30 +142,61 @@ export function FolderRenderer({
       className="flex h-full flex-1 flex-col w-full"
       animate={animationControls}
     >
-      {isLoading ? (
-        <motion.section
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="mb-[25%] flex flex-1 items-center justify-center"
-        >
-          <Loader width="1.25rem" height="1.25rem" />
-        </motion.section>
-      ) : (
-        <section className="min-w-0 flex-1">
-          <VirtuosoGrid
-            scrollerRef={(node) => {
-              const element = node instanceof HTMLElement ? node : null;
-              internalListRef.current = element;
-            }}
-            style={{ height: '100%' }}
-            data={items}
-            computeItemKey={(_, item) => item.id}
-            components={gridComponents}
-            itemContent={(_, item) => <FolderRendererCard item={item} />}
-          />
-        </section>
-      )}
+      <div
+        ref={containerRef}
+        id="folder-container"
+        data-file-drop-target
+        className="relative flex min-h-0 flex-1 flex-col"
+        {...dragProps}
+      >
+        {isLoading ? (
+          <motion.section
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="mb-[25%] flex flex-1 items-center justify-center"
+          >
+            <Loader width="1.25rem" height="1.25rem" />
+          </motion.section>
+        ) : (
+          <section className="min-w-0 flex-1">
+            <VirtuosoGrid
+              scrollerRef={(node) => {
+                const element = node instanceof HTMLElement ? node : null;
+                internalListRef.current = element;
+              }}
+              style={{ height: '100%' }}
+              data={items}
+              computeItemKey={(_, item) => item.id}
+              components={gridComponents}
+              itemContent={(_, item) => <FolderRendererCard item={item} />}
+            />
+          </section>
+        )}
+        <AnimatePresence>
+          {isDropActive && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.15 }}
+              className="pointer-events-none absolute inset-3 z-50 flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-(--accent-color) bg-zinc-50/85 backdrop-blur-xs dark:bg-zinc-850/85"
+            >
+              <FolderOpen
+                width="2.5rem"
+                height="2.5rem"
+                className="text-(--accent-color)"
+              />
+              <p className="mt-2.5 text-base font-semibold text-zinc-900 dark:text-zinc-50">
+                Add to &quot;{folderPath.folder}&quot;
+              </p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Drop files or folders to add to this folder
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </motion.section>
   );
 }
