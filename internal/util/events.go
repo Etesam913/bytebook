@@ -33,6 +33,7 @@ const (
 	EventFileTreeFilterFocus = "file-tree:filter:focus"
 	EventFileTreeContentDrop = "file-tree:content-drop"
 	EventEditorContentDrop   = "editor:content-drop"
+	EventFolderContentDrop   = "folder:content-drop"
 
 	// File watcher events
 	EventSettingsUpdate    = "settings:update"
@@ -104,7 +105,7 @@ type FileWriteEventData struct {
 }
 
 // ContentDropEventData represents dropped OS files over a registered drop target
-// (file tree or editor).
+// (file tree, editor, or folder view).
 type ContentDropEventData struct {
 	DroppedFiles    []string `json:"droppedFiles"`
 	TargetElementID string   `json:"targetElementId,omitempty"`
@@ -134,6 +135,7 @@ func init() {
 	application.RegisterEvent[application.Void](EventFileTreeFilterFocus)
 	application.RegisterEvent[ContentDropEventData](EventFileTreeContentDrop)
 	application.RegisterEvent[ContentDropEventData](EventEditorContentDrop)
+	application.RegisterEvent[ContentDropEventData](EventFolderContentDrop)
 
 	application.RegisterEvent[TagsUpdateEventData](EventTagsUpdate)
 	application.RegisterEvent[application.Void](EventTagsIndexUpdate)

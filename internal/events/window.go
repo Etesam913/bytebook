@@ -28,6 +28,8 @@ func ListenToWindowEvents(app *application.App, window application.Window) {
 		eventName := util.EventFileTreeContentDrop
 		if dropPayload.TargetElementID == "note-container" {
 			eventName = util.EventEditorContentDrop
+		} else if dropPayload.TargetElementID == "folder-container" {
+			eventName = util.EventFolderContentDrop
 		}
 
 		app.Event.EmitEvent(&application.CustomEvent{

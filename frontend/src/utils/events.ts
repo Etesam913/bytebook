@@ -27,6 +27,7 @@ export const SIDEBAR_FILES_OPEN = 'sidebar:files:open';
 export const FILE_TREE_FILTER_FOCUS = 'file-tree:filter:focus';
 export const FILE_TREE_CONTENT_DROP = 'file-tree:content-drop';
 export const EDITOR_CONTENT_DROP = 'editor:content-drop';
+export const FOLDER_CONTENT_DROP = 'folder:content-drop';
 
 // File watcher events
 export const SETTINGS_UPDATE = 'settings:update';
