@@ -86,13 +86,7 @@ export function NotesEditor({
   const draggedGhostElement = useAtomValue(draggedGhostElementAtom);
   // Overflow container ref is used to handle the auto-scroll during drag
   const overflowContainerRef = useRef<HTMLDivElement | null>(null);
-  const { onDragOver, onDragLeave, onDrop } = useAutoScrollDuringDrag(
-    overflowContainerRef,
-    {
-      threshold: 80,
-      speed: 20,
-    }
-  );
+  useAutoScrollDuringDrag(overflowContainerRef, { threshold: 80, speed: 20 });
   usePreventBoundaryOverscrollFlicker({
     scrollElementRef: overflowContainerRef,
   });
@@ -138,9 +132,6 @@ export function NotesEditor({
         />
         <div
           ref={overflowContainerRef}
-          onDragOver={onDragOver}
-          onDragLeave={onDragLeave}
-          onDrop={onDrop}
           className="flex-1 min-h-0 overflow-y-auto flex flex-col"
         >
           <div

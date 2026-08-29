@@ -1,9 +1,4 @@
-import {
-  useEffect,
-  useRef,
-  type DragEvent as ReactDragEvent,
-  type RefObject,
-} from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
 
 type UseAutoScrollOptions = {
   /**
@@ -18,11 +13,7 @@ type UseAutoScrollOptions = {
   speed?: number;
 };
 
-/**
- * useAutoScrollDuringDrag
- * Attaches drag-over and drag-leave handlers to automatically scroll
- * a container when a draggable item is dragged near its top/bottom edges.
- */
+// Scrolls the container while a drag hovers near its top/bottom edges.
 export function useAutoScrollDuringDrag(
   containerRef: RefObject<HTMLElement | null>,
   options: UseAutoScrollOptions = {}
@@ -70,14 +61,6 @@ export function useAutoScrollDuringDrag(
     }
   };
 
-  const onDragOver = (e: ReactDragEvent) => {
-    handleDragOver(e.clientY);
-  };
-
-  // Stop scrolling when dragging leaves or drops
-  const onDragLeave = stop;
-  const onDrop = stop;
-
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -109,6 +92,4 @@ export function useAutoScrollDuringDrag(
   useEffect(() => {
     return () => stop();
   }, []);
-
-  return { onDragOver, onDragLeave, onDrop };
 }

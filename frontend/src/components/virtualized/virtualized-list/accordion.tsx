@@ -19,10 +19,7 @@ export function VirtualizedListAccordion<T>({
 }) {
   const isEmpty = !data || data.length === 0;
   const scrollContainerRef = useRef<HTMLElement | null>(null);
-  const { onDragOver, onDragLeave, onDrop } = useAutoScrollDuringDrag(
-    scrollContainerRef,
-    { threshold: 60, speed: 20 }
-  );
+  useAutoScrollDuringDrag(scrollContainerRef, { threshold: 60, speed: 20 });
 
   return (
     <>
@@ -30,12 +27,7 @@ export function VirtualizedListAccordion<T>({
       {!isError && isLoading && loadingElement}
       {!isError && !isLoading && isEmpty && <div>{emptyElement}</div>}
       {!isError && !isLoading && !isEmpty && (
-        <div
-          className="flex flex-1 flex-col min-h-0 overflow-hidden [scrollbar-width:none]"
-          onDragOver={onDragOver}
-          onDragLeave={onDragLeave}
-          onDrop={onDrop}
-        >
+        <div className="flex flex-1 flex-col min-h-0 overflow-hidden [scrollbar-width:none]">
           <VirtualizedList
             {...props}
             data={data}

@@ -1,6 +1,6 @@
 import { prepareFileTreeInput, type FileTreeDropResult } from '@pierre/trees';
 import { FileTree, useFileTree } from '@pierre/trees/react';
-import { type RefObject, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { draggedGhostElementAtom, isDarkModeOnAtom } from '@/atoms';
 import {
@@ -25,7 +25,8 @@ import {
 } from './create';
 import {
   buildFileTreeDragPayload,
-  createFileTreeDragMarker,
+  createFileTreeDragGhost,
+  excludeActiveItemFromDrag,
   restoreSelectionAfterDrag,
 } from './drag';
 import { FilteredFileTree } from './filtered-file-tree';
@@ -61,28 +62,20 @@ function getInitialExpandedPaths(routeTargetPath: string | null) {
     .map((_, index) => `${segments.slice(0, index + 1).join('/')}/`);
 }
 
-export function VirtualizedFileTree({
-  ref,
-}: {
-  ref: RefObject<HTMLElement | null>;
-}) {
+export function VirtualizedFileTree() {
   const allPathsQuery = useAllPaths();
 
   if (!allPathsQuery.data) {
     return null;
   }
 
-  return (
-    <PierreFileTreeInner initialPaths={allPathsQuery.data} hostRef={ref} />
-  );
+  return <PierreFileTreeInner initialPaths={allPathsQuery.data} />;
 }
 
 function PierreFileTreeInner({
   initialPaths,
-  hostRef,
 }: {
   initialPaths: readonly string[];
-  hostRef: RefObject<HTMLElement | null>;
 }) {
   // ── Navigation state ─────────────────────────────────────────────────
   const routeTargetPath = usePierreRouteTargetPath();
@@ -299,21 +292,33 @@ function PierreFileTreeInner({
   }
 
   const setDraggedGhostElement = useSetAtom(draggedGhostElementAtom);
+  const dragGhostRef = useRef<{ destroy: () => void } | null>(null);
+  const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
 
   // Runs after pierre's row handler (preact, own root inside the shadow DOM),
   // so overriding its move-only, raw-path payload here sticks. The editor
   // requests dropEffect 'copy' and parses comma-joined wails URLs.
   function handleDragStart(event: React.DragEvent) {
-    const paths = draggedPathsRef.current;
-    if (!paths || !event.dataTransfer) return;
+    if (!draggedPathsRef.current || !event.dataTransfer) return;
+    const paths = excludeActiveItemFromDrag(
+      draggedPathsRef.current,
+      routeTargetPath
+    );
     event.dataTransfer.effectAllowed = 'copyMove';
     event.dataTransfer.setData('text/plain', buildFileTreeDragPayload(paths));
-    setDraggedGhostElement(createFileTreeDragMarker());
+    const ghost = createFileTreeDragGhost({ paths, isDarkModeOn });
+    // setDragImage needs the element rendered in the document.
+    document.body.appendChild(ghost.element);
+    event.dataTransfer.setDragImage(ghost.element, 8, 8);
+    dragGhostRef.current = ghost;
+    setDraggedGhostElement(ghost.element);
   }
 
   function handleDragEnd() {
     if (!draggedPathsRef.current) return;
     draggedPathsRef.current = null;
+    dragGhostRef.current?.destroy();
+    dragGhostRef.current = null;
     setDraggedGhostElement(null);
     restoreSelectionAfterDrag(model, routeTargetPath);
   }
@@ -332,7 +337,6 @@ function PierreFileTreeInner({
 
   // ── Render ───────────────────────────────────────────────────────────
   // Override the tree's OS-based color scheme with the app theme.
-  const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
   const hostStyle: React.CSSProperties = {
     ...FILE_TREE_HOST_STYLE,
     colorScheme: isDarkModeOn ? 'dark' : 'light',
@@ -342,9 +346,6 @@ function PierreFileTreeInner({
     <div
       id="file-tree"
       data-file-drop-target
-      ref={(node) => {
-        hostRef.current = node;
-      }}
       className="relative flex flex-1 flex-col min-h-0 overflow-hidden text-sm"
       onKeyDown={handleKeyDown}
       // Drag events are composed, so they bubble out of pierre's shadow root.

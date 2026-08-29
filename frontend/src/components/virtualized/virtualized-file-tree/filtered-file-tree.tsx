@@ -30,7 +30,7 @@ export function FilteredFileTree({
     return <TreeMessage>Searching…</TreeMessage>;
   }
   if (!paths || paths.length === 0) {
-    return <TreeMessage>No matching files.</TreeMessage>;
+    return <TreeMessage>No matching files</TreeMessage>;
   }
   const treePaths = addAncestorDirectoryPaths(paths);
   return (

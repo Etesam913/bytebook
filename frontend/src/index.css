@@ -101,20 +101,6 @@
   -webkit-text-size-adjust: 100%;
 }
 
-#file-tree {
-  .file-tree-item-selected {
-    @apply bg-zinc-150 text-(--accent-color) hover:bg-zinc-150 focus:bg-zinc-150 dark:bg-zinc-600 dark:hover:bg-zinc-600 dark:focus:bg-zinc-600;
-  }
-
-  &:focus-within .file-tree-item-selected {
-    @apply bg-(--accent-color)! text-white! hover:bg-(--accent-color)! focus:bg-(--accent-color)! dark:hover:bg-(--accent-color)! dark:focus:bg-(--accent-color)!;
-  }
-
-  .file-tree-drop-target.file-drop-target-active {
-    @apply bg-(--accent-color) text-white!;
-  }
-}
-
 pre {
   @apply select-text cursor-text;
 }

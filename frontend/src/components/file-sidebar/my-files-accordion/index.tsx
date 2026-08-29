@@ -1,11 +1,10 @@
 import { useAtom } from 'jotai';
-import { type RefObject, useRef } from 'react';
+import type { RefObject } from 'react';
 import { fileSidebarOpenStateAtom } from '@/atoms';
 import { VirtualizedFileTree } from '@components/virtualized/virtualized-file-tree';
 import { Note } from '@/icons/page';
 import { AccordionButton } from '@components/accordion/accordion-button';
 import { SidebarAccordionPanel } from '../sidebar-accordion-panel';
-import { useAutoScrollDuringDrag } from '@hooks/draggable';
 import type { SidebarFlexWeights } from '@/atoms';
 import type { FlexWeightMVs } from '../index';
 export function MyFilesAccordion({
@@ -19,11 +18,6 @@ export function MyFilesAccordion({
 }) {
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
   const isOpen = openState.files;
-  const scrollContainerRef = useRef<HTMLElement | null>(null);
-  const { onDragOver, onDragLeave, onDrop } = useAutoScrollDuringDrag(
-    scrollContainerRef,
-    { threshold: 60, speed: 20 }
-  );
 
   return (
     <SidebarAccordionPanel
@@ -53,13 +47,8 @@ export function MyFilesAccordion({
         />
       }
     >
-      <div
-        className="flex flex-1 flex-col min-h-0 overflow-hidden [scrollbar-width:none]"
-        onDragOver={onDragOver}
-        onDragLeave={onDragLeave}
-        onDrop={onDrop}
-      >
-        <VirtualizedFileTree ref={scrollContainerRef} />
+      <div className="flex flex-1 flex-col min-h-0 overflow-hidden [scrollbar-width:none]">
+        <VirtualizedFileTree />
       </div>
     </SidebarAccordionPanel>
   );
