@@ -1,8 +1,8 @@
 import { prepareFileTreeInput, type FileTreeDropResult } from '@pierre/trees';
 import { FileTree, useFileTree } from '@pierre/trees/react';
 import { type RefObject, useEffect, useRef } from 'react';
-import { useAtomValue } from 'jotai';
-import { isDarkModeOnAtom } from '@/atoms';
+import { useAtomValue, useSetAtom } from 'jotai';
+import { draggedGhostElementAtom, isDarkModeOnAtom } from '@/atoms';
 import {
   remapPathThroughRename,
   splitPathSegments,
@@ -23,7 +23,11 @@ import {
   getPlaceholderPath,
   type TreeItemType,
 } from './create';
-import { restoreSelectionAfterDrag } from './drag';
+import {
+  buildFileTreeDragPayload,
+  createFileTreeDragMarker,
+  restoreSelectionAfterDrag,
+} from './drag';
 import { FilteredFileTree } from './filtered-file-tree';
 import { usePierreRouteFocus } from './hooks/use-pierre-route-focus';
 import { usePierreTreeEvents } from './hooks/use-pierre-tree-events';
@@ -294,9 +298,23 @@ function PierreFileTreeInner({
     });
   }
 
+  const setDraggedGhostElement = useSetAtom(draggedGhostElementAtom);
+
+  // Runs after pierre's row handler (preact, own root inside the shadow DOM),
+  // so overriding its move-only, raw-path payload here sticks. The editor
+  // requests dropEffect 'copy' and parses comma-joined wails URLs.
+  function handleDragStart(event: React.DragEvent) {
+    const paths = draggedPathsRef.current;
+    if (!paths || !event.dataTransfer) return;
+    event.dataTransfer.effectAllowed = 'copyMove';
+    event.dataTransfer.setData('text/plain', buildFileTreeDragPayload(paths));
+    setDraggedGhostElement(createFileTreeDragMarker());
+  }
+
   function handleDragEnd() {
     if (!draggedPathsRef.current) return;
     draggedPathsRef.current = null;
+    setDraggedGhostElement(null);
     restoreSelectionAfterDrag(model, routeTargetPath);
   }
 
@@ -329,7 +347,8 @@ function PierreFileTreeInner({
       }}
       className="relative flex flex-1 flex-col min-h-0 overflow-hidden text-sm"
       onKeyDown={handleKeyDown}
-      // dragend is composed, so it bubbles out of pierre's shadow root to here.
+      // Drag events are composed, so they bubble out of pierre's shadow root.
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
       {/* Keep the header outside shadow DOM so its input retains key events. */}
