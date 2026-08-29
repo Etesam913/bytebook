@@ -63,19 +63,6 @@ export default defineConfig(({ mode }) => {
     ],
     build: {
       rolldownOptions: {
-        treeshake: {
-          // @lexical/code declares sideEffects: true but is only reached
-          // transitively via @lexical/markdown's CODE transformer (which
-          // we don't use). Marking it and prismjs side-effect-free lets
-          // the bundler drop most of it. We provide a tiny window.Prism
-          // stub in index.html so @lexical/code's top-level IIFE doesn't
-          // explode if any of its code survives shaking.
-          moduleSideEffects: (id) => {
-            if (id.includes('node_modules/@lexical/code/')) return false;
-            if (id.includes('node_modules/prismjs')) return false;
-            return true;
-          },
-        },
         output: {
           // This will help identify entry chunks vs lazy-loaded chunks
           entryFileNames: 'entry-[name].[hash].js',
