@@ -7,7 +7,7 @@ import { Magnifier } from '@/icons/magnifier';
 import { NavigationControls } from './navigation-controls';
 import { AppTextField } from '@components/input';
 import { useOnClickOutside } from '@hooks/general';
-import { useFindPanelSearch, useMatchNavigation } from './hooks/find-panel';
+import { useFindPanelSearch } from './hooks/find-panel';
 import { clearHighlight } from './utils/highlight';
 
 export function NoteFindPanel({
@@ -27,23 +27,15 @@ export function NoteFindPanel({
     handleSearch,
     matchData,
     currentMatchIndex,
-    setCurrentMatchIndex,
     highlightedNodeKeyRef,
     handleExitComplete,
+    navigateToNextMatch,
+    navigateToPreviousMatch,
   } = useFindPanelSearch({ editor, isSearchOpen });
 
   // Clear highlights when clicking outside
   useOnClickOutside(panelRef, () => {
     clearHighlight(editor, highlightedNodeKeyRef);
-  });
-
-  // Initialize navigation functionality
-  const { navigateToNextMatch, navigateToPreviousMatch } = useMatchNavigation({
-    editor,
-    matchData,
-    currentMatchIndex,
-    setCurrentMatchIndex,
-    highlightedNodeKeyRef,
   });
 
   return (

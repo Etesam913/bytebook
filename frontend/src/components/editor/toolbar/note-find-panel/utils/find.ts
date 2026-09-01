@@ -54,78 +54,34 @@ export function performSearch(
 }
 
 /**
- * Returns the next match index (circular).
+ * Moves the highlight to the adjacent match, wrapping around at either end.
  */
-function getNextMatchIndex(currentIndex: number, totalMatches: number): number {
-  if (totalMatches === 0) return -1;
-  return (currentIndex + 1) % totalMatches;
-}
-
-/**
- * Returns the previous match index (circular).
- */
-function getPreviousMatchIndex(
-  currentIndex: number,
-  totalMatches: number
-): number {
-  if (totalMatches === 0) return -1;
-  return currentIndex <= 0 ? totalMatches - 1 : currentIndex - 1;
-}
-
-/**
- * Navigates to the next search match in a circular fashion.
- * Clears the current highlight and highlights the next match.
- */
-export function navigateToNextMatch({
+export function navigateToMatch({
   editor,
   matchData,
   currentMatchIndex,
   setCurrentMatchIndex,
   highlightedNodeKeyRef,
+  direction,
 }: {
   editor: LexicalEditor;
   matchData: MatchData[];
   currentMatchIndex: number;
   setCurrentMatchIndex: (index: number) => void;
   highlightedNodeKeyRef: RefObject<string | null>;
+  direction: 'next' | 'previous';
 }): void {
-  if (matchData.length === 0) return;
+  const total = matchData.length;
+  if (total === 0) return;
+
+  const nextIndex =
+    direction === 'next'
+      ? (currentMatchIndex + 1) % total
+      : currentMatchIndex <= 0
+        ? total - 1
+        : currentMatchIndex - 1;
 
   clearHighlight(editor, highlightedNodeKeyRef);
-  const nextIndex = getNextMatchIndex(currentMatchIndex, matchData.length);
-
   setCurrentMatchIndex(nextIndex);
-  const highlightedNodeKey = highlightMatch(editor, matchData[nextIndex]);
-  if (highlightedNodeKeyRef.current !== undefined) {
-    highlightedNodeKeyRef.current = highlightedNodeKey;
-  }
-}
-
-/**
- * Navigates to the previous search match in a circular fashion.
- * Clears the current highlight and highlights the previous match.
- */
-export function navigateToPreviousMatch({
-  editor,
-  matchData,
-  currentMatchIndex,
-  setCurrentMatchIndex,
-  highlightedNodeKeyRef,
-}: {
-  editor: LexicalEditor;
-  matchData: MatchData[];
-  currentMatchIndex: number;
-  setCurrentMatchIndex: (index: number) => void;
-  highlightedNodeKeyRef: RefObject<string | null>;
-}): void {
-  if (matchData.length === 0) return;
-
-  clearHighlight(editor, highlightedNodeKeyRef);
-  const prevIndex = getPreviousMatchIndex(currentMatchIndex, matchData.length);
-
-  setCurrentMatchIndex(prevIndex);
-  const highlightedNodeKey = highlightMatch(editor, matchData[prevIndex]);
-  if (highlightedNodeKeyRef.current !== undefined) {
-    highlightedNodeKeyRef.current = highlightedNodeKey;
-  }
+  highlightedNodeKeyRef.current = highlightMatch(editor, matchData[nextIndex]);
 }

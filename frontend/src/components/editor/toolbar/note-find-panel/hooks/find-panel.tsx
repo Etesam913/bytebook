@@ -6,13 +6,9 @@ import {
   BaseSelection,
   LexicalEditor,
 } from 'lexical';
-import { type RefObject, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MatchData, clearHighlight, highlightMatch } from '../utils/highlight';
-import {
-  performSearch,
-  navigateToNextMatch,
-  navigateToPreviousMatch,
-} from '../utils/find';
+import { performSearch, navigateToMatch } from '../utils/find';
 
 /**
  * Manages search state and functionality for the find panel.
@@ -64,51 +60,24 @@ export function useFindPanelSearch({
     });
   };
 
+  const navigate = (direction: 'next' | 'previous') =>
+    navigateToMatch({
+      editor,
+      matchData,
+      currentMatchIndex,
+      setCurrentMatchIndex,
+      highlightedNodeKeyRef,
+      direction,
+    });
+
   return {
     searchTerm,
     handleSearch,
     matchData,
     currentMatchIndex,
-    setCurrentMatchIndex,
     highlightedNodeKeyRef,
     handleExitComplete,
-  };
-}
-
-/**
- * Manages navigation between search matches.
- */
-export function useMatchNavigation({
-  editor,
-  matchData,
-  currentMatchIndex,
-  setCurrentMatchIndex,
-  highlightedNodeKeyRef,
-}: {
-  editor: LexicalEditor;
-  matchData: MatchData[];
-  currentMatchIndex: number;
-  setCurrentMatchIndex: (index: number) => void;
-  highlightedNodeKeyRef: RefObject<string | null>;
-}) {
-  return {
-    navigateToNextMatch: () => {
-      return navigateToNextMatch({
-        editor,
-        matchData,
-        currentMatchIndex,
-        setCurrentMatchIndex,
-        highlightedNodeKeyRef,
-      });
-    },
-    navigateToPreviousMatch: () => {
-      return navigateToPreviousMatch({
-        editor,
-        matchData,
-        currentMatchIndex,
-        setCurrentMatchIndex,
-        highlightedNodeKeyRef,
-      });
-    },
+    navigateToNextMatch: () => navigate('next'),
+    navigateToPreviousMatch: () => navigate('previous'),
   };
 }
