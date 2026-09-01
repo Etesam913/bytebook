@@ -31,10 +31,10 @@ export function NoteFindPanel({
     currentMatchIndex,
     setCurrentMatchIndex,
     highlightedNodeKeyRef,
+    handleExitComplete,
   } = useFindPanelSearch({
     editor,
     isSearchOpen,
-    inputRef,
     setIsSearchOpen,
     hasFirstLoad,
   });
@@ -54,7 +54,7 @@ export function NoteFindPanel({
   });
 
   return (
-    <AnimatePresence>
+    <AnimatePresence onExitComplete={handleExitComplete}>
       {isSearchOpen && (
         <motion.div
           ref={panelRef}

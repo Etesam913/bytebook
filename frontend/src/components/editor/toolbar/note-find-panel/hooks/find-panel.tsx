@@ -42,13 +42,11 @@ function areMatchesEqual(
 export function useFindPanelSearch({
   editor,
   isSearchOpen,
-  inputRef,
   setIsSearchOpen,
   hasFirstLoad,
 }: {
   editor: LexicalEditor;
   isSearchOpen: boolean;
-  inputRef: RefObject<HTMLInputElement | null>;
   setIsSearchOpen: Dispatch<SetStateAction<boolean>>;
   // Ensures that the search is only performed after the first load of the note markdown
   hasFirstLoad: boolean;
@@ -119,53 +117,27 @@ export function useFindPanelSearch({
     highlightedNodeKeyRef.current = highlightedNodeKey;
   };
 
-  // Effect to handle panel open/close logic
+  // Remember the editor selection so it can be restored once the panel closes
   useEffect(() => {
-    if (!hasFirstLoad) return;
-    if (isSearchOpen) {
-      // The panel is open store current selection when opening so selection can be restored when closing
-      editor.read(() => {
-        const selection = $getSelection();
-        previousSelectionRef.current = selection?.clone() ?? null;
-      });
+    if (!isSearchOpen) return;
+    editor.read(() => {
+      previousSelectionRef.current = $getSelection()?.clone() ?? null;
+    });
+  }, [isSearchOpen, editor]);
 
-      // Ensure input is focused
-      if (inputRef.current && inputRef.current !== document.activeElement) {
-        inputRef.current.focus();
+  // Runs after the exit animation so the selection change is not visible mid-fade
+  const handleExitComplete = () => {
+    clearHighlight(editor, highlightedNodeKeyRef);
+    editor.update(() => {
+      const match = matchData[currentMatchIndex];
+      const node = match ? $getNodeByKey(match.nodeKey) : null;
+      if (node && $isTextNode(node)) {
+        node.select(match.start, match.end + 1);
+      } else if (previousSelectionRef.current) {
+        $setSelection(previousSelectionRef.current);
       }
-    } else {
-      // The panel is closed, clear all search highlights and restore selection to editor
-      clearHighlight(editor, highlightedNodeKeyRef);
-
-      // Restore selection after animation
-      const timeoutId = setTimeout(() => {
-        editor.update(() => {
-          // Use refs to access current values without causing re-renders
-          // const currentIndex = currentMatchIndex;
-          // const currentMatchData = matchData;
-          const isMatchInBounds =
-            currentMatchIndex >= 0 && currentMatchIndex < matchData.length;
-
-          // If we had an active match, select it
-          if (isMatchInBounds) {
-            const match = matchData[currentMatchIndex];
-            const node = $getNodeByKey(match.nodeKey);
-            if (node && $isTextNode(node)) {
-              node.select(match.start, match.end + 1);
-            }
-          }
-          // Otherwise restore previous selection
-          else if (previousSelectionRef.current) {
-            $setSelection(previousSelectionRef.current);
-          }
-        });
-      }, 200);
-
-      return () => {
-        clearTimeout(timeoutId);
-      };
-    }
-  }, [isSearchOpen, editor, inputRef, hasFirstLoad]);
+    });
+  };
 
   // Separate effect to handle search when highlightParam changes
   useEffect(() => {
@@ -183,6 +155,7 @@ export function useFindPanelSearch({
     currentMatchIndex,
     setCurrentMatchIndex: setCurrentMatchIndexWithRef,
     highlightedNodeKeyRef,
+    handleExitComplete,
   };
 }
 
