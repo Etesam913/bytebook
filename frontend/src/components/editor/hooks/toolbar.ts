@@ -77,7 +77,6 @@ export function useNoteMarkdown({
   setFrontmatter: Dispatch<SetStateAction<Frontmatter>>;
 }) {
   const setPreviousMarkdown = useSetAtom(previousMarkdownAtom);
-  const [hasFirstLoad, setHasFirstLoad] = useState(false);
 
   const getNoteMarkdownQuery = useQuery({
     queryKey: queryKeys.noteMarkdown(`${folder}/${note}.md`),
@@ -134,11 +133,10 @@ export function useNoteMarkdown({
         { tag: ['note:initial-load', SKIP_DOM_SELECTION_TAG] }
       );
 
-      setHasFirstLoad(true);
       return markdownWithFrontmatter;
     },
   });
-  return { hasFirstLoad, getNoteMarkdownQuery };
+  return { getNoteMarkdownQuery };
 }
 
 /**

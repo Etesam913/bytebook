@@ -98,7 +98,7 @@ export function Toolbar({
   const [isSearchOpen, setIsSearchOpen] = useSearchNoteEvent();
   const noteContainerElement = useRefState(noteContainerRef);
 
-  const { hasFirstLoad, getNoteMarkdownQuery } = useNoteMarkdown({
+  const { getNoteMarkdownQuery } = useNoteMarkdown({
     editor,
     folder,
     note,
@@ -171,10 +171,11 @@ export function Toolbar({
           isFileMaximized && !isFullscreen && 'pl-[100px]'
         )}
       >
+        {/* Keyed per note so a stale term and match list never carry over */}
         <NoteFindPanel
+          key={`${folder}/${note}`}
           isSearchOpen={isSearchOpen}
           setIsSearchOpen={setIsSearchOpen}
-          hasFirstLoad={hasFirstLoad}
         />
         <span className="flex items-center gap-1.5">
           <MaximizeNoteButton animationControls={animationControls} />

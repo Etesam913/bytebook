@@ -13,11 +13,9 @@ import { clearHighlight } from './utils/highlight';
 export function NoteFindPanel({
   isSearchOpen,
   setIsSearchOpen,
-  hasFirstLoad,
 }: {
   isSearchOpen: boolean;
   setIsSearchOpen: Dispatch<SetStateAction<boolean>>;
-  hasFirstLoad: boolean;
 }) {
   const [editor] = useLexicalComposerContext();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -25,19 +23,14 @@ export function NoteFindPanel({
 
   // Initialize search functionality
   const {
+    searchTerm,
+    handleSearch,
     matchData,
-    highlightParam,
-    setHighlightParam,
     currentMatchIndex,
     setCurrentMatchIndex,
     highlightedNodeKeyRef,
     handleExitComplete,
-  } = useFindPanelSearch({
-    editor,
-    isSearchOpen,
-    setIsSearchOpen,
-    hasFirstLoad,
-  });
+  } = useFindPanelSearch({ editor, isSearchOpen });
 
   // Clear highlights when clicking outside
   useOnClickOutside(panelRef, () => {
@@ -74,14 +67,14 @@ export function NoteFindPanel({
             ref={inputRef}
             className="flex-1"
             placeholder="Search in note..."
-            value={highlightParam}
+            value={searchTerm}
             inputClassName="text-sm dark:text-zinc-100 bg-transparent outline-none rounded-sm border-none px-0.5 !border-0 font-mono"
             autoFocus
             autoCapitalize="off"
             autoComplete="off"
             autoCorrect="off"
             spellCheck={false}
-            onChange={setHighlightParam}
+            onChange={handleSearch}
             inputAttrs={{
               onFocus: (e) => e.target.select(),
             }}
