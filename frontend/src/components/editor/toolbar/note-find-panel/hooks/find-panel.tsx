@@ -169,7 +169,9 @@ export function useFindPanelSearch({
 
   // Separate effect to handle search when highlightParam changes
   useEffect(() => {
-    if (highlightParam && hasFirstLoad) {
+    if (!hasFirstLoad) return;
+    // An empty term while open must still run so the previous term's matches are dropped
+    if (highlightParam || isSearchOpen) {
       queueMicrotask(() => handleSearch(highlightParam));
     }
   }, [highlightParam, hasFirstLoad]);
