@@ -1,6 +1,7 @@
 import { prepareFileTreeInput } from '@pierre/trees';
 import { FileTree, useFileTree } from '@pierre/trees/react';
 import { addAncestorDirectoryPaths } from '@utils/search';
+import { Loader } from '@/icons/loader';
 import { navigateToTreePath } from './model-utils';
 import { FILE_TREE_UNSAFE_CSS } from './styles';
 
@@ -27,7 +28,11 @@ export function FilteredFileTree({
   routeTargetPath: string | null;
 }) {
   if (isLoading && !paths) {
-    return <TreeMessage>Searching…</TreeMessage>;
+    return (
+      <div className="flex justify-center py-3 text-zinc-500 dark:text-zinc-400">
+        <Loader width="1.25rem" height="1.25rem" />
+      </div>
+    );
   }
   if (!paths || paths.length === 0) {
     return <TreeMessage>No matching files</TreeMessage>;

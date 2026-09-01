@@ -1,6 +1,10 @@
 import { useEffect, useRef } from 'react';
-import { useSetAtom } from 'jotai';
-import { fileSidebarOpenStateAtom, isFileMaximizedAtom } from '@/atoms';
+import { useAtomValue, useSetAtom } from 'jotai';
+import {
+  fileSidebarOpenStateAtom,
+  focusTreeFilterInputAtom,
+  isFileMaximizedAtom,
+} from '@/atoms';
 import { AppIconButton } from '@components/buttons';
 import { AppSearchField } from '@components/input';
 import {
@@ -28,6 +32,25 @@ export function TreeSearchInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const setIsFileMaximized = useSetAtom(isFileMaximizedAtom);
   const setOpenState = useSetAtom(fileSidebarOpenStateAtom);
+  const focusSignal = useAtomValue(focusTreeFilterInputAtom);
+  const isInitialMount = useRef(true);
+
+  const focusInput = () => {
+    setIsFileMaximized(false);
+    setOpenState((prev) => ({ ...prev, files: true }));
+    requestAnimationFrame(() => {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    });
+  };
+
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    focusInput();
+  }, [focusSignal]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -37,26 +60,18 @@ export function TreeSearchInput({
         event.key.toLowerCase() === 'f'
       ) {
         event.preventDefault();
-        setIsFileMaximized(false);
-        setOpenState((prev) => ({ ...prev, files: true }));
-        inputRef.current?.focus();
-        inputRef.current?.select();
+        focusInput();
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [setIsFileMaximized, setOpenState]);
+  }, []);
 
   useWailsEvent(FILE_TREE_FILTER_FOCUS, (data) => {
     void (async () => {
       if (!(await isEventInCurrentWindow(data))) return;
-      setIsFileMaximized(false);
-      setOpenState((prev) => ({ ...prev, files: true }));
-      requestAnimationFrame(() => {
-        inputRef.current?.focus();
-        inputRef.current?.select();
-      });
+      focusInput();
     })();
   });
 

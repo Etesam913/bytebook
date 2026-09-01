@@ -60,7 +60,7 @@ export function NoteFindPanel({
             className="flex-1"
             placeholder="Search in note..."
             value={searchTerm}
-            inputClassName="text-sm dark:text-zinc-100 bg-transparent outline-none rounded-sm border-none px-0.5 !border-0 font-mono"
+            inputClassName="text-sm dark:text-zinc-100 bg-transparent outline-none rounded-sm border-none px-0.5 !border-0"
             autoFocus
             autoCapitalize="off"
             autoComplete="off"

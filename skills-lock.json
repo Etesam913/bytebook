@@ -3,8 +3,10 @@
   "skills": {
     "react-aria": {
       "source": "react-aria.adobe.com",
+      "sourceUrl": "https://react-aria.adobe.com",
       "sourceType": "well-known",
-      "computedHash": "88f92384476cee8ab0a588b8e6fb7e759bbf952ccdcd5080522a27a12312ed9c"
+      "computedHash": "1cc068e79bd0e2c567a840d4e4f482daa393cd64d665ef9f43706853f8d444f3",
+      "wellKnownDigest": "sha256:cdb54fd520a1f853c119f60deebc5d40ba0d4286dd2f191ec23f0806b4c83264"
     }
   }
 }

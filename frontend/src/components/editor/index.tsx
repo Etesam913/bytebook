@@ -132,14 +132,14 @@ export function NotesEditor({
         />
         <div
           ref={overflowContainerRef}
-          className="flex-1 min-h-0 overflow-y-auto flex flex-col"
+          className="flex-1 min-h-0 overflow-y-auto flex flex-col @container"
         >
           <div
             style={{
               scrollbarGutter: 'stable',
             }}
             className={cn(
-              'py-6 px-14 flex flex-col w-full min-w-72 flex-1',
+              'py-6 pl-10 pr-6 @md:px-10 @lg:px-14 flex flex-col w-full min-w-72 flex-1',
               projectSettings.appearance.noteWidth === 'readability' &&
                 'max-w-225 mx-auto'
             )}

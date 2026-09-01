@@ -2,6 +2,7 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai/react';
 import {
   contextMenuDataAtom,
   dialogDataAtom,
+  focusTreeFilterInputAtom,
   sidebarSelectionAtom,
   treeFilterQueryAtom,
 } from '@/atoms';
@@ -43,6 +44,7 @@ export function SavedSearchAccordionButton({
   const setDialogData = useSetAtom(dialogDataAtom);
   const treeFilterQuery = useAtomValue(treeFilterQueryAtom);
   const setTreeFilterQuery = useSetAtom(treeFilterQueryAtom);
+  const setFocusTreeFilterInput = useSetAtom(focusTreeFilterInputAtom);
   const activeSearch = savedSearches?.at(i);
   const isActive = activeSearch?.query === treeFilterQuery;
 
@@ -62,6 +64,7 @@ export function SavedSearchAccordionButton({
           const search = savedSearches?.at(i);
           if (search) {
             setTreeFilterQuery(search.query);
+            setFocusTreeFilterInput((prev) => prev + 1);
           }
         }}
         onContextMenu={(e) => {
