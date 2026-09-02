@@ -1,8 +1,10 @@
 import type { MotionValue } from 'motion/react';
-import { dragItem } from '@utils/draggable';
+import { useRef } from 'react';
+import { useMove } from 'react-aria';
 import type { FileDimensions } from '@components/editor/nodes/types';
 
-const MIN_WIDTH = 64;
+export const MIN_WIDTH = 64;
+const KEYBOARD_STEP = 16;
 
 /**
  * Writes dimensions to the node for either a video or image element.
@@ -39,53 +41,52 @@ export function writeMediaDimensionsOnLoad(
   }
 }
 
-export function onResize(
-  mouseDownEvent: React.MouseEvent<HTMLDivElement>,
-  {
-    elementRef,
-    noteContainerRef,
-    widthMotionValue,
-    writeDimensionsToNode,
-    setDraggedGhostElement,
-  }: {
-    elementRef: React.RefObject<HTMLElement | null>;
-    noteContainerRef: React.RefObject<HTMLElement | null> | null;
-    widthMotionValue: MotionValue<number>;
-    writeDimensionsToNode: (dimensions: FileDimensions) => void;
-    setDraggedGhostElement: (element: HTMLElement | null) => void;
-  }
-) {
-  document.body.style.cursor = 'sw-resize';
-  const elementBox = elementRef.current;
-  const noteContainer = noteContainerRef?.current;
-  if (!elementBox || !noteContainer) return;
-
-  const aspectRatio = elementBox.clientHeight / elementBox.clientWidth;
-  const initialElementWidth = elementBox.clientWidth;
-  const initialMouseX = mouseDownEvent.clientX;
-  mouseDownEvent.stopPropagation();
-  setDraggedGhostElement(mouseDownEvent.target as HTMLElement);
-  dragItem(
-    (dragEvent) => {
-      const widthDiff = dragEvent.clientX - initialMouseX;
-      const outlineBoxWidth = initialElementWidth + widthDiff;
+/** useMove handlers that resize the media element by pointer or arrow keys and commit on move end. */
+export function useMediaResizeMove({
+  elementRef,
+  handleRef,
+  noteContainerRef,
+  widthMotionValue,
+  writeDimensionsToNode,
+  setDraggedGhostElement,
+}: {
+  elementRef: React.RefObject<HTMLElement | null>;
+  handleRef: React.RefObject<HTMLElement | null>;
+  noteContainerRef: React.RefObject<HTMLElement | null> | null;
+  widthMotionValue: MotionValue<number>;
+  writeDimensionsToNode: (dimensions: FileDimensions) => void;
+  setDraggedGhostElement: (element: HTMLElement | null) => void;
+}) {
+  // Captured on move start; the element is not measured on every delta.
+  const aspectRatioRef = useRef(1);
+  return useMove({
+    onMoveStart(e) {
+      const elementBox = elementRef.current;
+      if (!elementBox) return;
+      aspectRatioRef.current = elementBox.clientHeight / elementBox.clientWidth;
+      if (e.pointerType !== 'keyboard') {
+        document.body.style.cursor = 'sw-resize';
+        setDraggedGhostElement(handleRef.current);
+      }
+    },
+    onMove(e) {
+      const maxWidth = noteContainerRef?.current?.clientWidth ?? Infinity;
+      const delta =
+        e.pointerType === 'keyboard'
+          ? Math.sign(e.deltaX) * KEYBOARD_STEP
+          : e.deltaX;
       widthMotionValue.set(
-        Math.max(
-          MIN_WIDTH,
-          Math.min(outlineBoxWidth, noteContainer.clientWidth)
-        )
+        Math.max(MIN_WIDTH, Math.min(widthMotionValue.get() + delta, maxWidth))
       );
     },
-
-    () => {
+    onMoveEnd() {
       document.body.style.cursor = '';
-
       const newWidth = widthMotionValue.get();
       writeDimensionsToNode({
         width: Math.round(newWidth),
-        height: Math.round(newWidth * aspectRatio),
+        height: Math.round(newWidth * aspectRatioRef.current),
       });
       setDraggedGhostElement(null);
-    }
-  );
+    },
+  });
 }

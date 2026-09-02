@@ -1,6 +1,6 @@
 import { useAtomValue, useSetAtom } from 'jotai/react';
 import type { ReactNode, RefObject } from 'react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   noteContainerRefAtom,
   noteSeenFileNodeKeysAtom,
@@ -13,7 +13,11 @@ import { FileError } from '../error';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import type { FileDimensions } from '@components/editor/nodes/types';
-import { onResize, writeMediaDimensionsOnLoad } from '../utils/resize';
+import {
+  MIN_WIDTH,
+  useMediaResizeMove,
+  writeMediaDimensionsOnLoad,
+} from '../utils/resize';
 import { FilePlaceholder } from '../placeholder';
 import { createFilePath } from '@utils/path';
 import { SelectionHighlight } from '@components/selection-highlight';
@@ -55,6 +59,7 @@ export function MediaContainer({
   const [editor] = useLexicalComposerContext();
   const containerRef = useRef<HTMLDivElement>(null);
   const mediaRef = useRef<HTMLElement>(null);
+  const resizeHandleRef = useRef<HTMLDivElement>(null);
   const loaderRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
@@ -73,6 +78,26 @@ export function MediaContainer({
 
   const widthMotionValue = useMotionValue<number>(
     dimensionsWrittenToNode.width
+  );
+  const { moveProps } = useMediaResizeMove({
+    elementRef: mediaRef,
+    handleRef: resizeHandleRef,
+    noteContainerRef,
+    widthMotionValue,
+    writeDimensionsToNode,
+    setDraggedGhostElement,
+  });
+
+  // Mirror the live width onto the slider without re-rendering on every frame.
+  useEffect(
+    () =>
+      widthMotionValue.on('change', (width) => {
+        resizeHandleRef.current?.setAttribute(
+          'aria-valuenow',
+          String(Math.round(width))
+        );
+      }),
+    [widthMotionValue]
   );
 
   if (isError) {
@@ -180,25 +205,27 @@ export function MediaContainer({
                 <>
                   <SelectionHighlight className="outline-4 outline-(--accent-color)" />
                   <motion.div
+                    onKeyDown={moveProps.onKeyDown}
+                    onMouseDown={moveProps.onMouseDown}
+                    onTouchStart={moveProps.onTouchStart}
+                    ref={resizeHandleRef}
                     data-drag-ghost-exclude
                     role="slider"
                     tabIndex={0}
                     aria-label={resizeAriaLabel}
-                    aria-valuemin={50}
+                    aria-orientation="horizontal"
+                    aria-valuemin={MIN_WIDTH}
                     aria-valuemax={1200}
+                    aria-valuenow={Math.round(dimensionsWrittenToNode.width)}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1, transition: { duration: 0.15 } }}
                     exit={{ opacity: 0, transition: { duration: 0.15 } }}
-                    className="cursor-sw-resize absolute bottom-[-8px] right-[-8px] w-5 h-5 z-20 bg-(--accent-color) rounded-sm"
-                    onMouseDown={(e) =>
-                      onResize(e, {
-                        elementRef: mediaRef,
-                        noteContainerRef,
-                        widthMotionValue,
-                        writeDimensionsToNode,
-                        setDraggedGhostElement,
-                      })
-                    }
+                    className="cursor-sw-resize absolute bottom-[-8px] right-[-8px] w-5 h-5 z-20 bg-(--accent-color) rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-(--accent-color)"
+                    // Keep Lexical from treating the handle press as a selection change.
+                    onPointerDown={(e) => {
+                      e.stopPropagation();
+                      moveProps.onPointerDown?.(e);
+                    }}
                   />
                 </>
               )}

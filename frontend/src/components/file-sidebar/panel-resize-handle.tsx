@@ -1,5 +1,6 @@
 import { type RefObject, useRef, useState } from 'react';
 import { useAtomValue } from 'jotai';
+import { useMove } from 'react-aria';
 import {
   fileSidebarOpenStateAtom,
   MIN_FLEX_WEIGHT,
@@ -7,9 +8,10 @@ import {
   type SidebarFlexWeights,
   type SidebarPanelKey,
 } from '@/atoms';
-import { dragItem } from '@utils/draggable';
 import { cn } from '@utils/string-formatting';
 import type { FlexWeightMVs } from './index';
+
+const KEYBOARD_STEP = 8;
 
 /**
  * Returns the current index of the panelKey and the nearest open panel key above it.
@@ -43,11 +45,14 @@ export function PanelResizeHandle({
 }) {
   const openState = useAtomValue(fileSidebarOpenStateAtom);
   const [isDragging, setIsDragging] = useState(false);
-  const dragStartClientYRef = useRef<number | null>(null);
-  const dragStartWeightsRef = useRef<{
+  // Captured at move start so each delta is applied against the same baseline.
+  const moveStateRef = useRef<{
     aboveKey: SidebarPanelKey;
     aboveWeight: number;
     currentWeight: number;
+    pairWeight: number;
+    pairDistributable: number;
+    totalDeltaY: number;
   } | null>(null);
 
   const { currentIndex, abovePanelKey } = getPanelKeyLocation(
@@ -56,7 +61,7 @@ export function PanelResizeHandle({
   );
   const canResize = abovePanelKey !== null && openState[panelKey];
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+  const startMove = () => {
     if (!canResize || !abovePanelKey || !containerRef.current) return;
 
     const aboveMV = flexWeightMVs[abovePanelKey];
@@ -66,17 +71,9 @@ export function PanelResizeHandle({
     aboveMV.jump(aboveMV.get());
     currentMV.jump(currentMV.get());
 
-    dragStartClientYRef.current = e.clientY;
-    dragStartWeightsRef.current = {
-      aboveKey: abovePanelKey,
-      aboveWeight: aboveMV.get(),
-      currentWeight: currentMV.get(),
-    };
-
     setIsDragging(true);
     document.body.classList.add('bb-force-row-resize');
 
-    const capturedAboveKey = abovePanelKey;
     const pairWeight = aboveMV.get() + currentMV.get();
 
     // Compute distributable space between the two panels being resized.
@@ -105,58 +102,75 @@ export function PanelResizeHandle({
       pairDistributable = containerRef.current.clientHeight;
     }
 
-    dragItem(
-      (dragEvent: MouseEvent) => {
-        const startY = dragStartClientYRef.current;
-        const startWeights = dragStartWeightsRef.current;
-        if (startY === null || !startWeights) return;
-
-        const deltaY = dragEvent.clientY - startY;
-        const weightDelta = (deltaY / pairDistributable) * pairWeight;
-
-        let newAboveWeight = startWeights.aboveWeight + weightDelta;
-        let newCurrentWeight = startWeights.currentWeight - weightDelta;
-
-        // Clamp both to minimum
-        if (newAboveWeight < MIN_FLEX_WEIGHT) {
-          const diff = MIN_FLEX_WEIGHT - newAboveWeight;
-          newAboveWeight = MIN_FLEX_WEIGHT;
-          newCurrentWeight -= diff;
-        }
-        if (newCurrentWeight < MIN_FLEX_WEIGHT) {
-          const diff = MIN_FLEX_WEIGHT - newCurrentWeight;
-          newCurrentWeight = MIN_FLEX_WEIGHT;
-          newAboveWeight -= diff;
-        }
-
-        // Direct DOM update — zero React re-renders
-        flexWeightMVs[capturedAboveKey].set(newAboveWeight);
-        flexWeightMVs[panelKey].set(newCurrentWeight);
-
-        // Keep stored weights in sync
-        storedWeightsRef.current[capturedAboveKey] = newAboveWeight;
-        storedWeightsRef.current[panelKey] = newCurrentWeight;
-      },
-      () => {
-        setIsDragging(false);
-        document.body.classList.remove('bb-force-row-resize');
-        dragStartClientYRef.current = null;
-        dragStartWeightsRef.current = null;
-
-        // Persist to localStorage on drag end only
-        localStorage.setItem(
-          'sidebarFlexWeights',
-          JSON.stringify(storedWeightsRef.current)
-        );
-      }
-    );
+    moveStateRef.current = {
+      aboveKey: abovePanelKey,
+      aboveWeight: aboveMV.get(),
+      currentWeight: currentMV.get(),
+      pairWeight,
+      pairDistributable,
+      totalDeltaY: 0,
+    };
   };
+
+  const { moveProps } = useMove({
+    onMoveStart: startMove,
+    onMove: (e) => {
+      const state = moveStateRef.current;
+      if (!state) return;
+
+      state.totalDeltaY +=
+        e.pointerType === 'keyboard'
+          ? Math.sign(e.deltaY) * KEYBOARD_STEP
+          : e.deltaY;
+      const weightDelta =
+        (state.totalDeltaY / state.pairDistributable) * state.pairWeight;
+
+      let newAboveWeight = state.aboveWeight + weightDelta;
+      let newCurrentWeight = state.currentWeight - weightDelta;
+
+      // Clamp both to minimum
+      if (newAboveWeight < MIN_FLEX_WEIGHT) {
+        const diff = MIN_FLEX_WEIGHT - newAboveWeight;
+        newAboveWeight = MIN_FLEX_WEIGHT;
+        newCurrentWeight -= diff;
+      }
+      if (newCurrentWeight < MIN_FLEX_WEIGHT) {
+        const diff = MIN_FLEX_WEIGHT - newCurrentWeight;
+        newCurrentWeight = MIN_FLEX_WEIGHT;
+        newAboveWeight -= diff;
+      }
+
+      // Direct DOM update — zero React re-renders
+      flexWeightMVs[state.aboveKey].set(newAboveWeight);
+      flexWeightMVs[panelKey].set(newCurrentWeight);
+
+      // Keep stored weights in sync
+      storedWeightsRef.current[state.aboveKey] = newAboveWeight;
+      storedWeightsRef.current[panelKey] = newCurrentWeight;
+    },
+    onMoveEnd: () => {
+      if (!moveStateRef.current) return;
+      setIsDragging(false);
+      document.body.classList.remove('bb-force-row-resize');
+      moveStateRef.current = null;
+
+      // Persist to localStorage on drag end only
+      localStorage.setItem(
+        'sidebarFlexWeights',
+        JSON.stringify(storedWeightsRef.current)
+      );
+    },
+  });
 
   return (
     <div
-      onMouseDown={handleMouseDown}
+      {...(canResize ? moveProps : {})}
+      role="separator"
+      aria-orientation="horizontal"
+      aria-label={`Resize ${panelKey} panel`}
+      tabIndex={canResize ? 0 : -1}
       className={cn(
-        'h-4 -my-2 w-full relative z-10 shrink-0',
+        'h-4 -my-2 w-full relative z-10 shrink-0 outline-none focus-visible:before:bg-(--accent-color)',
         canResize &&
           (isDragging
             ? 'before:absolute before:inset-x-0 before:top-1/2 before:-translate-y-1/2 before:h-[3px] before:bg-(--accent-color)'

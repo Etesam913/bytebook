@@ -13,11 +13,3 @@ export function isRegularMouseClick(event: MouseLikeEvent) {
     !event.altKey
   );
 }
-
-// Returns true if the event should dismiss an outside selection (must be a plain left mouse click).
-export function shouldHandleOutsideSelectionInteraction(
-  event: MouseEvent | KeyboardEvent
-) {
-  if (!(event instanceof MouseEvent)) return false;
-  return isRegularMouseClick(event);
-}

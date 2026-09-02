@@ -8,7 +8,7 @@ import { NavigationControls } from './navigation-controls';
 import { AppIconButton } from '@components/buttons';
 import { AppTextField } from '@components/input';
 import { Tooltip } from '@components/tooltip';
-import { useOnClickOutside } from '@hooks/general';
+import { useOnInteractOutside } from '@hooks/general';
 import { useFindPanelSearch } from './hooks/find-panel';
 import { clearHighlight } from './utils/highlight';
 
@@ -36,7 +36,7 @@ export function NoteFindPanel({
   } = useFindPanelSearch({ editor, isSearchOpen });
 
   // Clear highlights when clicking outside
-  useOnClickOutside(panelRef, () => {
+  useOnInteractOutside(panelRef, () => {
     clearHighlight(editor, highlightedNodeKeyRef);
   });
 

@@ -1,5 +1,6 @@
 import { MenuOption } from '@lexical/react/LexicalTypeaheadMenuPlugin';
 import type { JSX } from 'react';
+import { mergeProps, useHover, usePress } from 'react-aria';
 import { cn } from '@utils/string-formatting';
 import type { FilePath } from '@utils/path';
 
@@ -48,6 +49,10 @@ export function ComponentPickerMenuItem({
 }) {
   const iconElement = option.icon;
   const optionTitle = option.title;
+  // Lexical keeps focus in the editor and drives aria-activedescendant, so
+  // rows only need press and hover; usePress also keeps editor focus.
+  const { pressProps } = usePress({ onPress: onClick });
+  const { hoverProps } = useHover({ onHoverStart: onMouseEnter });
 
   function setOptionRef(element: HTMLLIElement | null) {
     option.setRefElement(element);
@@ -55,7 +60,7 @@ export function ComponentPickerMenuItem({
 
   return (
     <li
-      tabIndex={isSelected ? 0 : -1}
+      {...mergeProps(pressProps, hoverProps)}
       className={cn(
         'flex items-center gap-2 text-left cursor-pointer rounded-md px-1.75 py-0.5 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-650',
         isSelected &&
@@ -65,14 +70,6 @@ export function ComponentPickerMenuItem({
       role="option"
       aria-selected={isSelected}
       id={`typeahead-item-${index}`}
-      onMouseEnter={onMouseEnter}
-      onClick={onClick}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onClick();
-        }
-      }}
     >
       {iconElement && <span aria-hidden="true">{iconElement}</span>}
       <span className="text">{optionTitle}</span>
@@ -94,6 +91,7 @@ export function FilePickerMenuItem({
   index,
   isSelected,
   onClick,
+  onMouseEnter,
   option,
   item,
   highlightHtml,
@@ -101,6 +99,7 @@ export function FilePickerMenuItem({
   index: number;
   isSelected: boolean;
   onClick: () => void;
+  onMouseEnter: () => void;
   option: DropdownPickerOption;
   item: FilePickerMenuItemData;
   highlightHtml?: string;
@@ -113,6 +112,8 @@ export function FilePickerMenuItem({
   const primaryText = item.kind === 'file' ? item.filePath.note : item.folder;
   const secondaryText =
     item.kind === 'file' ? `${item.filePath.folder}/` : 'Folder';
+  const { pressProps } = usePress({ onPress: onClick });
+  const { hoverProps } = useHover({ onHoverStart: onMouseEnter });
 
   function setOptionRef(element: HTMLLIElement | null) {
     option.setRefElement(element);
@@ -120,7 +121,7 @@ export function FilePickerMenuItem({
 
   return (
     <li
-      tabIndex={isSelected ? 0 : -1}
+      {...mergeProps(pressProps, hoverProps)}
       className={cn(
         'rounded-md px-2 py-1 hover:bg-zinc-100 dark:hover:bg-zinc-650',
         isSelected &&
@@ -130,13 +131,6 @@ export function FilePickerMenuItem({
       role="option"
       aria-selected={isSelected}
       id={`typeahead-item-${index}`}
-      onClick={onClick}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onClick();
-        }
-      }}
       aria-label={ariaLabel}
     >
       <div className="flex items-start gap-1">

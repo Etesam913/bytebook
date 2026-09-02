@@ -31,6 +31,7 @@ import { MotionButton } from '@components/buttons';
 import { TOGGLE_LINK_COMMAND } from '../nodes/link';
 import { AppTextField } from '@components/input';
 import { $setSelection } from 'lexical';
+import { useFocusWithin } from 'react-aria';
 
 export function FloatingMenuPlugin({
   floatingData,
@@ -50,6 +51,25 @@ export function FloatingMenuPlugin({
   const isMenuOpen = floatingData.isOpen && floatingData.type !== null;
   const inputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+
+  function closeMenu() {
+    setFloatingData({
+      isOpen: false,
+      type: null,
+      top: 0,
+      left: 0,
+      previousSelection: null,
+    });
+  }
+
+  // Close the link editor when focus leaves it (e.g. Tab or clicking the editor).
+  const { focusWithinProps } = useFocusWithin({
+    isDisabled: !isLinkMenuOpen,
+    onBlurWithin: () => {
+      clearHighlight(editor, { current: null });
+      closeMenu();
+    },
+  });
 
   // Create virtual reference element from floatingData coordinates
   // floatingData coordinates are relative to noteContainer, so we need to convert to viewport coordinates
@@ -99,13 +119,7 @@ export function FloatingMenuPlugin({
     escapeKey: floatingData.type !== 'link', // Handle Escape manually for link menu
     outsidePressEvent: 'mousedown',
     outsidePress: () => {
-      setFloatingData({
-        isOpen: false,
-        type: null,
-        top: 0,
-        left: 0,
-        previousSelection: null,
-      });
+      closeMenu();
       return true;
     },
   });
@@ -156,55 +170,13 @@ export function FloatingMenuPlugin({
       );
     }
 
-    function handleBlur(e: FocusEvent) {
-      if (!isLinkMenuOpen) return;
-
-      const floatingElement = floating.refs.floating.current;
-
-      // relatedTarget is where the focus is moving to, supported for blur on elements (not on window)
-      const relatedTarget = (e.relatedTarget ||
-        (document.activeElement as Node)) as Node | null;
-
-      if (
-        floatingElement &&
-        relatedTarget &&
-        !floatingElement.contains(relatedTarget)
-      ) {
-        // Clear highlight before closing the menu
-        clearHighlight(editor, { current: null });
-
-        setFloatingData({
-          isOpen: false,
-          type: null,
-          top: 0,
-          left: 0,
-          previousSelection: null,
-        });
-      }
-    }
-
-    // Attach the blur event to the floating element
-    const floatingNode = floating.refs.floating.current;
-
-    if (floatingNode) {
-      floatingNode.addEventListener('blur', handleBlur, true);
-    }
     return () => {
-      if (floatingNode) {
-        floatingNode.removeEventListener('blur', handleBlur, true);
-      }
       // Clear highlights when the effect cleans up (menu closing)
       if (didHighlight) {
         clearHighlight(editor, { current: null });
       }
     };
-  }, [
-    isLinkMenuOpen,
-    floating.refs.floating,
-    setFloatingData,
-    floatingData.previousSelection,
-    editor,
-  ]);
+  }, [isLinkMenuOpen, floatingData.previousSelection, editor]);
 
   // Set reference element when menu opens
   useEffect(() => {
@@ -248,15 +220,9 @@ export function FloatingMenuPlugin({
             editor.dispatchCommand(TOGGLE_LINK_COMMAND, {
               url: newUrl,
             });
-            setFloatingData({
-              isOpen: false,
-              type: null,
-              top: 0,
-              left: 0,
-              previousSelection: null,
-            });
+            closeMenu();
           }}
-          {...getFloatingProps()}
+          {...getFloatingProps(focusWithinProps)}
         >
           {isTextFormatMenuOpen && children}
           {isLinkMenuOpen && (
@@ -271,13 +237,7 @@ export function FloatingMenuPlugin({
                 onKeyDown={(e) => {
                   if (e.key === 'Escape') {
                     e.preventDefault();
-                    setFloatingData({
-                      isOpen: false,
-                      type: null,
-                      top: 0,
-                      left: 0,
-                      previousSelection: null,
-                    });
+                    closeMenu();
 
                     setTimeout(() => {
                       editor.update(() => {

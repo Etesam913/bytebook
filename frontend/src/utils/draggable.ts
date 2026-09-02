@@ -1,30 +1,3 @@
-function stopSelect(e: Event) {
-  e.preventDefault();
-}
-
-// Attaches document-level mousemove/mouseup listeners to drive a drag interaction, invoking the given callbacks.
-export function dragItem(
-  onDragCallback: (e: MouseEvent) => void,
-  onDragEndCallback?: (e: MouseEvent) => void
-) {
-  function mouseMove(e: MouseEvent) {
-    if (e.target) {
-      onDragCallback(e);
-    }
-  }
-
-  function cleanUpDocumentEvents(e: MouseEvent) {
-    document.removeEventListener('mousemove', mouseMove);
-    document.removeEventListener('mouseup', cleanUpDocumentEvents);
-    document.removeEventListener('selectstart', stopSelect);
-    onDragEndCallback?.(e);
-  }
-  document.addEventListener('selectstart', stopSelect);
-  document.body.style.userSelect = 'none';
-  document.addEventListener('mousemove', mouseMove);
-  document.addEventListener('mouseup', cleanUpDocumentEvents);
-}
-
 /**
  * Elements with this data attribute are stripped from the cloned drag ghost.
  * Use it on accent outlines, selection highlights, floating tooltips, popovers,
