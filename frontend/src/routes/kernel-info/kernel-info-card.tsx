@@ -3,7 +3,9 @@ import { SquareTerminal } from '@/icons/square-terminal';
 import { Languages } from '@/types';
 import { GetKernelDescriptor } from '@bindings/services/codeservice';
 import { Duplicate2 } from '@/icons/duplicate-2';
+import { AppIconButton } from '@components/buttons';
 import { LoadingSpinner } from '@components/loading-spinner';
+import { Tooltip } from '@components/tooltip';
 import { queryKeys } from '@utils/query-keys';
 
 export function KernelInfoCard({ language }: { language: Languages }) {
@@ -44,16 +46,18 @@ export function KernelInfoCard({ language }: { language: Languages }) {
           <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2">
             <span className="text-zinc-600 dark:text-zinc-400">Command:</span>
             <div className="flex min-w-0 items-center justify-end gap-2">
-              <button
-                onClick={() => {
-                  const command = kernelInfo?.argv?.join(' ') ?? 'Unknown';
-                  void navigator.clipboard.writeText(command);
-                }}
-                className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded"
-                title="Copy command"
-              >
-                <Duplicate2 height="1rem" width="1rem" />
-              </button>
+              <Tooltip content="Copy command">
+                <AppIconButton
+                  aria-label="Copy command"
+                  className="p-1"
+                  onPress={() => {
+                    const command = kernelInfo?.argv?.join(' ') ?? 'Unknown';
+                    void navigator.clipboard.writeText(command);
+                  }}
+                >
+                  <Duplicate2 height="1rem" width="1rem" />
+                </AppIconButton>
+              </Tooltip>
               <span className="min-w-0 truncate text-right font-medium text-zinc-800 dark:text-zinc-200 font-mono">
                 {kernelInfo?.argv?.join(' ') ?? 'Unknown'}
               </span>

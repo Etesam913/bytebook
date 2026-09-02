@@ -68,10 +68,9 @@ export function Tags({ filePath }: { filePath: FilePath }) {
         </Heading>
         <DisclosurePanel className="h-(--disclosure-panel-height) overflow-clip text-xs motion-safe:transition-[height] motion-safe:duration-200">
           <div className="flex flex-wrap items-center gap-1.5 pb-1.5 pl-5 pr-3">
-            <button
-              type="button"
-              className="flex whitespace-nowrap items-center gap-1.5 bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600 hover:bg-zinc-150 dark:hover:bg-zinc-600"
-              onClick={() => {
+            <Button
+              className="flex whitespace-nowrap items-center gap-1.5 bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600 hover:bg-zinc-150 dark:hover:bg-zinc-600 outline-none focus-visible:ring-2 focus-visible:ring-(--accent-color)"
+              onPress={() => {
                 const selectionRange = new Set([`note:${filePath.note}`]);
                 setDialogData({
                   isOpen: true,
@@ -102,7 +101,7 @@ export function Tags({ filePath }: { filePath: FilePath }) {
               }}
             >
               <TagPlus height="0.9375rem" width="0.9375rem" /> Edit Tags
-            </button>
+            </Button>
             {isLoading ? (
               <motion.span
                 className="flex items-center gap-2 text-zinc-500 dark:text-zinc-300"

@@ -38,7 +38,7 @@ export function MyTagsAccordion({
         <AccordionButton
           data-testid="tags-accordion"
           isOpen={isOpen}
-          onClick={() =>
+          onPress={() =>
             setOpenState((prev) => ({
               ...prev,
               tags: !prev.tags,

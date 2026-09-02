@@ -3,6 +3,7 @@ import { type TargetAndTransition, motion } from 'motion/react';
 import type { LexicalEditor } from 'lexical';
 import type { ReactNode } from 'react';
 import { getDefaultButtonVariants } from '@/animations';
+import { MotionIconButton } from '@components/buttons';
 import { Maximize } from '@/icons/maximize';
 import { Link } from '@/icons/link';
 import { Trash } from '@/icons/trash';
@@ -48,16 +49,16 @@ export function NoteComponentControls({
       exit={exit}
     >
       {buttonOptions?.trash?.enabled && (
-        <motion.button
+        <MotionIconButton
           {...getDefaultButtonVariants({
             disabled: false,
             whileHover: 1.115,
             whileTap: 0.95,
             whileFocus: 1.115,
           })}
-          type="button"
+          className="p-0 hover:bg-transparent dark:hover:bg-transparent focus-visible:bg-transparent dark:focus-visible:bg-transparent"
           aria-label="Delete component"
-          onClick={() => {
+          onPress={() => {
             if (!nodeKey) {
               throw new Error('Node key is not provided for the trash button');
             }
@@ -68,37 +69,37 @@ export function NoteComponentControls({
           }}
         >
           <Trash className="will-change-transform" />
-        </motion.button>
+        </MotionIconButton>
       )}
       {buttonOptions?.fullscreen?.enabled && (
-        <motion.button
+        <MotionIconButton
           {...getDefaultButtonVariants({
             disabled: false,
             whileHover: 1.115,
             whileTap: 0.95,
             whileFocus: 1.115,
           })}
-          type="button"
+          className="p-0 hover:bg-transparent dark:hover:bg-transparent focus-visible:bg-transparent dark:focus-visible:bg-transparent"
           aria-label="Fullscreen"
-          onClick={() => {
+          onPress={() => {
             buttonOptions.fullscreen?.callback?.();
           }}
         >
           <Maximize className="will-change-transform" />
-        </motion.button>
+        </MotionIconButton>
       )}
       {children}
       {buttonOptions?.link?.enabled && (
-        <motion.button
+        <MotionIconButton
           {...getDefaultButtonVariants({
             disabled: false,
             whileHover: 1.115,
             whileTap: 0.95,
             whileFocus: 1.115,
           })}
-          type="button"
+          className="p-0 hover:bg-transparent dark:hover:bg-transparent focus-visible:bg-transparent dark:focus-visible:bg-transparent"
           aria-label="Open link"
-          onClick={() => {
+          onPress={() => {
             const src = buttonOptions.link?.src;
             if (!src) return;
             if (src.startsWith('/notes')) {
@@ -112,7 +113,7 @@ export function NoteComponentControls({
           }}
         >
           <Link className="will-change-transform" />
-        </motion.button>
+        </MotionIconButton>
       )}
     </motion.div>
   );

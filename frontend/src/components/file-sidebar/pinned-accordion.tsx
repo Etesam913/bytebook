@@ -64,7 +64,7 @@ export function PinnedAccordion({
       trigger={
         <AccordionButton
           data-testid="pinned-accordion"
-          onClick={() =>
+          onPress={() =>
             setOpenState((prev) => ({
               ...prev,
               pinned: !prev.pinned,

@@ -78,7 +78,7 @@ export function MyKernelsAccordion({
         <AccordionButton
           data-testid="kernels-accordion"
           isOpen={isOpen}
-          onClick={() =>
+          onPress={() =>
             setOpenState((prev) => ({
               ...prev,
               kernels: !prev.kernels,

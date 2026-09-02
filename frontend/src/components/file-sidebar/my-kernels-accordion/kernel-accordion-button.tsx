@@ -1,4 +1,5 @@
 import { useAtomValue, useSetAtom } from 'jotai';
+import { Button } from 'react-aria-components/Button';
 import { cn } from '@utils/string-formatting';
 import { navigate } from 'wouter/use-browser-location';
 import { contextMenuDataAtom, kernelInstancesByLanguageAtom } from '@/atoms';
@@ -26,15 +27,12 @@ export function KernelAccordionButton({
     (byLanguage[kernelName as LanguagesWithKernels]?.length ?? 0) > 0;
 
   return (
-    <button
-      type="button"
-      draggable
-      onDragStart={(e) => e.preventDefault()}
+    <Button
       className={cn(
         'list-sidebar-item text-sm transition-none',
         isActive && 'bg-zinc-150 dark:bg-zinc-700'
       )}
-      onClick={() => {
+      onPress={() => {
         navigate(routeUrls.kernel(kernelName));
       }}
       onContextMenu={(e) => {
@@ -76,6 +74,6 @@ export function KernelAccordionButton({
           </span>
         )}
       </p>
-    </button>
+    </Button>
   );
 }

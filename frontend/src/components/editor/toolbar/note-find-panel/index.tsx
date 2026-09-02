@@ -5,7 +5,9 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { XMark } from '@/icons/circle-xmark';
 import { Magnifier } from '@/icons/magnifier';
 import { NavigationControls } from './navigation-controls';
+import { AppIconButton } from '@components/buttons';
 import { AppTextField } from '@components/input';
+import { Tooltip } from '@components/tooltip';
 import { useOnClickOutside } from '@hooks/general';
 import { useFindPanelSearch } from './hooks/find-panel';
 import { clearHighlight } from './utils/highlight';
@@ -95,15 +97,15 @@ export function NoteFindPanel({
             onNextMatch={navigateToNextMatch}
           />
 
-          <button
-            onClick={() => setIsSearchOpen(false)}
-            title="Close (Escape)"
-            className="rounded text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-600 "
-            tabIndex={0}
-            aria-label="Close search"
-          >
-            <XMark width="1.125rem" height="1.125rem" fill="currentColor" />
-          </button>
+          <Tooltip content="Close (Escape)" delay={{ open: 50 }}>
+            <AppIconButton
+              onPress={() => setIsSearchOpen(false)}
+              className="p-0.5 rounded text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-600"
+              aria-label="Close search"
+            >
+              <XMark width="1.125rem" height="1.125rem" fill="currentColor" />
+            </AppIconButton>
+          </Tooltip>
         </motion.div>
       )}
     </AnimatePresence>

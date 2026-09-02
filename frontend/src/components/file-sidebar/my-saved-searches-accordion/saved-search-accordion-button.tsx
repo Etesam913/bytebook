@@ -1,4 +1,5 @@
 import { useAtom, useAtomValue, useSetAtom } from 'jotai/react';
+import { Button } from 'react-aria-components/Button';
 import {
   contextMenuDataAtom,
   dialogDataAtom,
@@ -50,16 +51,13 @@ export function SavedSearchAccordionButton({
 
   return (
     <Tooltip content={savedSearches?.at(i)?.query} placement="right">
-      <button
-        type="button"
-        draggable
-        onDragStart={(e) => e.preventDefault()}
+      <Button
         className={cn(
           'list-sidebar-item text-sm transition-none',
           isActive && 'bg-zinc-150 dark:bg-zinc-700',
           isSelected && 'bg-(--accent-color)! text-white'
         )}
-        onClick={(e) => {
+        onPress={(e) => {
           if (e.metaKey || e.shiftKey) return;
           const search = savedSearches?.at(i);
           if (search) {
@@ -134,7 +132,7 @@ export function SavedSearchAccordionButton({
         <p className="whitespace-nowrap text-ellipsis overflow-hidden">
           {sidebarSearchName}
         </p>
-      </button>
+      </Button>
     </Tooltip>
   );
 }

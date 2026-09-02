@@ -46,7 +46,7 @@ export function MySavedSearchesAccordion({
         <AccordionButton
           data-testid="saved-searches-accordion"
           isOpen={isOpen}
-          onClick={() =>
+          onPress={() =>
             setOpenState((prev) => ({
               ...prev,
               savedSearches: !prev.savedSearches,

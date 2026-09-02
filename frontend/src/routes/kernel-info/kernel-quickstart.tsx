@@ -2,6 +2,7 @@ import { LANGUAGES, Languages } from '@/types';
 import { DEFAULT_SONNER_OPTIONS } from '@utils/general';
 import { toast } from 'sonner';
 import { PlainCodeSnippet } from '@components/plain-code-snippet';
+import { Link } from 'react-aria-components/Link';
 import { MotionButton } from '@components/buttons';
 import { getDefaultButtonVariants } from '@/animations';
 import { FolderOpen } from '@/icons/folder-open';
@@ -227,9 +228,9 @@ export function KernelQuickstart({ language }: { language: Languages }) {
         </h4>
         <QuickstartDescription>
           Download the zip file that ends with kernelspec.zip from the{' '}
-          <button
+          <Link
             className="app-link"
-            onClick={() => {
+            onPress={() => {
               Browser.OpenURL('https://github.com/dflib/jjava/releases').catch(
                 () => {
                   toast.error('Failed to open link', DEFAULT_SONNER_OPTIONS);
@@ -238,7 +239,7 @@ export function KernelQuickstart({ language }: { language: Languages }) {
             }}
           >
             GitHub releases page
-          </button>{' '}
+          </Link>{' '}
           and unzip it.
         </QuickstartDescription>
       </div>
@@ -257,9 +258,9 @@ export function KernelQuickstart({ language }: { language: Languages }) {
         <QuickstartDescription>
           Move the <span className="font-mono">jjava-launcher.jar</span> file
           and the <span className="font-mono">jjava.jar</span> file to the{' '}
-          <button
+          <Link
             className="app-link"
-            onClick={() => {
+            onPress={() => {
               void RevealFolderOrFileInFinder(
                 `${projectSettings.projectPath}/code/java-resource`,
                 false
@@ -267,7 +268,7 @@ export function KernelQuickstart({ language }: { language: Languages }) {
             }}
           >
             java-resource/
-          </button>{' '}
+          </Link>{' '}
           directory.
         </QuickstartDescription>
       </div>

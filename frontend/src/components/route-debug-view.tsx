@@ -1,4 +1,5 @@
 import { motion, useDragControls, useMotionValue } from 'motion/react';
+import { Button } from 'react-aria-components/Button';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useLocation, useRoute, useSearchParams } from 'wouter';
@@ -150,9 +151,8 @@ export function RouteDebugView() {
           Route Debug
         </span>
         <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => {
+          <Button
+            onPress={() => {
               const text = serializeDebugState({
                 pathname,
                 search,
@@ -171,14 +171,13 @@ export function RouteDebugView() {
             className="text-xs px-1.5 py-0.5 rounded bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-650 dark:hover:bg-zinc-600"
           >
             copy
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsCollapsed((c) => !c)}
+          </Button>
+          <Button
+            onPress={() => setIsCollapsed((c) => !c)}
             className="text-xs px-1.5 py-0.5 rounded bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-650 dark:hover:bg-zinc-600"
           >
             {isCollapsed ? 'expand' : 'collapse'}
-          </button>
+          </Button>
         </div>
       </div>
       {!isCollapsed && (

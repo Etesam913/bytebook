@@ -1,4 +1,5 @@
 import { useAtom, useAtomValue, useSetAtom } from 'jotai/react';
+import { Button } from 'react-aria-components/Button';
 import {
   contextMenuDataAtom,
   dialogDataAtom,
@@ -42,16 +43,13 @@ export function TagAccordionButton({
   const isActive = treeFilterQuery === `#"${sidebarTagName}"`;
 
   return (
-    <button
-      type="button"
-      draggable
-      onDragStart={(e) => e.preventDefault()}
+    <Button
       className={cn(
         'list-sidebar-item text-sm transition-none',
         isActive && 'bg-zinc-150 dark:bg-zinc-700',
         isSelected && 'bg-(--accent-color)! text-white'
       )}
-      onClick={(e) => {
+      onPress={(e) => {
         if (e.metaKey || e.shiftKey) return;
         setTreeFilterQuery(`#"${sidebarTagName}"`);
       }}
@@ -108,6 +106,6 @@ export function TagAccordionButton({
           <span className="tracking-wider">({tagPreviewCount})</span>
         )} */}
       </p>
-    </button>
+    </Button>
   );
 }

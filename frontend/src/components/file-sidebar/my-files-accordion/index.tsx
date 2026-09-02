@@ -29,7 +29,7 @@ export function MyFilesAccordion({
       trigger={
         <AccordionButton
           isOpen={isOpen}
-          onClick={() =>
+          onPress={() =>
             setOpenState((prev) => ({
               ...prev,
               files: !prev.files,

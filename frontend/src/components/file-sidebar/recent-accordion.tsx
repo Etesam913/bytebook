@@ -60,7 +60,7 @@ export function RecentAccordion({
         <AccordionButton
           data-testid="recent-accordion"
           isOpen={isRecentOpen}
-          onClick={() =>
+          onPress={() =>
             setOpenState((prev) => ({
               ...prev,
               recent: !prev.recent,

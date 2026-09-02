@@ -1,4 +1,5 @@
 import { useSetAtom } from 'jotai/react';
+import { Button } from 'react-aria-components/Button';
 import { dialogDataAtom } from '@/atoms';
 import { Gear } from '@/icons/gear';
 import { SettingsDialog } from '@components/settings-dialog';
@@ -6,9 +7,8 @@ import { SettingsDialog } from '@components/settings-dialog';
 export function SettingsButton() {
   const setDialogData = useSetAtom(dialogDataAtom);
   return (
-    <button
-      type="button"
-      onClick={() => {
+    <Button
+      onPress={() => {
         setDialogData({
           isOpen: true,
           isPending: false,
@@ -22,9 +22,9 @@ export function SettingsButton() {
           },
         });
       }}
-      className="flex gap-1 items-center hover:bg-zinc-100 dark:hover:bg-zinc-650 p-1 rounded-md rounded-bl-xl"
+      className="flex gap-1 items-center hover:bg-zinc-100 dark:hover:bg-zinc-650 p-1 rounded-md rounded-bl-xl outline-none focus-visible:ring-2 focus-visible:ring-(--accent-color)"
     >
       <Gear /> Settings
-    </button>
+    </Button>
   );
 }

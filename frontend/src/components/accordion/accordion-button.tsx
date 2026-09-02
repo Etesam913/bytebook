@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
-import type { ButtonHTMLAttributes, MouseEventHandler, ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import { Button, type ButtonProps } from 'react-aria-components/Button';
 import { ChevronDown } from '@/icons/chevron-down';
 import { cn } from '@utils/string-formatting';
 
@@ -7,7 +8,7 @@ export function AccordionButton({
   icon,
   title,
   isOpen,
-  onClick,
+  onPress,
   className,
   ...props
 }: {
@@ -15,20 +16,16 @@ export function AccordionButton({
   title: ReactNode;
   isOpen: boolean;
   className?: string;
-  onClick: MouseEventHandler<HTMLButtonElement>;
-} & Omit<
-  ButtonHTMLAttributes<HTMLButtonElement>,
-  'type' | 'children' | 'onClick' | 'className' | 'title'
->) {
+  onPress: () => void;
+} & Omit<ButtonProps, 'children' | 'className' | 'onPress' | 'onClick'>) {
   return (
-    <button
-      type="button"
+    <Button
       aria-expanded={isOpen}
       className={cn(
-        'relative flex items-center w-full gap-1.5 px-2 py-1.25 bg-zinc-50 border-zinc-200 dark:border-zinc-600 border-y-[1.25px] dark:bg-zinc-750 hover:bg-zinc-100 dark:hover:bg-zinc-700',
+        'relative flex items-center w-full gap-1.5 px-2 py-1.25 bg-zinc-50 border-zinc-200 dark:border-zinc-600 border-y-[1.25px] dark:bg-zinc-750 hover:bg-zinc-100 dark:hover:bg-zinc-700 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--accent-color)',
         className
       )}
-      onClick={onClick}
+      onPress={onPress}
       {...props}
     >
       {icon}
@@ -40,6 +37,6 @@ export function AccordionButton({
       >
         <ChevronDown strokeWidth={2.5} className="will-change-transform" />
       </motion.span>
-    </button>
+    </Button>
   );
 }

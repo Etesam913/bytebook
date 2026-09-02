@@ -1,5 +1,6 @@
 import { ArrowUp } from '@/icons/arrow-up';
 import { ArrowDown } from '@/icons/arrow-down';
+import { AppIconButton } from '@components/buttons';
 import { Tooltip } from '@components/tooltip';
 
 export function NavigationControls({
@@ -27,30 +28,28 @@ export function NavigationControls({
           delay={{ open: 50 }}
           showWhenDisabled={totalMatches === 0}
         >
-          <button
-            onClick={onPreviousMatch}
-            disabled={totalMatches === 0}
-            className="rounded text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed hover:text-zinc-900 hover:dark:text-zinc-100"
-            tabIndex={0}
+          <AppIconButton
+            onPress={onPreviousMatch}
+            isDisabled={totalMatches === 0}
+            className="p-0.5 rounded text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600 hover:text-zinc-900 hover:dark:text-zinc-100"
             aria-label="Previous match"
           >
             <ArrowUp width="1rem" height="1rem" />
-          </button>
+          </AppIconButton>
         </Tooltip>
         <Tooltip
           content="Next match (Enter)"
           delay={{ open: 50 }}
           showWhenDisabled={totalMatches === 0}
         >
-          <button
-            onClick={onNextMatch}
-            disabled={totalMatches === 0}
-            className="rounded text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed hover:text-zinc-900 hover:dark:text-zinc-100"
-            tabIndex={0}
+          <AppIconButton
+            onPress={onNextMatch}
+            isDisabled={totalMatches === 0}
+            className="p-0.5 rounded text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600 hover:text-zinc-900 hover:dark:text-zinc-100"
             aria-label="Next match"
           >
             <ArrowDown width="1rem" height="1rem" />
-          </button>
+          </AppIconButton>
         </Tooltip>
       </div>
     </>
