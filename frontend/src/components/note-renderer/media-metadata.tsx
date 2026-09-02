@@ -1,4 +1,3 @@
-import { Fragment } from 'react';
 import { motion } from 'motion/react';
 import { Tag } from '@components/editor/bottom-bar/tag';
 import { Folder } from '@/icons/folder';
@@ -14,7 +13,7 @@ import {
   safeDecodeURIComponent,
 } from '@utils/path';
 import { cn } from '@utils/string-formatting';
-import { BreadcrumbItem } from './breadcrumb-item';
+import { BreadcrumbItem, BreadcrumbTrail } from './breadcrumb-item';
 
 export function MediaMetadata({
   filePath,
@@ -44,7 +43,7 @@ export function MediaMetadata({
 
   return (
     <span className={cn('flex min-w-0 flex-1 items-center gap-3', className)}>
-      <span className="flex min-w-0 items-center gap-1 overflow-hidden">
+      <BreadcrumbTrail aria-label="Note location" className="overflow-hidden">
         {folderSegments.map((segment, index) => {
           const folderPath = createFolderPath(
             folderSegments.slice(0, index + 1).join('/')
@@ -54,20 +53,20 @@ export function MediaMetadata({
           }
 
           return (
-            <Fragment key={`folder-segment-${index}`}>
-              <BreadcrumbItem path={folderPath.encodedFolderUrl}>
-                {index === 0 && <Folder width="1.125rem" height="1.125rem" />}
-                {segment}
-              </BreadcrumbItem>
-              <span>/</span>
-            </Fragment>
+            <BreadcrumbItem
+              key={`folder-segment-${index}`}
+              path={folderPath.encodedFolderUrl}
+            >
+              {index === 0 && <Folder width="1.125rem" height="1.125rem" />}
+              {segment}
+            </BreadcrumbItem>
           );
         })}
         <BreadcrumbItem path={path}>
           <RenderNoteIcon filePath={filePath} />
           {safeDecodeURIComponent(filePath.noteWithoutExtension)}
         </BreadcrumbItem>
-      </span>
+      </BreadcrumbTrail>
       <span
         className="flex min-w-0 items-center gap-1.5 overflow-auto"
         style={{ scrollbarWidth: 'thin' }}

@@ -1,6 +1,5 @@
-import { Button } from 'react-aria-components/Button';
+import { Link } from 'react-aria-components/Link';
 import { type FilePath, type FolderPath } from '@utils/path';
-import { navigateToPath } from '@utils/routes';
 import { Folder as FolderIcon } from '@/icons/folder';
 import { RenderNoteIcon } from '@/icons/render-note-icon';
 import { FILE_TYPE, FOLDER_TYPE } from '@utils/tree-item-types';
@@ -24,8 +23,12 @@ export type FolderRendererItem = RendererItem &
 
 export function FolderRendererCard({ item }: { item: FolderRendererItem }) {
   return (
-    <Button
-      onPress={() => navigateToPath(item.path)}
+    <Link
+      href={
+        item.type === FOLDER_TYPE
+          ? item.path.encodedFolderUrl
+          : item.path.encodedFileUrl
+      }
       className="flex w-full items-start gap-2.5 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-left hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-650 dark:bg-zinc-700 dark:hover:border-zinc-600 dark:hover:bg-zinc-650 outline-none focus-visible:ring-2 focus-visible:ring-(--accent-color)"
     >
       <span className="mt-0.75">
@@ -48,6 +51,6 @@ export function FolderRendererCard({ item }: { item: FolderRendererItem }) {
           {item.path.fullPath}
         </span>
       </span>
-    </Button>
+    </Link>
   );
 }

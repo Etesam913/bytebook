@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { KernelHeartbeats } from './kernel-heartbeats';
 import { Folder } from '@/icons/folder';
@@ -12,7 +12,10 @@ import {
   createFolderPath,
   safeDecodeURIComponent,
 } from '@utils/path';
-import { BreadcrumbItem } from '@components/note-renderer/breadcrumb-item';
+import {
+  BreadcrumbItem,
+  BreadcrumbTrail,
+} from '@components/note-renderer/breadcrumb-item';
 
 export function BottomBar({
   frontmatter,
@@ -55,7 +58,10 @@ export function BottomBar({
         isFileMaximized && 'px-5'
       )}
     >
-      <span className="flex items-center gap-1 text-zinc-500 dark:text-zinc-300">
+      <BreadcrumbTrail
+        aria-label="Note location"
+        className="text-zinc-500 dark:text-zinc-300"
+      >
         {folderSegments.map((segment, index) => {
           const path = folderSegments.slice(0, index + 1).join('/');
           const folderPath = createFolderPath(path);
@@ -64,20 +70,20 @@ export function BottomBar({
           }
 
           return (
-            <Fragment key={`folder-segment-${index}`}>
-              <BreadcrumbItem path={folderPath.encodedFolderUrl}>
-                {index === 0 && <Folder width="1rem" height="1rem" />}
-                {segment}
-              </BreadcrumbItem>
-              <span>/</span>
-            </Fragment>
+            <BreadcrumbItem
+              key={`folder-segment-${index}`}
+              path={folderPath.encodedFolderUrl}
+            >
+              {index === 0 && <Folder width="1rem" height="1rem" />}
+              {segment}
+            </BreadcrumbItem>
           );
         })}
         <BreadcrumbItem path={filePath.encodedFileUrl}>
           <RenderNoteIcon filePath={filePath} size="sm" />
           {safeDecodeURIComponent(filePath.noteWithoutExtension)}
         </BreadcrumbItem>
-      </span>
+      </BreadcrumbTrail>
       {isNoteEditor && <KernelHeartbeats />}
       {lastUpdatedText.length > 0 && (
         <p className="text-zinc-500 dark:text-zinc-300 whitespace-nowrap text-ellipsis ml-auto">

@@ -1,9 +1,10 @@
-import { lazy, Suspense } from 'react';
+import { lazy, type ReactNode, Suspense } from 'react';
+import { RouterProvider } from 'react-aria-components';
 import { NotFound } from '@/routes/not-found';
 import { useMotionValue } from 'motion/react';
 import { useAtomValue, useSetAtom } from 'jotai/react';
 import { Toaster } from 'sonner';
-import { Route, Switch } from 'wouter';
+import { Route, Switch, useLocation } from 'wouter';
 import { contextMenuDataAtom, isFileMaximizedAtom } from '@/atoms';
 import { ContextMenu } from '@components/context-menu';
 import { Dialog } from '@components/dialog';
@@ -37,6 +38,16 @@ const KernelInfo = lazy(() =>
 
 disableBackspaceNavigation();
 
+// Lets RAC Link and MenuItem href navigate through wouter instead of a full reload.
+function AriaRouter({ children }: { children: ReactNode }) {
+  const [, navigate] = useLocation();
+  return (
+    <RouterProvider navigate={(href) => navigate(href)}>
+      {children}
+    </RouterProvider>
+  );
+}
+
 // Root application component that sets up global event listeners, routing, sidebar, and modal/context-menu overlays.
 function App() {
   const fileSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
@@ -56,53 +67,55 @@ function App() {
   useSyncRouteWithRenames();
 
   return (
-    <main
-      id="App"
-      className="flex h-full w-full min-w-0 overflow-hidden relative"
-      onClick={(e) => {
-        if (isRegularMouseClick(e.nativeEvent)) {
-          setContextMenuData((prev) => ({ ...prev, isShowing: false }));
-        }
-      }}
-      onContextMenu={(e) => e.preventDefault()}
-    >
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-zinc-50 dark:focus:bg-zinc-800 focus:rounded-md focus:shadow-md focus:text-sm"
+    <AriaRouter>
+      <main
+        id="App"
+        className="flex h-full w-full min-w-0 overflow-hidden relative"
+        onClick={(e) => {
+          if (isRegularMouseClick(e.nativeEvent)) {
+            setContextMenuData((prev) => ({ ...prev, isShowing: false }));
+          }
+        }}
+        onContextMenu={(e) => e.preventDefault()}
       >
-        Skip to main content
-      </a>
-      <ContextMenu />
-      <Dialog />
-      <LoadingModal />
-      <Toaster richColors theme="system" />
-      {import.meta.env.DEV && !isE2ETestEnvironment() && <RouteDebugView />}
-      <div className={isFileMaximized ? 'hidden' : 'contents'}>
-        <FileSidebar width={fileSidebarWidth} />
-      </div>
-      <div id="main-content" className="flex-1 min-w-0 h-full">
-        <Switch>
-          <Route path={routeUrls.patterns.ROOT} />
-          <Route path={routeUrls.patterns.NOTES}>
-            <EditorWrapper />
-          </Route>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-zinc-50 dark:focus:bg-zinc-800 focus:rounded-md focus:shadow-md focus:text-sm"
+        >
+          Skip to main content
+        </a>
+        <ContextMenu />
+        <Dialog />
+        <LoadingModal />
+        <Toaster richColors theme="system" />
+        {import.meta.env.DEV && !isE2ETestEnvironment() && <RouteDebugView />}
+        <div className={isFileMaximized ? 'hidden' : 'contents'}>
+          <FileSidebar width={fileSidebarWidth} />
+        </div>
+        <div id="main-content" className="flex-1 min-w-0 h-full">
+          <Switch>
+            <Route path={routeUrls.patterns.ROOT} />
+            <Route path={routeUrls.patterns.NOTES}>
+              <EditorWrapper />
+            </Route>
 
-          <Route path={routeUrls.patterns.NOT_FOUND_FALLBACK}>
-            <NotFound />
-          </Route>
+            <Route path={routeUrls.patterns.NOT_FOUND_FALLBACK}>
+              <NotFound />
+            </Route>
 
-          <Route path={routeUrls.patterns.KERNELS}>
-            <Suspense fallback={<RouteFallback />}>
-              <KernelInfo />
-            </Suspense>
-          </Route>
+            <Route path={routeUrls.patterns.KERNELS}>
+              <Suspense fallback={<RouteFallback />}>
+                <KernelInfo />
+              </Suspense>
+            </Route>
 
-          <Route path={routeUrls.patterns.CATCH_ALL}>
-            <NotFound />
-          </Route>
-        </Switch>
-      </div>
-    </main>
+            <Route path={routeUrls.patterns.CATCH_ALL}>
+              <NotFound />
+            </Route>
+          </Switch>
+        </div>
+      </main>
+    </AriaRouter>
   );
 }
 

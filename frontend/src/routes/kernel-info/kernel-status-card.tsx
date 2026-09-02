@@ -10,7 +10,7 @@ import { MotionButton } from '@components/buttons';
 import { getDefaultButtonVariants } from '@/animations';
 import { Tooltip } from '@components/tooltip';
 import { createFilePath, safeDecodeURIComponent } from '@utils/path';
-import { Link } from 'wouter';
+import { Link } from 'react-aria-components/Link';
 import { RenderNoteIcon } from '@/icons/render-note-icon';
 
 export function KernelStatusCard({
@@ -65,8 +65,8 @@ export function KernelStatusCard({
         <div className="min-w-0 flex-1">
           {notePath ? (
             <Link
-              to={notePath.encodedFileUrl}
-              className="inline-flex max-w-full items-center gap-1.5 rounded-md text-sm font-semibold text-zinc-800 hover:text-(--accent-color) dark:text-zinc-200"
+              href={notePath.encodedFileUrl}
+              className="inline-flex max-w-full items-center gap-1.5 rounded-md text-sm font-semibold text-zinc-800 hover:text-(--accent-color) dark:text-zinc-200 outline-none focus-visible:ring-2 focus-visible:ring-(--accent-color)"
             >
               <RenderNoteIcon filePath={notePath} size="sm" />
               <span className="truncate">{noteLabel}</span>
