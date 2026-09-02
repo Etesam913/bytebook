@@ -61,7 +61,7 @@ test.describe('Settings dialog', () => {
 
   test('updates the editor line height', async ({ page }) => {
     const dialog = await openSettingsTab(page, 'Editor');
-    const lineHeightInput = dialog.getByRole('spinbutton', {
+    const lineHeightInput = dialog.getByRole('textbox', {
       name: 'Editor line height',
     });
 
@@ -96,7 +96,7 @@ test.describe('Settings dialog', () => {
 
   test('updates the code block font size', async ({ page }) => {
     const dialog = await openSettingsTab(page, 'Code');
-    const fontSizeInput = dialog.getByRole('spinbutton', {
+    const fontSizeInput = dialog.getByRole('textbox', {
       name: 'Code block font size',
     });
 

@@ -1,5 +1,8 @@
 import { useAtomValue } from 'jotai';
-import { SettingImage } from '@components/settings-dialog/appearance';
+import {
+  SettingImage,
+  SettingImageGroup,
+} from '@components/settings-dialog/appearance';
 import { isDarkModeOnAtom, projectSettingsAtom } from '@/atoms';
 import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
 import { SettingsRow } from '../settings-row';
@@ -15,42 +18,35 @@ export function NoteWidthRow() {
 
   return (
     <SettingsRow title="Note Width" description="Change the width of the note">
-      <div className="flex gap-3">
-        <SettingImage
-          isActive={projectSettings.appearance.noteWidth === 'fullWidth'}
-          onClick={() => {
-            updateProjectSettings({
-              newProjectSettings: {
-                ...projectSettings,
-                appearance: {
-                  ...projectSettings.appearance,
-                  noteWidth: 'fullWidth',
-                },
+      <SettingImageGroup
+        aria-label="Note width"
+        value={projectSettings.appearance.noteWidth}
+        onChange={(noteWidth) => {
+          updateProjectSettings({
+            newProjectSettings: {
+              ...projectSettings,
+              appearance: {
+                ...projectSettings.appearance,
+                noteWidth:
+                  noteWidth as typeof projectSettings.appearance.noteWidth,
               },
-            });
-          }}
+            },
+          });
+        }}
+      >
+        <SettingImage
+          value="fullWidth"
           imgAlt="Full Width Option"
           imgSrc={isDarkModeOn ? fullWidthDark : fullWidthLight}
           label="Full Width"
         />
         <SettingImage
-          isActive={projectSettings.appearance.noteWidth === 'readability'}
-          onClick={() => {
-            updateProjectSettings({
-              newProjectSettings: {
-                ...projectSettings,
-                appearance: {
-                  ...projectSettings.appearance,
-                  noteWidth: 'readability',
-                },
-              },
-            });
-          }}
+          value="readability"
           imgAlt="Readability Width Option"
           imgSrc={isDarkModeOn ? readabilityWidthDark : readabilityWidthLight}
           label="Readability Width"
         />
-      </div>
+      </SettingImageGroup>
     </SettingsRow>
   );
 }

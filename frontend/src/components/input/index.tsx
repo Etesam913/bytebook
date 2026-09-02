@@ -4,6 +4,10 @@ import { FieldError } from 'react-aria-components/FieldError';
 import { Input as RACInput } from 'react-aria-components/Input';
 import { Label } from 'react-aria-components/Label';
 import {
+  NumberField,
+  type NumberFieldProps,
+} from 'react-aria-components/NumberField';
+import {
   SearchField,
   type SearchFieldProps,
 } from 'react-aria-components/SearchField';
@@ -152,5 +156,33 @@ export function AppSearchField({
         </FieldError>
       )}
     </SearchField>
+  );
+}
+
+/** Numeric input with clamping, stepping, and locale-aware parsing from React Aria. */
+export function AppNumberField({
+  label,
+  inputClassName,
+  errorMessage,
+  className,
+  ...props
+}: NumberFieldProps & {
+  label?: string;
+  inputClassName?: string;
+  errorMessage?: ReactNode;
+}) {
+  return (
+    <NumberField
+      {...props}
+      className={cn('flex flex-col', className as string | undefined)}
+    >
+      {label && <Label className={labelStyles}>{label}</Label>}
+      <RACInput className={cn(inputStyles, inputClassName)} />
+      {errorMessage && (
+        <FieldError className="text-red-500 text-xs pt-1">
+          {errorMessage}
+        </FieldError>
+      )}
+    </NumberField>
   );
 }

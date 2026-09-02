@@ -3,7 +3,7 @@ import { getDefaultButtonVariants } from '@/animations';
 import { dialogDataAtom } from '@/atoms';
 import { MotionButton } from '@components/buttons';
 import { DialogErrorText } from '@components/dialog';
-import { AppTextField } from '@components/input';
+import { AppNumberField, AppTextField } from '@components/input';
 import { useSaveSearchMutation } from './search';
 import { BookBookmark } from '@/icons/book-bookmark';
 import { Table } from '@/icons/table';
@@ -119,36 +119,23 @@ export function useCreateTableDialog(): (
       children: (errorText) => (
         <>
           <fieldset className="flex flex-col gap-3">
-            <div className="flex flex-col">
-              <AppTextField
-                label="Rows"
-                id="table-rows"
-                name="table-rows"
-                placeholder="3"
-                defaultValue="3"
-                autoFocus
-                type="number"
-                inputAttrs={{
-                  onFocus: (e) => e.target.select(),
-                  min: '1',
-                  max: String(MAX_TABLE_ROWS),
-                }}
-              />
-            </div>
-            <div className="flex flex-col">
-              <AppTextField
-                label="Columns"
-                id="table-columns"
-                name="table-columns"
-                placeholder="3"
-                defaultValue="3"
-                type="number"
-                inputAttrs={{
-                  min: '1',
-                  max: String(MAX_TABLE_COLUMNS),
-                }}
-              />
-            </div>
+            <AppNumberField
+              label="Rows"
+              id="table-rows"
+              name="table-rows"
+              defaultValue={3}
+              minValue={1}
+              maxValue={MAX_TABLE_ROWS}
+              autoFocus
+            />
+            <AppNumberField
+              label="Columns"
+              id="table-columns"
+              name="table-columns"
+              defaultValue={3}
+              minValue={1}
+              maxValue={MAX_TABLE_COLUMNS}
+            />
             <DialogErrorText errorText={errorText} />
           </fieldset>
           <MotionButton
@@ -167,30 +154,18 @@ export function useCreateTableDialog(): (
         </>
       ),
       onSubmit: (formData, setErrorText) => {
+        // NumberField clamps to [1, MAX]; only a blank field reaches here invalid.
         const rows = formData.get('table-rows') as string;
         const columns = formData.get('table-columns') as string;
 
-        const rowsNum = Number.parseInt(rows, 10);
-        const columnsNum = Number.parseInt(columns, 10);
-
-        if (
-          !rows ||
-          Number.isNaN(rowsNum) ||
-          rowsNum < 1 ||
-          rowsNum > MAX_TABLE_ROWS
-        ) {
+        if (!rows) {
           setErrorText(
             `Please enter a valid number of rows (1-${MAX_TABLE_ROWS})`
           );
           return Promise.resolve(false);
         }
 
-        if (
-          !columns ||
-          Number.isNaN(columnsNum) ||
-          columnsNum < 1 ||
-          columnsNum > MAX_TABLE_COLUMNS
-        ) {
+        if (!columns) {
           setErrorText(
             `Please enter a valid number of columns (1-${MAX_TABLE_COLUMNS})`
           );

@@ -1,6 +1,4 @@
-import { useRef } from 'react';
 import { useAtomValue } from 'jotai/react';
-import { TextField, Input } from 'react-aria-components/TextField';
 import { ArrowRotateAnticlockwise } from '@/icons/arrow-rotate-anticlockwise';
 import { projectSettingsAtom } from '@/atoms';
 import { getDefaultButtonVariants } from '@/animations';
@@ -16,6 +14,7 @@ import {
   validateEditorFontSize,
 } from '@utils/project-settings';
 import { MotionIconButton } from '@components/buttons';
+import { AppNumberField } from '@components/input';
 import { Tooltip } from '@components/tooltip';
 import { SettingsRow } from '../settings-row';
 
@@ -62,7 +61,6 @@ export function FontSizeRow({
 }) {
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const fontSizeInputRef = useRef<HTMLInputElement>(null);
   const copy = fontSizeCopy[setting];
   const currentFontSize =
     setting === 'editor'
@@ -102,38 +100,23 @@ export function FontSizeRow({
       isFirst={isFirst}
     >
       <div className="flex items-center gap-1.5">
-        <TextField
-          key={currentFontSize}
+        <AppNumberField
           aria-label={copy.ariaLabel}
-          defaultValue={String(currentFontSize)}
-        >
-          <Input
-            ref={fontSizeInputRef}
-            type="number"
-            min={copy.minValue}
-            max={copy.maxValue}
-            step={1}
-            className="bg-zinc-150 dark:bg-zinc-700 py-1 px-2 rounded-md border-2 border-zinc-300 dark:border-zinc-600 w-20 h-8 text-sm my-auto"
-            onBlur={() => {
-              const currentValue = fontSizeInputRef.current?.valueAsNumber;
-              if (!Number.isFinite(currentValue)) {
-                if (fontSizeInputRef.current) {
-                  fontSizeInputRef.current.value = String(currentFontSize);
-                }
-                return;
-              }
-              const clamped = copy.validate(
-                Math.round(currentValue ?? copy.defaultValue)
-              );
-              if (fontSizeInputRef.current) {
-                fontSizeInputRef.current.value = String(clamped);
-              }
-              if (clamped !== currentFontSize) {
-                updateFontSize(clamped);
-              }
-            }}
-          />
-        </TextField>
+          value={currentFontSize}
+          minValue={copy.minValue}
+          maxValue={copy.maxValue}
+          step={1}
+          formatOptions={{ maximumFractionDigits: 0 }}
+          onChange={(nextFontSize) => {
+            if (
+              Number.isFinite(nextFontSize) &&
+              nextFontSize !== currentFontSize
+            ) {
+              updateFontSize(nextFontSize);
+            }
+          }}
+          inputClassName="bg-zinc-150 dark:bg-zinc-700 w-20 h-8 text-sm my-auto"
+        />
         <Tooltip
           content={
             currentFontSize === copy.defaultValue

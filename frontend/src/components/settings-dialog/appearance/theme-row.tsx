@@ -1,52 +1,25 @@
 import { useAtomValue } from 'jotai/react';
 import { projectSettingsAtom } from '@/atoms';
 import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
-import { cn } from '@utils/string-formatting';
+import {
+  SettingImage,
+  SettingImageGroup,
+} from '@components/settings-dialog/appearance';
 import { SettingsRow } from '../settings-row';
 import lightMode from '@/assets/images/light-mode.avif';
 import darkMode from '@/assets/images/dark-mode.avif';
 import lightAndDarkMode from '@/assets/images/light-and-dark-mode.avif';
 
-function ThemeButton({
-  label,
-  imgSrc,
-  imgAlt,
-  onClick,
-  isActive,
-}: {
-  label: string;
-  imgSrc: string;
-  imgAlt: string;
-  onClick: () => void;
-  isActive: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      className="rounded-md focus-visible:outline-offset-2"
-    >
-      <p
-        className={cn(
-          'text-sm text-zinc-500 dark:text-zinc-400',
-          isActive && 'text-zinc-950 dark:text-zinc-100 '
-        )}
-      >
-        {label}
-      </p>
-      <img
-        draggable="false"
-        className={cn(
-          'border-[3px] rounded-md p-1 border-zinc-200 dark:border-zinc-750',
-          isActive && 'border-(--accent-color)!'
-        )}
-        src={imgSrc}
-        alt={imgAlt}
-      />
-    </button>
-  );
-}
+const THEMES = [
+  { value: 'light', label: 'Light', imgSrc: lightMode, imgAlt: 'light mode' },
+  { value: 'dark', label: 'Dark', imgSrc: darkMode, imgAlt: 'dark mode' },
+  {
+    value: 'system',
+    label: 'System',
+    imgSrc: lightAndDarkMode,
+    imgAlt: 'light and dark mode',
+  },
+] as const;
 
 export function ThemeRow({ isFirst = false }: { isFirst?: boolean }) {
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
@@ -58,59 +31,25 @@ export function ThemeRow({ isFirst = false }: { isFirst?: boolean }) {
       description="Customize your UI theme"
       isFirst={isFirst}
     >
-      <div className="flex gap-3">
-        <ThemeButton
-          label="Light"
-          imgSrc={lightMode}
-          imgAlt="light mode"
-          onClick={() => {
-            updateProjectSettings({
-              newProjectSettings: {
-                ...projectSettings,
-                appearance: {
-                  ...projectSettings.appearance,
-                  theme: 'light',
-                },
+      <SettingImageGroup
+        aria-label="Theme"
+        value={projectSettings.appearance.theme}
+        onChange={(theme) => {
+          updateProjectSettings({
+            newProjectSettings: {
+              ...projectSettings,
+              appearance: {
+                ...projectSettings.appearance,
+                theme: theme as typeof projectSettings.appearance.theme,
               },
-            });
-          }}
-          isActive={projectSettings.appearance.theme === 'light'}
-        />
-        <ThemeButton
-          label="Dark"
-          imgSrc={darkMode}
-          imgAlt="dark mode"
-          onClick={() => {
-            updateProjectSettings({
-              newProjectSettings: {
-                ...projectSettings,
-                appearance: {
-                  ...projectSettings.appearance,
-                  theme: 'dark',
-                },
-              },
-            });
-          }}
-          isActive={projectSettings.appearance.theme === 'dark'}
-        />
-        <ThemeButton
-          label="System"
-          imgSrc={lightAndDarkMode}
-          imgAlt="light and dark mode"
-          onClick={() => {
-            updateProjectSettings({
-              newProjectSettings: {
-                ...projectSettings,
-                appearance: {
-                  ...projectSettings.appearance,
-                  theme: 'system',
-                },
-              },
-            });
-          }}
-          isActive={projectSettings.appearance.theme === 'system'}
-        />
-      </div>
+            },
+          });
+        }}
+      >
+        {THEMES.map((theme) => (
+          <SettingImage key={theme.value} {...theme} />
+        ))}
+      </SettingImageGroup>
     </SettingsRow>
   );
 }

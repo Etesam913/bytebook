@@ -1,8 +1,22 @@
+import type { ReactNode } from 'react';
 import { Checkbox, type CheckboxProps } from 'react-aria-components/Checkbox';
 import { cn } from '@utils/string-formatting';
 
+type CheckboxChildrenState = {
+  isSelected: boolean;
+  isIndeterminate: boolean;
+  /** The rendered box, so function children can place it themselves. */
+  box: ReactNode;
+};
+
 /** Styled checkbox with support for selected, indeterminate, and disabled states. */
-export function AppCheckbox({ className, children, ...props }: CheckboxProps) {
+export function AppCheckbox({
+  className,
+  children,
+  ...props
+}: Omit<CheckboxProps, 'children'> & {
+  children?: ReactNode | ((state: CheckboxChildrenState) => ReactNode);
+}) {
   return (
     <Checkbox
       {...props}
@@ -11,8 +25,8 @@ export function AppCheckbox({ className, children, ...props }: CheckboxProps) {
         typeof className === 'string' ? className : undefined
       )}
     >
-      {({ isSelected, isIndeterminate }) => (
-        <>
+      {({ isSelected, isIndeterminate }) => {
+        const box = (
           <div
             className={cn(
               'w-4 h-4 shrink-0 rounded-sm border flex items-center justify-center transition',
@@ -39,9 +53,17 @@ export function AppCheckbox({ className, children, ...props }: CheckboxProps) {
               </svg>
             ) : null}
           </div>
-          {children}
-        </>
-      )}
+        );
+        if (typeof children === 'function') {
+          return children({ isSelected, isIndeterminate, box });
+        }
+        return (
+          <>
+            {box}
+            {children}
+          </>
+        );
+      }}
     </Checkbox>
   );
 }
