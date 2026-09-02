@@ -1,4 +1,3 @@
-import type { RefCallback } from 'react';
 import { AppSearchField } from '@components/input';
 
 /**
@@ -13,14 +12,12 @@ export function TagSearchInput({
   onCreateTag,
   isLoading,
   hasError,
-  inputRef,
 }: {
   searchTerm: string;
   onSearchTermChange: (value: string) => void;
   onCreateTag: (tagName: string) => void;
   isLoading: boolean;
   hasError: boolean;
-  inputRef: RefCallback<HTMLInputElement>;
 }) {
   if (isLoading || hasError) {
     return null;
@@ -29,7 +26,7 @@ export function TagSearchInput({
   return (
     <div className="mb-2">
       <AppSearchField
-        ref={inputRef}
+        autoFocus
         placeholder="Search tags or create new tag..."
         value={searchTerm}
         onChange={onSearchTermChange}
@@ -38,13 +35,9 @@ export function TagSearchInput({
         autoComplete="off"
         spellCheck="false"
         type="text"
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            if (searchTerm.length > 0) {
-              onCreateTag(searchTerm);
-            }
-          }
+        onSubmit={(value) => {
+          const tagName = value.trim();
+          if (tagName.length > 0) onCreateTag(tagName);
         }}
       />
     </div>

@@ -7,6 +7,7 @@ import { isToolbarDisabledAtom } from './atoms';
 import { NAME_CHARS, cn } from '@utils/string-formatting';
 import { FilePath, createFilePath } from '@utils/path';
 import { useRenameFileMutation } from '@hooks/notes';
+import { AppTextField } from '@components/input';
 
 export function NoteTitle({ filePath }: { filePath: FilePath }) {
   const [editor] = useLexicalComposerContext();
@@ -17,17 +18,18 @@ export function NoteTitle({ filePath }: { filePath: FilePath }) {
 
   return (
     <div className="mt-2 mb-3 flex flex-col">
-      <input
-        className={cn(
-          'bg-transparent text-3xl mb-1 outline-hidden focus-visible:ring-2 focus-visible:ring-(--accent-color) rounded-sm font-semibold w-full',
+      <AppTextField
+        aria-label="Note title"
+        inputClassName={cn(
+          'bg-transparent text-3xl mb-1 border-0 px-0 py-0 focus:border-0 focus-visible:ring-2 focus-visible:ring-(--accent-color) rounded-sm font-semibold w-full',
           errorText.length > 0 && 'text-red-600 dark:text-red-500'
         )}
-        onClick={(e) => e.stopPropagation()}
+        inputAttrs={{ onClick: (e) => e.stopPropagation() }}
         value={noteTitle}
-        title={errorText}
-        onChange={(e) => {
-          const name = e.target.value.trim();
-          setNoteTitle(e.target.value);
+        isInvalid={errorText.length > 0}
+        onChange={(value) => {
+          const name = value.trim();
+          setNoteTitle(value);
           if (!NAME_CHARS.test(name)) {
             setErrorText(
               'Note titles can only contain letters, numbers, spaces, hyphens, and underscores.'
@@ -72,7 +74,7 @@ export function NoteTitle({ filePath }: { filePath: FilePath }) {
           }
         }}
         maxLength={50}
-        required
+        isRequired
       />
       <AnimatePresence>
         {errorText.length > 0 && (

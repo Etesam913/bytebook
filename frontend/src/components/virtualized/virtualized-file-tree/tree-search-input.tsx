@@ -88,13 +88,8 @@ export function TreeSearchInput({
         autoCorrect="off"
         spellCheck={false}
         inputClassName="pr-8"
-        onKeyDown={(e) => {
-          if (e.key === 'Escape') {
-            e.preventDefault();
-            onChange('');
-            inputRef.current?.blur();
-          }
-        }}
+        // SearchField clears on Escape by itself; only the blur is app behaviour.
+        onClear={() => inputRef.current?.blur()}
         suffix={
           <Tooltip
             placement="right"

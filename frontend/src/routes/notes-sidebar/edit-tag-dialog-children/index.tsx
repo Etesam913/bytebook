@@ -1,4 +1,4 @@
-import { type RefCallback, useState } from 'react';
+import { useState } from 'react';
 import { RouteFallback } from '@components/route-fallback';
 import { useTagsForNotesQuery, useTagsQuery } from '@hooks/tags';
 import { MotionButton } from '@components/buttons';
@@ -130,13 +130,6 @@ export function EditTagDialogChildren({
       ?.filter((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
       .sort((a, b) => a.localeCompare(b)) || [];
 
-  /**
-   * Ref callback that autofocuses the tag search input when it mounts.
-   */
-  const inputRefCallback: RefCallback<HTMLInputElement> = (node) => {
-    node?.focus();
-  };
-
   // The onSubmit for the dialog needs to get data for all checkboxes that are
   // selected and not selected.
   const tagsToAddOrRemove = Array.from(selectedTagCounts.entries())
@@ -192,7 +185,6 @@ export function EditTagDialogChildren({
                 onCreateTag={handleCreateTag}
                 isLoading={areTagsLoading}
                 hasError={areTagsError}
-                inputRef={inputRefCallback}
               />
               <TagSelectionList
                 displayedTags={displayedTags}

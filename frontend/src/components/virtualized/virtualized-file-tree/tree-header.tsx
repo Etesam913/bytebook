@@ -1,4 +1,5 @@
 import { MotionButton } from '@components/buttons';
+import { AppTextField } from '@components/input';
 import { getDefaultButtonVariants } from '@/animations';
 import { FolderPen } from '@/icons/folder-pen';
 import { useCreateTreeItemForm } from '@hooks/tree-items';
@@ -40,28 +41,27 @@ export function TreeHeader() {
         <span>Create Folder</span>
       </MotionButton>
       {creatingItemType && (
-        <div className="flex flex-col gap-1 px-1">
-          <input
-            autoFocus
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onBlur={submit}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                submit();
-              } else if (e.key === 'Escape') {
-                e.preventDefault();
-                cancelCreating();
-              }
-            }}
-            placeholder="New folder"
-            className="rounded-md border border-zinc-200 dark:border-zinc-700 bg-transparent px-2 py-1 text-sm focus:outline-2 focus:outline-(--accent-color)"
-          />
-          {errorText && (
-            <span className="text-xs text-red-500">{errorText}</span>
-          )}
-        </div>
+        <AppTextField
+          className="px-1"
+          aria-label="New folder name"
+          autoFocus
+          value={name}
+          onChange={setName}
+          onBlur={submit}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              submit();
+            } else if (e.key === 'Escape') {
+              e.preventDefault();
+              cancelCreating();
+            }
+          }}
+          placeholder="New folder"
+          inputClassName="py-1 text-sm"
+          isInvalid={errorText.length > 0}
+          errorMessage={errorText}
+        />
       )}
     </div>
   );

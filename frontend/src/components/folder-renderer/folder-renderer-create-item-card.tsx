@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
 import { getDefaultButtonVariants } from '@/animations';
 import { MotionButton } from '@components/buttons';
+import { AppTextField } from '@components/input';
 import { Blog } from '@/icons/blog';
 import { Folder as FolderIcon } from '@/icons/folder';
 import { useCreateTreeItemForm } from '@hooks/tree-items';
@@ -22,19 +22,6 @@ export function FolderRendererCreateItemCard({
     cancelCreating,
     submit,
   } = useCreateTreeItemForm({ parentFolderPath: folderPath.fullPath });
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!creatingItemType) {
-      return;
-    }
-
-    if (inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [creatingItemType]);
-
   const isCreatingFolder = creatingItemType === FOLDER_TYPE;
   const previewName =
     name.trim() || (isCreatingFolder ? 'New folder' : 'New note');
@@ -87,20 +74,23 @@ export function FolderRendererCreateItemCard({
               </span>
               <span className="min-w-0 flex-1">
                 <div className="flex items-center gap-1">
-                  <input
-                    ref={inputRef}
-                    className="w-full truncate bg-transparent text-sm font-medium leading-5 outline-none"
+                  <AppTextField
+                    aria-label={
+                      isCreatingFolder ? 'New folder name' : 'New note name'
+                    }
+                    className="w-full"
+                    inputClassName="w-full truncate bg-transparent border-0 px-0 py-0 rounded-none text-sm font-medium leading-5 focus:border-0"
+                    autoFocus
+                    inputAttrs={{ onFocus: (e) => e.currentTarget.select() }}
                     autoCapitalize="off"
                     autoComplete="off"
                     autoCorrect="off"
                     spellCheck={false}
                     value={name}
                     placeholder={isCreatingFolder ? 'New folder' : 'New note'}
-                    title={errorText}
-                    disabled={isPending}
-                    onChange={(e) => {
-                      setName(e.currentTarget.value);
-                    }}
+                    isDisabled={isPending}
+                    isInvalid={errorText.length > 0}
+                    onChange={setName}
                     onKeyDown={(e) => {
                       if (e.key === 'Escape') {
                         e.preventDefault();
