@@ -19,7 +19,7 @@ import {
 import { EditTagDialogChildren } from '@/routes/notes-sidebar/edit-tag-dialog-children';
 import { FilePath } from '@utils/path';
 import { cn } from '@utils/string-formatting';
-import { Tag } from '../bottom-bar/tag';
+import { TagChips } from '../bottom-bar/tag';
 
 export function Tags({ filePath }: { filePath: FilePath }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -113,15 +113,11 @@ export function Tags({ filePath }: { filePath: FilePath }) {
                 Loading Tags
               </motion.span>
             ) : (
-              tags.map((tagName) => (
-                <Tag
-                  key={tagName}
-                  tagName={tagName}
-                  onDelete={() => {
-                    deleteTagFromNote({ tagToDelete: tagName });
-                  }}
-                />
-              ))
+              <TagChips
+                aria-label="Note tags"
+                tags={tags}
+                onRemove={(tagToDelete) => deleteTagFromNote({ tagToDelete })}
+              />
             )}
           </div>
         </DisclosurePanel>

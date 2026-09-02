@@ -1,4 +1,4 @@
-import { Tag } from '@components/editor/bottom-bar/tag';
+import { TagChips } from '@components/editor/bottom-bar/tag';
 import { Dispatch, SetStateAction } from 'react';
 
 /**
@@ -50,18 +50,21 @@ export function SelectedTagsDisplay({
   return (
     <div className="space-y-2">
       <p className="text-sm text-zinc-500 dark:text-zinc-400">Selected tags:</p>
-      <div className="flex flex-wrap gap-1.5">
-        {fullySelectedTags.map(({ tagName, count, isFullySelected }) => (
-          <span key={`tag-${tagName}`} className="relative text-sm">
-            <Tag tagName={tagName} onDelete={() => handleRemoveTag(tagName)} />
-            {!isFullySelected && (
-              <span className="absolute -top-1 -right-1 bg-(--accent-color) text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
-                {count}
-              </span>
-            )}
-          </span>
-        ))}
-      </div>
+      <TagChips
+        aria-label="Selected tags"
+        tags={fullySelectedTags.map(({ tagName }) => tagName)}
+        listClassName="text-sm"
+        onRemove={handleRemoveTag}
+        renderBadge={(tagName) => {
+          const tag = fullySelectedTags.find((t) => t.tagName === tagName);
+          if (!tag || tag.isFullySelected) return null;
+          return (
+            <span className="absolute -top-1 -right-1 bg-(--accent-color) text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
+              {tag.count}
+            </span>
+          );
+        }}
+      />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Tag } from '@components/editor/bottom-bar/tag';
+import { TagChips } from '@components/editor/bottom-bar/tag';
 import { Folder } from '@/icons/folder';
 import { Loader } from '@/icons/loader';
 import { RenderNoteIcon } from '@/icons/render-note-icon';
@@ -82,16 +82,12 @@ export function MediaMetadata({
             Loading Tags
           </motion.span>
         ) : (
-          tags.map((tagName) => (
-            <Tag
-              key={tagName}
-              tagName={tagName}
-              className="shrink-0"
-              onDelete={() => {
-                deleteTagFromNote({ tagToDelete: tagName });
-              }}
-            />
-          ))
+          <TagChips
+            aria-label="Note tags"
+            tags={tags}
+            listClassName="flex-nowrap"
+            onRemove={(tagToDelete) => deleteTagFromNote({ tagToDelete })}
+          />
         )}
       </span>
     </span>
