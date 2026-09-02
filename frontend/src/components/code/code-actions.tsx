@@ -1,4 +1,4 @@
-import type { Key } from 'react-aria-components/Breadcrumbs';
+import type { Key } from 'react-aria-components';
 import { Button } from 'react-aria-components/Button';
 import { MotionIconButton } from '@components/buttons';
 import { Duplicate2 } from '@/icons/duplicate-2';
@@ -178,7 +178,7 @@ export function CodeActions({
       )}
       {isExpanded && (
         <Tooltip content="Minimize" placement="bottom" root={tooltipRoot}>
-          <MotionIconButton onClick={collapseCodeBlock}>
+          <MotionIconButton onPress={collapseCodeBlock}>
             <Minimize
               className="will-change-transform"
               height="1.125rem"

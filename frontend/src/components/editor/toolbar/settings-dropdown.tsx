@@ -1,6 +1,6 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useAtomValue, useSetAtom } from 'jotai';
-import type { Key } from 'react-aria-components/Breadcrumbs';
+import type { Key } from 'react-aria-components';
 import { Button } from 'react-aria-components/Button';
 import { dialogDataAtom, isFullscreenAtom, projectSettingsAtom } from '@/atoms';
 import {

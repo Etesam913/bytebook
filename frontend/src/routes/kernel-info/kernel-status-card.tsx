@@ -110,7 +110,7 @@ export function KernelStatusCard({
           showWhenDisabled={isPending}
         >
           <MotionButton
-            onClick={() =>
+            onPress={() =>
               shutdownKernel({ kernelInstanceId: id, restart: false })
             }
             isDisabled={isPending}

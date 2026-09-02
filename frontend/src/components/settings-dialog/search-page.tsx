@@ -33,7 +33,7 @@ export function SearchPage() {
             )}
             {...getDefaultButtonVariants({ disabled: isPending })}
             isDisabled={isPending}
-            onClick={() => {
+            onPress={() => {
               regenerateSearchIndex();
             }}
           >

@@ -31,7 +31,7 @@ export function TreeFilterSummary({
       <Tooltip content="Save search">
         <MotionIconButton
           {...getDefaultButtonVariants()}
-          onClick={() => openSaveSearchDialog(query)}
+          onPress={() => openSaveSearchDialog(query)}
           aria-label="Save search"
           className="ml-auto"
         >

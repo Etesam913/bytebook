@@ -86,9 +86,6 @@ export function PinnedAccordion({
         contentType="pinned-note"
         layoutId="pinned-notes"
         data={pinnedItems}
-        dataItemToString={(pinnedItem) =>
-          pinnedItem.type === 'file' ? pinnedItem.note : pinnedItem.folder
-        }
         dataItemToKey={(pinnedItem) => pinnedItem.fullPath}
         selectionOptions={{
           dataItemToSelectionRangeEntry: (pinnedItem) => pinnedItem.fullPath,

@@ -49,7 +49,7 @@ export function FolderRendererCreateItemCard({
           {...getDefaultButtonVariants({ disabled: isPending })}
           aria-label="Create folder"
           className="shrink-0 flex items-center gap-2 text-sm"
-          onClick={() => startCreating(FOLDER_TYPE)}
+          onPress={() => startCreating(FOLDER_TYPE)}
         >
           <FolderIcon width="1rem" height="1rem" />
           Create folder
@@ -58,7 +58,7 @@ export function FolderRendererCreateItemCard({
           {...getDefaultButtonVariants({ disabled: isPending })}
           aria-label="Create note"
           className="shrink-0 flex items-center gap-2 text-sm"
-          onClick={() => startCreating(FILE_TYPE)}
+          onPress={() => startCreating(FILE_TYPE)}
         >
           <Blog width="1rem" height="1rem" />
           Create note

@@ -400,7 +400,7 @@ function TableHoverActionsV2({
             className="z-10 text-zinc-600 bg-zinc-50 dark:bg-zinc-750 dark:border-zinc-600 dark:text-zinc-300 border-zinc-200 border"
             aria-label="Add column"
             type="button"
-            onClick={handleAddColumn}
+            onPress={handleAddColumn}
             {...getDefaultButtonVariants()}
           >
             <TableColNewRight2
@@ -436,7 +436,7 @@ function TableHoverActionsV2({
             className="z-10 text-zinc-600 bg-zinc-50 dark:bg-zinc-750 dark:border-zinc-600 dark:text-zinc-300 border-zinc-200 border"
             aria-label="Add row"
             type="button"
-            onClick={handleAddRow}
+            onPress={handleAddRow}
             {...getDefaultButtonVariants()}
           >
             <TableRowNewBottom2

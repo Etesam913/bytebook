@@ -45,7 +45,6 @@ function createListComponent() {
 
 export type VirtualizedListProps<T> = {
   data: T[] | null;
-  dataItemToString: (item: T) => string;
   dataItemToKey: (item: T) => string;
   selectionOptions: SelectionOptions<T>;
   getContextMenuStyle?: (dataItem: T) => CSSProperties;
@@ -79,7 +78,6 @@ export type VirtualizedListProps<T> = {
 
 export function VirtualizedList<T>({
   data,
-  dataItemToString,
   dataItemToKey,
   selectionOptions,
   getContextMenuStyle,
@@ -99,7 +97,6 @@ export function VirtualizedList<T>({
 }: VirtualizedListProps<T>) {
   // Start with null to indicate height hasn't been measured yet
   const [listHeight, setListHeight] = useState<number | null>(null);
-  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const internalListRef = useRef<HTMLElement | null>(null);
   /*
 	  If the activeNoteItem is set, then the note was navigated via a note link or the searchbar
@@ -171,11 +168,8 @@ export function VirtualizedList<T>({
         dataItem={dataItem}
         allData={items}
         index={index}
-        dataItemToString={dataItemToString}
         selectionOptions={selectionOptions}
         getContextMenuStyle={getContextMenuStyle}
-        hoveredItem={hoveredItem}
-        setHoveredItem={setHoveredItem}
         layoutId={layoutId}
         contentType={contentType}
       >

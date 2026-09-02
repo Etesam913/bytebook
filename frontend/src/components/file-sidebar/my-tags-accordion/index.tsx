@@ -95,7 +95,6 @@ export function MyTagsAccordion({
           </li>
         }
         contentType="tag"
-        dataItemToString={(tagName) => tagName}
         dataItemToKey={(tagName) => tagName}
         selectionOptions={{
           dataItemToSelectionRangeEntry: (tagName) => tagName,

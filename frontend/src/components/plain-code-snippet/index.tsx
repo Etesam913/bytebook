@@ -2,7 +2,6 @@ import { getDefaultButtonVariants } from '@/animations';
 import { Duplicate2 } from '@/icons/duplicate-2';
 import { MotionButton } from '@components/buttons';
 
-// using a MotionButton leads to layout shift for some reason...
 export function PlainCodeSnippet({ code }: { code: string }) {
   const copyToClipboard = () => {
     void navigator.clipboard.writeText(code);
@@ -16,8 +15,9 @@ export function PlainCodeSnippet({ code }: { code: string }) {
       <MotionButton
         {...getDefaultButtonVariants()}
         type="button"
+        aria-label="Copy code"
         className="absolute top-1.5 right-1 bg-zinc-100 dark:bg-zinc-750 shadow-md opacity-0 group-hover:opacity-100 focus:opacity-100"
-        onClick={copyToClipboard}
+        onPress={copyToClipboard}
       >
         <Duplicate2 height="1rem" width="1rem" />
       </MotionButton>

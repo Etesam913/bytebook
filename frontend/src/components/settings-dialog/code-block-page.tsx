@@ -108,7 +108,7 @@ export function CodeBlockPage() {
           <MotionButton
             className="text-center"
             {...getDefaultButtonVariants()}
-            onClick={() => {
+            onPress={() => {
               setDialogData({
                 isOpen: true,
                 isPending: false,

@@ -90,7 +90,7 @@ export function PlayButton({
       <MotionIconButton
         aria-label={buttonLabel}
         isDisabled={status === 'starting' || status === 'queueing'}
-        onClick={() => {
+        onPress={() => {
           handleRunOrInterruptCode({
             status,
             noteId,

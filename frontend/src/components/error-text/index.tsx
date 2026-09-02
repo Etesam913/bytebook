@@ -30,7 +30,7 @@ export function ErrorText({
           whileFocus: 1.025,
         })}
         className="flex mx-auto"
-        onClick={onRetry}
+        onPress={onRetry}
       >
         <span>Retry</span> {icon}
       </MotionButton>

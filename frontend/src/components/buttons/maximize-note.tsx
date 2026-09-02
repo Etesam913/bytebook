@@ -21,7 +21,8 @@ export function MaximizeNoteButton({
       placement="bottom"
     >
       <MotionIconButton
-        onClick={() => {
+        aria-label={isFileMaximized ? 'Minimize note' : 'Maximize note'}
+        onPress={() => {
           setIsFileMaximized((prev) => !prev);
           void animationControls.start({
             x: isFileMaximized ? [-40, 0] : [50, 0],

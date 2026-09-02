@@ -104,7 +104,7 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
             <Tooltip content="Go back">
               <MotionIconButton
                 {...getDefaultButtonVariants()}
-                onClick={() => window.history.back()}
+                onPress={() => window.history.back()}
                 data-testid="go-back-button"
                 aria-label="Go back"
               >
@@ -114,7 +114,7 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
             <Tooltip content="Go forward">
               <MotionIconButton
                 {...getDefaultButtonVariants()}
-                onClick={() => window.history.forward()}
+                onPress={() => window.history.forward()}
                 data-testid="go-forward-button"
                 aria-label="Go forward"
               >

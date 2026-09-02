@@ -124,7 +124,8 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
                 <MotionIconButton
                   className="opacity-0 focus:opacity-100 group-hover:opacity-100 transition-opacity ml-auto"
                   {...getDefaultButtonVariants()}
-                  onClick={() => {
+                  aria-label={`Reveal ${venvPath} in Finder`}
+                  onPress={() => {
                     void RevealFolderOrFileInFinder(venvPath, false);
                   }}
                 >
@@ -141,7 +142,7 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
                   <MotionButton
                     {...getDefaultButtonVariants()}
                     className="w-fit text-nowrap"
-                    onClick={() => {
+                    onPress={() => {
                       void (async () => {
                         setBackendQuery({
                           isLoading: true,

@@ -93,7 +93,7 @@ export function LineHeightRow() {
               projectSettings.appearance.editorLineHeight ===
               DEFAULT_EDITOR_LINE_HEIGHT
             }
-            onClick={() => updateLineHeight(DEFAULT_EDITOR_LINE_HEIGHT)}
+            onPress={() => updateLineHeight(DEFAULT_EDITOR_LINE_HEIGHT)}
           >
             <ArrowRotateAnticlockwise width="0.75rem" height="0.75rem" />
           </MotionIconButton>

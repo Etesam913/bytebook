@@ -102,7 +102,6 @@ export function MySavedSearchesAccordion({
           </li>
         }
         contentType="saved-search"
-        dataItemToString={(search) => search.name}
         dataItemToKey={(search) => search.name}
         selectionOptions={{
           dataItemToSelectionRangeEntry: (search) => search.name,

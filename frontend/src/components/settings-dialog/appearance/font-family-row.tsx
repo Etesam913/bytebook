@@ -120,7 +120,7 @@ export function FontFamilyRow({
             {...getDefaultButtonVariants()}
             aria-label="Reset font family"
             isDisabled={fontFamilyInputValue === copy.defaultValue}
-            onClick={() => {
+            onPress={() => {
               setFontFamilyInputValue(copy.defaultValue);
               updateFontFamily(copy.defaultValue);
             }}

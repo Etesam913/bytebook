@@ -3,7 +3,7 @@ import { AppIconButton } from '@components/buttons';
 import { AppCheckbox } from '@components/checkbox';
 import { cn } from '@utils/string-formatting';
 import { TagPlus } from '@/icons/tag-plus';
-import type { Key } from 'react-aria-components/Breadcrumbs';
+import type { Key } from 'react-aria-components';
 import type { Selection } from 'react-aria-components/GridList';
 
 /**
@@ -72,7 +72,7 @@ export function TagSelectionList({
       {showCreateButton && (
         <AppIconButton
           className="text-sm w-full flex items-center gap-2"
-          onClick={() => {
+          onPress={() => {
             onCreateTag(searchTerm);
           }}
         >

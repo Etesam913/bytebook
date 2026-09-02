@@ -99,7 +99,6 @@ export function MyKernelsAccordion({
         layoutId="kernels-sidebar"
         emptyElement={null}
         contentType="kernel"
-        dataItemToString={(kernelName) => kernelName}
         dataItemToKey={(kernelName) => kernelName}
         selectionOptions={{ disableSelection: true }}
         isItemActive={(kernelName) => kernelName === kernelNameFromUrl}

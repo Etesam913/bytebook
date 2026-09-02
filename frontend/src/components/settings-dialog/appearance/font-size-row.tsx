@@ -146,7 +146,7 @@ export function FontSizeRow({
             {...getDefaultButtonVariants()}
             aria-label="Reset font size"
             isDisabled={currentFontSize === copy.defaultValue}
-            onClick={() => updateFontSize(copy.defaultValue)}
+            onPress={() => updateFontSize(copy.defaultValue)}
           >
             <ArrowRotateAnticlockwise width="0.75rem" height="0.75rem" />
           </MotionIconButton>

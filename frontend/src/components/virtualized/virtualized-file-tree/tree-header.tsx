@@ -30,7 +30,7 @@ export function TreeHeader() {
           whileFocus: 1.025,
         })}
         className="w-full text-sm text-center flex items-center justify-center"
-        onClick={() => startCreating(FOLDER_TYPE)}
+        onPress={() => startCreating(FOLDER_TYPE)}
       >
         <FolderPen
           className="will-change-transform"

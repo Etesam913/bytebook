@@ -1,5 +1,5 @@
 import { useAtomValue, useSetAtom } from 'jotai';
-import type { Key } from 'react-aria-components/Breadcrumbs';
+import type { Key } from 'react-aria-components';
 import { Button } from 'react-aria-components/Button';
 import {
   fileSidebarOpenStateAtom,
@@ -79,7 +79,7 @@ export function FolderRendererHeader({
                   {...getDefaultButtonVariants()}
                   aria-label="Search this folder"
                   className="shrink-0"
-                  onClick={() => {
+                  onPress={() => {
                     setTreeFilterQuery(`f:"${folderPath.fullPath}"`);
                     setFileSidebarOpenState((prev) => ({
                       ...prev,

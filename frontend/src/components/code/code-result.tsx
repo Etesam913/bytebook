@@ -210,7 +210,7 @@ export function CodeResult({
         className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
         key={isExpanded.toString()}
         {...getDefaultButtonVariants()}
-        onClick={() => {
+        onPress={() => {
           if (resultContainerRef.current) {
             void navigator.clipboard.writeText(
               resultContainerRef.current.innerText

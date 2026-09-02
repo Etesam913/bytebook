@@ -56,11 +56,11 @@ function splitMotionProps(allProps: Record<string, unknown>): {
   return { motionProps, buttonProps };
 }
 
+// onClick is a deprecated alias in RAC; forbid it so callers use onPress.
+type AppButtonProps = Omit<ButtonProps, 'onClick'> & { children?: ReactNode };
+
 /** Transparent icon-only button with hover/focus background. */
-export function AppIconButton({
-  className,
-  ...props
-}: ButtonProps & { children?: ReactNode }) {
+export function AppIconButton({ className, ...props }: AppButtonProps) {
   return (
     <Button
       {...props}
@@ -76,7 +76,7 @@ export function AppIconButton({
 export function MotionButton({
   className,
   ...allProps
-}: ButtonProps & MotionOwnProps & { children?: ReactNode }) {
+}: AppButtonProps & MotionOwnProps) {
   const { motionProps, buttonProps } = splitMotionProps(
     allProps as unknown as Record<string, unknown>
   );
@@ -101,7 +101,7 @@ export function MotionButton({
 export function MotionIconButton({
   className,
   ...allProps
-}: ButtonProps & MotionOwnProps & { children?: ReactNode }) {
+}: AppButtonProps & MotionOwnProps) {
   const { motionProps, buttonProps } = splitMotionProps(
     allProps as unknown as Record<string, unknown>
   );

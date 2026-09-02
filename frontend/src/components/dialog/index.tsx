@@ -120,7 +120,7 @@ export function Dialog() {
 
               <MotionIconButton
                 {...getDefaultButtonVariants()}
-                onClick={closeDialog}
+                onPress={closeDialog}
                 className="absolute top-2 right-2"
                 type="button"
                 aria-label="Close dialog"

@@ -1,10 +1,5 @@
 import { useSetAtom } from 'jotai';
-import {
-  type CSSProperties,
-  type Dispatch,
-  type ReactNode,
-  type SetStateAction,
-} from 'react';
+import { type CSSProperties, type ReactNode } from 'react';
 import { sidebarSelectionAtom } from '@/atoms';
 import { createSelectionKey, keepSelectionWithPrefix } from '@utils/selection';
 import { SidebarContentType } from '@/types';
@@ -14,27 +9,21 @@ export function VirtualizedListItem<T>({
   dataItem,
   allData,
   index,
-  dataItemToString,
   selectionOptions,
   getContextMenuStyle,
-  setHoveredItem,
   contentType,
   children,
 }: {
   dataItem: T;
   allData: T[];
   index: number;
-  dataItemToString: (item: T) => string;
   selectionOptions: SelectionOptions<T>;
   getContextMenuStyle?: (dataItem: T) => CSSProperties;
-  hoveredItem: string | null;
-  setHoveredItem: Dispatch<SetStateAction<string | null>>;
   layoutId: string;
   contentType: SidebarContentType;
   children: ReactNode;
 }) {
   const setSidebarSelection = useSetAtom(sidebarSelectionAtom);
-  const dataItemString = dataItemToString(dataItem);
   const disableSelection = selectionOptions.disableSelection === true;
   const dataItemToSelectionRangeEntry =
     selectionOptions.disableSelection === true
@@ -108,8 +97,6 @@ export function VirtualizedListItem<T>({
 
   return (
     <div
-      onMouseEnter={() => setHoveredItem(dataItemString)}
-      onMouseLeave={() => setHoveredItem(null)}
       style={getContextMenuStyle?.(dataItem)}
       className={'relative flex items-center rounded-md'}
       onClick={(e) => {

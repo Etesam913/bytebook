@@ -74,7 +74,7 @@ export function KernelQuickstart({ language }: { language: Languages }) {
         <MotionButton
           className="text-center w-fit"
           {...getDefaultButtonVariants()}
-          onClick={() => {
+          onPress={() => {
             setDialogData({
               isOpen: true,
               isPending: false,
