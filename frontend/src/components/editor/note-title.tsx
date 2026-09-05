@@ -21,7 +21,7 @@ export function NoteTitle({ filePath }: { filePath: FilePath }) {
       <AppTextField
         aria-label="Note title"
         inputClassName={cn(
-          'bg-transparent text-3xl mb-1 border-0 px-0 py-0 focus:border-0 focus-visible:ring-2 focus-visible:ring-(--accent-color) rounded-sm font-semibold w-full',
+          'bg-transparent dark:bg-transparent text-3xl mb-1 border-0 px-0 py-0 focus:border-0 focus-visible:ring-2 focus-visible:ring-(--accent-color) rounded-sm font-semibold w-full',
           errorText.length > 0 && 'text-red-600 dark:text-red-500'
         )}
         inputAttrs={{ onClick: (e) => e.stopPropagation() }}

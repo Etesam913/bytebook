@@ -30,6 +30,10 @@ export default defineConfig(({ mode }) => {
     server: {
       host: '127.0.0.1',
     },
+    optimizeDeps: {
+      // The React Compiler injects this import after Vite's initial scan.
+      include: ['react/compiler-runtime'],
+    },
     resolve: {
       alias: {
         '@bindings': path.resolve(

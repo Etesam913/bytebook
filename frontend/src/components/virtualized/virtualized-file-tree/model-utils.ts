@@ -142,64 +142,18 @@ export function getTreeHost(model: PierreFileTree): Element | null {
   return root instanceof ShadowRoot ? root.host : container;
 }
 
-function isExpandedDirectory(
-  model: PierreFileTree,
-  directoryPath: string
-): boolean {
-  const item = model.getItem(directoryPath);
-  if (item === null || !isDirectoryHandle(item)) return false;
-  return item.isExpanded();
-}
-
-/**
- * Index of `targetPath` among the currently visible rows: walk the sorted
- * path list in tree order, skipping the subtrees of collapsed directories.
- * Returns -1 when the path is hidden (a collapsed ancestor) or unknown.
- */
-function getVisibleRowIndex(model: PierreFileTree, targetPath: string): number {
-  let index = 0;
-  let collapsedPrefix: string | null = null;
-  for (const path of sortedPathsByModel.get(model) ?? []) {
-    if (collapsedPrefix !== null) {
-      if (path.startsWith(collapsedPrefix)) continue;
-      collapsedPrefix = null;
-    }
-    if (path === targetPath) return index;
-    index++;
-    if (path.endsWith('/') && !isExpandedDirectory(model, path)) {
-      collapsedPrefix = path;
-    }
-  }
-  return -1;
-}
-
-/**
- * Scrolls the row for `targetPath` into view (centered) if it is not already
- * visible in the viewport. The package scrolls only on user-driven focus
- * changes, so a freshly (re)mounted view starts at the top regardless of
- * which row is focused — this covers reveals and deep links.
- */
+// Two frames: an unhidden tree only re-measures its viewport in the next
+// frame's ResizeObserver, and an earlier request scrolls with a stale height.
 export function scrollTreePathIntoView(
   model: PierreFileTree,
   targetPath: string
 ): void {
-  const rowIndex = getVisibleRowIndex(model, targetPath);
-  if (rowIndex < 0) return;
-  const scrollElement = getShadowRoot(model)?.querySelector<HTMLElement>(
-    '[data-file-tree-virtualized-scroll="true"]'
-  );
-  if (!scrollElement) return;
-  const itemHeight = model.getItemHeight();
-  const rowTop = rowIndex * itemHeight;
-  const viewTop = scrollElement.scrollTop;
-  const viewHeight = scrollElement.clientHeight;
-  const isRowInView =
-    rowTop >= viewTop && rowTop + itemHeight <= viewTop + viewHeight;
-  if (isRowInView) return;
-  scrollElement.scrollTop = Math.max(
-    0,
-    rowTop - viewHeight / 2 + itemHeight / 2
-  );
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (!model.getItem(targetPath)) return;
+      model.scrollToPath(targetPath, { focus: false, offset: 'nearest' });
+    });
+  });
 }
 
 /**

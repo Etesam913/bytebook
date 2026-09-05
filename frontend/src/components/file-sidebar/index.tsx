@@ -96,7 +96,7 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
       >
         <header
           className={cn(
-            'pr-2.5 flex gap-1 flex items-center justify-end w-full pl-[92px] h-[48px] mt-[4px]',
+            'pr-2.5 flex gap-1 items-center justify-end w-full pl-[92px] h-(--app-header-height) shrink-0',
             isFullscreen && 'pl-[8px]'
           )}
         >
@@ -125,7 +125,7 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
         </header>
         <section
           ref={panelContainerRef}
-          className="flex flex-1 flex-col min-h-0 pt-1.5 pb-1"
+          className="flex flex-1 flex-col min-h-0 pb-1"
         >
           <MyFilesAccordion
             containerRef={panelContainerRef}

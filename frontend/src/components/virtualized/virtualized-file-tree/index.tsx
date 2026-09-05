@@ -33,6 +33,7 @@ import { FilteredFileTree } from './filtered-file-tree';
 import { usePierreRouteFocus } from './hooks/use-pierre-route-focus';
 import { usePierreTreeEvents } from './hooks/use-pierre-tree-events';
 import { usePierreFileTreeDrop } from './hooks/use-pierre-file-tree-drop';
+import { usePierreRowHeight } from './hooks/use-pierre-row-height';
 import { usePierreRouteTargetPath } from './hooks/use-route-target-path';
 import { useSyncAllPaths } from './hooks/use-sync-all-paths';
 import { useTreeFilter } from './hooks/use-tree-filter';
@@ -116,9 +117,7 @@ function PierreFileTreeInner({
     initialExpansion: 'closed',
     initialExpandedPaths: getInitialExpandedPaths(routeTargetPath),
     initialSelectedPaths: routeTargetPath ? [routeTargetPath] : [],
-    // getVisibleRowIndex counts one row per path; pierre's default flattening
-    // merges single-child directory chains into one row, which would make every
-    // reveal/deep-link scroll land off by the number of merged chains.
+    // Keep every folder as its own row instead of merging single-child chains.
     flattenEmptyDirectories: false,
     stickyFolders: true,
     icons: 'minimal',
@@ -227,6 +226,7 @@ function PierreFileTreeInner({
   usePierreTreeEvents(model);
   usePierreRouteFocus(model, isFilterMode);
   usePierreFileTreeDrop(model);
+  usePierreRowHeight(model);
 
   function handleStartRename(path: string) {
     if (!model.startRenaming(path)) return;

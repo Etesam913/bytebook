@@ -66,6 +66,8 @@
 
 :root {
   --ui-scale: 1;
+  /* Keep headers aligned, with less vertical space at lower UI zoom. */
+  --app-header-height: clamp(48px, calc(18px + 40px * var(--ui-scale)), 62px);
   --app-font-family: ui-sans-serif;
   --editor-default-font-family: system-ui, sans-serif;
   --code-block-font-family: monospace;

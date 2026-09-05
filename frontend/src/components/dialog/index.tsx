@@ -103,7 +103,7 @@ export function Dialog() {
                 }
               }}
               className={cn(
-                'bg-zinc-50 dark:bg-zinc-800 py-3 w-[min(368px,90vw)] rounded-lg shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 max-h-11/12 flex flex-col relative',
+                'bg-zinc-50 dark:bg-zinc-800 py-3 w-[min(368px,90vw)] rounded-xl shadow-2xl border-[1.25px] border-zinc-300 dark:border-zinc-700 max-h-11/12 flex flex-col relative',
                 dialogData.dialogClassName
               )}
             >

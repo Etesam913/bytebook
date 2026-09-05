@@ -16,6 +16,9 @@ export const FILE_TREE_HOST_STYLE: CSSPropertiesWithVariables = {
   // App default text color (near-black / zinc-100), not the package's gray.
   '--trees-fg-override': 'light-dark(rgb(9, 9, 11), rgb(244, 244, 245))',
   '--trees-accent-override': 'var(--accent-color)',
+  // Match Finder: selections use the full accent color with white text.
+  '--trees-selected-bg-override': 'var(--accent-color)',
+  '--trees-selected-fg-override': 'white',
   '--trees-font-family-override': 'var(--app-font-family)',
   // text-sm, so rows scale with UI zoom alongside the rest of the app.
   '--trees-font-size-override': '0.875rem',
@@ -38,10 +41,34 @@ export const FILE_TREE_UNSAFE_CSS = `
     cursor: default !important;
   }
 
+  [data-type='context-menu-trigger'] {
+    transition-duration: 0s !important;
+  }
+
   [data-type='item'][data-external-drop-target='true'] {
     background-color: var(--trees-selected-bg) !important;
+    color: var(--trees-selected-fg) !important;
     outline: 1px solid var(--trees-focus-ring-color) !important;
     outline-offset: var(--trees-focus-ring-offset) !important;
+  }
+
+  [data-type='item'][data-item-drag-target='true'] {
+    color: var(--trees-selected-fg) !important;
+  }
+
+  [data-file-tree-virtualized-root='true']:has(
+    [data-item-selected='true'][data-item-context-hover='true']
+  )
+    [data-type='context-menu-trigger'],
+  [data-file-tree-virtualized-root='true']:has(
+    [data-item-selected='true'][data-item-focused='true']
+  )
+    [data-type='context-menu-trigger'] {
+    color: var(--trees-selected-fg) !important;
+  }
+
+  [data-type='context-menu-trigger'][data-visible='true'] {
+    color: var(--trees-selected-fg) !important;
   }
 
   [data-file-tree-sticky-overlay-content="true"] {

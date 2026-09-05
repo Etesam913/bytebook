@@ -1,5 +1,38 @@
+diff --git a/dist/render/FileTree.d.ts b/dist/render/FileTree.d.ts
+index 21af65bbdadbd2f4165ae821b6577d8f6624cfb1..657d7ffad772ce4042e9ea34d69bcf4cc221ba66 100644
+--- a/dist/render/FileTree.d.ts
++++ b/dist/render/FileTree.d.ts
+@@ -18,6 +18,7 @@ declare class FileTree implements FileTreeMutationHandle, FileTreeSearchSessionH
+   getSelectedPaths(): readonly string[];
+   getComposition(): FileTreeCompositionOptions | undefined;
+   getItemHeight(): number;
++  setItemHeight(itemHeight: number): void;
+   getDensityFactor(): number;
+   subscribe(listener: FileTreeListener): () => void;
+   focusPath(path: string): void;
+diff --git a/dist/render/FileTree.js b/dist/render/FileTree.js
+index 305714319d9d988bfc025ecaaca662562a3a0ff7..94f2396ded3d920b2095c6f281fc3f4c6c21f217 100644
+--- a/dist/render/FileTree.js
++++ b/dist/render/FileTree.js
+@@ -164,6 +164,16 @@ var FileTree = class {
+ 	getItemHeight() {
+ 		return this.#density.itemHeight;
+ 	}
++	setItemHeight(itemHeight) {
++		if (!Number.isFinite(itemHeight) || itemHeight <= 0 || itemHeight === this.#density.itemHeight) return;
++		this.#density = { ...this.#density, itemHeight };
++		this.#viewOptions.itemHeight = itemHeight;
++		const mountedTree = this.#getMountedTreeElements();
++		if (mountedTree == null) return;
++		mountedTree.host.style.setProperty("--trees-item-height", `${itemHeight}px`);
++		this.#wroteHostItemHeight = true;
++		renderFileTreeRoot(mountedTree.wrapper, this.#getViewProps());
++	}
+ 	getDensityFactor() {
+ 		return this.#density.factor;
+ 	}
 diff --git a/dist/render/FileTreeView.js b/dist/render/FileTreeView.js
-index 69807e41fead7afddc703dd26101b7cd10d7b1da..f180f74bc01dbfb85573530be731e9edcdf0a332 100644
+index 7d3b818c43a7621ab9170da32b180232ed3c9472..2c227129c9c9c58ff692f53e123189d8dff99a6b 100644
 --- a/dist/render/FileTreeView.js
 +++ b/dist/render/FileTreeView.js
 @@ -1273,7 +1273,6 @@ function FileTreeView({ composition, controller, gitStatusByPath, ignoredGitDire

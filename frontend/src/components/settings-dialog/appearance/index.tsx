@@ -38,7 +38,7 @@ export function SettingImage({
       value={value}
       className={({ isFocusVisible }) =>
         cn(
-          'h-full text-center flex flex-col items-center rounded-md cursor-pointer outline-none',
+          'h-full text-center flex flex-col items-center rounded-md outline-none',
           isFocusVisible && 'ring-2 ring-offset-2 ring-(--accent-color)'
         )
       }

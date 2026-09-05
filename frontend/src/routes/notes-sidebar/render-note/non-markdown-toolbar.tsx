@@ -154,7 +154,7 @@ export function NonMarkdownToolbar({
   return (
     <header
       className={cn(
-        'flex w-full min-w-0 items-center gap-3 border-b pr-2 pb-2 pt-3.75 h-12 border-zinc-200 dark:border-b-zinc-700 whitespace-nowrap text-xs',
+        'flex w-full min-w-0 h-(--app-header-height) shrink-0 items-center gap-3 border-b pr-2 border-zinc-200 dark:border-b-zinc-700 whitespace-nowrap text-xs',
         isFileMaximized && !isFullscreen && 'pl-23!'
       )}
     >

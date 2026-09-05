@@ -115,7 +115,7 @@ export function FontSizeRow({
               updateFontSize(nextFontSize);
             }
           }}
-          inputClassName="bg-zinc-150 dark:bg-zinc-700 w-20 h-8 text-sm my-auto"
+          inputClassName="bg-zinc-150 dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 w-20 h-8 text-sm my-auto"
         />
         <Tooltip
           content={

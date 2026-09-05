@@ -167,7 +167,7 @@ export function Toolbar({
       {FloatingPlugin}
       <nav
         className={cn(
-          'ml-[-4px] flex gap-1.5 border-b border-b-zinc-200 px-2 pb-2 pt-[12px] dark:border-b-zinc-700',
+          'ml-[-4px] flex h-(--app-header-height) shrink-0 items-center gap-1.5 border-b border-b-zinc-200 px-2 dark:border-b-zinc-700',
           isFileMaximized && !isFullscreen && 'pl-[100px]'
         )}
       >

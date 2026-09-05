@@ -63,6 +63,38 @@ test.describe('File Sidebar', () => {
     await expect(sidebar).toBeVisible();
   });
 
+  test('scales tree rows with text without losing expanded folders', async ({
+    page,
+    context,
+  }) => {
+    await setupWailsEvents(context);
+    await page.goto('/');
+    const sidebar = page.getByTestId('file-sidebar');
+    const folder = sidebar.getByRole('treeitem', { name: 'Economics Notes' });
+    await folder.click();
+    const note = sidebar.getByRole('treeitem', { name: 'Inflation.md' });
+    await expect(note).toBeVisible();
+
+    for (const [event, height] of [
+      ['zoom:out', 22.5],
+      ['zoom:in', 37.5],
+      ['zoom:reset', 30],
+    ] as const) {
+      for (let step = 0; step < 6; step++) {
+        await emitWailsEvent(page, event, null);
+      }
+      await expect(folder).toHaveAttribute('aria-expanded', 'true');
+      await expect(folder).toHaveAttribute('aria-selected', 'true');
+      await expect(note).toBeVisible();
+      await expect
+        .poll(async () => (await note.boundingBox())?.height)
+        .toBe(height);
+      await expect
+        .poll(async () => (await folder.boundingBox())?.height)
+        .toBe(height);
+    }
+  });
+
   test('focuses the file filter from the native search shortcut', async ({
     page,
   }) => {
@@ -78,6 +110,58 @@ test.describe('File Sidebar', () => {
   });
 
   test.describe('File Tree', () => {
+    test('reveals the selected search result when clearing the filter repeatedly', async ({
+      page,
+      context,
+    }) => {
+      const paths = Array.from(
+        { length: 100 },
+        (_, index) => `Folder/Note${String(index).padStart(3, '0')}.md`
+      );
+      await mockBinding(
+        context,
+        { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetAllPaths' },
+        { ...MOCK_ALL_PATHS_RESPONSE, data: ['Folder/', ...paths] }
+      );
+      await mockBinding(
+        context,
+        {
+          file: SERVICE_FILES.SEARCH_SERVICE,
+          method: 'GetPathsFromSearchQuery',
+        },
+        { ...MOCK_ALL_PATHS_RESPONSE, data: [paths[99]] }
+      );
+      await mockBinding(
+        context,
+        { file: SERVICE_FILES.NOTE_SERVICE, method: 'DoesNoteExist' },
+        true
+      );
+      await mockBinding(
+        context,
+        {
+          file: SERVICE_FILES.NOTE_SERVICE,
+          method: 'GetNoteMarkdownWithCodeResults',
+        },
+        MOCK_NOTE_MARKDOWN_RESPONSE
+      );
+      await page.goto('/');
+      const sidebar = page.getByTestId('file-sidebar');
+      const filter = sidebar.getByRole('searchbox', { name: 'Filter files' });
+      const target = sidebar.getByRole('treeitem', { name: 'Note099.md' });
+
+      // The first reveal expands the folder; subsequent reveals reuse it.
+      for (let attempt = 0; attempt < 2; attempt++) {
+        await filter.fill('Note099');
+        await target.click();
+        await expect(page).toHaveURL('/notes/Folder/Note099.md');
+        await filter.fill('');
+
+        await expect(target).toBeInViewport();
+        await expect(target).toHaveAttribute('aria-selected', 'true');
+        await expect(filter).toBeFocused();
+      }
+    });
+
     // @pierre/trees renders row labels as truncation fragments, so text-based
     // locators can't match a full name — use the treeitem's accessible name.
     test('renders folders', async ({ page }) => {
