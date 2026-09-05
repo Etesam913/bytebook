@@ -36,6 +36,28 @@ export const FILE_TREE_HOST_STYLE: CSSPropertiesWithVariables = {
 // persistent model survives HMR). The sticky rule separates pinned folder rows
 // from the rows scrolling underneath (zinc-200 / zinc-700).
 export const FILE_TREE_UNSAFE_CSS = `
+  [data-item-section='icon'] {
+    color: inherit !important;
+  }
+
+  [data-item-type='folder'][aria-expanded='true'] {
+    --tree-folder-closed: none;
+    --tree-folder-open: inline;
+  }
+
+  [data-item-type='folder'][aria-expanded='false'] {
+    --tree-folder-closed: inline;
+    --tree-folder-open: none;
+  }
+
+  [data-icon-name='file-tree-icon-chevron'] {
+    transform: none !important;
+  }
+
+  [data-item-rename-input] {
+    caret-color: white !important;
+  }
+
   [data-type='item'],
   [data-type='context-menu-trigger'] {
     cursor: default !important;

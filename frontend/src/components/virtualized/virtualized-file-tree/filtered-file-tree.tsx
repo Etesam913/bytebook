@@ -1,5 +1,6 @@
 import { prepareFileTreeInput } from '@pierre/trees';
 import { FileTree, useFileTree } from '@pierre/trees/react';
+import { FILE_TREE_ICONS } from './icons';
 import { addAncestorDirectoryPaths } from '@utils/search';
 import { Loader } from '@/icons/loader';
 import { navigateToTreePath } from './model-utils';
@@ -67,7 +68,7 @@ function FilteredTreeHost({
     // Match the canonical tree so both index rows the same way.
     flattenEmptyDirectories: false,
     stickyFolders: true,
-    icons: 'minimal',
+    icons: FILE_TREE_ICONS,
     unsafeCSS: FILE_TREE_UNSAFE_CSS,
     onSelectionChange: (selectedPaths) => {
       if (selectedPaths.length !== 1) return;

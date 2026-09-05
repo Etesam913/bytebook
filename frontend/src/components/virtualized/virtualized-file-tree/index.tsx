@@ -1,5 +1,6 @@
 import { prepareFileTreeInput, type FileTreeDropResult } from '@pierre/trees';
 import { FileTree, useFileTree } from '@pierre/trees/react';
+import { FILE_TREE_ICONS } from './icons';
 import { useEffect, useRef } from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { draggedGhostElementAtom, isDarkModeOnAtom } from '@/atoms';
@@ -120,7 +121,7 @@ function PierreFileTreeInner({
     // Keep every folder as its own row instead of merging single-child chains.
     flattenEmptyDirectories: false,
     stickyFolders: true,
-    icons: 'minimal',
+    icons: FILE_TREE_ICONS,
     unsafeCSS: FILE_TREE_UNSAFE_CSS,
     composition: {
       contextMenu: {
