@@ -1,11 +1,18 @@
+import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
+import {
+  getVisibleSidebarOrder,
+  mergeSidebarOrder,
+} from '@utils/sidebar-panels';
+
 import {
   type MotionValue,
+  Reorder,
   motion,
   useMotionTemplate,
   useMotionValue,
 } from 'motion/react';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { getDefaultButtonVariants } from '@/animations';
 import {
   DEFAULT_SIDEBAR_FLEX_WEIGHTS,
@@ -14,6 +21,7 @@ import {
   isFullscreenAtom,
   MIN_FLEX_WEIGHT,
   projectSettingsAtom,
+  projectSettingsLoadedAtom,
   SIDEBAR_PANEL_KEYS,
   type SidebarFlexWeights,
   type SidebarPanelKey,
@@ -33,6 +41,15 @@ import { Tooltip } from '@components/tooltip/index';
 import { cn } from '@utils/string-formatting';
 import { useWailsEvent } from '@hooks/events';
 import { isEventInCurrentWindow, SIDEBAR_FILES_OPEN } from '@utils/events';
+
+const SIDEBAR_ACCORDIONS = {
+  files: MyFilesAccordion,
+  pinned: PinnedAccordion,
+  recent: RecentAccordion,
+  kernels: MyKernelsAccordion,
+  tags: MyTagsAccordion,
+  savedSearches: MySavedSearchesAccordion,
+};
 
 export type FlexWeightMVs = Record<SidebarPanelKey, MotionValue<number>>;
 
@@ -62,8 +79,67 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
   const openState = useAtomValue(fileSidebarOpenStateAtom);
   const setOpenState = useSetAtom(fileSidebarOpenStateAtom);
   const setIsFileMaximized = useSetAtom(isFileMaximizedAtom);
-  const sidebarVisibility =
-    useAtomValue(projectSettingsAtom).appearance.sidebarVisibility;
+  const projectSettings = useAtomValue(projectSettingsAtom);
+  const setProjectSettings = useSetAtom(projectSettingsAtom);
+  const { mutate: updateSettings, isPending } =
+    useUpdateProjectSettingsMutation();
+  const settingsLoaded = useAtomValue(projectSettingsLoadedAtom);
+  const isSaving = isPending || !settingsLoaded;
+  const [draftOrder, setDraftOrder] = useState<SidebarPanelKey[] | null>(null);
+  const draftOrderRef = useRef<SidebarPanelKey[] | null>(null);
+  const order = draftOrder ?? projectSettings.appearance.sidebarOrder;
+  // Mount panels in their saved positions instead of animating from the default order.
+  const visibleOrder = settingsLoaded
+    ? getVisibleSidebarOrder(
+        order,
+        projectSettings.appearance.sidebarVisibility
+      )
+    : [];
+
+  // Preview the move locally; the ref keeps the latest order available when dragging ends.
+  function reorder(nextVisibleOrder: SidebarPanelKey[]) {
+    const nextOrder = mergeSidebarOrder(order, nextVisibleOrder);
+    draftOrderRef.current = nextOrder;
+    setDraftOrder(nextOrder);
+  }
+
+  // Save once per completed move, then clear the preview to show confirmed settings.
+  function finishDrag() {
+    const sidebarOrder = draftOrderRef.current;
+    if (!sidebarOrder || isSaving) return;
+    updateSettings(
+      {
+        newProjectSettings: {
+          ...projectSettings,
+          appearance: { ...projectSettings.appearance, sidebarOrder },
+        },
+      },
+      {
+        onSuccess: () =>
+          setProjectSettings((previous) => ({
+            ...previous,
+            appearance: { ...previous.appearance, sidebarOrder },
+          })),
+        onSettled: () => {
+          draftOrderRef.current = null;
+          setDraftOrder(null);
+        },
+      }
+    );
+  }
+
+  // Keyboard moves swap visible neighbors and use the same save path as dragging.
+  function movePanel(key: SidebarPanelKey, direction: number) {
+    if (isSaving) return;
+    const index = visibleOrder.indexOf(key);
+    const target = index + direction;
+    if (target < 0 || target >= visibleOrder.length) return;
+    const next = [...visibleOrder];
+    [next[index], next[target]] = [next[target], next[index]];
+    reorder(next);
+    finishDrag();
+  }
+
   const storedWeightsRef = useRef<SidebarFlexWeights>(loadStoredWeights());
   const sw = storedWeightsRef.current;
 
@@ -123,51 +199,32 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
             </Tooltip>
           </span>
         </header>
-        <section
+        <Reorder.Group
+          as="section"
+          axis="y"
+          values={visibleOrder}
+          onReorder={reorder}
           ref={panelContainerRef}
           className="flex flex-1 flex-col min-h-0 pb-1"
         >
-          <MyFilesAccordion
-            containerRef={panelContainerRef}
-            flexWeightMVs={flexWeightMVs}
-            storedWeightsRef={storedWeightsRef}
-          />
-          {!sidebarVisibility.hidePinned && (
-            <PinnedAccordion
-              containerRef={panelContainerRef}
-              flexWeightMVs={flexWeightMVs}
-              storedWeightsRef={storedWeightsRef}
-            />
-          )}
-          {!sidebarVisibility.hideRecent && (
-            <RecentAccordion
-              containerRef={panelContainerRef}
-              flexWeightMVs={flexWeightMVs}
-              storedWeightsRef={storedWeightsRef}
-            />
-          )}
-          {!sidebarVisibility.hideKernels && (
-            <MyKernelsAccordion
-              containerRef={panelContainerRef}
-              flexWeightMVs={flexWeightMVs}
-              storedWeightsRef={storedWeightsRef}
-            />
-          )}
-          {!sidebarVisibility.hideTags && (
-            <MyTagsAccordion
-              containerRef={panelContainerRef}
-              flexWeightMVs={flexWeightMVs}
-              storedWeightsRef={storedWeightsRef}
-            />
-          )}
-          {!sidebarVisibility.hideSavedSearches && (
-            <MySavedSearchesAccordion
-              containerRef={panelContainerRef}
-              flexWeightMVs={flexWeightMVs}
-              storedWeightsRef={storedWeightsRef}
-            />
-          )}
-        </section>
+          {visibleOrder.map((key) => {
+            const Accordion = SIDEBAR_ACCORDIONS[key];
+            return (
+              <Accordion
+                key={key}
+                reorderOptions={{
+                  visibleOrder,
+                  isSaving,
+                  onReorderEnd: finishDrag,
+                  onMovePanel: movePanel,
+                }}
+                containerRef={panelContainerRef}
+                flexWeightMVs={flexWeightMVs}
+                storedWeightsRef={storedWeightsRef}
+              />
+            );
+          })}
+        </Reorder.Group>
         <BottomItems />
       </motion.aside>
       <Spacer width={width} />

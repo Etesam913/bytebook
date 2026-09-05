@@ -4,7 +4,6 @@ import { useMove } from 'react-aria';
 import {
   fileSidebarOpenStateAtom,
   MIN_FLEX_WEIGHT,
-  SIDEBAR_PANEL_KEYS,
   type SidebarFlexWeights,
   type SidebarPanelKey,
 } from '@/atoms';
@@ -13,32 +12,15 @@ import type { FlexWeightMVs } from './index';
 
 const KEYBOARD_STEP = 8;
 
-/**
- * Returns the current index of the panelKey and the nearest open panel key above it.
- */
-function getPanelKeyLocation(
-  panelKey: SidebarPanelKey,
-  openState: Record<SidebarPanelKey, boolean>
-): { currentIndex: number; abovePanelKey: SidebarPanelKey | null } {
-  const currentIndex = SIDEBAR_PANEL_KEYS.indexOf(panelKey);
-  let abovePanelKey: SidebarPanelKey | null = null;
-  for (let i = currentIndex - 1; i >= 0; i--) {
-    const key = SIDEBAR_PANEL_KEYS[i];
-    if (openState[key]) {
-      abovePanelKey = key;
-      break;
-    }
-  }
-  return { currentIndex, abovePanelKey };
-}
-
 export function PanelResizeHandle({
   panelKey,
   containerRef,
   flexWeightMVs,
   storedWeightsRef,
+  visibleOrder,
 }: {
   panelKey: SidebarPanelKey;
+  visibleOrder: SidebarPanelKey[];
   containerRef: RefObject<HTMLElement | null>;
   flexWeightMVs: FlexWeightMVs;
   storedWeightsRef: RefObject<SidebarFlexWeights>;
@@ -55,11 +37,12 @@ export function PanelResizeHandle({
     totalDeltaY: number;
   } | null>(null);
 
-  const { currentIndex, abovePanelKey } = getPanelKeyLocation(
-    panelKey,
-    openState
-  );
-  const canResize = abovePanelKey !== null && openState[panelKey];
+  const currentIndex = visibleOrder.indexOf(panelKey);
+  const abovePanelKey = visibleOrder
+    .slice(0, currentIndex)
+    .reverse()
+    .find((key) => openState[key]);
+  const canResize = abovePanelKey !== undefined && openState[panelKey];
 
   const startMove = () => {
     if (!canResize || !abovePanelKey || !containerRef.current) return;
@@ -79,7 +62,7 @@ export function PanelResizeHandle({
     // Compute distributable space between the two panels being resized.
     // Each panel section has: resize handle (0px) + trigger button (fixed) + content (flexible).
     // We measure the content portions to get 1:1 cursor tracking.
-    const aboveIndex = SIDEBAR_PANEL_KEYS.indexOf(abovePanelKey);
+    const aboveIndex = visibleOrder.indexOf(abovePanelKey);
     const sectionEls = containerRef.current.children;
     const aboveEl = sectionEls[aboveIndex] as HTMLElement | undefined;
     const currentEl = sectionEls[currentIndex] as HTMLElement | undefined;

@@ -2,7 +2,7 @@ import { useAtom, useAtomValue } from 'jotai';
 import type { RefObject } from 'react';
 import { useRoute } from 'wouter';
 import { VirtualizedListAccordion } from '@components/virtualized/virtualized-list/accordion';
-import { AccordionButton } from '@components/accordion/accordion-button';
+import type { SidebarReorderOptions } from '@/types';
 import {
   isValidKernelLanguage,
   LANGUAGES,
@@ -54,10 +54,12 @@ export function MyKernelsAccordion({
   containerRef,
   flexWeightMVs,
   storedWeightsRef,
+  reorderOptions,
 }: {
   containerRef: RefObject<HTMLElement | null>;
   flexWeightMVs: FlexWeightMVs;
   storedWeightsRef: RefObject<SidebarFlexWeights>;
+  reorderOptions: SidebarReorderOptions;
 }) {
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
   const isOpen = openState.kernels;
@@ -74,26 +76,23 @@ export function MyKernelsAccordion({
       containerRef={containerRef}
       flexWeightMVs={flexWeightMVs}
       storedWeightsRef={storedWeightsRef}
-      trigger={
-        <AccordionButton
-          data-testid="kernels-accordion"
-          isOpen={isOpen}
-          onPress={() =>
-            setOpenState((prev) => ({
-              ...prev,
-              kernels: !prev.kernels,
-            }))
-          }
-          icon={
-            <SquareTerminal
-              width="1.25rem"
-              height="1.25rem"
-              className="will-change-transform"
-            />
-          }
-          title={'Kernels'}
-        />
-      }
+      reorderOptions={reorderOptions}
+      trigger={{
+        'data-testid': 'kernels-accordion',
+        onPress: () =>
+          setOpenState((prev) => ({
+            ...prev,
+            kernels: !prev.kernels,
+          })),
+        icon: (
+          <SquareTerminal
+            width="1.25rem"
+            height="1.25rem"
+            className="will-change-transform"
+          />
+        ),
+        title: 'Kernels',
+      }}
     >
       <VirtualizedListAccordion<Languages>
         layoutId="kernels-sidebar"

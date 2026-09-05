@@ -1,3 +1,4 @@
+import { normalizeSidebarOrder } from '@utils/sidebar-panels';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useSetAtom } from 'jotai';
 import { logger } from '@utils/logging';
@@ -137,6 +138,7 @@ function validateProjectSettingsWrapper(data: ProjectSettingsJson) {
       uiFontFamily: data.appearance.uiFontFamily ?? DEFAULT_UI_FONT_FAMILY,
       theme,
       noteWidth,
+      sidebarOrder: normalizeSidebarOrder(data.appearance.sidebarOrder),
       sidebarVisibility: {
         hidePinned: data.appearance.sidebarVisibility?.hidePinned ?? false,
         hideRecent: data.appearance.sidebarVisibility?.hideRecent ?? false,

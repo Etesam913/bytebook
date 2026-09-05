@@ -5,7 +5,7 @@ import { useTagsQuery } from '@hooks/tags';
 import { TagIcon } from '@/icons/tag';
 import { Loader } from '@/icons/loader';
 import { VirtualizedListAccordion } from '@components/virtualized/virtualized-list/accordion';
-import { AccordionButton } from '@components/accordion/accordion-button';
+import type { SidebarReorderOptions } from '@/types';
 import { TagAccordionButton } from './tag-accordion-button';
 import { fileSidebarOpenStateAtom } from '@/atoms';
 import { ErrorText } from '@components/error-text';
@@ -18,10 +18,12 @@ export function MyTagsAccordion({
   containerRef,
   flexWeightMVs,
   storedWeightsRef,
+  reorderOptions,
 }: {
   containerRef: RefObject<HTMLElement | null>;
   flexWeightMVs: FlexWeightMVs;
   storedWeightsRef: RefObject<SidebarFlexWeights>;
+  reorderOptions: SidebarReorderOptions;
 }) {
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
   const isOpen = openState.tags;
@@ -34,34 +36,29 @@ export function MyTagsAccordion({
       containerRef={containerRef}
       flexWeightMVs={flexWeightMVs}
       storedWeightsRef={storedWeightsRef}
-      trigger={
-        <AccordionButton
-          data-testid="tags-accordion"
-          isOpen={isOpen}
-          onPress={() =>
-            setOpenState((prev) => ({
-              ...prev,
-              tags: !prev.tags,
-            }))
-          }
-          icon={
-            <TagIcon
-              width="1.125rem"
-              height="1.125rem"
-              strokeWidth={1.75}
-              className="will-change-transform"
-            />
-          }
-          title={
-            <>
-              Tags{' '}
-              {hasTags && (
-                <span className="tracking-wider">({tags.length})</span>
-              )}
-            </>
-          }
-        />
-      }
+      reorderOptions={reorderOptions}
+      trigger={{
+        'data-testid': 'tags-accordion',
+        onPress: () =>
+          setOpenState((prev) => ({
+            ...prev,
+            tags: !prev.tags,
+          })),
+        icon: (
+          <TagIcon
+            width="1.125rem"
+            height="1.125rem"
+            strokeWidth={1.75}
+            className="will-change-transform"
+          />
+        ),
+        title: (
+          <>
+            Tags{' '}
+            {hasTags && <span className="tracking-wider">({tags.length})</span>}
+          </>
+        ),
+      }}
     >
       <VirtualizedListAccordion<string>
         isError={isError}

@@ -2,7 +2,7 @@ import { motion } from 'motion/react';
 import { useAtom } from 'jotai';
 import type { RefObject } from 'react';
 import { VirtualizedListAccordion } from '@components/virtualized/virtualized-list/accordion';
-import { AccordionButton } from '@components/accordion/accordion-button';
+import type { SidebarReorderOptions } from '@/types';
 import { useSavedSearchesQuery, useSavedSearchUpdates } from '@hooks/search';
 
 import { SavedSearchAccordionButton } from './saved-search-accordion-button';
@@ -19,10 +19,12 @@ export function MySavedSearchesAccordion({
   containerRef,
   flexWeightMVs,
   storedWeightsRef,
+  reorderOptions,
 }: {
   containerRef: RefObject<HTMLElement | null>;
   flexWeightMVs: FlexWeightMVs;
   storedWeightsRef: RefObject<SidebarFlexWeights>;
+  reorderOptions: SidebarReorderOptions;
 }) {
   useSavedSearchUpdates();
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
@@ -42,33 +44,30 @@ export function MySavedSearchesAccordion({
       containerRef={containerRef}
       flexWeightMVs={flexWeightMVs}
       storedWeightsRef={storedWeightsRef}
-      trigger={
-        <AccordionButton
-          data-testid="saved-searches-accordion"
-          isOpen={isOpen}
-          onPress={() =>
-            setOpenState((prev) => ({
-              ...prev,
-              savedSearches: !prev.savedSearches,
-            }))
-          }
-          icon={
-            <Box2Search
-              height="1.1875rem"
-              width="1.1875rem"
-              className="will-change-transform"
-            />
-          }
-          title={
-            <>
-              Saved Searches{' '}
-              {hasSavedSearches && (
-                <span className="tracking-wider">({savedSearches.length})</span>
-              )}
-            </>
-          }
-        />
-      }
+      reorderOptions={reorderOptions}
+      trigger={{
+        'data-testid': 'saved-searches-accordion',
+        onPress: () =>
+          setOpenState((prev) => ({
+            ...prev,
+            savedSearches: !prev.savedSearches,
+          })),
+        icon: (
+          <Box2Search
+            height="1.1875rem"
+            width="1.1875rem"
+            className="will-change-transform"
+          />
+        ),
+        title: (
+          <>
+            Saved Searches{' '}
+            {hasSavedSearches && (
+              <span className="tracking-wider">({savedSearches.length})</span>
+            )}
+          </>
+        ),
+      }}
     >
       <VirtualizedListAccordion<SavedSearch>
         isError={isError}

@@ -1,3 +1,11 @@
+import {
+  SIDEBAR_PANEL_KEYS,
+  type SidebarPanelKey,
+} from '@utils/sidebar-panels';
+export {
+  SIDEBAR_PANEL_KEYS,
+  type SidebarPanelKey,
+} from '@utils/sidebar-panels';
 import { atom } from 'jotai';
 import { atomFamily } from 'jotai-family';
 import {
@@ -89,6 +97,7 @@ export const projectSettingsAtom = atom<ProjectSettings>({
     editorFontFamily: '',
     showEmptyLinePlaceholder: true,
     showTableOfContentsByDefault: false,
+    sidebarOrder: [...SIDEBAR_PANEL_KEYS],
     sidebarVisibility: {
       hidePinned: false,
       hideRecent: false,
@@ -217,18 +226,6 @@ export const kernelInstanceForNoteAtomFamily = atomFamily(
     }),
   (a, b) => a.noteId === b.noteId && a.language === b.language
 );
-
-// All valid sidebar panel key names used to identify accordion sections.
-export const SIDEBAR_PANEL_KEYS = [
-  'files',
-  'pinned',
-  'recent',
-  'kernels',
-  'tags',
-  'savedSearches',
-] as const;
-
-export type SidebarPanelKey = (typeof SIDEBAR_PANEL_KEYS)[number];
 
 // Maps each sidebar panel key to whether its accordion section is currently expanded.
 type FileSidebarOpenState = Record<SidebarPanelKey, boolean>;

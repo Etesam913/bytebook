@@ -80,7 +80,7 @@ export function TreeSearchInput({
       <AppSearchField
         ref={inputRef}
         aria-label="Filter files"
-        placeholder="Filter files… (#tag, f:, type:)"
+        placeholder="Filter files (cmd+shift+f)"
         value={value}
         onChange={onChange}
         autoCapitalize="off"

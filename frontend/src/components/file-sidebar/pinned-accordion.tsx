@@ -7,7 +7,7 @@ import {
 } from '@/atoms';
 import { PinTack2 } from '@/icons/pin-tack-2';
 import { Folder as FolderIcon } from '@/icons/folder';
-import { AccordionButton } from '@components/accordion/accordion-button';
+import type { SidebarReorderOptions } from '@/types';
 import { AccordionItem } from '@components/accordion/accordion-item';
 import { VirtualizedListAccordion } from '@components/virtualized/virtualized-list/accordion';
 import {
@@ -24,10 +24,12 @@ export function PinnedAccordion({
   containerRef,
   flexWeightMVs,
   storedWeightsRef,
+  reorderOptions,
 }: {
   containerRef: RefObject<HTMLElement | null>;
   flexWeightMVs: FlexWeightMVs;
   storedWeightsRef: RefObject<SidebarFlexWeights>;
+  reorderOptions: SidebarReorderOptions;
 }) {
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
   const isPinnedOpen = openState.pinned;
@@ -61,26 +63,23 @@ export function PinnedAccordion({
       containerRef={containerRef}
       flexWeightMVs={flexWeightMVs}
       storedWeightsRef={storedWeightsRef}
-      trigger={
-        <AccordionButton
-          data-testid="pinned-accordion"
-          onPress={() =>
-            setOpenState((prev) => ({
-              ...prev,
-              pinned: !prev.pinned,
-            }))
-          }
-          icon={
-            <PinTack2
-              className="will-change-transform"
-              width="1.25rem"
-              height="1.25rem"
-            />
-          }
-          title="Pinned"
-          isOpen={isPinnedOpen}
-        />
-      }
+      reorderOptions={reorderOptions}
+      trigger={{
+        'data-testid': 'pinned-accordion',
+        onPress: () =>
+          setOpenState((prev) => ({
+            ...prev,
+            pinned: !prev.pinned,
+          })),
+        icon: (
+          <PinTack2
+            className="will-change-transform"
+            width="1.25rem"
+            height="1.25rem"
+          />
+        ),
+        title: 'Pinned',
+      }}
     >
       <VirtualizedListAccordion<FileOrFolderPath>
         contentType="pinned-note"

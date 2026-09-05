@@ -31,7 +31,7 @@ export function AccordionButton({
       {icon}
       <p>{title}</p>
       <motion.span
-        className="ml-auto"
+        className="ml-auto cursor-pointer"
         initial={{ rotateZ: isOpen ? 180 : 0 }}
         animate={{ rotateZ: isOpen ? 180 : 0 }}
       >

@@ -56,6 +56,11 @@ export const FILE_TREE_UNSAFE_CSS = `
     color: var(--trees-selected-fg) !important;
   }
 
+  [data-type='item'][data-item-drag-target='true']
+    [data-icon-name='file-tree-icon-chevron'] {
+    color: var(--trees-selected-fg) !important;
+  }
+
   [data-file-tree-virtualized-root='true']:has(
     [data-item-selected='true'][data-item-context-hover='true']
   )

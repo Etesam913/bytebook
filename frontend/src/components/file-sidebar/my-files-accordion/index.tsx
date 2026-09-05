@@ -3,7 +3,7 @@ import type { RefObject } from 'react';
 import { fileSidebarOpenStateAtom } from '@/atoms';
 import { VirtualizedFileTree } from '@components/virtualized/virtualized-file-tree';
 import { Note } from '@/icons/page';
-import { AccordionButton } from '@components/accordion/accordion-button';
+import type { SidebarReorderOptions } from '@/types';
 import { SidebarAccordionPanel } from '../sidebar-accordion-panel';
 import type { SidebarFlexWeights } from '@/atoms';
 import type { FlexWeightMVs } from '../index';
@@ -11,10 +11,12 @@ export function MyFilesAccordion({
   containerRef,
   flexWeightMVs,
   storedWeightsRef,
+  reorderOptions,
 }: {
   containerRef: RefObject<HTMLElement | null>;
   flexWeightMVs: FlexWeightMVs;
   storedWeightsRef: RefObject<SidebarFlexWeights>;
+  reorderOptions: SidebarReorderOptions;
 }) {
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
   const isOpen = openState.files;
@@ -26,26 +28,23 @@ export function MyFilesAccordion({
       containerRef={containerRef}
       flexWeightMVs={flexWeightMVs}
       storedWeightsRef={storedWeightsRef}
-      trigger={
-        <AccordionButton
-          isOpen={isOpen}
-          onPress={() =>
-            setOpenState((prev) => ({
-              ...prev,
-              files: !prev.files,
-            }))
-          }
-          icon={
-            <Note
-              width="1.125rem"
-              height="1.125rem"
-              strokeWidth={1.75}
-              className="will-change-transform"
-            />
-          }
-          title="Files"
-        />
-      }
+      reorderOptions={reorderOptions}
+      trigger={{
+        onPress: () =>
+          setOpenState((prev) => ({
+            ...prev,
+            files: !prev.files,
+          })),
+        icon: (
+          <Note
+            width="1.125rem"
+            height="1.125rem"
+            strokeWidth={1.75}
+            className="will-change-transform"
+          />
+        ),
+        title: 'Files',
+      }}
     >
       <div className="flex flex-1 flex-col min-h-0 overflow-hidden [scrollbar-width:none]">
         <VirtualizedFileTree />

@@ -3,7 +3,7 @@ import { type RefObject, useEffect, useRef } from 'react';
 import { fileSidebarOpenStateAtom, mostRecentItemsAtom } from '@/atoms';
 import { HourglassStart } from '@/icons/hourglass-start';
 import { AccordionItem } from '@components/accordion/accordion-item';
-import { AccordionButton } from '@components/accordion/accordion-button';
+import type { SidebarReorderOptions } from '@/types';
 import { useRecentItemFromRoute } from '@hooks/routes';
 import { motion } from 'motion/react';
 import { SidebarAccordionPanel } from './sidebar-accordion-panel';
@@ -16,10 +16,12 @@ export function RecentAccordion({
   containerRef,
   flexWeightMVs,
   storedWeightsRef,
+  reorderOptions,
 }: {
   containerRef: RefObject<HTMLElement | null>;
   flexWeightMVs: FlexWeightMVs;
   storedWeightsRef: RefObject<SidebarFlexWeights>;
+  reorderOptions: SidebarReorderOptions;
 }) {
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
   const isRecentOpen = openState.recent;
@@ -56,26 +58,23 @@ export function RecentAccordion({
       containerRef={containerRef}
       flexWeightMVs={flexWeightMVs}
       storedWeightsRef={storedWeightsRef}
-      trigger={
-        <AccordionButton
-          data-testid="recent-accordion"
-          isOpen={isRecentOpen}
-          onPress={() =>
-            setOpenState((prev) => ({
-              ...prev,
-              recent: !prev.recent,
-            }))
-          }
-          icon={
-            <HourglassStart
-              height={iconSize}
-              width={iconSize}
-              className="will-change-transform"
-            />
-          }
-          title="Recent"
-        />
-      }
+      reorderOptions={reorderOptions}
+      trigger={{
+        'data-testid': 'recent-accordion',
+        onPress: () =>
+          setOpenState((prev) => ({
+            ...prev,
+            recent: !prev.recent,
+          })),
+        icon: (
+          <HourglassStart
+            height={iconSize}
+            width={iconSize}
+            className="will-change-transform"
+          />
+        ),
+        title: 'Recent',
+      }}
     >
       <ul ref={listRef} className="pl-1 overflow-y-auto grow basis-0 min-h-0">
         {mostRecentItems.length > 0 ? (

@@ -1,3 +1,4 @@
+import type { SidebarPanelKey } from '@utils/sidebar-panels';
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import {
   AppearanceProjectSettingsJson,
@@ -64,7 +65,7 @@ export type SidebarVisibility = {
 
 type AppearanceSettings = Omit<
   AppearanceProjectSettingsJson,
-  'theme' | 'noteWidth' | 'sidebarVisibility'
+  'theme' | 'noteWidth' | 'sidebarVisibility' | 'sidebarOrder'
 > & {
   theme: 'light' | 'dark' | 'system';
   noteWidth: 'fullWidth' | 'readability';
@@ -73,6 +74,7 @@ type AppearanceSettings = Omit<
   showEmptyLinePlaceholder: boolean;
   showTableOfContentsByDefault: boolean;
   sidebarVisibility: SidebarVisibility;
+  sidebarOrder: SidebarPanelKey[];
 };
 
 type CodeSettings = Omit<
@@ -176,4 +178,11 @@ export type TrashRestoreInfo = {
   trashedPath: string;
   isFolder: boolean;
   relatedItems: TrashRestoreInfo[] | undefined;
+};
+
+export type SidebarReorderOptions = {
+  visibleOrder: SidebarPanelKey[];
+  isSaving: boolean;
+  onReorderEnd: () => void;
+  onMovePanel: (key: SidebarPanelKey, direction: number) => void;
 };
