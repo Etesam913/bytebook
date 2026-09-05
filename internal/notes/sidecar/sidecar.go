@@ -1,6 +1,6 @@
 // Package sidecar manages the JSON metadata file that lives beside every
 // project file (note or attachment). Each source file `foo.ext` has a
-// companion `.foo.json` that holds tags and any code-execution results.
+// companion `.foo.ext.json` that holds tags and any code-execution results.
 package sidecar
 
 import (
@@ -20,12 +20,9 @@ type Data struct {
 }
 
 // PathFor returns the sidecar path that pairs with filePath.
-// Example: "/x/photo.jpg" -> "/x/.photo.json".
+// Example: "/x/photo.jpg" -> "/x/.photo.jpg.json".
 func PathFor(filePath string) string {
-	dir := filepath.Dir(filePath)
-	base := filepath.Base(filePath)
-	stem := strings.TrimSuffix(base, filepath.Ext(base))
-	return filepath.Join(dir, "."+stem+".json")
+	return util.FileSidecarPath(filePath)
 }
 
 // PathForFile returns the sidecar path for a project-relative file at notes/<folder>/<fileName>.
@@ -33,20 +30,23 @@ func PathForFile(projectPath, folder, fileName string) string {
 	return PathFor(filepath.Join(projectPath, "notes", folder, fileName))
 }
 
-// IsFileName reports whether fileName matches the `.<base>.json` sidecar pattern.
+// IsFileName reports whether fileName matches the `.<filename>.json` sidecar pattern.
 func IsFileName(fileName string) bool {
 	return strings.HasPrefix(fileName, ".") && strings.HasSuffix(fileName, ".json") && len(fileName) > len(".json")+1
 }
 
 // NotePathFromPath converts a sidecar path back to its associated `.md` note path.
-// Used by the watcher to refresh code-results when a sidecar changes; for non-md
-// sidecars the caller will detect the missing note via os.Stat and bail.
+// Used by the watcher to refresh code-results when a sidecar changes.
+// Returns an empty string for attachment sidecars.
 func NotePathFromPath(sidecarPath string) string {
 	fileName := filepath.Base(sidecarPath)
 	if !IsFileName(fileName) {
 		return ""
 	}
-	noteName := strings.TrimSuffix(strings.TrimPrefix(fileName, "."), ".json") + ".md"
+	noteName := strings.TrimSuffix(strings.TrimPrefix(fileName, "."), ".json")
+	if !strings.EqualFold(filepath.Ext(noteName), ".md") {
+		return ""
+	}
 	return filepath.Join(filepath.Dir(sidecarPath), noteName)
 }
 

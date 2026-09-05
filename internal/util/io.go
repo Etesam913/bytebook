@@ -278,12 +278,9 @@ type TrashRestoreInfo struct {
 	RelatedItems []TrashRestoreInfo `json:"relatedItems,omitempty"`
 }
 
-func codeResultsSidecarPathForNote(notePath string) string {
-	dir := filepath.Dir(notePath)
-	fileName := filepath.Base(notePath)
-	extension := filepath.Ext(fileName)
-	baseName := fileName[:len(fileName)-len(extension)]
-	return filepath.Join(dir, "."+baseName+".json")
+// FileSidecarPath returns the hidden metadata path for a file, preserving its extension.
+func FileSidecarPath(filePath string) string {
+	return filepath.Join(filepath.Dir(filePath), "."+filepath.Base(filePath)+".json")
 }
 
 func resolveTrashDir(homeDir string) string {
@@ -442,7 +439,7 @@ func MoveNotesToTrash(projectPath string, folderAndNotes []string) ([]TrashResto
 
 		var relatedItems []TrashRestoreInfo
 		if strings.EqualFold(filepath.Ext(fullPath), ".md") {
-			sidecarPath := codeResultsSidecarPathForNote(fullPath)
+			sidecarPath := FileSidecarPath(fullPath)
 			if sidecarExists, err := FileOrFolderExists(sidecarPath); err != nil {
 				failed = append(failed, fileName)
 				continue

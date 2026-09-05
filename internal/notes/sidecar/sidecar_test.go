@@ -11,7 +11,8 @@ import (
 
 func TestPathFor(t *testing.T) {
 	notePath := filepath.Join("notes", "folder", "note.md")
-	assert.Equal(t, filepath.Join("notes", "folder", ".note.json"), PathFor(notePath))
+	assert.Equal(t, filepath.Join("notes", "folder", ".note.md.json"), PathFor(notePath))
+	assert.Equal(t, filepath.Join("notes", ".Makefile.json"), PathFor(filepath.Join("notes", "Makefile")))
 }
 
 func TestPathForFile(t *testing.T) {
@@ -27,21 +28,21 @@ func TestPathForFile(t *testing.T) {
 			projectPath: "/project",
 			folder:      "folder1",
 			fileName:    "photo.jpg",
-			expected:    filepath.Join("/project", "notes", "folder1", ".photo.json"),
+			expected:    filepath.Join("/project", "notes", "folder1", ".photo.jpg.json"),
 		},
 		{
 			name:        "file with multiple dots",
 			projectPath: "/project",
 			folder:      "docs",
 			fileName:    "file.name.png",
-			expected:    filepath.Join("/project", "notes", "docs", ".file.name.json"),
+			expected:    filepath.Join("/project", "notes", "docs", ".file.name.png.json"),
 		},
 		{
 			name:        "empty folder",
 			projectPath: "/project",
 			folder:      "",
 			fileName:    "image.gif",
-			expected:    filepath.Join("/project", "notes", ".image.json"),
+			expected:    filepath.Join("/project", "notes", ".image.gif.json"),
 		},
 	}
 
@@ -54,8 +55,9 @@ func TestPathForFile(t *testing.T) {
 }
 
 func TestIsFileName(t *testing.T) {
-	assert.True(t, IsFileName(".note.json"))
-	assert.True(t, IsFileName(".file.name.json"))
+	assert.True(t, IsFileName(".note.md.json"))
+	assert.True(t, IsFileName(".file.name.png.json"))
+	assert.True(t, IsFileName(".Makefile.json"))
 	assert.False(t, IsFileName("note.json"))
 	assert.False(t, IsFileName(".json"))
 	assert.False(t, IsFileName(".note.txt"))
@@ -65,9 +67,81 @@ func TestNotePathFromPath(t *testing.T) {
 	assert.Equal(
 		t,
 		filepath.Join("folder", "note.md"),
-		NotePathFromPath(filepath.Join("folder", ".note.json")),
+		NotePathFromPath(filepath.Join("folder", ".note.md.json")),
 	)
+	assert.Equal(t, filepath.Join("folder", "note.name.MD"), NotePathFromPath(filepath.Join("folder", ".note.name.MD.json")))
+	assert.Empty(t, NotePathFromPath(filepath.Join("folder", ".note.pdf.json")))
+	assert.Empty(t, NotePathFromPath(filepath.Join("folder", ".note.json")))
+	assert.Empty(t, NotePathFromPath(filepath.Join("folder", ".Makefile.json")))
 	assert.Empty(t, NotePathFromPath(filepath.Join("folder", "note.json")))
+}
+
+func setupSameStemFiles(t *testing.T) string {
+	t.Helper()
+	projectPath := setupTestDir(t)
+	for _, name := range []string{"report.md", "report.pdf", "report.png"} {
+		filePath := filepath.Join(projectPath, "notes", "testfolder", name)
+		require.NoError(t, os.WriteFile(filePath, []byte(name), 0644))
+		require.NoError(t, WriteTags(projectPath, "testfolder", name, []string{name}))
+	}
+	require.NoError(t, WriteCodeResults(filepath.Join(projectPath, "notes", "testfolder", "report.md"), CodeResults{
+		CodeBlocks: []CodeBlock{{CodeBlockID: "result", ResultHTML: "<div>saved</div>"}},
+	}))
+	return projectPath
+}
+
+func TestSameStemFiles(t *testing.T) {
+	t.Run("keep separate tags and note results", func(t *testing.T) {
+		projectPath := setupSameStemFiles(t)
+
+		for _, name := range []string{"report.md", "report.pdf", "report.png"} {
+			tags, err := ReadTags(projectPath, "testfolder", name)
+			require.NoError(t, err)
+			assert.Equal(t, []string{name}, tags)
+			assert.FileExists(t, filepath.Join(projectPath, "notes", "testfolder", "."+name+".json"))
+		}
+		results, err := ReadCodeResults(filepath.Join(projectPath, "notes", "testfolder", "report.md"))
+		require.NoError(t, err)
+		require.Len(t, results.CodeBlocks, 1)
+		assert.Equal(t, "<div>saved</div>", results.CodeBlocks[0].ResultHTML)
+	})
+
+	t.Run("deleting attachment metadata preserves its siblings", func(t *testing.T) {
+		projectPath := setupSameStemFiles(t)
+
+		require.NoError(t, Delete(projectPath, "testfolder", "report.pdf"))
+
+		assert.NoFileExists(t, filepath.Join(projectPath, "notes", "testfolder", ".report.pdf.json"))
+		for _, name := range []string{"report.md", "report.png"} {
+			tags, err := ReadTags(projectPath, "testfolder", name)
+			require.NoError(t, err)
+			assert.Equal(t, []string{name}, tags)
+		}
+		results, err := ReadCodeResults(filepath.Join(projectPath, "notes", "testfolder", "report.md"))
+		require.NoError(t, err)
+		assert.Len(t, results.CodeBlocks, 1)
+	})
+
+	t.Run("renaming note metadata preserves its siblings", func(t *testing.T) {
+		projectPath := setupSameStemFiles(t)
+		oldPath := filepath.Join(projectPath, "notes", "testfolder", "report.md")
+		newPath := filepath.Join(projectPath, "notes", "testfolder", "renamed.md")
+
+		require.NoError(t, Move(oldPath, newPath))
+
+		assert.NoFileExists(t, filepath.Join(projectPath, "notes", "testfolder", ".report.md.json"))
+		tags, err := ReadTags(projectPath, "testfolder", "renamed.md")
+		require.NoError(t, err)
+		assert.Equal(t, []string{"report.md"}, tags)
+		results, err := ReadCodeResults(newPath)
+		require.NoError(t, err)
+		assert.Len(t, results.CodeBlocks, 1)
+		for _, name := range []string{"report.pdf", "report.png"} {
+			tags, err := ReadTags(projectPath, "testfolder", name)
+			require.NoError(t, err)
+			assert.Equal(t, []string{name}, tags)
+		}
+	})
 }
 
 func setupTestDir(t *testing.T) string {

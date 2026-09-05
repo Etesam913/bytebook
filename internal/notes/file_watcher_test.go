@@ -23,7 +23,8 @@ func TestShouldIgnoreFile(t *testing.T) {
 	})
 
 	t.Run("should not ignore json sidecars", func(t *testing.T) {
-		assert.False(t, shouldIgnoreFile(".note.json"))
+		assert.False(t, shouldIgnoreFile(".note.md.json"))
+		assert.False(t, shouldIgnoreFile(".note.pdf.json"))
 	})
 
 	t.Run("should ignore hidden markdown files", func(t *testing.T) {

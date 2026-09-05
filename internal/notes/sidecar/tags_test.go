@@ -55,7 +55,7 @@ func TestReadTags(t *testing.T) {
 
 	t.Run("reads existing sidecar", func(t *testing.T) {
 		projectPath := setupTestDir(t)
-		sidecarPath := filepath.Join(projectPath, "notes", "testfolder", ".photo.json")
+		sidecarPath := filepath.Join(projectPath, "notes", "testfolder", ".photo.jpg.json")
 		require.NoError(t, os.WriteFile(sidecarPath, []byte(`{"tags":["tag1","tag2"]}`), 0644))
 
 		tags, err := ReadTags(projectPath, "testfolder", "photo.jpg")
@@ -65,7 +65,7 @@ func TestReadTags(t *testing.T) {
 
 	t.Run("returns error for invalid json", func(t *testing.T) {
 		projectPath := setupTestDir(t)
-		sidecarPath := filepath.Join(projectPath, "notes", "testfolder", ".photo.json")
+		sidecarPath := filepath.Join(projectPath, "notes", "testfolder", ".photo.jpg.json")
 		require.NoError(t, os.WriteFile(sidecarPath, []byte(`invalid json`), 0644))
 
 		_, err := ReadTags(projectPath, "testfolder", "photo.jpg")

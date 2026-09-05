@@ -633,6 +633,37 @@ func TestMoveFile(t *testing.T) {
 	})
 }
 
+func TestMoveNotesToTrashWithFullFilenameSidecar(t *testing.T) {
+	projectPath := t.TempDir()
+	notesPath := filepath.Join(projectPath, "notes")
+	require.NoError(t, os.MkdirAll(notesPath, 0755))
+	t.Setenv("BYTEBOOK_TRASH_DIR", filepath.Join(t.TempDir(), "trash"))
+	t.Setenv("XDG_DATA_HOME", t.TempDir())
+	notePath := filepath.Join(notesPath, "report.md")
+	noteSidecarPath := filepath.Join(notesPath, ".report.md.json")
+	attachmentSidecarPath := filepath.Join(notesPath, ".report.pdf.json")
+	require.NoError(t, os.WriteFile(notePath, []byte("# Report"), 0644))
+	require.NoError(t, os.WriteFile(noteSidecarPath, []byte(`{"codeResults":{"codeBlocks":[]}}`), 0644))
+	require.NoError(t, os.WriteFile(attachmentSidecarPath, []byte(`{"tags":["attachment"]}`), 0644))
+
+	restoreItems, err := MoveNotesToTrash(projectPath, []string{"report.md"})
+
+	require.NoError(t, err)
+	require.Len(t, restoreItems, 1)
+	require.Len(t, restoreItems[0].RelatedItems, 1)
+	assert.Equal(t, noteSidecarPath, restoreItems[0].RelatedItems[0].OriginalPath)
+	assert.NoFileExists(t, notePath)
+	assert.NoFileExists(t, noteSidecarPath)
+	assert.FileExists(t, attachmentSidecarPath)
+
+	if runtime.GOOS == "darwin" {
+		require.NoError(t, RestoreNotesFromTrash(projectPath, restoreItems))
+		assert.FileExists(t, notePath)
+		assert.FileExists(t, noteSidecarPath)
+		assert.FileExists(t, attachmentSidecarPath)
+	}
+}
+
 func TestMoveToTrash(t *testing.T) {
 	t.Run("Successfully moves file to trash", func(t *testing.T) {
 		// Create test file
