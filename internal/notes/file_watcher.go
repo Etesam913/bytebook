@@ -550,7 +550,15 @@ func (fw *FileWatcher) emitFileWriteEvent(filePath string) {
 
 // processEvent handles a single filesystem event
 func (fw *FileWatcher) processEvent(event fsnotify.Event) {
-	// log.Println("event:", event, filepath.Ext(event.Name))
+	// The search directory also contains index data and temporary atomic writes.
+	// Only the saved-search file should produce application events here.
+	projectSearchRoot := filepath.Join(fw.projectPath, "search")
+	if event.Name == projectSearchRoot || strings.HasPrefix(event.Name, projectSearchRoot+string(os.PathSeparator)) {
+		if event.Name == filepath.Join(projectSearchRoot, "saved-searches.json") {
+			fw.handleSavedSearchUpdate(event)
+		}
+		return
+	}
 
 	isDir := fw.isDirectoryEvent(event)
 
@@ -572,11 +580,9 @@ func (fw *FileWatcher) processEvent(event fsnotify.Event) {
 	}
 
 	projectSettingsRoot := filepath.Join(fw.projectPath, "settings")
-	projectSavedSearchesPath := filepath.Join(fw.projectPath, "search", "saved-searches.json")
 
 	isProjectSettingsEvent := event.Name == projectSettingsRoot ||
 		strings.HasPrefix(event.Name, projectSettingsRoot+string(os.PathSeparator))
-	isProjectSavedSearchesEvent := event.Name == projectSavedSearchesPath
 
 	// We can ignore chmod events unless they target the project settings folder.
 	// settings.json is written atomically (write temp + rename), which surfaces as Chmod.
@@ -591,8 +597,6 @@ func (fw *FileWatcher) processEvent(event fsnotify.Event) {
 		// Handle file events
 		if isProjectSettingsEvent {
 			fw.handleSettingsUpdate()
-		} else if isProjectSavedSearchesEvent {
-			fw.handleSavedSearchUpdate(event)
 		} else {
 			fw.handleFileEvents(event)
 		}
@@ -845,11 +849,11 @@ func LaunchFileWatcher(app *application.App, projectPath string, watcher *fsnoti
 
 // AddProjectFoldersToWatcher sets up watchers for the essential project folders.
 func AddProjectFoldersToWatcher(projectPath string, watcher *fsnotify.Watcher) {
-	// Always watch the settings folder and saved searches file.
+	// Watch parent directories so atomic file replacements do not lose the watch.
 	settingsPath := filepath.Join(projectPath, "settings")
-	savedSearchesPath := filepath.Join(projectPath, "search", "saved-searches.json")
+	searchPath := filepath.Join(projectPath, "search")
 
-	pathsToWatch := []string{settingsPath, savedSearchesPath}
+	pathsToWatch := []string{settingsPath, searchPath}
 
 	// Watch the notes root. Subtree watches are added progressively by the bulk import coordinator.
 	notesFolderPath := filepath.Join(projectPath, "notes")

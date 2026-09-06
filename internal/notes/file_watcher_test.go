@@ -9,6 +9,7 @@ import (
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/fsnotify/fsnotify"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestShouldIgnoreFile(t *testing.T) {
@@ -61,8 +62,8 @@ func setupProjectFolders(t *testing.T) (string, string, string, string, string) 
 }
 
 func TestAddProjectFoldersToWatcher(t *testing.T) {
-	t.Run("should watch settings, saved-searches.json, and notes root", func(t *testing.T) {
-		testDir, settingsDir, notesDir, _, savedSearchesPath := setupProjectFolders(t)
+	t.Run("should watch settings, search, and notes root", func(t *testing.T) {
+		testDir, settingsDir, notesDir, searchDir, _ := setupProjectFolders(t)
 		alphaDir := filepath.Join(notesDir, "alpha")
 		betaDir := filepath.Join(alphaDir, "beta")
 		gammaDir := filepath.Join(notesDir, "gamma")
@@ -92,7 +93,7 @@ func TestAddProjectFoldersToWatcher(t *testing.T) {
 		assert.Len(t, watchList, 3)
 		assert.Contains(t, watchList, notesDir)
 		assert.Contains(t, watchList, settingsDir)
-		assert.Contains(t, watchList, savedSearchesPath)
+		assert.Contains(t, watchList, searchDir)
 
 		// Should NOT include any files
 		assert.NotContains(t, watchList, alphaDir)
@@ -104,7 +105,7 @@ func TestAddProjectFoldersToWatcher(t *testing.T) {
 	})
 
 	t.Run("should not watch any files in notes/ at startup", func(t *testing.T) {
-		testDir, settingsDir, notesDir, _, savedSearchesPath := setupProjectFolders(t)
+		testDir, settingsDir, notesDir, searchDir, _ := setupProjectFolders(t)
 
 		// Create files that would have been watched in the old implementation
 		dsStorePath := filepath.Join(notesDir, ".DS_Store")
@@ -128,11 +129,11 @@ func TestAddProjectFoldersToWatcher(t *testing.T) {
 		AddProjectFoldersToWatcher(testDir, watcher)
 
 		watchList := watcher.WatchList()
-		// Should include settings, notes root (no subfolders here), and saved-searches.json
+		// Should include settings, notes root (no subfolders here), and search
 		assert.Len(t, watchList, 3)
 		assert.Contains(t, watchList, notesDir)
 		assert.Contains(t, watchList, settingsDir)
-		assert.Contains(t, watchList, savedSearchesPath)
+		assert.Contains(t, watchList, searchDir)
 
 		// None of the files should be watched
 		assert.NotContains(t, watchList, dsStorePath)
@@ -142,7 +143,7 @@ func TestAddProjectFoldersToWatcher(t *testing.T) {
 	})
 
 	t.Run("should handle empty notes directory", func(t *testing.T) {
-		testDir, settingsDir, notesDir, _, savedSearchesPath := setupProjectFolders(t)
+		testDir, settingsDir, notesDir, searchDir, _ := setupProjectFolders(t)
 
 		watcher, err := fsnotify.NewWatcher()
 		assert.NoError(t, err)
@@ -151,11 +152,11 @@ func TestAddProjectFoldersToWatcher(t *testing.T) {
 		AddProjectFoldersToWatcher(testDir, watcher)
 
 		watchList := watcher.WatchList()
-		// Should only include: settingsDir, notesDir, savedSearchesPath
+		// Should only include: settingsDir, notesDir, searchDir
 		assert.Equal(t, 3, len(watchList))
 		assert.Contains(t, watchList, notesDir)
 		assert.Contains(t, watchList, settingsDir)
-		assert.Contains(t, watchList, savedSearchesPath)
+		assert.Contains(t, watchList, searchDir)
 	})
 }
 
@@ -609,4 +610,92 @@ func TestOrderedDebouncedEventKeys(t *testing.T) {
 		util.EventFileCreate,
 		"custom:event",
 	}, orderedDebouncedEventKeys(events))
+}
+
+func waitForSavedSearchEvent(t *testing.T, watcher *fsnotify.Watcher, path string, op fsnotify.Op) {
+	t.Helper()
+	timer := time.NewTimer(3 * time.Second)
+	defer timer.Stop()
+	for {
+		select {
+		case event, ok := <-watcher.Events:
+			require.True(t, ok, "watcher closed before %s", op)
+			if event.Name == path && event.Has(op) {
+				return
+			}
+		case err := <-watcher.Errors:
+			t.Fatalf("watcher error: %v", err)
+		case <-timer.C:
+			t.Fatalf("timed out waiting for %s on %s", op, path)
+		}
+	}
+}
+
+func TestSavedSearchDirectoryWatch(t *testing.T) {
+	t.Run("receives consecutive atomic saves", func(t *testing.T) {
+		projectPath, _, _, _, savedSearchesPath := setupProjectFolders(t)
+		watcher, err := fsnotify.NewWatcher()
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = watcher.Close() })
+		AddProjectFoldersToWatcher(projectPath, watcher)
+
+		require.NoError(t, util.WriteJsonToPath(savedSearchesPath, map[string]int{"revision": 1}))
+
+		waitForSavedSearchEvent(t, watcher, savedSearchesPath, fsnotify.Create)
+
+		require.NoError(t, util.WriteJsonToPath(savedSearchesPath, map[string]int{"revision": 2}))
+
+		waitForSavedSearchEvent(t, watcher, savedSearchesPath, fsnotify.Create)
+
+		require.NoError(t, util.WriteJsonToPath(savedSearchesPath, map[string]int{"revision": 3}))
+
+		waitForSavedSearchEvent(t, watcher, savedSearchesPath, fsnotify.Create)
+	})
+
+	t.Run("receives deletion followed by recreation", func(t *testing.T) {
+		projectPath, _, _, _, savedSearchesPath := setupProjectFolders(t)
+		watcher, err := fsnotify.NewWatcher()
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = watcher.Close() })
+		AddProjectFoldersToWatcher(projectPath, watcher)
+
+		require.NoError(t, os.Remove(savedSearchesPath))
+
+		waitForSavedSearchEvent(t, watcher, savedSearchesPath, fsnotify.Remove)
+
+		require.NoError(t, util.WriteJsonToPath(savedSearchesPath, map[string]int{"revision": 4}))
+
+		waitForSavedSearchEvent(t, watcher, savedSearchesPath, fsnotify.Create)
+	})
+
+	t.Run("watches for the first save when the file does not exist at startup", func(t *testing.T) {
+		projectPath, _, _, _, savedSearchesPath := setupProjectFolders(t)
+		require.NoError(t, os.Remove(savedSearchesPath))
+		watcher, err := fsnotify.NewWatcher()
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = watcher.Close() })
+		AddProjectFoldersToWatcher(projectPath, watcher)
+
+		require.NoError(t, util.WriteJsonToPath(savedSearchesPath, map[string]int{"revision": 1}))
+
+		waitForSavedSearchEvent(t, watcher, savedSearchesPath, fsnotify.Create)
+	})
+
+	t.Run("ignores unrelated files and directories in the search directory", func(t *testing.T) {
+		projectPath, _, _, searchDir, _ := setupProjectFolders(t)
+		indexDir := filepath.Join(searchDir, "index.bleve")
+		require.NoError(t, os.Mkdir(indexDir, 0755))
+		fw := newTestFileWatcher(t, projectPath)
+
+		fw.processEvent(fsnotify.Event{Name: indexDir, Op: fsnotify.Create})
+		fw.processEvent(fsnotify.Event{Name: filepath.Join(searchDir, "saved-searches.json.tmp"), Op: fsnotify.Create})
+		fw.processEvent(fsnotify.Event{Name: filepath.Join(searchDir, ".tmp-123"), Op: fsnotify.Rename})
+		fw.processEvent(fsnotify.Event{Name: filepath.Join(searchDir, "store"), Op: fsnotify.Remove})
+
+		assert.Empty(t, fw.debounceEvents)
+		assert.Empty(t, fw.mostRecentFileCreatedEvents)
+		assert.Empty(t, fw.mostRecentFolderCreatedEvents)
+		assert.Empty(t, fw.pendingFileRenameEvents)
+		assert.Empty(t, fw.watcher.WatchList())
+	})
 }
