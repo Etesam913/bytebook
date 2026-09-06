@@ -7,6 +7,7 @@ import (
 
 	index "github.com/blevesearch/bleve_index_api"
 	"github.com/etesam913/bytebook/internal/search"
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -39,9 +40,9 @@ func TestAddCreatedNotesToIndex(t *testing.T) {
 		createNoteFile(t, notesDir, "folder1", "note1.md", "# Note 1\nContent here")
 		createNoteFile(t, notesDir, "folder1", "note2.md", "# Note 2\nMore content")
 
-		data := []map[string]string{
-			{"folder": "folder1", "note": "note1.md"},
-			{"folder": "folder1", "note": "note2.md"},
+		data := []util.FileCreateEventData{
+			{FilePath: "folder1/note1.md"},
+			{FilePath: "folder1/note2.md"},
 		}
 
 		addCreatedNotesToIndex(params, data)
@@ -52,20 +53,6 @@ func TestAddCreatedNotesToIndex(t *testing.T) {
 
 		doc2, _ := rawIndex(params).Document("folder1/note2.md")
 		assert.NotNil(t, doc2)
-	})
-
-	t.Run("should skip invalid entries", func(t *testing.T) {
-		params := createTestParams(t)
-		notesDir := setupNotesDir(t, params.ProjectPath)
-		createNoteFile(t, notesDir, "folder1", "valid.md", "# Valid")
-
-		data := []map[string]string{
-			{"folder": "folder1", "note": "valid.md"},
-			{"folder": "folder1"}, // Missing note
-		}
-
-		// Should not panic - will return early on missing note
-		addCreatedNotesToIndex(params, data)
 	})
 }
 
@@ -78,18 +65,16 @@ func TestRenameFilesInIndex(t *testing.T) {
 		createNoteFile(t, notesDir, "folder1", "old-note.md", "# Old Note")
 
 		// Add to index
-		addData := []map[string]string{{"folder": "folder1", "note": "old-note.md"}}
+		addData := []util.FileCreateEventData{{FilePath: "folder1/old-note.md"}}
 		addCreatedNotesToIndex(params, addData)
 
 		// Create the renamed file
 		createNoteFile(t, notesDir, "folder1", "new-note.md", "# Old Note")
 
 		// Rename in index
-		renameData := []map[string]string{{
-			"oldFolder": "folder1",
-			"oldNote":   "old-note.md",
-			"newFolder": "folder1",
-			"newNote":   "new-note.md",
+		renameData := []util.FileRenameEventData{{
+			OldFilePath: "folder1/old-note.md",
+			NewFilePath: "folder1/new-note.md",
 		}}
 		renameFilesInIndex(params, renameData)
 
@@ -100,18 +85,6 @@ func TestRenameFilesInIndex(t *testing.T) {
 		// New note should exist
 		newDoc, _ := rawIndex(params).Document("folder1/new-note.md")
 		assert.NotNil(t, newDoc)
-	})
-
-	t.Run("should skip invalid entries", func(t *testing.T) {
-		params := createTestParams(t)
-
-		data := []map[string]string{
-			{"oldFolder": "f1", "oldNote": "n.md", "newFolder": "f1"}, // Missing newNote
-			{"oldFolder": "f1"}, // Missing multiple fields
-		}
-
-		// Should not panic
-		renameFilesInIndex(params, data)
 	})
 }
 
@@ -124,14 +97,14 @@ func TestDeleteNotesFromIndex(t *testing.T) {
 		createNoteFile(t, notesDir, "folder1", "note1.md", "# Note 1")
 		createNoteFile(t, notesDir, "folder1", "note2.md", "# Note 2")
 
-		addData := []map[string]string{
-			{"folder": "folder1", "note": "note1.md"},
-			{"folder": "folder1", "note": "note2.md"},
+		addData := []util.FileCreateEventData{
+			{FilePath: "folder1/note1.md"},
+			{FilePath: "folder1/note2.md"},
 		}
 		addCreatedNotesToIndex(params, addData)
 
 		// Delete note1
-		deleteData := []map[string]string{{"folder": "folder1", "note": "note1.md"}}
+		deleteData := []util.FileDeleteEventData{{FilePath: "folder1/note1.md"}}
 		deleteNotesFromIndex(params, deleteData)
 
 		// note1 should be gone, note2 should remain
@@ -151,7 +124,7 @@ func TestUpdateNotesInIndex(t *testing.T) {
 		// Create and add note
 		createNoteFile(t, notesDir, "folder1", "note.md", "# Original Content")
 
-		addData := []map[string]string{{"folder": "folder1", "note": "note.md"}}
+		addData := []util.FileCreateEventData{{FilePath: "folder1/note.md"}}
 		addCreatedNotesToIndex(params, addData)
 
 		// Update the file content
@@ -160,7 +133,7 @@ func TestUpdateNotesInIndex(t *testing.T) {
 		require.NoError(t, err)
 
 		// Update in index
-		updateData := []map[string]string{{"folder": "folder1", "note": "note.md"}}
+		updateData := []util.FileWriteEventData{{FilePath: "folder1/note.md"}}
 		updateNotesInIndex(params, updateData)
 
 		// Verify note is still indexed
@@ -174,7 +147,7 @@ func TestUpdateNotesInIndex(t *testing.T) {
 
 		createNoteFile(t, notesDir, "folder1", "video.mov", "binary-video-bytes")
 
-		updateData := []map[string]string{{"folder": "folder1", "note": "video.mov"}}
+		updateData := []util.FileWriteEventData{{FilePath: "folder1/video.mov"}}
 		updateNotesInIndex(params, updateData)
 
 		doc, err := rawIndex(params).Document("folder1/video.mov")
@@ -187,45 +160,5 @@ func TestUpdateNotesInIndex(t *testing.T) {
 		})
 		assert.Equal(t, search.ATTACHMENT_TYPE, fields["type"])
 		assert.NotContains(t, fields, "text_content")
-	})
-
-	t.Run("should skip invalid entries", func(t *testing.T) {
-		params := createTestParams(t)
-
-		data := []map[string]string{
-			{"folder": "f1"},  // Missing note
-			{"note": "n1.md"}, // Missing folder
-		}
-
-		// Should not panic
-		updateNotesInIndex(params, data)
-	})
-}
-
-func TestFilePathToFolderNote(t *testing.T) {
-	t.Run("converts a file path into folder and note fields", func(t *testing.T) {
-		assert.Equal(t, map[string]string{
-			"folder":   "folder1",
-			"note":     "note.md",
-			"markdown": "# Note",
-		}, filePathToFolderNote("folder1/note.md", "# Note"))
-	})
-
-	t.Run("omits markdown when empty", func(t *testing.T) {
-		assert.Equal(t, map[string]string{
-			"folder": ".",
-			"note":   "root.md",
-		}, filePathToFolderNote("root.md", ""))
-	})
-}
-
-func TestRenamePathsToFolderNote(t *testing.T) {
-	t.Run("converts old and new file paths into folder and note fields", func(t *testing.T) {
-		assert.Equal(t, map[string]string{
-			"oldFolder": "folder1",
-			"oldNote":   "old.md",
-			"newFolder": "folder2",
-			"newNote":   "new.md",
-		}, renamePathsToFolderNote("folder1/old.md", "folder2/new.md"))
 	})
 }

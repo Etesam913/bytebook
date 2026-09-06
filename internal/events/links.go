@@ -35,7 +35,7 @@ func EncodeLinkSegment(s string) string {
 // renamed files and updates those links to reflect the new paths.
 // It queries the bleve index to efficiently locate notes with matching links,
 // then uses bounded parallelism to read/modify/write the affected files.
-func replaceLocalLinksInNotes(params EventParams, data []map[string]string) {
+func replaceLocalLinksInNotes(params EventParams, data []util.FileRenameEventData) {
 	if params.Index == nil {
 		return
 	}
@@ -48,25 +48,8 @@ func replaceLocalLinksInNotes(params EventParams, data []map[string]string) {
 	var replacements []linkReplacement
 
 	for _, note := range data {
-		oldFolder, ok := note["oldFolder"]
-		if !ok {
-			continue
-		}
-		oldNoteName, ok := note["oldNote"]
-		if !ok {
-			continue
-		}
-		newFolder, ok := note["newFolder"]
-		if !ok {
-			continue
-		}
-		newNoteName, ok := note["newNote"]
-		if !ok {
-			continue
-		}
-
-		oldURLPath := "/notes/" + EncodeLinkSegment(oldFolder) + "/" + EncodeLinkSegment(oldNoteName)
-		newURLPath := "/notes/" + EncodeLinkSegment(newFolder) + "/" + EncodeLinkSegment(newNoteName)
+		oldURLPath := noteLinkPath(note.OldFilePath)
+		newURLPath := noteLinkPath(note.NewFilePath)
 
 		if oldURLPath != newURLPath {
 			replacements = append(replacements, linkReplacement{oldURLPath, newURLPath})
@@ -128,6 +111,15 @@ func replaceLocalLinksInNotes(params EventParams, data []map[string]string) {
 	if err := workerGroup.Wait(); err != nil {
 		log.Printf("Error during link replacement: %v", err)
 	}
+}
+
+// noteLinkPath encodes each segment of a notes-relative path for a markdown link.
+func noteLinkPath(filePath string) string {
+	segments := strings.Split(filepath.ToSlash(filePath), "/")
+	for i, segment := range segments {
+		segments[i] = EncodeLinkSegment(segment)
+	}
+	return "/notes/" + strings.Join(segments, "/")
 }
 
 // FindNotesWithLink queries the bleve index for markdown notes whose links field

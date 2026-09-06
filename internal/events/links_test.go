@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -59,20 +60,18 @@ func TestReplaceLocalLinksInNotes(t *testing.T) {
 		createMarkdownNoteInFolder(t, params.ProjectPath, "folder1", "linking.md", linkingContent)
 
 		// Index both notes so the links field is populated
-		addData := []map[string]string{
-			{"folder": "folder1", "note": "target.md"},
-			{"folder": "folder1", "note": "linking.md"},
+		addData := []util.FileCreateEventData{
+			{FilePath: "folder1/target.md"},
+			{FilePath: "folder1/linking.md"},
 		}
 		addCreatedNotesToIndex(params, addData)
 
 		// Simulate renaming target.md -> renamed.md
 		createMarkdownNoteInFolder(t, params.ProjectPath, "folder1", "renamed.md", "# Target")
 
-		renameData := []map[string]string{{
-			"oldFolder": "folder1",
-			"oldNote":   "target.md",
-			"newFolder": "folder1",
-			"newNote":   "renamed.md",
+		renameData := []util.FileRenameEventData{{
+			OldFilePath: "folder1/target.md",
+			NewFilePath: "folder1/renamed.md",
 		}}
 
 		replaceLocalLinksInNotes(params, renameData)
@@ -92,19 +91,17 @@ func TestReplaceLocalLinksInNotes(t *testing.T) {
 		linkingContent := "# Index\nRef: [doc](/notes/src/doc.md)"
 		createMarkdownNoteInFolder(t, params.ProjectPath, "index", "main.md", linkingContent)
 
-		addData := []map[string]string{
-			{"folder": "src", "note": "doc.md"},
-			{"folder": "index", "note": "main.md"},
+		addData := []util.FileCreateEventData{
+			{FilePath: "src/doc.md"},
+			{FilePath: "index/main.md"},
 		}
 		addCreatedNotesToIndex(params, addData)
 
 		createMarkdownNoteInFolder(t, params.ProjectPath, "dest", "doc.md", "# Doc")
 
-		renameData := []map[string]string{{
-			"oldFolder": "src",
-			"oldNote":   "doc.md",
-			"newFolder": "dest",
-			"newNote":   "doc.md",
+		renameData := []util.FileRenameEventData{{
+			OldFilePath: "src/doc.md",
+			NewFilePath: "dest/doc.md",
 		}}
 
 		replaceLocalLinksInNotes(params, renameData)
@@ -122,16 +119,14 @@ func TestReplaceLocalLinksInNotes(t *testing.T) {
 		originalContent := "# Unrelated\nNo links here."
 		createMarkdownNoteInFolder(t, params.ProjectPath, "folder1", "unrelated.md", originalContent)
 
-		addData := []map[string]string{
-			{"folder": "folder1", "note": "unrelated.md"},
+		addData := []util.FileCreateEventData{
+			{FilePath: "folder1/unrelated.md"},
 		}
 		addCreatedNotesToIndex(params, addData)
 
-		renameData := []map[string]string{{
-			"oldFolder": "folder1",
-			"oldNote":   "nonexistent.md",
-			"newFolder": "folder1",
-			"newNote":   "renamed.md",
+		renameData := []util.FileRenameEventData{{
+			OldFilePath: "folder1/nonexistent.md",
+			NewFilePath: "folder1/renamed.md",
 		}}
 
 		replaceLocalLinksInNotes(params, renameData)
@@ -162,10 +157,10 @@ func TestFindNotesWithLink(t *testing.T) {
 			"# Two\n[target](/notes/My%20Folder/Target%20Note.md)",
 		)
 
-		addCreatedNotesToIndex(params, []map[string]string{
-			{"folder": "My Folder", "note": "Target Note.md"},
-			{"folder": "refs", "note": "one.md"},
-			{"folder": "refs", "note": "two.md"},
+		addCreatedNotesToIndex(params, []util.FileCreateEventData{
+			{FilePath: "My Folder/Target Note.md"},
+			{FilePath: "refs/one.md"},
+			{FilePath: "refs/two.md"},
 		})
 
 		hits := FindNotesWithLink(

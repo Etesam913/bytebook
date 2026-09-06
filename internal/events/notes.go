@@ -21,57 +21,19 @@ func handleFileCreateEvent(params EventParams, event *application.CustomEvent) {
 		log.Println("File create event data is not []util.FileCreateEventData")
 		return
 	}
-	converted := make([]map[string]string, len(data))
-	for i, item := range data {
-		converted[i] = filePathToFolderNote(item.FilePath, "")
-	}
-	addCreatedNotesToIndex(params, converted)
-}
-
-// filePathToFolderNote converts a notes-relative file path (plus optional
-// markdown content) into the "folder"/"note" map format used by the index helpers.
-func filePathToFolderNote(filePath, markdown string) map[string]string {
-	converted := map[string]string{
-		"folder": filepath.Dir(filePath),
-		"note":   filepath.Base(filePath),
-	}
-	if markdown != "" {
-		converted["markdown"] = markdown
-	}
-	return converted
-}
-
-// renamePathsToFolderNote converts notes-relative old/new file paths into the
-// "oldFolder"/"oldNote"/"newFolder"/"newNote" map format used by the index helpers.
-func renamePathsToFolderNote(oldFilePath, newFilePath string) map[string]string {
-	return map[string]string{
-		"oldFolder": filepath.Dir(oldFilePath),
-		"oldNote":   filepath.Base(oldFilePath),
-		"newFolder": filepath.Dir(newFilePath),
-		"newNote":   filepath.Base(newFilePath),
-	}
+	addCreatedNotesToIndex(params, data)
 }
 
 // addCreatedNotesToIndex adds newly created notes to the search index in a batch operation.
-// It expects a slice of note data, each containing folder and note keys.
 // This function includes retry logic to handle race conditions where the file may not be
 // immediately available after the create event is fired.
-func addCreatedNotesToIndex(params EventParams, data []map[string]string) {
+func addCreatedNotesToIndex(params EventParams, data []util.FileCreateEventData) {
 	idx := params.Index.RLock()
 	defer params.Index.RUnlock()
 	batch := idx.NewBatch()
 
 	for _, note := range data {
-		folder, ok := note["folder"]
-		if !ok {
-			log.Println("Note created event data missing folder")
-			continue
-		}
-		noteName, ok := note["note"]
-		if !ok {
-			log.Println("Note created event data missing note")
-			continue
-		}
+		folder, noteName := util.SplitFolderAndFile(note.FilePath)
 
 		notePath := filepath.Join(folder, noteName)
 		filePath := filepath.Join(params.ProjectPath, "notes", notePath)
@@ -132,47 +94,27 @@ func handleFileRenameEvent(params EventParams, event *application.CustomEvent) {
 		return
 	}
 
-	converted := make([]map[string]string, len(data))
-	for i, item := range data {
+	for _, item := range data {
 		if err := config.RenamePinnedFile(params.ProjectPath, item.OldFilePath, item.NewFilePath); err != nil {
 			log.Printf("Error updating pinned notes for file rename %s -> %s: %v", item.OldFilePath, item.NewFilePath, err)
 		}
-		converted[i] = renamePathsToFolderNote(item.OldFilePath, item.NewFilePath)
 	}
 
-	renameFilesInIndex(params, converted)
-	replaceLocalLinksInNotes(params, converted)
+	renameFilesInIndex(params, data)
+	replaceLocalLinksInNotes(params, data)
 }
 
 // renameFilesInIndex updates the search index to reflect renamed files.
 // It deletes the old entry and adds the new entry.
-func renameFilesInIndex(params EventParams, data []map[string]string) {
+func renameFilesInIndex(params EventParams, data []util.FileRenameEventData) {
 	idx := params.Index.RLock()
 	defer params.Index.RUnlock()
 	batch := idx.NewBatch()
 
 	// TODO: Add flush logic in the loop
 	for _, note := range data {
-		oldFolder, ok := note["oldFolder"]
-		if !ok {
-			log.Println("Note rename event data missing oldFolder")
-			continue
-		}
-		oldNoteName, ok := note["oldNote"]
-		if !ok {
-			log.Println("Note rename event data missing oldNote")
-			continue
-		}
-		newFolder, ok := note["newFolder"]
-		if !ok {
-			log.Println("Note rename event data missing newFolder")
-			continue
-		}
-		newNoteName, ok := note["newNote"]
-		if !ok {
-			log.Println("Note rename event data missing newNote")
-			continue
-		}
+		oldFolder, oldNoteName := util.SplitFolderAndFile(note.OldFilePath)
+		newFolder, newNoteName := util.SplitFolderAndFile(note.NewFilePath)
 
 		oldNotePath := filepath.Join(oldFolder, oldNoteName)
 		newNotePath := filepath.Join(newFolder, newNoteName)
@@ -230,36 +172,24 @@ func handleFileDeleteEvent(params EventParams, event *application.CustomEvent) {
 		return
 	}
 
-	converted := make([]map[string]string, len(data))
-	for i, item := range data {
+	for _, item := range data {
 		if err := config.DeletePinnedFile(params.ProjectPath, item.FilePath); err != nil {
 			log.Printf("Error updating pinned notes for file delete %s: %v", item.FilePath, err)
 		}
-		converted[i] = filePathToFolderNote(item.FilePath, "")
 	}
 
-	deleteNotesFromIndex(params, converted)
+	deleteNotesFromIndex(params, data)
 }
 
 // deleteNotesFromIndex removes notes from the search index in a batch operation.
-// It expects a slice of note data, each containing folder and note keys.
-func deleteNotesFromIndex(params EventParams, data []map[string]string) {
+func deleteNotesFromIndex(params EventParams, data []util.FileDeleteEventData) {
 	idx := params.Index.RLock()
 	defer params.Index.RUnlock()
 	batch := idx.NewBatch()
 
 	// TODO: Add flush logic in the loop
 	for _, note := range data {
-		folder, ok := note["folder"]
-		if !ok {
-			log.Println("Note delete event data missing folder")
-			continue
-		}
-		noteName, ok := note["note"]
-		if !ok {
-			log.Println("Note delete event data missing note")
-			continue
-		}
+		folder, noteName := util.SplitFolderAndFile(note.FilePath)
 
 		notePath := filepath.Join(folder, noteName)
 		batch.Delete(notePath)
@@ -284,30 +214,17 @@ func handleFileWriteEvent(params EventParams, event *application.CustomEvent) {
 		log.Println("File write event data is not []util.FileWriteEventData")
 		return
 	}
-	converted := make([]map[string]string, len(data))
-	for i, item := range data {
-		converted[i] = filePathToFolderNote(item.FilePath, item.Markdown)
-	}
-	updateNotesInIndex(params, converted)
+	updateNotesInIndex(params, data)
 }
 
 // updateNotesInIndex updates the search index with the new note content for multiple notes.
-func updateNotesInIndex(params EventParams, data []map[string]string) {
+func updateNotesInIndex(params EventParams, data []util.FileWriteEventData) {
 	idx := params.Index.RLock()
 	defer params.Index.RUnlock()
 	attachmentBatch := idx.NewBatch()
 	// TODO: Add flush logic in the loop
 	for _, note := range data {
-		folder, ok := note["folder"]
-		if !ok {
-			log.Println("Note write event data missing folder")
-			continue
-		}
-		noteName, ok := note["note"]
-		if !ok {
-			log.Println("Note write event data missing note")
-			continue
-		}
+		folder, noteName := util.SplitFolderAndFile(note.FilePath)
 
 		notePath := filepath.Join(folder, noteName)
 
@@ -331,8 +248,8 @@ func updateNotesInIndex(params EventParams, data []map[string]string) {
 
 		// The file watcher already read the note when it emitted the event, so
 		// prefer the markdown from the payload and only fall back to disk.
-		markdown, ok := note["markdown"]
-		if !ok {
+		markdown := note.Markdown
+		if markdown == "" {
 			noteFilePath := filepath.Join(params.ProjectPath, "notes", notePath)
 			content, err := os.ReadFile(noteFilePath)
 			if err != nil {
