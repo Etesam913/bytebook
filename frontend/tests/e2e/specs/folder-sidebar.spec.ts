@@ -227,6 +227,76 @@ test.describe('File Sidebar', () => {
       await expect(page.locator('#content-editable-editor')).toBeVisible();
     });
 
+    for (const itemName of ['Inflation.md', 'Child']) {
+      test(`restores ${itemName} after a failed move with an unchanged path response`, async ({
+        page,
+        context,
+      }) => {
+        const getPaths = {
+          file: SERVICE_FILES.FILE_TREE_SERVICE,
+          method: 'GetAllPaths',
+        };
+        const moveItems = {
+          file: SERVICE_FILES.FILE_TREE_SERVICE,
+          method: 'MoveItemsToFolder',
+        };
+        const paths = [
+          'Source/',
+          'Source/Inflation.md',
+          'Source/Child/',
+          'Source/Child/nested.md',
+          'Target/',
+          'other.md',
+        ];
+        await mockBinding(context, getPaths, {
+          success: true,
+          message: '',
+          data: paths,
+        });
+        await mockBinding(context, moveItems, {
+          success: false,
+          message: 'Move failed',
+        });
+        const pageErrors: string[] = [];
+        page.on('pageerror', (error) => pageErrors.push(error.message));
+        await page.goto('/');
+        const sidebar = page.getByTestId('file-sidebar');
+        const source = sidebar.getByRole('treeitem', {
+          name: 'Source',
+          exact: true,
+        });
+        const target = sidebar.getByRole('treeitem', {
+          name: 'Target',
+          exact: true,
+        });
+        await source.click();
+        await target.click();
+        const item = sidebar.getByRole('treeitem', {
+          name: itemName,
+          exact: true,
+        });
+        await expect(item).toBeVisible();
+        const fetchesBefore = (await getMockBindingCalls(page, getPaths))
+          .length;
+
+        await item.dragTo(target);
+
+        await expect
+          .poll(() => getMockBindingCalls(page, moveItems))
+          .toEqual([[['Source/' + itemName], 'Target']]);
+        await expect
+          .poll(async () => (await getMockBindingCalls(page, getPaths)).length)
+          .toBeGreaterThan(fetchesBefore);
+        await expect(item).toHaveCount(1);
+        await source.click();
+        await expect(source).toHaveAttribute('aria-expanded', 'false');
+        await expect(item).toHaveCount(0);
+        await source.click();
+        await expect(item).toBeVisible();
+        expect(pageErrors).toEqual([]);
+      });
+    }
+
     test('keeps the active note loaded when it is dragged into another folder', async ({
       page,
       context,
@@ -471,6 +541,17 @@ test.describe('File Sidebar', () => {
         await expect(
           sidebar.getByRole('treeitem', { name: 'Research Notes' })
         ).toBeVisible();
+
+        await updateMockBindingResponse(
+          page,
+          { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetAllPaths' },
+          {
+            ...MOCK_ALL_PATHS_RESPONSE,
+            data: MOCK_ALL_PATHS_RESPONSE.data.filter(
+              (path) => !path.startsWith('Economics Notes/')
+            ),
+          }
+        );
 
         // Right-click on a folder to open context menu
         await economicsItem.click({ button: 'right' });

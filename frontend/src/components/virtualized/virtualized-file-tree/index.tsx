@@ -2,6 +2,9 @@ import { prepareFileTreeInput, type FileTreeDropResult } from '@pierre/trees';
 import { FileTree, useFileTree } from '@pierre/trees/react';
 import { FILE_TREE_ICONS } from './icons';
 import { useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@utils/query-keys';
+import { reconcileTreePaths } from './reconcile';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { draggedGhostElementAtom, isDarkModeOnAtom } from '@/atoms';
 import {
@@ -97,7 +100,10 @@ function PierreFileTreeInner({
 
   // ── Backend mutations ────────────────────────────────────────────────
   const { mutateAsync: renameTreeItem } = useRenameTreeItemMutation();
-  const { mutateAsync: moveItems } = useMoveTreeItemsMutation();
+  const queryClient = useQueryClient();
+  const movePendingRef = useRef(false);
+  const { mutateAsync: moveItems, isPending: isMovePending } =
+    useMoveTreeItemsMutation();
   const { mutate: addFolderAttachments } = useAddFolderAttachmentsMutation();
   const { mutateAsync: addTreeItem } = useAddTreeItemMutation();
 
@@ -144,19 +150,35 @@ function PierreFileTreeInner({
     },
     dragAndDrop: {
       canDrag: (paths) => {
+        if (movePendingRef.current) return false;
         draggedPathsRef.current = paths;
         return true;
       },
-      canDrop: ({ target }) => target.directoryPath !== null,
+      canDrop: ({ target }) =>
+        !movePendingRef.current && target.directoryPath !== null,
       onDropComplete: (result: FileTreeDropResult) => {
         const destination = result.target.directoryPath;
         if (destination === null) return;
         // The new path isn't on disk yet; useSyncRouteWithRenames moves the
         // route once the watcher reports the rename.
+        movePendingRef.current = true;
         void moveItems({
           itemPaths: result.draggedPaths,
           newFolder: destination,
-        });
+          onError: () => {
+            const paths = queryClient.getQueryData<readonly string[]>(
+              queryKeys.allPaths()
+            );
+            if (paths) reconcileTreePaths(model, paths);
+            restoreSelectionAfterDrag(model, routeTargetPath);
+          },
+        })
+          .catch(() => {
+            // The mutation rolls back and the global QueryError handler reports the failure.
+          })
+          .finally(() => {
+            movePendingRef.current = false;
+          });
       },
     },
     renaming: {
@@ -223,7 +245,7 @@ function PierreFileTreeInner({
     isFilterLoading,
   } = useTreeFilter();
 
-  useSyncAllPaths({ model, initialPaths, preparedInput });
+  useSyncAllPaths({ model, preparedInput, isMovePending });
   usePierreTreeEvents(model);
   usePierreRouteFocus(model, isFilterMode);
   usePierreFileTreeDrop(model);

@@ -76,6 +76,7 @@ export function useMoveTreeItemsMutation() {
     }: {
       itemPaths: readonly string[];
       newFolder: string;
+      onError?: () => void;
     }) => {
       const targetFolder = stripTrailingSlash(newFolder);
       const filtered = itemPaths.map(stripTrailingSlash).filter((path) => {
@@ -90,11 +91,12 @@ export function useMoveTreeItemsMutation() {
         throw new QueryError(res.message);
       }
     },
-    onSettled: () => {
-      void queryClient.invalidateQueries({
+    onError: (_error, variables) => variables.onError?.(),
+    // Keep the mutation pending until the authoritative paths have refreshed.
+    onSettled: () =>
+      queryClient.invalidateQueries({
         queryKey: queryKeys.allPaths(),
-      });
-    },
+      }),
   });
 }
 
