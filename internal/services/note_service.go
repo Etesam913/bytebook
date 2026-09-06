@@ -1,7 +1,6 @@
 package services
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -65,42 +64,13 @@ func (n *NoteService) RenameFile(oldFolderNotePath string, newFolderNotePath str
 		}
 	}
 
-	if !isDir {
-		oldSidecarPath := sidecar.PathFor(oldPath)
-		sidecarCollides, err := util.DestinationCollides(oldSidecarPath, sidecar.PathFor(newPath))
-		if err != nil && !errors.Is(err, os.ErrNotExist) {
-			return config.BackendResponseWithData[string]{
-				Success: false,
-				Message: err.Error(),
-				Data:    "",
-			}
-		}
-		if sidecarCollides {
-			return config.BackendResponseWithData[string]{
-				Success: false,
-				Message: "Sidecar already exists at destination",
-				Data:    "",
-			}
-		}
-	}
-
-	// Rename the file or folder
-	err = os.Rename(oldPath, newPath)
+	err = renameFileWithSidecar(oldPath, newPath, os.Rename)
 	if err != nil {
+		log.Printf("RenameFile: %v", err)
 		return config.BackendResponseWithData[string]{
 			Success: false,
-			Message: err.Error(),
+			Message: "Failed to rename file or folder",
 			Data:    "",
-		}
-	}
-
-	if !isDir {
-		if err := sidecar.Move(oldPath, newPath); err != nil {
-			return config.BackendResponseWithData[string]{
-				Success: false,
-				Message: err.Error(),
-				Data:    "",
-			}
 		}
 	}
 

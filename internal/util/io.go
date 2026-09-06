@@ -587,32 +587,6 @@ func CopyFile(src, dst string, shouldOverride bool) error {
 	return destinationFile.Sync()
 }
 
-// MoveFile moves a file from srcPath to dstPath. If a file with the same name already exists at the destination,
-// it appends a number to the filename to make it unique.
-// Parameters:
-//
-//	srcPath: The source path of the file to be moved.
-//	dstPath: The destination path where the file should be moved.
-//
-// Returns:
-//
-//	An error if the move process fails, otherwise nil.
-func MoveFile(srcPath, dstPath string) error {
-	// Create a unique destination path using CreateUniqueNameForFileIfExists
-	uniqueDstPath, err := CreateUniqueNameForFileIfExists(dstPath)
-	if err != nil {
-		return err
-	}
-
-	// Move the file to the unique destination path
-	err = os.Rename(srcPath, uniqueDstPath)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // Powers the reveal in finder option in the context menu
 func RevealInFinder(fileOrDir string) error {
 	// Check if the directory exists

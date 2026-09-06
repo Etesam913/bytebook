@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
-	"strings"
 
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/notes"
@@ -61,13 +60,10 @@ func (f *FileTreeService) MoveItemsToFolder(itemPaths []string, newFolder string
 			failedItemNames = append(failedItemNames, pathToItem)
 			continue
 		}
-		if strings.EqualFold(filepath.Ext(pathToItem), ".md") {
-			err = moveMarkdownNoteWithSidecar(fullPathToItem, fullPathWithNewFolder)
-		} else {
-			err = util.MoveFile(fullPathToItem, fullPathWithNewFolder)
-		}
+		err = moveFileWithSidecar(fullPathToItem, fullPathWithNewFolder)
 
 		if err != nil {
+			log.Printf("MoveItemsToFolder: %v", err)
 			failedItemNames = append(failedItemNames, pathToItem)
 		}
 	}
