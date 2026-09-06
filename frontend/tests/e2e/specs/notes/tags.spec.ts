@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import {
+  getMockBindingCalls,
   mockBinding,
   updateMockBindingResponse,
 } from '../../utils/mock-binding';
@@ -10,6 +11,7 @@ import {
   MOCK_SET_TAGS_ON_NOTES_RESPONSE,
   MOCK_TAGS_FOR_NOTES_RESPONSE,
   MOCK_TAGS_RESPONSE,
+  MOCK_SUCCESS_RESPONSE,
 } from '../../utils/mock-responses';
 import { SERVICE_FILES } from '../../utils/service-files';
 import { setupWailsEvents, emitWailsEvent } from '../../utils/wails-events';
@@ -137,6 +139,106 @@ test.describe('Tags Workflow', () => {
 
       // Verify the new tag appears in the tags section
       await expect(tagsSection).toContainText('dev');
+    });
+  });
+
+  test.describe('Autosave after tag changes', () => {
+    const notePath = 'Economics Notes/Supply and Demand.md';
+    const getTags = {
+      file: SERVICE_FILES.TAGS_SERVICE,
+      method: 'GetTagsForNotes',
+    };
+    const saveNote = {
+      file: SERVICE_FILES.NOTE_SERVICE,
+      method: 'SetNoteMarkdownWithCodeResults',
+    };
+
+    test.beforeEach(async ({ context }) => {
+      await mockBinding(
+        context,
+        {
+          file: SERVICE_FILES.NOTE_SERVICE,
+          method: 'GetNoteMarkdownWithCodeResults',
+        },
+        {
+          ...MOCK_NOTE_MARKDOWN_RESPONSE,
+          data: {
+            ...MOCK_NOTE_MARKDOWN_RESPONSE.data,
+            markdown:
+              '---\ntags:\n  - economics\nstatus: draft\n---\nOriginal content',
+          },
+        }
+      );
+      await mockBinding(context, getTags, {
+        success: true,
+        message: '',
+        data: { [notePath]: ['economics'] },
+      });
+      await mockBinding(context, saveNote, MOCK_SUCCESS_RESPONSE);
+    });
+
+    test('does not restore the last removed tag on the next edit', async ({
+      page,
+      context,
+    }) => {
+      await mockBinding(
+        context,
+        { file: SERVICE_FILES.TAGS_SERVICE, method: 'SetTagsOnNotes' },
+        MOCK_SET_TAGS_ON_NOTES_RESPONSE
+      );
+      await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
+      const tagsSection = await expandTagsSection(page);
+      await updateMockBindingResponse(page, getTags, {
+        success: true,
+        message: '',
+        data: { [notePath]: [] },
+      });
+
+      await tagsSection
+        .getByRole('button', { name: 'Remove tag economics' })
+        .click();
+
+      await expect(
+        tagsSection.getByRole('button', { name: 'Tags (0)', exact: true })
+      ).toBeVisible();
+
+      await page.locator('#content-editable-editor').fill('Edited content');
+
+      await expect
+        .poll(
+          async () => (await getMockBindingCalls(page, saveNote)).at(-1)?.[2]
+        )
+        .toContain('Edited content');
+      const markdown = (await getMockBindingCalls(page, saveNote)).at(-1)?.[2];
+      expect(markdown).not.toContain('  - economics');
+      expect(markdown).toContain('status: draft');
+    });
+
+    test('preserves baseline tags when the refreshed map has no entry for the note', async ({
+      page,
+      context,
+    }) => {
+      await mockBinding(context, getTags, {
+        success: true,
+        message: '',
+        data: {},
+      });
+      await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
+      await expect(
+        page
+          .getByTestId('note-tags')
+          .getByRole('button', { name: 'Tags (0)', exact: true })
+      ).toBeVisible();
+
+      await page.locator('#content-editable-editor').fill('Edited content');
+
+      await expect
+        .poll(
+          async () => (await getMockBindingCalls(page, saveNote)).at(-1)?.[2]
+        )
+        .toContain('Edited content');
+      const markdown = (await getMockBindingCalls(page, saveNote)).at(-1)?.[2];
+      expect(markdown).toContain('  - economics');
     });
   });
 

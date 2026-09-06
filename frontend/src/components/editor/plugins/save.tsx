@@ -89,7 +89,7 @@ export function SavePlugin({
           if (!frontmatterCopy.createdDate) {
             frontmatterCopy.createdDate = timeOfChange;
           }
-          if (tags && tags.length > 0) {
+          if (tags !== undefined) {
             frontmatterCopy.tags = tags;
           }
 
