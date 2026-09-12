@@ -12,7 +12,7 @@ import { TabIndentationPlugin } from '@lexical/react/LexicalTabIndentationPlugin
 import { TablePlugin } from '@lexical/react/LexicalTablePlugin';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
-import { useRef, useState } from 'react';
+import { useRef, useState, type SetStateAction } from 'react';
 import {
   draggableBlockElementAtom,
   draggedGhostElementAtom,
@@ -81,7 +81,16 @@ export function NotesEditor({
     null
   );
   const [isFileMaximized, setIsFileMaximized] = useAtom(isFileMaximizedAtom);
-  const [frontmatter, setFrontmatter] = useState<Frontmatter>({});
+  const [frontmatter, setNoteFrontmatter] = useState<Frontmatter>({});
+  const [frontmatterNotePath, setFrontmatterNotePath] = useState(
+    filePath.fullPath
+  );
+
+  function setFrontmatter(value: SetStateAction<Frontmatter>) {
+    setNoteFrontmatter(value);
+    // Reset TOC presence with the loaded metadata, which arrives after navigation.
+    setFrontmatterNotePath(filePath.fullPath);
+  }
 
   const draggedGhostElement = useAtomValue(draggedGhostElementAtom);
   // Overflow container ref is used to handle the auto-scroll during drag
@@ -168,9 +177,13 @@ export function NotesEditor({
                 setPlaceholderLineData={setPlaceholderLineData}
               />
               <HorizontalRulePlugin />
-              {isTableOfContentsVisible({ frontmatter, projectSettings }) && (
-                <TableOfContentsPlugin />
-              )}
+              <TableOfContentsPlugin
+                key={frontmatterNotePath}
+                isVisible={isTableOfContentsVisible({
+                  frontmatter,
+                  projectSettings,
+                })}
+              />
 
               <RichTextPlugin
                 placeholder={null}
