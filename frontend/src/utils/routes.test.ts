@@ -1,6 +1,10 @@
 import '@/test/setup';
 import { describe, it, expect } from 'bun:test';
-import { ROUTE_PATTERNS, routeUrls } from './routes';
+import {
+  getNavigationTargetForDeletedPaths,
+  ROUTE_PATTERNS,
+  routeUrls,
+} from './routes';
 
 describe('ROUTE_PATTERNS', () => {
   it('defines correct route pattern constants', () => {
@@ -68,4 +72,64 @@ describe('routeUrls', () => {
       expect(routeUrls.notFoundFallback()).toBe('/404');
     });
   });
+});
+
+describe('getNavigationTargetForDeletedPaths', () => {
+  it.each([
+    {
+      currentRoutePath: 'a/b/note.md',
+      paths: ['a/b/note.md'],
+      includeDescendants: false,
+      expected: '/notes/a/b',
+    },
+    {
+      currentRoutePath: 'a/b/note.md',
+      paths: ['a/b', 'a'],
+      includeDescendants: true,
+      expected: '/',
+    },
+    {
+      currentRoutePath: 'a/b/',
+      paths: ['a/b/'],
+      includeDescendants: true,
+      expected: '/notes/a',
+    },
+    {
+      currentRoutePath: 'note.md',
+      paths: ['note.md'],
+      includeDescendants: false,
+      expected: '/',
+    },
+    {
+      currentRoutePath: 'ab/note.md',
+      paths: ['a'],
+      includeDescendants: true,
+      expected: null,
+    },
+    {
+      currentRoutePath: 'a/note.md',
+      paths: ['a'],
+      includeDescendants: false,
+      expected: null,
+    },
+    {
+      currentRoutePath: 'a/note.md',
+      paths: [''],
+      includeDescendants: true,
+      expected: null,
+    },
+    {
+      currentRoutePath: null,
+      paths: ['a'],
+      includeDescendants: true,
+      expected: null,
+    },
+  ])(
+    'resolves $currentRoutePath with deletions $paths to $expected',
+    ({ expected, ...input }) => {
+      const target = getNavigationTargetForDeletedPaths(input);
+
+      expect(target).toBe(expected);
+    }
+  );
 });

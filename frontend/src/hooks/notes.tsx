@@ -17,9 +17,9 @@ import { CUSTOM_TRANSFORMERS } from '@components/editor/transformers';
 import { DEFAULT_SONNER_OPTIONS } from '@utils/general';
 import { QueryError } from '@utils/query';
 import { queryKeys } from '@utils/query-keys';
+import { getNavigationTargetForDeletedPaths } from '@utils/routes';
 import {
   createFilePath,
-  createFolderPath,
   stripTrailingSlash,
   type FileOrFolderPath,
   type FilePath,
@@ -61,44 +61,6 @@ export function useRevealInFinderMutation() {
       }
     },
   });
-}
-
-/**
- * Gets the route to navigate to when the current route points at (or inside)
- * one of the deleted paths: the parent folder of the topmost affecting deleted
- * path, falling back to `/`.
- */
-function getNavigationTargetForDeletedPaths({
-  currentRoutePath,
-  paths,
-}: {
-  currentRoutePath: string | null;
-  paths: string[];
-}): string | null {
-  if (!currentRoutePath) return null;
-
-  // Folder paths carry a trailing slash; compare in slashless form.
-  const routePath = stripTrailingSlash(currentRoutePath);
-
-  // Filter to only paths that affect the current route (exact match or ancestor)
-  const affectingPaths = paths
-    .map(stripTrailingSlash)
-    .filter(
-      (deletedPath) =>
-        deletedPath === routePath || routePath.startsWith(deletedPath + '/')
-    );
-  if (affectingPaths.length === 0) return null;
-
-  // Find the topmost (shallowest) affecting path — fewest segments
-  const topmostPath = affectingPaths.reduce((shallowest, path) => {
-    const depth = path.split('/').filter(Boolean).length;
-    const shallowestDepth = shallowest.split('/').filter(Boolean).length;
-    return depth <= shallowestDepth ? path : shallowest;
-  });
-
-  const parentPath = topmostPath.split('/').slice(0, -1).join('/');
-  if (!parentPath) return '/';
-  return createFolderPath(parentPath)?.encodedFolderUrl ?? '/';
 }
 
 /**

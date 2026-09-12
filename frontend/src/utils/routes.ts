@@ -2,7 +2,12 @@
  * Centralized route definitions and utilities for the application
  */
 import { navigate } from 'wouter/use-browser-location';
-import type { FilePath, FolderPath } from './path';
+import {
+  createFolderPath,
+  stripTrailingSlash,
+  type FilePath,
+  type FolderPath,
+} from './path';
 import { FOLDER_TYPE } from './tree-item-types';
 
 /** Navigates to the route for a typed file or folder path. */
@@ -69,3 +74,45 @@ export const routeUrls = {
   // Route builders for navigation
   ...routeBuilders,
 } as const;
+
+/**
+ * Gets the route to navigate to when the current route points at (or inside)
+ * one of the deleted paths: the parent folder of the topmost affecting deleted
+ * path, falling back to `/`.
+ */
+export function getNavigationTargetForDeletedPaths({
+  currentRoutePath,
+  paths,
+  includeDescendants = true,
+}: {
+  currentRoutePath: string | null;
+  paths: readonly string[];
+  includeDescendants?: boolean;
+}): string | null {
+  if (!currentRoutePath) return null;
+
+  // Folder paths carry a trailing slash; compare in slashless form.
+  const routePath = stripTrailingSlash(currentRoutePath);
+
+  // Filter to only paths that affect the current route (exact match or ancestor)
+  const affectingPaths = paths
+    .map(stripTrailingSlash)
+    .filter(
+      (deletedPath) =>
+        deletedPath !== '' &&
+        (deletedPath === routePath ||
+          (includeDescendants && routePath.startsWith(deletedPath + '/')))
+    );
+  if (affectingPaths.length === 0) return null;
+
+  // Find the topmost (shallowest) affecting path — fewest segments
+  const topmostPath = affectingPaths.reduce((shallowest, path) => {
+    const depth = path.split('/').filter(Boolean).length;
+    const shallowestDepth = shallowest.split('/').filter(Boolean).length;
+    return depth <= shallowestDepth ? path : shallowest;
+  });
+
+  const parentPath = topmostPath.split('/').slice(0, -1).join('/');
+  if (!parentPath) return '/';
+  return createFolderPath(parentPath)?.encodedFolderUrl ?? '/';
+}

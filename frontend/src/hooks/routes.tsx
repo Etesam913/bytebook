@@ -5,6 +5,8 @@ import { useLocation, useRoute, useSearchParams } from 'wouter';
 import { isFileMaximizedAtom, mostRecentItemsAtom } from '@/atoms';
 import { useWailsEvent } from './events';
 import {
+  FILE_DELETE,
+  FOLDER_DELETE,
   FILE_RENAME,
   FOLDER_RENAME,
   isEventInCurrentWindow,
@@ -20,9 +22,11 @@ import {
   remapPathThroughRenames,
   type PathRename,
   safeDecodeURIComponent,
+  stripTrailingSlash,
 } from '@utils/path';
 import {
   type NotesRouteParams,
+  getNavigationTargetForDeletedPaths,
   navigateToPath,
   routeUrls,
 } from '@utils/routes';
@@ -226,4 +230,58 @@ export function useRestoreLastVisitedOnLaunch(): void {
     // Intentionally run once on mount — `mostRecentItems` is initialized
     // synchronously from localStorage, so the first render has the value.
   }, []);
+}
+
+// External deletions bypass the trash mutation, so every window handles them here.
+export function useSyncRouteWithDeletions(): void {
+  const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
+  const currentRoutePath = useDecodedNotesWildcardPath();
+
+  const handleDeletion = ({
+    paths,
+    includeDescendants,
+  }: {
+    paths: string[];
+    includeDescendants: boolean;
+  }) => {
+    const normalizedPaths = paths.map(stripTrailingSlash).filter(Boolean);
+    const target = getNavigationTargetForDeletedPaths({
+      currentRoutePath,
+      paths: normalizedPaths,
+      includeDescendants,
+    });
+    if (target !== null) navigate(target, { replace: true });
+
+    // Invalidate inactive entries too, so history navigation rechecks disk.
+    // Navigation unmounts the editor; avoid a competing active-query 404 redirect.
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.doesNoteExistAll(),
+      predicate: ({ queryKey }) => {
+        const path = queryKey[1];
+        return (
+          typeof path === 'string' &&
+          normalizedPaths.some(
+            (deletedPath) =>
+              path === deletedPath ||
+              (includeDescendants && path.startsWith(deletedPath + '/'))
+          )
+        );
+      },
+      refetchType: 'none',
+    });
+  };
+
+  useWailsEvent(FILE_DELETE, (event) => {
+    handleDeletion({
+      paths: event.data.map((item) => item.filePath),
+      includeDescendants: false,
+    });
+  });
+  useWailsEvent(FOLDER_DELETE, (event) => {
+    handleDeletion({
+      paths: event.data.map((item) => item.folderPath),
+      includeDescendants: true,
+    });
+  });
 }

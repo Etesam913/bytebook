@@ -23,6 +23,7 @@ import {
   useRestoreLastVisitedOnLaunch,
   useSyncFileMaximizedWithRoute,
   useSyncRouteWithRenames,
+  useSyncRouteWithDeletions,
 } from '@hooks/routes';
 import { EditorWrapper } from '@components/editor-wrapper';
 import { RouteDebugView } from '@components/route-debug-view';
@@ -67,6 +68,7 @@ function App() {
   useRestoreLastVisitedOnLaunch();
   useSyncFileMaximizedWithRoute();
   useSyncRouteWithRenames();
+  useSyncRouteWithDeletions();
 
   return (
     <AriaRouter>

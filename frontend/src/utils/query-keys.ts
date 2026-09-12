@@ -15,6 +15,7 @@ export const queryKeys = {
   file: (src: string) => ['file', src] as const,
 
   // Notes
+  doesNoteExistAll: () => ['does-note-exist'] as const,
   doesNoteExist: (fullPath: string) => ['does-note-exist', fullPath] as const,
   noteMarkdown: (path: string) => ['note-markdown', path] as const,
   linkedMentions: (fullPath: string) => ['linked-mentions', fullPath] as const,

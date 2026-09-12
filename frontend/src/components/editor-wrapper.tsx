@@ -13,17 +13,23 @@ export function EditorWrapper() {
   const filePath = useFilePathFromRoute();
   const folderPath = useFolderPathFromRoute();
   const animationControls = useAnimationControls();
-  const { data: noteExists, isLoading, error } = useNoteExists(filePath);
+  const {
+    data: noteExists,
+    isLoading,
+    isFetching,
+    error,
+  } = useNoteExists(filePath);
 
   useEffect(() => {
-    if (!filePath || isLoading) {
+    // A restored note may still have a cached missing result during refetch.
+    if (!filePath || isLoading || isFetching) {
       return;
     }
 
     if (noteExists === false || error) {
       navigate(routeUrls.notFoundFallback());
     }
-  }, [error, filePath, isLoading, noteExists]);
+  }, [error, filePath, isLoading, isFetching, noteExists]);
 
   if (filePath) {
     if (isLoading || noteExists === false || error) {
