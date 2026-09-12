@@ -1,20 +1,3 @@
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { AnimatePresence, motion } from 'motion/react';
-import {
-  type Dispatch,
-  type ReactNode,
-  type RefObject,
-  type SetStateAction,
-  useEffect,
-  useRef,
-} from 'react';
-import {
-  $isRangeSelection,
-  $addUpdateTag,
-  $isTextNode,
-  IS_HIGHLIGHT,
-} from 'lexical';
-import { clearHighlight } from '../toolbar/note-find-panel/utils/highlight';
 import {
   autoUpdate,
   offset,
@@ -24,14 +7,16 @@ import {
   useInteractions,
   useDismiss,
 } from '@floating-ui/react';
-import { easingFunctions, getDefaultButtonVariants } from '@/animations';
-import { SubmitLink } from '@/icons/submit-link';
+import {
+  type Dispatch,
+  type ReactNode,
+  type RefObject,
+  type SetStateAction,
+  useEffect,
+} from 'react';
 import type { FloatingDataType } from '@/types';
-import { MotionButton } from '@components/buttons';
-import { TOGGLE_LINK_COMMAND } from '../nodes/link';
-import { AppTextField } from '@components/input';
-import { $setSelection } from 'lexical';
-import { useFocusWithin } from 'react-aria';
+import { FloatingLinkPreview } from './floating-link-preview';
+import { FloatingTextFormatMenu } from './floating-text-format';
 
 export function FloatingMenuPlugin({
   floatingData,
@@ -44,13 +29,11 @@ export function FloatingMenuPlugin({
   noteContainerRef: RefObject<HTMLDivElement | null>;
   children: ReactNode;
 }) {
-  const [editor] = useLexicalComposerContext();
-  const isTextFormatMenuOpen =
+  const isTextFormatOpen =
     floatingData.isOpen && floatingData.type === 'text-format';
-  const isLinkMenuOpen = floatingData.isOpen && floatingData.type === 'link';
-  const isMenuOpen = floatingData.isOpen && floatingData.type !== null;
-  const inputRef = useRef<HTMLInputElement>(null);
-  const formRef = useRef<HTMLFormElement>(null);
+  const isLinkOpen =
+    floatingData.isOpen &&
+    (floatingData.type === 'link' || floatingData.type === 'link-preview');
 
   function closeMenu() {
     setFloatingData({
@@ -62,19 +45,47 @@ export function FloatingMenuPlugin({
     });
   }
 
-  // Close the link editor when focus leaves it (e.g. Tab or clicking the editor).
-  const { focusWithinProps } = useFocusWithin({
-    isDisabled: !isLinkMenuOpen,
-    onBlurWithin: () => {
-      clearHighlight(editor, { current: null });
-      closeMenu();
-    },
+  const textFormatPosition = useFloatingMenuPosition({
+    floatingData,
+    noteContainerRef,
+    isOpen: isTextFormatOpen,
+    closeMenu,
+  });
+  const linkPosition = useFloatingMenuPosition({
+    floatingData,
+    noteContainerRef,
+    isOpen: isLinkOpen,
+    closeMenu,
   });
 
-  // Create virtual reference element from floatingData coordinates
-  // floatingData coordinates are relative to noteContainer, so we need to convert to viewport coordinates
-  // Original calculation: top = viewport_top - container_top + scroll
-  // To convert back: viewport_top = floatingData.top + container_top - scroll
+  return (
+    <>
+      <FloatingTextFormatMenu isOpen={isTextFormatOpen} {...textFormatPosition}>
+        {children}
+      </FloatingTextFormatMenu>
+      <FloatingLinkPreview
+        floatingData={floatingData}
+        setFloatingData={setFloatingData}
+        noteContainerRef={noteContainerRef}
+        closeMenu={closeMenu}
+        {...linkPosition}
+      />
+    </>
+  );
+}
+
+function useFloatingMenuPosition({
+  floatingData,
+  noteContainerRef,
+  isOpen,
+  closeMenu,
+}: {
+  floatingData: FloatingDataType;
+  noteContainerRef: RefObject<HTMLDivElement | null>;
+  isOpen: boolean;
+  closeMenu: () => void;
+}) {
+  // Floating state stores coordinates relative to the note container.
   const virtualElement = {
     getBoundingClientRect: () => {
       const noteContainerBounds =
@@ -100,19 +111,18 @@ export function FloatingMenuPlugin({
     },
   };
 
-  // Dynamic offset based on menu type
-  const menuOffset = floatingData.type === 'text-format' ? 25 : 12;
-
-  // Single floating setup for both menu types
   const floating = useFloating({
-    open: isMenuOpen,
-    placement: 'bottom',
+    open: isOpen,
+    onOpenChange: (open) => {
+      if (!open) closeMenu();
+    },
+    placement:
+      floatingData.type === 'text-format' ||
+        (floatingData.type === 'link' && !floatingData.linkNodeKey)
+        ? 'top'
+        : 'bottom',
     whileElementsMounted: autoUpdate,
-    middleware: [
-      offset(menuOffset),
-      flip({ padding: 8 }),
-      shift({ padding: 8 }),
-    ],
+    middleware: [offset(6), flip({ padding: 8 }), shift({ padding: 8 })],
   });
 
   const dismiss = useDismiss(floating.context, {
@@ -126,138 +136,20 @@ export function FloatingMenuPlugin({
 
   const { getFloatingProps } = useInteractions([dismiss]);
 
-  useEffect(() => {
-    let didHighlight = false;
-
-    // Highlight the selection when the link menu opens
-    if (isLinkMenuOpen && floatingData.previousSelection) {
-      editor.update(
-        () => {
-          $addUpdateTag('skip-dom-selection');
-          const selection = floatingData.previousSelection;
-          if (!$isRangeSelection(selection)) return;
-
-          const isBackward = selection.isBackward();
-          const [startPoint, endPoint] = isBackward
-            ? [selection.focus, selection.anchor]
-            : [selection.anchor, selection.focus];
-
-          selection.getNodes().forEach((node) => {
-            if (!$isTextNode(node)) return;
-
-            const textLength = node.getTextContent().length;
-            const start = node.is(startPoint.getNode()) ? startPoint.offset : 0;
-            const end = node.is(endPoint.getNode())
-              ? endPoint.offset
-              : textLength;
-
-            if (start === end) return; // Empty selection on this node
-
-            if (start === 0 && end === textLength) {
-              node.setFormat(node.getFormat() | IS_HIGHLIGHT);
-            } else {
-              const splitNodes =
-                start === 0 ? node.splitText(end) : node.splitText(start, end);
-              const target = splitNodes[start === 0 ? 0 : 1];
-              if (target && $isTextNode(target)) {
-                target.setFormat(target.getFormat() | IS_HIGHLIGHT);
-              }
-            }
-            didHighlight = true;
-          });
-        },
-        { tag: 'history-merge' }
-      );
-    }
-
-    return () => {
-      // Clear highlights when the effect cleans up (menu closing)
-      if (didHighlight) {
-        clearHighlight(editor, { current: null });
-      }
-    };
-  }, [isLinkMenuOpen, floatingData.previousSelection, editor]);
-
   // Set reference element when menu opens
   useEffect(() => {
-    if (isMenuOpen) {
+    if (isOpen) {
       floating.refs.setReference(virtualElement);
     }
-  }, [isMenuOpen, floatingData.left, floatingData.top]);
+  }, [isOpen, floatingData.left, floatingData.top]);
 
-  return (
-    <AnimatePresence>
-      {isMenuOpen && (
-        <motion.form
-          ref={(node) => {
-            floating.refs.setFloating(node);
-            formRef.current = node;
-          }}
-          aria-label={
-            isLinkMenuOpen ? 'Link editor' : 'Text formatting toolbar'
-          }
-          data-testid="floating-toolbar"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          style={floating.floatingStyles}
-          transition={{ ease: easingFunctions['ease-out-circ'] }}
-          className={
-            isTextFormatMenuOpen
-              ? 'bg-white dark:bg-zinc-750 p-1 rounded-md shadow-lg flex items-center gap-2 z-10 border border-zinc-300 dark:border-zinc-600'
-              : 'bg-zinc-50 dark:bg-zinc-800 p-1 rounded-md bg-opacity-95 shadow-lg flex items-center gap-3 z-50 border-[1.25px] border-zinc-300 dark:border-zinc-700'
-          }
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!isLinkMenuOpen) {
-              return;
-            }
+  function setFloating(node: HTMLElement | null) {
+    floating.refs.setFloating(node);
+  }
 
-            let newUrl: string | null = inputRef.current?.value.trim() ?? null;
-            if (newUrl === '' || newUrl === null) {
-              newUrl = null;
-            }
-            editor.dispatchCommand(TOGGLE_LINK_COMMAND, {
-              url: newUrl,
-            });
-            closeMenu();
-          }}
-          {...getFloatingProps(focusWithinProps)}
-        >
-          {isTextFormatMenuOpen && children}
-          {isLinkMenuOpen && (
-            <>
-              <AppTextField
-                ref={inputRef}
-                aria-label="URL"
-                defaultValue={floatingData.previousUrl ?? 'https://'}
-                autoFocus
-                inputClassName="text-sm w-64"
-                maxLength={undefined}
-                onKeyDown={(e) => {
-                  if (e.key === 'Escape') {
-                    e.preventDefault();
-                    closeMenu();
-
-                    setTimeout(() => {
-                      editor.update(() => {
-                        $setSelection(floatingData.previousSelection);
-                      });
-                    }, 200);
-                  }
-                }}
-              />
-              <MotionButton
-                type="submit"
-                aria-label="Submit link"
-                {...getDefaultButtonVariants()}
-              >
-                <SubmitLink height="1.125rem" width="1.125rem" />
-              </MotionButton>
-            </>
-          )}
-        </motion.form>
-      )}
-    </AnimatePresence>
-  );
+  return {
+    floatingStyles: floating.floatingStyles,
+    setFloating,
+    getFloatingProps,
+  };
 }

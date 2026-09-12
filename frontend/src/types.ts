@@ -21,17 +21,21 @@ export type DropdownItem = {
   onChange?: () => void;
 };
 
-type FloatingDataTypeBase<T extends null | 'link' | 'text-format'> = {
+type FloatingDataTypeBase<
+  T extends null | 'link' | 'link-preview' | 'text-format',
+> = {
   isOpen: boolean;
   top: number;
   left: number;
   type: T;
   previousUrl?: string;
-  previousSelection: T extends 'link' ? RangeSelection : null;
+  linkNodeKey?: string;
+  previousSelection: T extends 'link' ? RangeSelection | null : null;
 };
 
 export type FloatingDataType =
   | FloatingDataTypeBase<'link'>
+  | FloatingDataTypeBase<'link-preview'>
   | FloatingDataTypeBase<'text-format'>
   | FloatingDataTypeBase<null>;
 
@@ -41,11 +45,11 @@ export type DialogDataType = {
   children: ((errorText: string, isPending: boolean) => ReactNode) | null;
   dialogClassName?: string;
   onSubmit:
-    | ((
-        formData: FormData,
-        setErrorText: Dispatch<SetStateAction<string>>
-      ) => Promise<boolean>)
-    | null;
+  | ((
+    formData: FormData,
+    setErrorText: Dispatch<SetStateAction<string>>
+  ) => Promise<boolean>)
+  | null;
   onClose?: () => void;
   isPending: boolean;
 };

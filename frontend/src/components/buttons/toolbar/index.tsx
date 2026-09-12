@@ -1,11 +1,5 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import {
-  $getSelection,
-  $isRangeSelection,
-  REDO_COMMAND,
-  type TextFormatType,
-  UNDO_COMMAND,
-} from 'lexical';
+import { REDO_COMMAND, type TextFormatType, UNDO_COMMAND } from 'lexical';
 import { type Dispatch, type ReactNode, type SetStateAction } from 'react';
 import { Button } from 'react-aria-components/Button';
 import { ToggleButton } from 'react-aria-components/ToggleButton';
@@ -18,14 +12,14 @@ import { TextItalic } from '@/icons/text-italic';
 import { TextStrikethrough } from '@/icons/text-strikethrough';
 import { Undo } from '@/icons/undo';
 import { UnorderedList } from '@/icons/unordered-list';
-import type { EditorBlockTypes, FloatingDataType } from '@/types';
+import type { EditorBlockTypes } from '@/types';
 import { cn } from '@utils/string-formatting';
 import {
   handleToolbarBlockElementClick,
   handleToolbarTextFormattingClick,
 } from '@components/editor/utils/toolbar';
 import { Link } from '@/icons/link';
-import { $isLinkNode } from '@components/editor/nodes/link';
+import { OPEN_LINK_EDITOR_COMMAND } from '@components/editor/nodes/link';
 import { Tooltip } from '@components/tooltip';
 
 const buttonClasses =
@@ -44,6 +38,7 @@ type ActionItem = {
   icon: ReactNode;
   key: string;
   tooltip: string;
+  shortcut?: string;
   onPress: () => void;
   isDisabled?: boolean;
 };
@@ -58,7 +53,7 @@ export function ToolbarButtons({
   currentSelectionFormat,
   setCurrentSelectionFormat,
   shouldShowUndoRedo,
-  setFloatingData,
+  shouldShowLinkAction,
 }: {
   canUndo: boolean;
   canRedo: boolean;
@@ -69,7 +64,7 @@ export function ToolbarButtons({
   currentSelectionFormat: TextFormatType[];
   setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>;
   shouldShowUndoRedo?: boolean;
-  setFloatingData?: Dispatch<SetStateAction<FloatingDataType>>;
+  shouldShowLinkAction?: boolean;
 }) {
   const [editor] = useLexicalComposerContext();
 
@@ -141,36 +136,16 @@ export function ToolbarButtons({
       }),
   }));
 
-  const linkAction: ActionItem | null = setFloatingData
+  const linkAction: ActionItem | null = shouldShowLinkAction
     ? {
-        icon: <Link />,
-        key: 'link',
-        tooltip: 'Insert Link',
-        onPress: () => {
-          editor.update(() => {
-            const selection = $getSelection();
-            if (!$isRangeSelection(selection)) {
-              return;
-            }
-
-            const clonedSelection = selection.clone();
-            const selectionNodes = selection.getNodes();
-
-            const previousUrl = selectionNodes
-              .map((node) => node.getParent())
-              .find((parent) => $isLinkNode(parent))
-              ?.getURL();
-
-            setFloatingData((prev) => ({
-              ...prev,
-              isOpen: true,
-              type: 'link',
-              previousUrl,
-              previousSelection: clonedSelection,
-            }));
-          });
-        },
-      }
+      icon: <Link />,
+      key: 'link',
+      tooltip: 'Insert Link',
+      shortcut: '⌘K',
+      onPress: () => {
+        editor.dispatchCommand(OPEN_LINK_EDITOR_COMMAND, undefined);
+      },
+    }
     : null;
 
   const DISABLED_FORMATTING_MESSAGE = 'Click inside note text to format';
@@ -179,6 +154,7 @@ export function ToolbarButtons({
     icon,
     key,
     tooltip,
+    shortcut,
     onPress,
     isDisabled,
   }: ActionItem) {
@@ -191,13 +167,14 @@ export function ToolbarButtons({
       <Tooltip
         key={key}
         content={tooltipContent}
+        shortcut={shortcut}
         delay={{ open: 450 }}
         showWhenDisabled={itemDisabled}
       >
         <Button
           onPress={onPress}
           isDisabled={itemDisabled}
-          aria-label={tooltip}
+          aria-label={shortcut ? `${tooltip} (${shortcut})` : tooltip}
           className={buttonClasses}
         >
           {icon}

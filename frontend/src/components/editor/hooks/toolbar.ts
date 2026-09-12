@@ -50,7 +50,8 @@ import {
 import { handleMarkdownPaste } from '../utils/paste';
 import { handleKeyboardShortcuts } from '../utils/hotkeys';
 import { parseFrontMatter } from '../utils/note-metadata';
-import { updateToolbar } from '../utils/toolbar';
+import { OPEN_LINK_EDITOR_COMMAND } from '../nodes/link';
+import { $openLinkEditor, updateToolbar } from '../utils/toolbar';
 import { useWailsEvent } from '@hooks/events';
 import { $convertFromMarkdownString } from '@lexical/markdown';
 import { showTableCellActionsButton } from '../utils/table';
@@ -320,6 +321,11 @@ export function useToolbarEvents({
       editor.registerCommand(
         CLICK_COMMAND,
         overrideClickCommand,
+        COMMAND_PRIORITY_LOW
+      ),
+      editor.registerCommand(
+        OPEN_LINK_EDITOR_COMMAND,
+        () => $openLinkEditor({ editor, setFloatingData, noteContainerRef }),
         COMMAND_PRIORITY_LOW
       ),
       editor.registerCommand(

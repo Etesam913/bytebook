@@ -138,7 +138,8 @@ export class LinkNode extends ElementNode {
     const rel = this.__rel;
     const title = this.__title;
     if (url !== prevNode.__url) {
-      anchor.href = url;
+      // Recreate the anchor so internal-link styling and navigation use the new URL.
+      return true;
     }
 
     if (target !== prevNode.__target) {
@@ -376,6 +377,19 @@ export class AutoLinkNode extends LinkNode {
     return node;
   }
 
+  createDOM(config: EditorConfig): HTMLAnchorElement {
+    // Keep the autolink node to prevent the matcher from immediately relinking it.
+    return this.__isUnlinked
+      ? document.createElement('a')
+      : super.createDOM(config);
+  }
+
+  updateDOM(prevNode: AutoLinkNode, anchor: HTMLAnchorElement): boolean {
+    if (this.__isUnlinked !== prevNode.__isUnlinked) return true;
+    if (this.__isUnlinked) return false;
+    return super.updateDOM(prevNode, anchor);
+  }
+
   getIsUnlinked(): boolean {
     return this.__isUnlinked;
   }
@@ -444,6 +458,10 @@ export function $isAutoLinkNode(
 ): node is AutoLinkNode {
   return node instanceof AutoLinkNode;
 }
+
+export const OPEN_LINK_EDITOR_COMMAND: LexicalCommand<void> = createCommand(
+  'OPEN_LINK_EDITOR_COMMAND'
+);
 
 export const TOGGLE_LINK_COMMAND: LexicalCommand<
   string | ({ url: string | null } & LinkAttributes) | null

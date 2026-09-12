@@ -91,9 +91,9 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
   // Mount panels in their saved positions instead of animating from the default order.
   const visibleOrder = settingsLoaded
     ? getVisibleSidebarOrder(
-        order,
-        projectSettings.appearance.sidebarVisibility
-      )
+      order,
+      projectSettings.appearance.sidebarVisibility
+    )
     : [];
 
   // Preview the move locally; the ref keeps the latest order available when dragging ends.
@@ -177,7 +177,7 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
           )}
         >
           <span>
-            <Tooltip content="Go back">
+            <Tooltip content="Go back" shortcut="⌘[">
               <MotionIconButton
                 {...getDefaultButtonVariants()}
                 onPress={() => window.history.back()}
@@ -187,7 +187,7 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
                 <CircleArrowLeft width="1.125rem" height="1.125rem" />
               </MotionIconButton>
             </Tooltip>
-            <Tooltip content="Go forward">
+            <Tooltip content="Go forward" shortcut="⌘]">
               <MotionIconButton
                 {...getDefaultButtonVariants()}
                 onPress={() => window.history.forward()}

@@ -37,7 +37,7 @@ export function BreadcrumbItem({
       <Link
         href={path}
         className={cn(
-          'flex min-w-0 items-center gap-1 whitespace-nowrap text-ellipsis overflow-hidden shrink-0 text-zinc-500 dark:text-zinc-300 hover:underline cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-(--accent-color) rounded-sm',
+          'flex min-w-0 items-center gap-1 whitespace-nowrap text-ellipsis overflow-hidden shrink-0 text-zinc-500 dark:text-zinc-300 hover:underline outline-none focus-visible:ring-2 focus-visible:ring-(--accent-color) rounded-sm',
           className
         )}
       >

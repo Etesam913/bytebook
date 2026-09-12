@@ -42,10 +42,65 @@ import { Text } from '@/icons/text';
 import { UnorderedList } from '@/icons/unordered-list';
 import type { DropdownItem, EditorBlockTypes, FloatingDataType } from '@/types';
 
+import { LinkNode, $isAutoLinkNode } from '../nodes/link';
 import type { FilePayload } from '../nodes/file';
 import { INSERT_FILES_COMMAND } from '../plugins/file';
 import { QueryError } from '@utils/query';
 import { QuoteIcon } from '@/icons/quote';
+
+// Capture the current selection and position for both the toolbar action and Cmd+K.
+export function $openLinkEditor({
+  editor,
+  setFloatingData,
+  noteContainerRef,
+}: {
+  editor: LexicalEditor;
+  setFloatingData: Dispatch<SetStateAction<FloatingDataType>>;
+  noteContainerRef: RefObject<HTMLDivElement | null>;
+}): boolean {
+  const selection = $getSelection();
+  if (!editor.isEditable() || !$isRangeSelection(selection)) return false;
+  const anchorLink = $getNearestNodeOfType(
+    selection.anchor.getNode(),
+    LinkNode
+  );
+  const focusLink = $getNearestNodeOfType(selection.focus.getNode(), LinkNode);
+  const link =
+    anchorLink &&
+      anchorLink.is(focusLink) &&
+      !($isAutoLinkNode(anchorLink) && anchorLink.getIsUnlinked())
+      ? anchorLink
+      : null;
+  const nativeSelection = window.getSelection();
+  let bounds = link
+    ? editor.getElementByKey(link.getKey())?.getBoundingClientRect()
+    : nativeSelection?.rangeCount
+      ? nativeSelection.getRangeAt(0).getBoundingClientRect()
+      : null;
+  // An empty paragraph's collapsed DOM range has a zero rectangle.
+  if (!bounds || (bounds.width === 0 && bounds.height === 0)) {
+    bounds = editor
+      .getElementByKey(selection.anchor.getNode().getKey())
+      ?.getBoundingClientRect();
+  }
+  if (!bounds) return false;
+  const container = noteContainerRef.current;
+  const containerBounds = container?.getBoundingClientRect();
+
+  setFloatingData({
+    isOpen: true,
+    type: 'link',
+    top:
+      (link ? bounds.bottom : bounds.top) -
+      (containerBounds?.top ?? 0) +
+      (container?.scrollTop ?? 0),
+    left: bounds.left - (containerBounds?.left ?? 0) + bounds.width / 2,
+    previousUrl: link?.getURL(),
+    linkNodeKey: link?.getKey(),
+    previousSelection: selection.clone(),
+  });
+  return true;
+}
 
 /**
  * Handles the click event on toolbar block elements.
@@ -133,8 +188,8 @@ export function changeSelectedBlocksType({
   newBlockType: EditorBlockTypes;
   insertAttachmentsMutation: UseMutationResult<void, Error, void, unknown>;
   openCreateTableDialog?:
-    | ((editor: LexicalEditor, editorSelection: RangeSelection | null) => void)
-    | undefined;
+  | ((editor: LexicalEditor, editorSelection: RangeSelection | null) => void)
+  | undefined;
 }) {
   editor.update(() => {
     const selection = $getSelection();
@@ -263,20 +318,39 @@ export function updateToolbar({
           top:
             topOfSelectionToWindow -
             topOfScrollContainerToWindow +
-            scrollYOfScrollContainer -
-            80,
-          left: left - (noteContainerBounds?.left ?? 0),
+            scrollYOfScrollContainer,
+          left: left - (noteContainerBounds?.left ?? 0) + domRect.width / 2,
           type: 'text-format',
           previousSelection: null,
         });
       }
     } else {
-      setFloatingData((prev) => ({
-        ...prev,
-        isOpen: false,
-        type: null,
-        previousSelection: null,
-      }));
+      const link = $getNearestNodeOfType(selection.anchor.getNode(), LinkNode);
+      const element = link && editor.getElementByKey(link.getKey());
+      const bounds = element?.getBoundingClientRect();
+      const container = noteContainerRef.current;
+      if (link && bounds && !($isAutoLinkNode(link) && link.getIsUnlinked())) {
+        const containerBounds = container?.getBoundingClientRect();
+        setFloatingData({
+          isOpen: true,
+          type: 'link-preview',
+          top:
+            bounds.bottom -
+            (containerBounds?.top ?? 0) +
+            (container?.scrollTop ?? 0),
+          left: bounds.left - (containerBounds?.left ?? 0) + bounds.width / 2,
+          previousUrl: link.getURL(),
+          linkNodeKey: link.getKey(),
+          previousSelection: null,
+        });
+      } else {
+        setFloatingData((prev) => ({
+          ...prev,
+          isOpen: false,
+          type: null,
+          previousSelection: null,
+        }));
+      }
     }
     const anchorNode = selection.anchor.getNode();
     const element =

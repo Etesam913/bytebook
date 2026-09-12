@@ -4,7 +4,13 @@ import { useAtomValue, useSetAtom } from 'jotai';
 import { useLocation, useRoute, useSearchParams } from 'wouter';
 import { isFileMaximizedAtom, mostRecentItemsAtom } from '@/atoms';
 import { useWailsEvent } from './events';
-import { FILE_RENAME, FOLDER_RENAME } from '@utils/events';
+import {
+  FILE_RENAME,
+  FOLDER_RENAME,
+  isEventInCurrentWindow,
+  NAVIGATE_BACK,
+  NAVIGATE_FORWARD,
+} from '@utils/events';
 import {
   type FolderPath,
   type FilePath,
@@ -28,6 +34,23 @@ function normalizeWildcardPath(path: string | undefined): string | null {
   }
 
   return safeDecodeURIComponent(path).split('/').filter(Boolean).join('/');
+}
+
+/** Handles native back and forward navigation events for the current window. */
+export function useHistoryNavigationEvents(): void {
+  useWailsEvent(NAVIGATE_BACK, (event) => {
+    void (async () => {
+      if (!(await isEventInCurrentWindow(event))) return;
+      window.history.back();
+    })();
+  });
+
+  useWailsEvent(NAVIGATE_FORWARD, (event) => {
+    void (async () => {
+      if (!(await isEventInCurrentWindow(event))) return;
+      window.history.forward();
+    })();
+  });
 }
 
 /**
