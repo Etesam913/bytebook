@@ -24,7 +24,8 @@ export function NavigationControls({
 
       <div className="flex items-center gap-1">
         <Tooltip
-          content="Previous match (Shift+Enter)"
+          content="Previous match"
+          shortcut="Shift+Enter"
           delay={{ open: 50 }}
           showWhenDisabled={totalMatches === 0}
         >
@@ -38,7 +39,8 @@ export function NavigationControls({
           </AppIconButton>
         </Tooltip>
         <Tooltip
-          content="Next match (Enter)"
+          content="Next match"
+          shortcut="Enter"
           delay={{ open: 50 }}
           showWhenDisabled={totalMatches === 0}
         >

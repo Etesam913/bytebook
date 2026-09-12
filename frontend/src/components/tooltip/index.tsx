@@ -19,6 +19,7 @@ type LegacyDelay = number | { open?: number; close?: number };
 
 export function Tooltip({
   content,
+  shortcut,
   children,
   placement = 'top',
   delay = { open: 250, close: 100 },
@@ -29,6 +30,7 @@ export function Tooltip({
   root,
 }: {
   content: ReactNode;
+  shortcut?: string;
   children: ReactElement;
   placement?: Placement;
   delay?: LegacyDelay;
@@ -96,6 +98,15 @@ export function Tooltip({
           </OverlayArrow>
         )}
         {content}
+        {shortcut && (
+          <>
+            {' ('}
+            <kbd className="[font-family:var(--code-block-font-family,monospace)]">
+              {shortcut}
+            </kbd>
+            {')'}
+          </>
+        )}
       </RACTooltip>
     </TooltipTrigger>
   );

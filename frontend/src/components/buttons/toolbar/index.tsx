@@ -35,6 +35,7 @@ type ToggleItem = {
   icon: ReactNode;
   key: TextFormatType | 'ul' | 'ol' | 'check';
   tooltip: string;
+  shortcut?: string;
   isSelected: boolean;
   onToggle: () => void;
 };
@@ -91,18 +92,25 @@ export function ToolbarButtons({
 
   const textFormatItems: ToggleItem[] = (
     [
-      { icon: <TextBold />, key: 'bold', tooltip: 'Bold (⌘B)' },
-      { icon: <TextItalic />, key: 'italic', tooltip: 'Italic (⌘I)' },
+      { icon: <TextBold />, key: 'bold', tooltip: 'Bold', shortcut: '⌘B' },
+      {
+        icon: <TextItalic />,
+        key: 'italic',
+        tooltip: 'Italic',
+        shortcut: '⌘I',
+      },
       {
         icon: <TextStrikethrough />,
         key: 'strikethrough',
-        tooltip: 'Strikethrough (⌘⇧X)',
+        tooltip: 'Strikethrough',
+        shortcut: '⌘⇧X',
       },
     ] as const
-  ).map(({ icon, key, tooltip }) => ({
+  ).map(({ icon, key, tooltip, shortcut }) => ({
     icon,
     key,
     tooltip,
+    shortcut,
     isSelected: currentSelectionFormat.includes(key as TextFormatType),
     onToggle: () =>
       handleToolbarTextFormattingClick({
@@ -202,6 +210,7 @@ export function ToolbarButtons({
     icon,
     key,
     tooltip,
+    shortcut,
     isSelected,
     onToggle,
   }: ToggleItem) {
@@ -213,6 +222,7 @@ export function ToolbarButtons({
       <Tooltip
         key={key}
         content={tooltipContent}
+        shortcut={shortcut}
         delay={{ open: 450 }}
         showWhenDisabled={disabled}
       >
@@ -220,7 +230,7 @@ export function ToolbarButtons({
           isSelected={isSelected && !disabled}
           onChange={onToggle}
           isDisabled={disabled}
-          aria-label={tooltip}
+          aria-label={shortcut ? `${tooltip} (${shortcut})` : tooltip}
           className={({ isSelected: selected, isDisabled }) =>
             cn(buttonClasses, selected && !isDisabled && 'button-invert')
           }

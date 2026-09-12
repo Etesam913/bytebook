@@ -97,7 +97,7 @@ export function NoteFindPanel({
             onNextMatch={navigateToNextMatch}
           />
 
-          <Tooltip content="Close (Escape)" delay={{ open: 50 }}>
+          <Tooltip content="Close" shortcut="Escape" delay={{ open: 50 }}>
             <AppIconButton
               onPress={() => setIsSearchOpen(false)}
               className="p-0.5 rounded text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-600"
