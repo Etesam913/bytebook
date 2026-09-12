@@ -38,7 +38,7 @@ export function AccordionItem({
 
         dragElement.addEventListener('dragend', handleDragEnd);
       }}
-      className="flex min-w-0 flex-1 items-center gap-2 overflow-x-hidden rounded-md px-2 py-1"
+      className="flex min-w-0 max-w-full items-center gap-2 overflow-x-hidden rounded-md px-2 py-1"
       to={to}
     >
       {icon ?? (

@@ -89,6 +89,7 @@ export function RecentAccordion({
               className="w-full min-w-0"
             >
               <AccordionItem
+                tooltipContent={recentItem.fullPath}
                 to={
                   recentItem.type === 'folder'
                     ? recentItem.encodedFolderUrl
