@@ -1,10 +1,6 @@
 import '@/test/setup';
 import { describe, it, expect } from 'bun:test';
-import {
-  createSelectionKey,
-  getSelectionValue,
-  keepSelectionWithPrefix,
-} from './selection';
+import { createSelectionKey, keepSelectionWithPrefix } from './selection';
 
 describe('createSelectionKey', () => {
   it('joins prefix and value with a colon separator', () => {
@@ -15,27 +11,6 @@ describe('createSelectionKey', () => {
 
   it('handles empty value', () => {
     expect(createSelectionKey('file', '')).toBe('file:');
-  });
-});
-
-describe('getSelectionValue', () => {
-  it('returns the part after the first colon', () => {
-    expect(getSelectionValue('tag:Python')).toBe('Python');
-    expect(getSelectionValue('file:abc/def.md')).toBe('abc/def.md');
-  });
-
-  it('returns the joined remainder when value contains a colon', () => {
-    // Splits on the first colon only.
-    expect(getSelectionValue('a:b:c')).toBe('b:c');
-  });
-
-  it('returns null when there is no separator', () => {
-    expect(getSelectionValue('no-colon')).toBeNull();
-    expect(getSelectionValue('')).toBeNull();
-  });
-
-  it('returns null when the separator is the final character', () => {
-    expect(getSelectionValue('tag:')).toBeNull();
   });
 });
 

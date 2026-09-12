@@ -143,7 +143,9 @@ export function SettingsDropdown({
         break;
       }
       case 'edit-tags': {
-        const selectionRange = new Set([`note:${note}.md`]);
+        const filePath = createFilePath(`${folder}/${note}.md`);
+        if (!filePath) return;
+        const filePaths = [filePath.fullPath];
         setDialogData({
           isOpen: true,
           isPending: false,
@@ -151,8 +153,7 @@ export function SettingsDropdown({
           dialogClassName: 'w-[min(30rem,90vw)]',
           children: (errorText) => (
             <EditTagDialogChildren
-              selectionRange={selectionRange}
-              folder={folder}
+              filePaths={filePaths}
               errorText={errorText}
             />
           ),
@@ -161,8 +162,7 @@ export function SettingsDropdown({
               return await editTags({
                 formData,
                 setErrorText,
-                selectionRange,
-                folder,
+                filePaths,
               });
             } catch {
               // onError fills in the dialog's error text; keep it open.

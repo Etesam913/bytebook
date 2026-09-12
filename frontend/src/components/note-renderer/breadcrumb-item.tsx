@@ -25,23 +25,37 @@ export function BreadcrumbTrail({
 
 export function BreadcrumbItem({
   path,
+  icon,
   children,
   className,
 }: {
   path: string;
-  children: ReactNode;
+  icon?: ReactNode;
+  children: string;
   className?: string;
 }) {
   return (
-    <Breadcrumb className="flex min-w-0 items-center gap-1 [&:not(:last-child)]:after:content-['/']">
+    <Breadcrumb
+      className={({ isCurrent }) =>
+        cn(
+          'flex items-center gap-1',
+          isCurrent
+            ? 'min-w-16 max-w-64'
+            : "shrink-0 after:shrink-0 after:content-['/']"
+        )
+      }
+    >
       <Link
         href={path}
         className={cn(
-          'flex min-w-0 items-center gap-1 whitespace-nowrap text-ellipsis overflow-hidden shrink-0 text-zinc-500 dark:text-zinc-300 hover:underline outline-none focus-visible:ring-2 focus-visible:ring-(--accent-color) rounded-sm',
+          'flex min-w-0 cursor-default items-center gap-1 text-zinc-500 dark:text-zinc-300 hover:underline outline-none focus-visible:ring-2 focus-visible:ring-(--accent-color) rounded-sm',
           className
         )}
       >
-        {children}
+        {icon && <span className="shrink-0">{icon}</span>}
+        <span title={children} className="min-w-0 truncate">
+          {children}
+        </span>
       </Link>
     </Breadcrumb>
   );

@@ -115,7 +115,7 @@ export function NonMarkdownToolbar({
         break;
       }
       case 'edit-tags': {
-        const selectionRange = new Set([`note:${filePath.note}`]);
+        const filePaths = [filePath.fullPath];
         setDialogData({
           isOpen: true,
           isPending: false,
@@ -123,8 +123,7 @@ export function NonMarkdownToolbar({
           dialogClassName: 'w-[min(30rem,90vw)]',
           children: (errorText) => (
             <EditTagDialogChildren
-              selectionRange={selectionRange}
-              folder={filePath.folder}
+              filePaths={filePaths}
               errorText={errorText}
             />
           ),
@@ -133,8 +132,7 @@ export function NonMarkdownToolbar({
               return await editTags({
                 formData,
                 setErrorText,
-                selectionRange,
-                folder: filePath.folder,
+                filePaths,
               });
             } catch {
               // onError fills in the dialog's error text; keep it open.

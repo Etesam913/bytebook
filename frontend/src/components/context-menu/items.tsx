@@ -124,13 +124,7 @@ export function useContextMenuItems() {
       onChange: onRename,
     }),
 
-    editTags: ({
-      folder,
-      selectionRange,
-    }: {
-      folder: string;
-      selectionRange: Set<string>;
-    }): DropdownItem => ({
+    editTags: ({ filePaths }: { filePaths: string[] }): DropdownItem => ({
       value: 'edit-tags',
       label: (
         <MenuItemLabel icon={<TagPlus {...ICON_PROPS} />}>
@@ -145,8 +139,7 @@ export function useContextMenuItems() {
           dialogClassName: 'w-[min(30rem,90vw)]',
           children: (errorText) => (
             <EditTagDialogChildren
-              selectionRange={selectionRange}
-              folder={folder}
+              filePaths={filePaths}
               errorText={errorText}
             />
           ),
@@ -155,8 +148,7 @@ export function useContextMenuItems() {
               return await editTags({
                 formData,
                 setErrorText,
-                selectionRange,
-                folder,
+                filePaths,
               });
             } catch {
               // onError fills in the dialog's error text; keep it open.

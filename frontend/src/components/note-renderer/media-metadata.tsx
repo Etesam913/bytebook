@@ -42,8 +42,13 @@ export function MediaMetadata({
   ).sort();
 
   return (
-    <span className={cn('flex min-w-0 flex-1 items-center gap-3', className)}>
-      <BreadcrumbTrail aria-label="Note location" className="overflow-hidden">
+    <div
+      className={cn(
+        'flex min-w-0 flex-1 items-center gap-3 overflow-x-auto [scrollbar-width:thin]',
+        className
+      )}
+    >
+      <BreadcrumbTrail aria-label="Note location" className="shrink-0">
         {folderSegments.map((segment, index) => {
           const folderPath = createFolderPath(
             folderSegments.slice(0, index + 1).join('/')
@@ -56,21 +61,24 @@ export function MediaMetadata({
             <BreadcrumbItem
               key={`folder-segment-${index}`}
               path={folderPath.encodedFolderUrl}
+              icon={
+                index === 0 ? (
+                  <Folder width="1.125rem" height="1.125rem" />
+                ) : undefined
+              }
             >
-              {index === 0 && <Folder width="1.125rem" height="1.125rem" />}
               {segment}
             </BreadcrumbItem>
           );
         })}
-        <BreadcrumbItem path={path}>
-          <RenderNoteIcon filePath={filePath} />
-          {safeDecodeURIComponent(filePath.noteWithoutExtension)}
+        <BreadcrumbItem
+          path={path}
+          icon={<RenderNoteIcon filePath={filePath} />}
+        >
+          {safeDecodeURIComponent(filePath.note)}
         </BreadcrumbItem>
       </BreadcrumbTrail>
-      <span
-        className="flex min-w-0 items-center gap-1.5 overflow-auto"
-        style={{ scrollbarWidth: 'thin' }}
-      >
+      <div className="flex shrink-0 items-center gap-1.5">
         {isLoading ? (
           <motion.span
             className="flex shrink-0 items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-300"
@@ -89,7 +97,7 @@ export function MediaMetadata({
             onRemove={(tagToDelete) => deleteTagFromNote({ tagToDelete })}
           />
         )}
-      </span>
-    </span>
+      </div>
+    </div>
   );
 }

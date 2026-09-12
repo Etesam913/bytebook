@@ -60,7 +60,7 @@ export function BottomBar({
     >
       <BreadcrumbTrail
         aria-label="Note location"
-        className="text-zinc-500 dark:text-zinc-300"
+        className="overflow-x-auto text-zinc-500 dark:text-zinc-300 [scrollbar-width:thin]"
       >
         {folderSegments.map((segment, index) => {
           const path = folderSegments.slice(0, index + 1).join('/');
@@ -73,15 +73,19 @@ export function BottomBar({
             <BreadcrumbItem
               key={`folder-segment-${index}`}
               path={folderPath.encodedFolderUrl}
+              icon={
+                index === 0 ? <Folder width="1rem" height="1rem" /> : undefined
+              }
             >
-              {index === 0 && <Folder width="1rem" height="1rem" />}
               {segment}
             </BreadcrumbItem>
           );
         })}
-        <BreadcrumbItem path={filePath.encodedFileUrl}>
-          <RenderNoteIcon filePath={filePath} size="sm" />
-          {safeDecodeURIComponent(filePath.noteWithoutExtension)}
+        <BreadcrumbItem
+          path={filePath.encodedFileUrl}
+          icon={<RenderNoteIcon filePath={filePath} size="sm" />}
+        >
+          {safeDecodeURIComponent(filePath.note)}
         </BreadcrumbItem>
       </BreadcrumbTrail>
       {isNoteEditor && <KernelHeartbeats />}

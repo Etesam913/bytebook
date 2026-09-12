@@ -10,7 +10,6 @@ import {
   MOCK_NOTE_MARKDOWN_RESPONSE,
   MOCK_PROJECT_SETTINGS_RESPONSE,
   MOCK_SAVED_SEARCHES_RESPONSE,
-  MOCK_TAGS_FOR_NOTES_RESPONSE,
   MOCK_TAGS_RESPONSE,
   MOCK_SUCCESS_RESPONSE,
 } from '../utils/mock-responses';
@@ -408,32 +407,71 @@ test.describe('File Sidebar', () => {
         ).not.toBeVisible();
       });
 
-      test('shows Edit Tags for a note and opens the dialog', async ({
+      test('edits tags on same-named notes across folders', async ({
         page,
         context,
       }) => {
+        const paths = ['First/shared.md', 'Second/shared.md'];
+        const getTags = {
+          file: SERVICE_FILES.TAGS_SERVICE,
+          method: 'GetTagsForNotes',
+        };
+        const setTags = {
+          file: SERVICE_FILES.TAGS_SERVICE,
+          method: 'SetTagsOnNotes',
+        };
         await mockNote(context, MOCK_NOTE_MARKDOWN_RESPONSE.data.markdown);
         await mockBinding(
           context,
-          { file: SERVICE_FILES.TAGS_SERVICE, method: 'GetTagsForNotes' },
-          MOCK_TAGS_FOR_NOTES_RESPONSE
+          { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetAllPaths' },
+          {
+            ...MOCK_ALL_PATHS_RESPONSE,
+            data: ['First/', paths[0], 'Second/', paths[1]],
+          }
         );
-
-        // Navigating to a note expands its folder in the tree and scrolls the
-        // note row into view.
-        await page.goto('/notes/Economics%20Notes/Inflation.md');
+        await mockBinding(context, getTags, {
+          success: true,
+          data: { [paths[0]]: [], [paths[1]]: [] },
+        });
+        await mockBinding(context, setTags, MOCK_SUCCESS_RESPONSE);
+        await page.goto('/');
         const sidebar = page.getByTestId('file-sidebar');
-        const noteItem = sidebar.getByRole('treeitem', { name: /Inflation/ });
-        await expect(noteItem).toBeVisible();
+        await sidebar
+          .getByRole('treeitem', { name: 'First', exact: true })
+          .click();
+        await sidebar
+          .getByRole('treeitem', { name: 'Second', exact: true })
+          .click();
+        const notes = sidebar.getByRole('treeitem', {
+          name: 'shared.md',
+          exact: true,
+        });
+        await notes.nth(0).click();
+        await notes.nth(1).click({ modifiers: ['ControlOrMeta'] });
+        await expect(notes.nth(0)).toHaveAttribute('aria-selected', 'true');
+        await expect(notes.nth(1)).toHaveAttribute('aria-selected', 'true');
 
-        const contextMenu = await openContextMenu(noteItem);
-        await expect(contextMenu).toBeVisible();
-        await contextMenu.getByText('Edit Tags').click();
+        const menu = await openContextMenu(notes.nth(1));
+        await menu.getByText('Edit Tags').click();
 
         const dialog = page.getByRole('dialog');
         await expect(
           dialog.getByRole('heading', { name: 'Edit Tags' })
         ).toBeVisible();
+        await expect(
+          dialog.getByText('Select tags to add to or remove from 2 note(s)')
+        ).toBeVisible();
+
+        await dialog.getByRole('option', { name: /dev tag/ }).click();
+        await dialog.getByRole('button', { name: 'Save', exact: true }).click();
+
+        await expect
+          .poll(() => getMockBindingCalls(page, getTags))
+          .toContainEqual([paths]);
+        await expect
+          .poll(() => getMockBindingCalls(page, setTags))
+          .toEqual([[paths, ['dev'], []]]);
+        await expect(dialog).not.toBeVisible();
       });
 
       test('does not show Edit Tags for folders', async ({ page }) => {
@@ -597,31 +635,43 @@ test.describe('File Sidebar', () => {
   });
 
   test.describe('Saved Searches Accordion', () => {
-    test('fills and focuses the file filter when a saved search is clicked', async ({
-      page,
-    }) => {
-      await page.goto('/');
-      const sidebar = page.getByTestId('file-sidebar');
-      await expect(sidebar).toContainText('Saved Searches');
+    for (const filesOpen of [true, false]) {
+      test(`fills and focuses the file filter with Files ${filesOpen ? 'open' : 'collapsed'}`, async ({
+        page,
+      }) => {
+        await page.goto('/');
+        const sidebar = page.getByTestId('file-sidebar');
+        await expect(sidebar).toContainText('Saved Searches');
 
-      const savedSearchesAccordion = page.getByTestId(
-        'saved-searches-accordion'
-      );
-      await savedSearchesAccordion.click();
-      await expect(sidebar).toContainText('My Research');
-      await expect(sidebar).toContainText('Economics');
+        const savedSearchesAccordion = page.getByTestId(
+          'saved-searches-accordion'
+        );
+        await savedSearchesAccordion.click();
+        await expect(sidebar).toContainText('My Research');
+        await expect(sidebar).toContainText('Economics');
 
-      const savedSearchButton = sidebar.getByRole('button', {
-        name: 'My Research',
-        exact: true,
+        const savedSearchButton = sidebar.getByRole('button', {
+          name: 'My Research',
+          exact: true,
+        });
+        if (!filesOpen) {
+          await sidebar
+            .getByRole('button', { name: 'Files', exact: true })
+            .click();
+        }
+
+        await savedSearchButton.click();
+
+        const filter = sidebar.getByRole('searchbox', { name: 'Filter files' });
+        await expect(filter).toHaveValue('research');
+        await expect(page).toHaveURL('/');
+        await expect(filter).toBeFocused();
+
+        await savedSearchButton.click();
+
+        await expect(filter).toBeFocused();
       });
-      await savedSearchButton.click();
-
-      const filter = sidebar.getByRole('searchbox', { name: 'Filter files' });
-      await expect(filter).toHaveValue('research');
-      await expect(page).toHaveURL('/');
-      await expect(filter).toBeFocused();
-    });
+    }
 
     test.describe('Context menu', () => {
       test('deletes a saved search via context menu', async ({

@@ -11,8 +11,6 @@ import {
 import { QueryError } from '@utils/query';
 import { queryKeys } from '@utils/query-keys';
 import { Dispatch, SetStateAction } from 'react';
-import { getSelectionValue } from '@utils/selection';
-import { createFilePath } from '@utils/path';
 
 /**
  * Handles the `tags-folder:create`, "tags-folder:delete", and "tags:update" events.
@@ -75,20 +73,18 @@ export function useTagsForNotesQuery(paths: string[]) {
 type EditTagsFormMutationVariables = {
   formData: FormData;
   setErrorText: Dispatch<SetStateAction<string>>;
-  selectionRange: Set<string>;
-  folder: string;
+  filePaths: string[];
 };
 
 /**
  * Custom hook to handle editing tags for notes via form submission.
- * Extracts tag data from the submitted FormData and calls EditTagsForNotes.
+ * Extracts tag data from the submitted FormData and calls SetTagsOnNotes.
  */
 export function useEditTagsFormMutation() {
   return useMutation({
     mutationFn: async ({
       formData,
-      selectionRange,
-      folder,
+      filePaths,
     }: EditTagsFormMutationVariables) => {
       const tagNamesToAdd = JSON.parse(
         (formData.get('tag-names-to-add') as string) ?? '[]'
@@ -96,12 +92,6 @@ export function useEditTagsFormMutation() {
       const tagNamesToRemove = JSON.parse(
         (formData.get('tag-names-to-remove') as string) ?? '[]'
       ) as string[];
-
-      const filePaths = [...selectionRange].flatMap((entry) => {
-        const note = getSelectionValue(entry) ?? entry;
-        const filePath = createFilePath(`${folder}/${note}`);
-        return filePath ? [filePath.fullPath] : [];
-      });
 
       const res = await SetTagsOnNotes(
         filePaths,

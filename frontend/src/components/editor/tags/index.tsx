@@ -71,7 +71,7 @@ export function Tags({ filePath }: { filePath: FilePath }) {
             <Button
               className="flex whitespace-nowrap items-center gap-1.5 bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600 hover:bg-zinc-150 dark:hover:bg-zinc-600 outline-none focus-visible:ring-2 focus-visible:ring-(--accent-color)"
               onPress={() => {
-                const selectionRange = new Set([`note:${filePath.note}`]);
+                const filePaths = [filePath.fullPath];
                 setDialogData({
                   isOpen: true,
                   isPending: false,
@@ -79,8 +79,7 @@ export function Tags({ filePath }: { filePath: FilePath }) {
                   dialogClassName: 'w-[min(30rem,90vw)]',
                   children: (errorText) => (
                     <EditTagDialogChildren
-                      selectionRange={selectionRange}
-                      folder={filePath.folder}
+                      filePaths={filePaths}
                       errorText={errorText}
                     />
                   ),
@@ -89,8 +88,7 @@ export function Tags({ filePath }: { filePath: FilePath }) {
                       return await editTags({
                         formData,
                         setErrorText,
-                        selectionRange,
-                        folder: filePath.folder,
+                        filePaths,
                       });
                     } catch {
                       // onError fills in the dialog's error text; keep it open.

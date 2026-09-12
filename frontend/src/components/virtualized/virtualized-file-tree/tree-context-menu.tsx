@@ -181,21 +181,16 @@ export function TreeContextMenu({
     );
   }
 
-  const uniqueFolders = new Set(targetFilePaths.map((target) => target.folder));
   const isEditTagsEligible =
     !targetHasFolder &&
     targetFilePaths.length > 0 &&
-    targetFilePaths.length === targetPaths.length &&
-    uniqueFolders.size === 1;
+    targetFilePaths.length === targetPaths.length;
 
   if (isEditTagsEligible) {
     rows.push(
       dropdownItemToMenuRow(
         editTags({
-          folder: targetFilePaths[0].folder,
-          selectionRange: new Set(
-            targetFilePaths.map((target) => `note:${target.note}`)
-          ),
+          filePaths: targetFilePaths.map((target) => target.fullPath),
         })
       )
     );

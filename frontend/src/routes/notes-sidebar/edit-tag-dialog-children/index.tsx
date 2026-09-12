@@ -8,7 +8,6 @@ import { DialogErrorText } from '@components/dialog';
 import { TagSearchInput } from './tag-search-input';
 import { SelectedTagsDisplay } from './selected-tags-display';
 import { TagSelectionList } from './tag-selection-list';
-import { createFilePath } from '@utils/path';
 
 /**
  * Dialog body for editing tags across one or more selected notes. Renders the
@@ -17,12 +16,10 @@ import { createFilePath } from '@utils/path';
  * Dialog's Form action can submit them as FormData.
  */
 export function EditTagDialogChildren({
-  selectionRange,
-  folder,
+  filePaths,
   errorText,
 }: {
-  selectionRange: Set<string>;
-  folder: string;
+  filePaths: string[];
   errorText: string;
 }) {
   const [tagsCreatedButNotSaved, setTagsCreatedButNotSaved] = useState<
@@ -37,23 +34,14 @@ export function EditTagDialogChildren({
     error: tagsError,
   } = useTagsQuery();
 
-  // Getting the notes that were selected to open this dialog
-  const selectedFilePaths = [...selectionRange]
-    .filter((selectionRangeEntry) => selectionRangeEntry.startsWith('note:'))
-    .flatMap((selectionRangeEntry) => {
-      const note = selectionRangeEntry.split(':')[1];
-      const filePath = createFilePath(`${folder}/${note}`);
-      return filePath ? [filePath.fullPath] : [];
-    });
-
-  const totalSelectedNotes = selectedFilePaths.length;
+  const totalSelectedNotes = filePaths.length;
 
   const {
     data: tagsForSelectedNotes,
     isLoading: areTagsForSelectedNotesLoading,
     isError: areTagsForSelectedNotesError,
     error: tagsForSelectedNotesError,
-  } = useTagsForNotesQuery(selectedFilePaths);
+  } = useTagsForNotesQuery(filePaths);
 
   const baseTagCounts = buildBaseTagCounts(tagsForSelectedNotes);
   const baseTagCountsKey = createTagCountsKey(baseTagCounts);

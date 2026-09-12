@@ -57,6 +57,69 @@ test.describe('Editor', () => {
     await expect(noteTitleInput).toHaveValue('Supply and Demand');
   });
 
+  test('scrolls breadcrumbs and tags together without overlapping segments', async ({
+    page,
+    context,
+  }, testInfo) => {
+    const filename = 'college-average-publication-with-a-long-filename.xyz';
+    const filePath = `Research/Lots of files/tmp/${filename}`;
+    await mockBinding(
+      context,
+      { file: SERVICE_FILES.TAGS_SERVICE, method: 'GetTagsForNotes' },
+      {
+        success: true,
+        message: '',
+        data: { [filePath]: ['College', 'Economics', 'Research methods'] },
+      }
+    );
+    await page.setViewportSize({ width: 800, height: 600 });
+    await page.goto(
+      `/notes/${filePath.split('/').map(encodeURIComponent).join('/')}`
+    );
+    const trail = page.getByLabel('Note location');
+    const row = trail.locator('..');
+    const tags = page.getByRole('grid', { name: 'Note tags' });
+    await expect(tags).toBeVisible();
+    const label = trail.getByTitle(filename);
+
+    await expect(label).toHaveCSS('text-overflow', 'ellipsis');
+    expect(await label.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(
+      true
+    );
+    const bounds = await trail.locator('li').evaluateAll((items) =>
+      items.map((item) => {
+        const box = item.getBoundingClientRect();
+        const link = item.firstElementChild!.getBoundingClientRect();
+        return { left: box.left, right: box.right, linkRight: link.right };
+      })
+    );
+    for (let i = 0; i < bounds.length; i++) {
+      expect(bounds[i].linkRight).toBeLessThanOrEqual(bounds[i].right + 1);
+      if (i > 0)
+        expect(bounds[i].left).toBeGreaterThanOrEqual(bounds[i - 1].right);
+    }
+    await expect(row).toHaveCSS('overflow-x', 'auto');
+    const trailBefore = await trail.boundingBox();
+    const tagsBefore = await tags.boundingBox();
+
+    await row.evaluate((el) => {
+      el.scrollLeft = 100;
+    });
+
+    expect(await row.evaluate((el) => el.scrollLeft)).toBe(100);
+    expect((await trail.boundingBox())!.x).toBeCloseTo(trailBefore!.x - 100);
+    expect((await tags.boundingBox())!.x).toBeCloseTo(tagsBefore!.x - 100);
+
+    await row.evaluate((el) => {
+      el.scrollLeft = el.scrollWidth;
+    });
+
+    await expect(
+      tags.getByText('Research methods', { exact: true })
+    ).toBeInViewport();
+    await page.screenshot({ path: testInfo.outputPath('breadcrumb-tags.png') });
+  });
+
   test('maximize button hides the file sidebar', async ({ page }) => {
     await page.goto(NOTE_URL);
 

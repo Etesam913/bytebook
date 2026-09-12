@@ -26,17 +26,6 @@ export function createSelectionKey(prefix: string, value: string): string {
 }
 
 /**
- * Extracts the value part from a selection key.
- */
-export function getSelectionValue(selectionKey: string): string | null {
-  const separatorIndex = selectionKey.indexOf(SIDEBAR_SELECTION_SEPARATOR);
-  if (separatorIndex === -1 || separatorIndex + 1 >= selectionKey.length) {
-    return null;
-  }
-  return selectionKey.slice(separatorIndex + 1);
-}
-
-/**
  * Filters a selection set to keep only items with the specified prefix.
  */
 export function keepSelectionWithPrefix(
