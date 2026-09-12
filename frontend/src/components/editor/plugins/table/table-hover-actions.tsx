@@ -459,6 +459,10 @@ export default function TableHoverActionsV2Plugin({
   const isEditable = useLexicalEditable();
 
   return isEditable
-    ? createPortal(<TableHoverActionsV2 anchorElem={anchorElem} />, anchorElem)
+    ? createPortal(
+        <TableHoverActionsV2 anchorElem={anchorElem} />,
+        // Fixed coordinates must stay outside the editor's CSS query container.
+        document.body
+      )
     : null;
 }

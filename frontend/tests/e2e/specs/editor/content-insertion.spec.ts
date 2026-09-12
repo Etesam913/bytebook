@@ -350,6 +350,74 @@ test.describe('Editor content insertion', () => {
       await expect(editor.locator('table')).toBeVisible();
     });
 
+    test('aligns add buttons with the hovered column and row', async ({
+      page,
+    }) => {
+      await page.goto(NOTE_PATH);
+      const editor = page.locator('#content-editable-editor');
+      await editor.click();
+      await page.keyboard.type('/table');
+      await page
+        .locator('li[role="option"]', { hasText: 'Table' })
+        .first()
+        .click();
+      await page.getByRole('button', { name: 'Create Table' }).click();
+      await expect(page.getByRole('dialog')).not.toBeVisible();
+      const rows = editor.locator('table tr');
+      const topCell = rows.first().locator('td, th').nth(2);
+      const leftCell = rows.nth(2).locator('td, th').first();
+      const addColumn = page.getByRole('button', {
+        name: 'Add column',
+        exact: true,
+      });
+      const addRow = page.getByRole('button', { name: 'Add row', exact: true });
+
+      await topCell.hover();
+
+      await expect(addColumn).toBeVisible();
+
+      await expect
+        .poll(async () => {
+          const cell = (await topCell.boundingBox())!;
+          const button = (await addColumn.boundingBox())!;
+          return Math.abs(
+            button.x + button.width / 2 - cell.x - cell.width / 2
+          );
+        })
+        .toBeLessThan(2);
+      await expect
+        .poll(async () => {
+          const cell = (await topCell.boundingBox())!;
+          const button = (await addColumn.boundingBox())!;
+          return Math.abs(button.y + button.height - cell.y - 9);
+        })
+        .toBeLessThan(2);
+      await addColumn.click();
+      await expect(rows.first().locator('td, th')).toHaveCount(4);
+
+      await leftCell.hover();
+
+      await expect(addRow).toBeVisible();
+      await expect
+        .poll(async () => {
+          const cell = (await leftCell.boundingBox())!;
+          const button = (await addRow.boundingBox())!;
+          return Math.abs(
+            button.y + button.height / 2 - cell.y - cell.height / 2
+          );
+        })
+        .toBeLessThan(2);
+      await expect
+        .poll(async () => {
+          const cell = (await leftCell.boundingBox())!;
+          const button = (await addRow.boundingBox())!;
+          return Math.abs(button.x + button.width - cell.x - 9);
+        })
+        .toBeLessThan(2);
+      await addRow.click();
+      await expect(rows).toHaveCount(4);
+    });
+
     test('shows an error when rows is left blank', async ({ page }) => {
       await page.goto(NOTE_PATH);
 
