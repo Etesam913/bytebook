@@ -7,6 +7,12 @@ import (
 	"go.lsp.dev/protocol"
 )
 
+func (v *VirtualDoc) blockCount() int {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	return len(v.blocks)
+}
+
 func TestVirtualDocSingleBlock(t *testing.T) {
 	v := NewVirtualDoc()
 	v.UpsertBlock("a", 0, "x = 1\ny = 2")

@@ -2,6 +2,7 @@
 import { spawn } from "bun";
 import { appendFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { checkSucceeded } from "./check-policy";
 
 // Ensure frontend/dist exists for Go's //go:embed directive
 const distDir = join(process.cwd(), "frontend", "dist");
@@ -32,9 +33,10 @@ const isCI = args.includes("--ci") || !!process.env.CI;
 interface CheckTask {
   id: string;
   name: string;
-  category: "frontend" | "backend";
+  category: "frontend" | "backend" | "tooling";
   cmd: string[];
   cwd?: string;
+  failOnStdout?: boolean;
 }
 
 // Check if gotestsum is installed for pretty backend test output
@@ -89,6 +91,7 @@ const allTasks: CheckTask[] = [
     name: "Dead Code (Go deadcode)",
     category: "backend",
     cmd: ["deadcode", "./..."],
+    failOnStdout: true,
   },
   {
     id: "be:vet",
@@ -104,12 +107,18 @@ const allTasks: CheckTask[] = [
       ? ["gotestsum", "--format=pkgname", "./internal/..."]
       : ["go", "test", "./internal/..."],
   },
+  {
+    id: "tooling:test",
+    name: "Check Runner Tests",
+    category: "tooling",
+    cmd: ["bun", "test", "./scripts/check.test.ts"],
+  },
 ];
 
 // Filter tasks based on flags
 const activeTasks = allTasks.filter((task) => {
-  if (isFeOnly) return task.category === "frontend";
-  if (isBeOnly) return task.category === "backend";
+  if (isFeOnly) return task.category !== "backend";
+  if (isBeOnly) return task.category !== "frontend";
   return true;
 });
 
@@ -145,13 +154,22 @@ async function runTask(task: CheckTask): Promise<TaskResult> {
     ]);
 
     const durationMs = performance.now() - taskStart;
-    const success = exitCode === 0;
+    const success = checkSucceeded({
+      exitCode,
+      stdout: stdoutBuf,
+      failOnStdout: task.failOnStdout,
+    });
 
     const symbol = success
       ? `${colors.green}✓${colors.reset}`
       : `${colors.red}✗${colors.reset}`;
     const timeStr = `${colors.dim}(${(durationMs / 1000).toFixed(2)}s)${colors.reset}`;
-    const tag = `[${task.category === "frontend" ? colors.magenta + "FE" : colors.yellow + "BE"}${colors.reset}]`;
+    const tagText = {
+      frontend: colors.magenta + "FE",
+      backend: colors.yellow + "BE",
+      tooling: colors.cyan + "TOOLS",
+    }[task.category];
+    const tag = `[${tagText}${colors.reset}]`;
 
     console.log(`  ${symbol} ${tag} ${colors.bold}${task.name}${colors.reset} ${timeStr}`);
 

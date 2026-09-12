@@ -225,10 +225,3 @@ func (v *VirtualDoc) TranslateDocToBlock(pos protocol.Position) (string, protoco
 	}
 	return "", protocol.Position{}, false
 }
-
-// blockCount returns the number of blocks tracked. Test helper.
-func (v *VirtualDoc) blockCount() int {
-	v.mu.Lock()
-	defer v.mu.Unlock()
-	return len(v.blocks)
-}

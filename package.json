@@ -8,6 +8,7 @@
     "check:fe": "bun scripts/check.ts --fe",
     "check:be": "bun scripts/check.ts --be",
     "check:ci": "bun scripts/check.ts --ci",
+    "test:scripts": "bun test ./scripts/check.test.ts",
     "format": "bun --cwd frontend run format",
     "lint": "bun --cwd frontend run lint"
   }
