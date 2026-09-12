@@ -1,6 +1,7 @@
 package notes
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -601,7 +602,7 @@ func TestOrderedDebouncedEventKeys(t *testing.T) {
 		util.EventFileCreate:   {{"filePath": "a.md"}},
 		util.EventFileRename:   {{"oldFilePath": "a.md", "newFilePath": "b.md"}},
 		util.EventFolderDelete: {{"folderPath": "folder"}},
-		"custom:event":           {{"status": "ok"}},
+		"custom:event":         {{"status": "ok"}},
 	}
 
 	assert.Equal(t, []string{
@@ -697,5 +698,30 @@ func TestSavedSearchDirectoryWatch(t *testing.T) {
 		assert.Empty(t, fw.mostRecentFolderCreatedEvents)
 		assert.Empty(t, fw.pendingFileRenameEvents)
 		assert.Empty(t, fw.watcher.WatchList())
+	})
+}
+
+func TestFileWriteContent(t *testing.T) {
+	t.Run("empty markdown survives event serialization", func(t *testing.T) {
+		projectPath, _, notesPath, _, _ := setupProjectFolders(t)
+		path := filepath.Join(notesPath, "empty.md")
+		require.NoError(t, os.WriteFile(path, nil, 0644))
+		fw := newTestFileWatcher(t, projectPath)
+
+		fw.emitFileWriteEvent(path)
+		payload, err := json.Marshal(typedDebouncedEventPayload(util.EventFileWrite, fw.debounceEvents[util.EventFileWrite]))
+
+		require.NoError(t, err)
+		assert.JSONEq(t, `[{"filePath":"empty.md","markdown":""}]`, string(payload))
+	})
+	t.Run("failed markdown read does not emit a content replacement", func(t *testing.T) {
+		projectPath, _, notesPath, _, _ := setupProjectFolders(t)
+		path := filepath.Join(notesPath, "missing.md")
+		fw := newTestFileWatcher(t, projectPath)
+
+		fw.emitFileWriteEvent(path)
+
+		assert.Empty(t, fw.debounceEvents[util.EventFileWrite])
+		assert.NotContains(t, fw.fileStateCache, path)
 	})
 }

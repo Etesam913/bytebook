@@ -1,6 +1,5 @@
 import { queryOptions, useMutation, useQuery } from '@tanstack/react-query';
-import { useAtomValue } from 'jotai/react';
-import { Window } from '@wailsio/runtime';
+import { useAtomValue, useStore } from 'jotai/react';
 import { type LexicalEditor } from 'lexical';
 import { type Dispatch, type SetStateAction } from 'react';
 import { toast } from 'sonner';
@@ -13,6 +12,7 @@ import {
   RevealFolderOrFileInFinder,
 } from '@bindings/services/noteservice';
 import { projectSettingsAtom } from '@/atoms';
+import { previousMarkdownAtom } from '@components/editor/atoms';
 import { CUSTOM_TRANSFORMERS } from '@components/editor/transformers';
 import { DEFAULT_SONNER_OPTIONS } from '@utils/general';
 import { QueryError } from '@utils/query';
@@ -220,47 +220,40 @@ export function useNoteWriteEvent({
   editor: LexicalEditor;
   setFrontmatter: Dispatch<SetStateAction<Frontmatter>>;
 }) {
-  useWailsEvent(FILE_WRITE, (e) => {
-    void (async () => {
-      const data = e.data;
+  const store = useStore();
 
-      const isWindowFocused = await Window.IsFocused();
-
-      // Focused windows get their updates by the user typing, so we don't need to update the editor
-      if (isWindowFocused) return;
-
-      for (const item of data) {
-        const { filePath, markdown } = item;
-        const lastSlashIndex = filePath.lastIndexOf('/');
-        const folderFromEvent =
-          lastSlashIndex === -1 ? '' : filePath.slice(0, lastSlashIndex);
-        const noteFromEvent =
-          lastSlashIndex === -1 ? filePath : filePath.slice(lastSlashIndex + 1);
-
-        // Remove .md extension for comparison
-        const noteWithoutExtension = noteFromEvent.replace(/\.md$/, '');
-
-        if (!markdown) continue;
-        const { content, frontMatter } = parseFrontMatter(markdown);
-
-        // Only update the editor if the current note is the one that was changed
-        if (folderFromEvent === folder && noteWithoutExtension === note) {
-          editor.update(
-            () => {
-              $convertFromMarkdownString(
-                content,
-                CUSTOM_TRANSFORMERS,
-                undefined,
-                true,
-                false
-              );
-            },
-            { tag: 'note:write-from-external' }
-          );
-          setFrontmatter(frontMatter);
-        }
+  useWailsEvent(FILE_WRITE, (event) => {
+    for (const { filePath, markdown } of event.data) {
+      const path = createFilePath(filePath);
+      if (
+        !path ||
+        path.folder !== folder ||
+        path.noteWithoutExtension !== note ||
+        path.extension !== 'md' ||
+        typeof markdown !== 'string'
+      ) {
+        continue;
       }
-    })();
+
+      // Skip save echoes without resetting selection or newer unsaved typing.
+      if (markdown === store.get(previousMarkdownAtom)) continue;
+      const { content, frontMatter } = parseFrontMatter(markdown);
+      editor.update(
+        () => {
+          $convertFromMarkdownString(
+            content,
+            CUSTOM_TRANSFORMERS,
+            undefined,
+            true,
+            false
+          );
+        },
+        { tag: 'note:write-from-external' }
+      );
+      // Future saves must use the external metadata as their baseline too.
+      store.set(previousMarkdownAtom, markdown);
+      setFrontmatter(frontMatter);
+    }
   });
 
   useWailsEvent(CODE_RESULTS_UPDATE, (e) => {

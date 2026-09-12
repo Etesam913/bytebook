@@ -103,7 +103,7 @@ type FileRenameEventData struct {
 // FileWriteEventData represents the data structure for file write events
 type FileWriteEventData struct {
 	FilePath string `json:"filePath"`
-	Markdown string `json:"markdown,omitempty"`
+	Markdown string `json:"markdown"`
 }
 
 // ContentDropEventData represents dropped OS files over a registered drop target

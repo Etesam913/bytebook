@@ -540,9 +540,13 @@ func (fw *FileWatcher) emitFileWriteEvent(filePath string) {
 
 	if filepath.Ext(filePath) == ".md" {
 		content, err := os.ReadFile(filePath)
-		if err == nil {
-			eventData["markdown"] = string(content)
+		if err != nil {
+			// A failed read is not an empty note. Allow a later event to retry.
+			fw.clearFileState(filePath)
+			log.Printf("Error reading changed note %s: %v", filePath, err)
+			return
 		}
+		eventData["markdown"] = string(content)
 	}
 
 	fw.appendDebouncedEvent(util.EventFileWrite, eventData)
