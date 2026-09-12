@@ -4,6 +4,7 @@ import {
   type FileTreeDirectoryHandle,
   type FileTreeItemHandle,
   type FileTreeMutationEvent,
+  type FileTreeMutationSemanticEvent,
 } from '@pierre/trees';
 import {
   createFilePath,
@@ -74,49 +75,53 @@ export function applySortedTreePathMutation(
   model: PierreFileTree,
   event: FileTreeMutationEvent
 ): void {
-  if (event.operation === 'batch') {
-    for (const semanticEvent of event.events) {
-      applySortedTreePathMutation(model, semanticEvent);
-    }
-    return;
-  }
   const current = sortedPathsByModel.get(model);
   if (!current) return;
+  const events = event.operation === 'batch' ? event.events : [event];
+  // resetPaths already receives its prepared row order from useSyncAllPaths.
+  if (events.every((mutation) => mutation.operation === 'reset')) return;
+
+  // Fold the whole batch before sorting: preparing after each imported file
+  // repeatedly rebuilds the full tree and blocks the UI during large drops.
+  const paths = new Set(current);
+  for (const mutation of events) {
+    applyTreePathMutation(paths, mutation);
+  }
+  sortedPathsByModel.set(model, prepareFileTreeInput([...paths]).paths);
+}
+
+function applyTreePathMutation(
+  paths: Set<string>,
+  event: FileTreeMutationSemanticEvent
+): void {
   switch (event.operation) {
     case 'add': {
-      if (current.includes(event.path)) return;
-      sortedPathsByModel.set(
-        model,
-        prepareFileTreeInput([...current, event.path]).paths
-      );
+      paths.add(event.path);
       return;
     }
     case 'remove': {
-      sortedPathsByModel.set(
-        model,
-        current.filter(
-          (path) =>
-            path !== event.path &&
-            !(event.recursive && path.startsWith(event.path))
-        )
-      );
+      paths.delete(event.path);
+      if (event.recursive) {
+        for (const path of paths) {
+          if (path.startsWith(event.path)) paths.delete(path);
+        }
+      }
       return;
     }
     case 'move': {
       const { from, to } = event;
-      const moved = current.map((path) => {
-        if (path === from) return to;
-        if (from.endsWith('/') && path.startsWith(from)) {
-          return to + path.slice(from.length);
+      const moved = new Map<string, string>();
+      for (const path of paths) {
+        if (path === from) moved.set(path, to);
+        else if (from.endsWith('/') && path.startsWith(from)) {
+          moved.set(path, to + path.slice(from.length));
         }
-        return path;
-      });
-      sortedPathsByModel.set(model, prepareFileTreeInput(moved).paths);
+      }
+      for (const path of moved.keys()) paths.delete(path);
+      for (const path of moved.values()) paths.add(path);
       return;
     }
     case 'reset': {
-      // `useSyncAllPaths` writes the full sorted list before calling
-      // resetPaths, so there is nothing to derive from the event.
       return;
     }
   }

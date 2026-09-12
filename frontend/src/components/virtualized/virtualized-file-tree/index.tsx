@@ -49,6 +49,7 @@ import { TreeContextMenu } from './tree-context-menu';
 import { TreeFilterSummary } from './tree-filter-summary';
 import { TreeHeader } from './tree-header';
 import { TreeSearchInput } from './tree-search-input';
+import { Loader } from '@/icons/loader';
 
 // Later path updates sync directly into the model, so prepare only once.
 function usePreparedTreeInput(paths: readonly string[]) {
@@ -70,6 +71,18 @@ function getInitialExpandedPaths(routeTargetPath: string | null) {
 
 export function VirtualizedFileTree() {
   const allPathsQuery = useAllPaths();
+
+  if (allPathsQuery.isPending) {
+    return (
+      <div
+        role="status"
+        aria-label="Loading files"
+        className="flex flex-1 items-center justify-center text-zinc-500 dark:text-zinc-400"
+      >
+        <Loader width="1.25rem" height="1.25rem" />
+      </div>
+    );
+  }
 
   if (!allPathsQuery.data) {
     return null;

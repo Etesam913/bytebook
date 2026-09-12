@@ -151,3 +151,57 @@ func TestNodeServiceAddAttachmentsFromPaths(t *testing.T) {
 		assert.NotNil(t, response.Data)
 	})
 }
+
+func TestNodeServiceImportFolders(t *testing.T) {
+	t.Run("Copies nested folders, empty folders, and sidecars without overwriting", func(t *testing.T) {
+		project := t.TempDir()
+		source := t.TempDir()
+		destination := filepath.Join(project, "notes", "assets")
+		require.NoError(t, os.MkdirAll(filepath.Join(destination, "release.v1"), 0o755))
+		folder := filepath.Join(source, "release.v1")
+		writeAttachmentSource(t, folder, "nested/note.md", []byte("# Note"))
+		writeAttachmentSource(t, folder, "nested/.note.md.json", []byte(`{"tags":["test"]}`))
+		require.NoError(t, os.MkdirAll(filepath.Join(folder, "empty"), 0o755))
+		service := NodeService{ProjectPath: project}
+
+		response := service.AddAttachmentsFromPaths("assets", []string{folder})
+
+		require.True(t, response.Success, response.Message)
+		assert.Equal(t, []string{"notes/assets/release.v1 1"}, response.Data)
+		for _, name := range []string{"nested/note.md", "nested/.note.md.json"} {
+			original, err := os.ReadFile(filepath.Join(folder, name))
+			require.NoError(t, err)
+			copied, err := os.ReadFile(filepath.Join(destination, "release.v1 1", name))
+			require.NoError(t, err)
+			assert.Equal(t, original, copied)
+		}
+		assert.DirExists(t, filepath.Join(destination, "release.v1 1", "empty"))
+		entries, err := os.ReadDir(filepath.Join(destination, "release.v1"))
+		require.NoError(t, err)
+		assert.Empty(t, entries)
+	})
+	t.Run("Rejects copying a folder into its descendant", func(t *testing.T) {
+		project := t.TempDir()
+		require.NoError(t, os.MkdirAll(filepath.Join(project, "notes", "assets"), 0o755))
+		service := NodeService{ProjectPath: project}
+
+		response := service.AddAttachmentsFromPaths("assets", []string{filepath.Join(project, "notes")})
+
+		assert.False(t, response.Success)
+		assert.NoDirExists(t, filepath.Join(project, "notes", "assets", "notes"))
+	})
+	t.Run("Does not publish a partially copied folder when a symlink is encountered", func(t *testing.T) {
+		project := t.TempDir()
+		require.NoError(t, os.Mkdir(filepath.Join(project, "notes"), 0o755))
+		source := t.TempDir()
+		folder := filepath.Join(source, "folder")
+		file := writeAttachmentSource(t, folder, "a.md", []byte("note"))
+		require.NoError(t, os.Symlink(file, filepath.Join(folder, "z-link")))
+		service := NodeService{ProjectPath: project}
+
+		response := service.AddAttachmentsFromPaths("", []string{folder})
+
+		assert.False(t, response.Success)
+		assert.NoDirExists(t, filepath.Join(project, "notes", "folder"))
+	})
+}

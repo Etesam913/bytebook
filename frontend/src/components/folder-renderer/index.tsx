@@ -150,7 +150,8 @@ export function FolderRenderer({
                 This folder is empty
               </p>
               <p className="mt-1 max-w-xs text-xs leading-5 text-zinc-500 dark:text-zinc-400">
-                Create a note or folder, or drop files here to get started.
+                Create a note or folder, or drop files and folders here to get
+                started.
               </p>
             </div>
           </div>

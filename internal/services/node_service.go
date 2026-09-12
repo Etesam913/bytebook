@@ -1,9 +1,11 @@
 package services
 
 import (
+	"os"
 	"path/filepath"
 
 	"github.com/etesam913/bytebook/internal/config"
+	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -22,7 +24,19 @@ func addFilePathsToProject(projectPath string, filePaths []string, folderPath st
 		for _, file := range filePaths {
 			cleanedFileName := util.CleanFileName(filepath.Base(file))
 			fileInProjectPath := filepath.Join(projectPath, "notes", folderPath, cleanedFileName)
-			fileInProjectPath, err := util.CreateUniqueNameForFileIfExists(fileInProjectPath)
+			info, err := os.Stat(file)
+			if err != nil {
+				return []string{}, err
+			}
+			if info.IsDir() {
+				importedPath, err := notes.CopyDroppedFolder(file, fileInProjectPath, projectPath)
+				if err != nil {
+					return []string{}, err
+				}
+				newFilePaths = append(newFilePaths, filepath.Join("notes", folderPath, filepath.Base(importedPath)))
+				continue
+			}
+			fileInProjectPath, err = util.CreateUniqueNameForFileIfExists(fileInProjectPath)
 			if err != nil {
 				return []string{}, err
 			}
@@ -59,7 +73,7 @@ func (n *NodeService) AddAttachments(folder string) config.BackendResponseWithDa
 	return n.AddAttachmentsFromPaths(folder, localFilePaths)
 }
 
-// AddAttachmentsFromPaths copies local files into the requested notes folder.
+// AddAttachmentsFromPaths copies local files and folders into the requested notes folder.
 func (n *NodeService) AddAttachmentsFromPaths(folder string, filePaths []string) config.BackendResponseWithData[[]string] {
 	fileServerPaths, err := addFilePathsToProject(n.ProjectPath, filePaths, folder)
 	if err != nil {
