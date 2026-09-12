@@ -1,8 +1,9 @@
+import { FOLDER_CONTENT_CLASS_NAME } from './styles';
 import { useAtomValue, useSetAtom } from 'jotai';
 import type { Key } from 'react-aria-components';
 import { Button } from 'react-aria-components/Button';
 import {
-  fileSidebarOpenStateAtom,
+  focusTreeFilterInputAtom,
   isFileMaximizedAtom,
   projectSettingsAtom,
   treeFilterQueryAtom,
@@ -35,8 +36,7 @@ export function FolderRendererHeader({
   const isFileMaximized = useAtomValue(isFileMaximizedAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const setTreeFilterQuery = useSetAtom(treeFilterQueryAtom);
-  const setFileSidebarOpenState = useSetAtom(fileSidebarOpenStateAtom);
-  const setIsFileMaximized = useSetAtom(isFileMaximizedAtom);
+  const focusTreeFilterInput = useSetAtom(focusTreeFilterInputAtom);
   const { revealInFinder, pin, moveToTrash } = useContextMenuItems();
 
   // pinnedNotes stores slashless paths (the settings.json format).
@@ -59,77 +59,85 @@ export function FolderRendererHeader({
   }
 
   return (
-    <div className="space-y-3">
-      <header
-        className={cn(
-          'flex w-full flex-col gap-1 pt-3',
-          isFileMaximized && 'pl-32'
-        )}
+    <header className="relative">
+      <div
+        className={cn('absolute top-3 left-3', isFileMaximized && 'left-32')}
       >
-        <div className="flex items-start gap-3">
-          <MaximizeNoteButton animationControls={animationControls} />
-          <div className="mt-1.5 min-w-0">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">Folder</p>
-            <span className="mt-1 flex items-center gap-2.5">
-              <h1 className="truncate text-2xl font-semibold dark:text-zinc-50">
-                {folderName}
-              </h1>
-              <Tooltip content="Search this folder">
-                <MotionIconButton
-                  {...getDefaultButtonVariants()}
-                  aria-label="Search this folder"
-                  className="shrink-0"
-                  onPress={() => {
-                    setTreeFilterQuery(`f:"${folderPath.fullPath}"`);
-                    setFileSidebarOpenState((prev) => ({
-                      ...prev,
-                      files: true,
-                    }));
-                    setIsFileMaximized(false);
-                  }}
-                >
-                  <Magnifier width="0.875rem" height="0.875rem" />
-                </MotionIconButton>
-              </Tooltip>
-            </span>
-            <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400">
-              {folderPath.fullPath}
-            </p>
-          </div>
-          <div className="ml-auto flex flex-col mr-2">
-            <AppMenuTrigger>
-              <Tooltip
-                content="Folder settings"
-                placement="left"
-                delay={{ open: 50 }}
+        <MaximizeNoteButton animationControls={animationControls} />
+      </div>
+      <div className="absolute top-3 right-3">
+        <AppMenuTrigger>
+          <Tooltip
+            content="Folder settings"
+            placement="left"
+            delay={{ open: 50 }}
+          >
+            <Button
+              aria-label="Folder settings menu"
+              className={({ isHovered, isPressed }) =>
+                cn(
+                  'bg-transparent border-0 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 aria-expanded:bg-zinc-100 dark:aria-expanded:bg-zinc-700 rounded-md h-auto p-1.5 disabled:opacity-30 will-change-transform outline-hidden transition-transform shrink-0',
+                  isHovered && 'scale-105',
+                  isPressed && 'scale-[0.975]'
+                )
+              }
+            >
+              <HorizontalDots />
+            </Button>
+          </Tooltip>
+          <AppMenuPopover className="w-52" placement="bottom end">
+            <AppMenu onAction={handleAction}>
+              {items.map((item) => (
+                <AppMenuItem key={item.value} id={item.value}>
+                  {item.label}
+                </AppMenuItem>
+              ))}
+            </AppMenu>
+          </AppMenuPopover>
+        </AppMenuTrigger>
+      </div>
+      <div className={cn(FOLDER_CONTENT_CLASS_NAME, 'pt-3 pb-5')}>
+        <div
+          className={cn(
+            'mt-1.5 mr-9 @min-[1280px]:mr-0',
+            isFileMaximized
+              ? 'ml-40 @min-[1536px]:ml-0'
+              : 'ml-10 @min-[1280px]:ml-0'
+          )}
+        >
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">Folder</p>
+          <span className="mt-1 flex items-center gap-2.5">
+            <h1
+              title={folderName}
+              className="min-w-0 truncate text-2xl font-semibold dark:text-zinc-50"
+            >
+              {folderName}
+            </h1>
+            <Tooltip content="Search this folder">
+              <MotionIconButton
+                {...getDefaultButtonVariants()}
+                aria-label="Search this folder"
+                className="shrink-0"
+                onPress={() => {
+                  setTreeFilterQuery(`f:"${folderPath.fullPath}"`);
+                  focusTreeFilterInput();
+                }}
               >
-                <Button
-                  aria-label="Folder settings menu"
-                  className={({ isHovered, isPressed }) =>
-                    cn(
-                      'bg-transparent border-0 focus-visible:bg-zinc-100 dark:focus-visible:bg-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 aria-expanded:bg-zinc-100 dark:aria-expanded:bg-zinc-700 rounded-md h-auto p-1.5 disabled:opacity-30 will-change-transform outline-hidden transition-transform mt-1 shrink-0',
-                      isHovered && 'scale-105',
-                      isPressed && 'scale-[0.975]'
-                    )
-                  }
-                >
-                  <HorizontalDots />
-                </Button>
-              </Tooltip>
-              <AppMenuPopover className="w-52" placement="bottom end">
-                <AppMenu onAction={handleAction}>
-                  {items.map((item) => (
-                    <AppMenuItem key={item.value} id={item.value}>
-                      {item.label}
-                    </AppMenuItem>
-                  ))}
-                </AppMenu>
-              </AppMenuPopover>
-            </AppMenuTrigger>
-          </div>
+                <Magnifier width="0.875rem" height="0.875rem" />
+              </MotionIconButton>
+            </Tooltip>
+          </span>
+          <p
+            title={folderPath.fullPath}
+            className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400"
+          >
+            {folderPath.fullPath}
+          </p>
         </div>
-      </header>
-      <hr className="mx-4 text-zinc-200 dark:text-zinc-700 col-span-full" />
-    </div>
+      </div>
+      <div className={FOLDER_CONTENT_CLASS_NAME}>
+        <hr className="border-zinc-200 dark:border-zinc-700" />
+      </div>
+    </header>
   );
 }

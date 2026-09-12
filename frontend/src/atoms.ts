@@ -138,8 +138,17 @@ export const sidebarSelectionAtom = atomWithLogging<SidebarSelectionState>(
 // Holds the query displayed by the file-tree filter.
 export const treeFilterQueryAtom = atom('');
 
-// Counter signal to trigger focus on the file-tree filter search input.
-export const focusTreeFilterInputAtom = atom(0);
+const treeFilterFocusVersionAtom = atom(0);
+
+// Changes whenever focus is requested for the file-tree filter input.
+export const treeFilterFocusSignalAtom = atom((get) =>
+  get(treeFilterFocusVersionAtom)
+);
+
+// Requests focus for the file-tree filter input.
+export const focusTreeFilterInputAtom = atom(null, (_get, set) => {
+  set(treeFilterFocusVersionAtom, (previous) => previous + 1);
+});
 
 // Reflects whether the application is currently rendering in dark mode.
 export const isDarkModeOnAtom = atom<boolean>(false);

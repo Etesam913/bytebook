@@ -109,6 +109,20 @@ test.describe('File Sidebar', () => {
     await expect(filterInput).toBeFocused();
   });
 
+  test('focuses the file filter when searching the current folder', async ({
+    page,
+  }) => {
+    await page.goto('/notes/Economics%20Notes');
+    const filterInput = page
+      .getByTestId('file-sidebar')
+      .getByRole('searchbox', { name: 'Filter files' });
+
+    await page.getByRole('button', { name: 'Search this folder' }).click();
+
+    await expect(filterInput).toHaveValue('f:"Economics Notes/"');
+    await expect(filterInput).toBeFocused();
+  });
+
   test.describe('File Tree', () => {
     test('reveals the selected search result when clearing the filter repeatedly', async ({
       page,

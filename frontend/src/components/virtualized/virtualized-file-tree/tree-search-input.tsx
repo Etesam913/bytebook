@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import {
   fileSidebarOpenStateAtom,
-  focusTreeFilterInputAtom,
   isFileMaximizedAtom,
+  treeFilterFocusSignalAtom,
 } from '@/atoms';
 import { AppIconButton } from '@components/buttons';
 import { AppSearchField } from '@components/input';
@@ -32,7 +32,7 @@ export function TreeSearchInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const setIsFileMaximized = useSetAtom(isFileMaximizedAtom);
   const setOpenState = useSetAtom(fileSidebarOpenStateAtom);
-  const focusSignal = useAtomValue(focusTreeFilterInputAtom);
+  const focusSignal = useAtomValue(treeFilterFocusSignalAtom);
   const isInitialMount = useRef(true);
 
   const focusInput = () => {
@@ -76,7 +76,7 @@ export function TreeSearchInput({
   });
 
   return (
-    <div className="px-2 pb-1.5 w-full">
+    <div className="pl-2 pr-2 pb-1.5 w-full">
       <AppSearchField
         ref={inputRef}
         aria-label="Filter files"
@@ -87,7 +87,7 @@ export function TreeSearchInput({
         autoComplete="off"
         autoCorrect="off"
         spellCheck={false}
-        inputClassName="pr-8"
+        inputClassName="pr-8 [&::-webkit-search-cancel-button]:ml-2"
         // SearchField clears on Escape by itself; only the blur is app behaviour.
         onClear={() => inputRef.current?.blur()}
         suffix={

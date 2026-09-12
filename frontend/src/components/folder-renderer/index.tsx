@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { FOLDER_CONTENT_CLASS_NAME, FOLDER_GRID_CLASS_NAME } from './styles';
 import {
   VirtuosoGrid,
   type GridItemProps,
@@ -33,6 +34,7 @@ import { useFolderRendererDrop } from './hooks/use-folder-renderer-drop';
 import { usePreventBoundaryOverscrollFlicker } from '@components/virtualized/virtualized-list/hooks';
 
 const folderGridComponents = {
+  Footer: () => <div className="h-6" />,
   Scroller: ({ children, ...props }: ScrollerProps) => (
     <div {...props} className="h-full w-full overflow-y-auto">
       {children}
@@ -42,7 +44,8 @@ const folderGridComponents = {
     <div
       {...props}
       className={cn(
-        'mx-auto grid max-w-6xl gap-3 px-8 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]',
+        FOLDER_CONTENT_CLASS_NAME,
+        FOLDER_GRID_CLASS_NAME,
         className
       )}
     >
@@ -50,7 +53,9 @@ const folderGridComponents = {
     </div>
   ),
   Item: ({ children, ...props }: GridItemProps) => (
-    <div {...props}>{children}</div>
+    <div {...props} className="min-w-0">
+      {children}
+    </div>
   ),
 };
 
@@ -127,26 +132,43 @@ export function FolderRenderer({
   const gridComponents = {
     ...folderGridComponents,
     Header: () => (
-      <div className="space-y-3">
+      <div>
         <FolderRendererHeader
           folderPath={folderPath}
           animationControls={animationControls}
         />
         <FolderRendererCreateItemCard folderPath={folderPath} />
+        {items.length === 0 && (
+          <div className={FOLDER_CONTENT_CLASS_NAME}>
+            <div className="flex flex-col items-center rounded-lg border border-dashed border-zinc-200 px-4 py-12 text-center dark:border-zinc-700">
+              <FolderOpen
+                width="2rem"
+                height="2rem"
+                className="mb-3 text-zinc-400 dark:text-zinc-500"
+              />
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                This folder is empty
+              </p>
+              <p className="mt-1 max-w-xs text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+                Create a note or folder, or drop files here to get started.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     ),
   };
 
   return (
     <motion.section
-      className="flex h-full flex-1 flex-col w-full"
+      className="@container flex h-full min-w-0 flex-1 flex-col w-full"
       animate={animationControls}
     >
       <div
         ref={containerRef}
         id="folder-container"
         data-file-drop-target
-        className="relative flex min-h-0 flex-1 flex-col"
+        className="relative flex min-h-0 min-w-0 flex-1 flex-col"
         {...dragProps}
       >
         {isLoading ? (
@@ -159,7 +181,7 @@ export function FolderRenderer({
             <Loader width="1.25rem" height="1.25rem" />
           </motion.section>
         ) : (
-          <section className="min-w-0 flex-1">
+          <section className="min-h-0 min-w-0 flex-1">
             <VirtuosoGrid
               scrollerRef={(node) => {
                 const element = node instanceof HTMLElement ? node : null;
