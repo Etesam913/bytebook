@@ -200,7 +200,7 @@ export function NotesEditor({
                         setDraggableBlockElement(null);
                       }}
                       id="content-editable-editor"
-                      className="min-h-full"
+                      className="editor-content min-h-full"
                       spellCheck
                       autoCorrect="on"
                       onClick={(e) => {

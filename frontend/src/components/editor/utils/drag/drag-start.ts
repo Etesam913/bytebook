@@ -27,39 +27,50 @@ export function handleDragStart({
   setDraggedGhostElement: Dispatch<SetStateAction<HTMLElement | null>>;
   noteContainer: HTMLElement | null;
 }) {
-  if (!e.dataTransfer || !draggableBlockElement) {
+  if (!e.dataTransfer || !draggableBlockElement || !noteContainer) {
     return;
   }
 
   let nodeKey = '';
-  const ghostElement = createGhostElementFromHtmlElement({
+  const ghostContent = createGhostElementFromHtmlElement({
     element: draggableBlockElement,
-    classNames: ['dragging'],
-    useNoteContainer: true,
+    classNames: [],
   });
+  const ghostElement = document.createElement('div');
   ghostElement.id = 'block-element';
+  ghostElement.className = 'editor-content editor-drag-ghost';
+  ghostElement.setAttribute('aria-hidden', 'true');
+  ghostElement.appendChild(ghostContent);
+
   editor.read(() => {
     const node = $getNearestNodeFromDOMNode(draggableBlockElement);
     if (!node) return;
     if ((node as ElementNode).getChildren) {
       const elementNode = node as ElementNode;
       elementNode.getChildren().forEach((child) => {
-        constructGhostElementForNode(child, ghostElement);
+        constructGhostElementForNode(child, ghostContent);
       });
     } else {
-      constructGhostElementForNode(node, ghostElement);
+      constructGhostElementForNode(node, ghostContent);
     }
     nodeKey = node.getKey();
   });
 
-  if (noteContainer) {
-    ghostElement.style.fontFamily = noteContainer.style.fontFamily;
-    ghostElement.style.maxWidth = `${noteContainer.clientWidth}px`;
-  }
+  const sourceWidth = draggableBlockElement.getBoundingClientRect().width;
+  const sourceStyle = getComputedStyle(draggableBlockElement);
+  ghostElement.style.width = `${Math.min(sourceWidth, noteContainer.clientWidth)}px`;
+  ghostElement.style.fontFamily = sourceStyle.fontFamily;
+  ghostElement.style.whiteSpace = sourceStyle.whiteSpace;
+  ghostElement.style.color = sourceStyle.color;
   setDraggedGhostElement(ghostElement);
 
-  e.dataTransfer.setDragImage(ghostElement, 0, 0);
+  // Keep the snapshot in the viewport and outside the editor's clipping scroll
+  // container. The browser captures it after dragstart, before the next paint.
   document.body.appendChild(ghostElement);
+  e.dataTransfer.setDragImage(ghostElement, 0, 0);
+  requestAnimationFrame(() => {
+    ghostElement.style.left = '-9999px';
+  });
 
   setIsDragging(true);
   e.dataTransfer.setData(DRAG_DATA_FORMAT, nodeKey);

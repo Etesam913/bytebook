@@ -149,7 +149,7 @@ textarea,
   @apply flex flex-1 gap-2 items-center px-2 py-[0.2rem] rounded-md relative z-10 overflow-x-hidden hover:bg-zinc-100 dark:hover:bg-zinc-600 focus:[outline:2px_auto];
 }
 
-#content-editable-editor {
+.editor-content {
   @apply cursor-text isolate py-1;
   font-size: var(--editor-font-size);
   line-height: calc(var(--editor-font-size) * var(--editor-line-height));
@@ -574,6 +574,11 @@ div[data-is-fullscreen='true'] .cm-scroller {
 
 .dragging {
   @apply bg-zinc-50 text-left dark:bg-zinc-700 text-zinc-950 dark:text-zinc-100 border-zinc-200 dark:border-zinc-600 border-2 absolute top-0 left-[-9999px] px-1 py-0.5 rounded-lg text-nowrap whitespace-nowrap overflow-hidden text-ellipsis;
+}
+
+.editor-drag-ghost {
+  @apply absolute top-0 left-0 z-50 pointer-events-none box-content px-1 py-0.5 rounded-lg border-2 border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-700 text-zinc-950 dark:text-zinc-100;
+  max-width: calc(100vw - 12px);
 }
 
 .drag-grid {
