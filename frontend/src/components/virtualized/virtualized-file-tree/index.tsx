@@ -8,6 +8,7 @@ import { reconcileTreePaths } from './reconcile';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { draggedGhostElementAtom, isDarkModeOnAtom } from '@/atoms';
 import {
+  createFolderPath,
   remapPathThroughRename,
   splitPathSegments,
   stripTrailingSlash,
@@ -193,6 +194,11 @@ function PierreFileTreeInner({
           // listener would never fire — release it here.
           pending.unsubscribe();
           pendingCreateRef.current = null;
+          // Pierre selects the committed placeholder before it exists on disk.
+          // Let the create mutation populate the path cache and navigate on success.
+          lastNavigatedRef.current = event.isFolder
+            ? (createFolderPath(event.destinationPath)?.fullPath ?? null)
+            : event.destinationPath;
           // Pierre moves the placeholder after this callback returns.
           queueMicrotask(() =>
             applyTreeCreate({

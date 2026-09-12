@@ -411,6 +411,7 @@ func AddAttachmentToBatch(
 // It flushes and replaces the batch when it reaches the default batch size.
 // Returns the active batch containing any operations that have not yet been flushed.
 func IndexFilesInFolderWithBatch(
+	projectPath,
 	folderPath,
 	folderName string,
 	index bleve.Index,
@@ -423,9 +424,6 @@ func IndexFilesInFolderWithBatch(
 	if _, err := os.Stat(folderPath); os.IsNotExist(err) {
 		return batch, err
 	}
-
-	// Compute project path from folder path (../.. from notes/<folder>)
-	projectPath := filepath.Dir(filepath.Dir(folderPath))
 
 	// Process all files in the folder
 	files, err := os.ReadDir(folderPath)

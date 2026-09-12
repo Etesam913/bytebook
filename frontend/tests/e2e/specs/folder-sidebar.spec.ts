@@ -388,11 +388,44 @@ test.describe('File Sidebar', () => {
         const input = page.getByRole('textbox', { name: 'Rename Untitled' });
         await expect(input).toBeVisible();
         await input.fill('My Todos');
+        const previousUrl = page.url();
+        // Hold the RPC response so premature tree navigation stays observable.
+        await page.evaluate(() => {
+          const originalFetch = window.fetch.bind(window);
+          let release: () => void;
+          const pending = new Promise<void>((resolve) => {
+            release = resolve;
+          });
+          Object.assign(window, { releaseFolderCreation: () => release() });
+          window.fetch = async (input, init) => {
+            const response = await originalFetch(input, init);
+            if (
+              typeof init?.body === 'string' &&
+              JSON.parse(init.body).args?.args?.[0] ===
+                'Economics Notes/My Todos'
+            ) {
+              await pending;
+            }
+            return response;
+          };
+        });
+
         await input.press('Enter');
 
         await expect
           .poll(() => getMockBindingCalls(page, addFolderBinding))
           .toEqual([['Economics Notes/My Todos']]);
+        await expect(page).toHaveURL(previousUrl);
+        await expect(
+          page.getByRole('heading', {
+            name: 'Sorry, but this note does not exist.',
+          })
+        ).not.toBeVisible();
+        await page.evaluate(() => {
+          (
+            window as typeof window & { releaseFolderCreation: () => void }
+          ).releaseFolderCreation();
+        });
         await expect
           .poll(() => getMockBindingCalls(page, renameFolderBinding))
           .toEqual([]);

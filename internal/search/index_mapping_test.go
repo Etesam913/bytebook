@@ -83,9 +83,9 @@ func (env *TestEnv) verifyDocumentExists(docId string) {
 	assert.NotNil(env.t, doc, "Document %s should not be nil", docId)
 }
 
-func indexFolderAndFlush(t *testing.T, idx bleve.Index, folderPath, folderName string) error {
+func indexFolderAndFlush(t *testing.T, idx bleve.Index, projectPath, folderPath, folderName string) error {
 	batch := idx.NewBatch()
-	batch, err := IndexFilesInFolderWithBatch(folderPath, folderName, idx, batch)
+	batch, err := IndexFilesInFolderWithBatch(projectPath, folderPath, folderName, idx, batch)
 	if err != nil {
 		return err
 	}
@@ -368,7 +368,7 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 	defer env.Close()
 
 	t.Run("should return error for non-existent folder", func(t *testing.T) {
-		err := indexFolderAndFlush(t, env.Index, "/non/existent/path", "non-existent")
+		err := indexFolderAndFlush(t, env.Index, env.TmpDir, "/non/existent/path", "non-existent")
 		assert.Error(t, err)
 	})
 
@@ -377,7 +377,7 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 		env.createMarkdownFile(folderPath, "test1.md", basicMarkdown)
 		env.createMarkdownFile(folderPath, "test2.md", "# Content\nThis is test content without frontmatter.")
 
-		err := indexFolderAndFlush(t, env.Index, folderPath, "test-folder")
+		err := indexFolderAndFlush(t, env.Index, env.TmpDir, folderPath, "test-folder")
 		assert.NoError(t, err)
 
 		// Verify files are indexed using their file paths as document IDs
@@ -391,7 +391,7 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 		folderPath := env.createTestFolder("test-folder-2")
 		env.createMarkdownFile(folderPath, "test.md", markdownWithId)
 
-		err := indexFolderAndFlush(t, env.Index, folderPath, "test-folder-2")
+		err := indexFolderAndFlush(t, env.Index, env.TmpDir, folderPath, "test-folder-2")
 		assert.NoError(t, err)
 
 		// Verify file is indexed
@@ -407,7 +407,7 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 		// Create files in parent folder
 		env.createMarkdownFile(folderPath, "parent-note.md", "# Content in parent folder")
 
-		err = indexFolderAndFlush(t, env.Index, folderPath, "parent-folder")
+		err = indexFolderAndFlush(t, env.Index, env.TmpDir, folderPath, "parent-folder")
 		assert.NoError(t, err)
 
 		// Verify parent file was indexed
@@ -423,7 +423,7 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 		// Create files in subfolder (should not be indexed)
 		env.createMarkdownFile(subfolderPath, "sub-note.md", "# Content in subfolder")
 
-		err = indexFolderAndFlush(t, env.Index, folderPath, "parent-folder")
+		err = indexFolderAndFlush(t, env.Index, env.TmpDir, folderPath, "parent-folder")
 		assert.NoError(t, err)
 
 		// Verify subfolder file was NOT indexed (since we only process files, not subdirectories)
@@ -435,7 +435,7 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 	t.Run("should handle empty folders", func(t *testing.T) {
 		folderPath := env.createTestFolder("empty-folder")
 
-		err := indexFolderAndFlush(t, env.Index, folderPath, "empty-folder")
+		err := indexFolderAndFlush(t, env.Index, env.TmpDir, folderPath, "empty-folder")
 		assert.NoError(t, err) // Should not error on empty folders
 
 		// Verify empty folders do not create standalone folder documents
@@ -450,7 +450,7 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 		env.createMarkdownFile(folderPath, ".hidden.md", "# hidden")
 		env.createAttachmentFile(folderPath, ".hidden.png", "fake image content")
 
-		err := indexFolderAndFlush(t, env.Index, folderPath, "hidden-skip-folder")
+		err := indexFolderAndFlush(t, env.Index, env.TmpDir, folderPath, "hidden-skip-folder")
 		require.NoError(t, err)
 
 		env.verifyDocumentExists("hidden-skip-folder/visible.md")
@@ -474,7 +474,7 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 			env.createAttachmentFile(folderPath, fmt.Sprintf("attachment-%04d.bin", i), "data")
 		}
 
-		batch, err := IndexFilesInFolderWithBatch(folderPath, folderName, env.Index, env.Index.NewBatch())
+		batch, err := IndexFilesInFolderWithBatch(env.TmpDir, folderPath, folderName, env.Index, env.Index.NewBatch())
 		require.NoError(t, err)
 		require.NotNil(t, batch)
 		assert.Equal(t, 1, batch.Size())

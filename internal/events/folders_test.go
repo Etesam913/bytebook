@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/blevesearch/bleve/v2"
+	"github.com/etesam913/bytebook/internal/notes/sidecar"
 	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/stretchr/testify/assert"
@@ -225,4 +226,48 @@ func TestUpdateFolderNameInMarkdown(t *testing.T) {
 			assert.Equal(t, tt.expectedFlag, updated)
 		})
 	}
+}
+
+func TestFolderRenamePreservesIndexedTags(t *testing.T) {
+	checkRename := func(t *testing.T, oldFolder, newFolder string) {
+		params := createTestParams(t)
+		idx := rawIndex(params)
+		for _, subfolder := range []string{"", "child/deep"} {
+			folder := filepath.Join(oldFolder, subfolder)
+			createMarkdownNoteInFolder(t, params.ProjectPath, folder, "note.md", "---\ntags: [markdown-tag]\n---\n# Note")
+			require.NoError(t, os.WriteFile(filepath.Join(params.ProjectPath, "notes", folder, "photo.png"), []byte("image"), 0644))
+			require.NoError(t, sidecar.WriteTags(params.ProjectPath, folder, "photo.png", []string{"sidecar-tag"}))
+		}
+		require.NoError(t, search.IndexAllFiles(params.ProjectPath, idx))
+		tags, err := search.GetTags(idx)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{"markdown-tag", "sidecar-tag"}, tags)
+
+		require.NoError(t, os.Rename(filepath.Join(params.ProjectPath, "notes", oldFolder), filepath.Join(params.ProjectPath, "notes", newFolder)))
+		renameFoldersInIndex(params, []util.FolderRenameEventData{{OldFolderPath: oldFolder, NewFolderPath: newFolder}})
+
+		for _, subfolder := range []string{"", "child/deep"} {
+			for _, file := range []string{"note.md", "photo.png"} {
+				oldDoc, err := idx.Document(filepath.Join(oldFolder, subfolder, file))
+				require.NoError(t, err)
+				assert.Nil(t, oldDoc)
+				request := bleve.NewSearchRequest(bleve.NewDocIDQuery([]string{filepath.Join(newFolder, subfolder, file)}))
+				request.Fields = []string{search.FieldTags}
+				result, err := idx.Search(request)
+				require.NoError(t, err)
+				if assert.Len(t, result.Hits, 1) {
+					expectedTag := "markdown-tag"
+					if file == "photo.png" {
+						expectedTag = "sidecar-tag"
+					}
+					assert.Equal(t, expectedTag, result.Hits[0].Fields[search.FieldTags])
+				}
+			}
+			tags, err := sidecar.ReadTags(params.ProjectPath, filepath.Join(newFolder, subfolder), "photo.png")
+			require.NoError(t, err)
+			assert.Equal(t, []string{"sidecar-tag"}, tags)
+		}
+	}
+	t.Run("top level folder and descendants", func(t *testing.T) { checkRename(t, "old", "renamed") })
+	t.Run("nested folder and descendants", func(t *testing.T) { checkRename(t, "parent/old", "parent/renamed") })
 }

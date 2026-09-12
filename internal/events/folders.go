@@ -1,6 +1,7 @@
 package events
 
 import (
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -79,7 +80,7 @@ func addFoldersToIndex(params EventParams, data []util.FolderCreateEventData) {
 
 		// Index files within the folder
 		pathOnDisk := filepath.Join(params.ProjectPath, "notes", folderPath)
-		updatedBatch, err := search.IndexFilesInFolderWithBatch(pathOnDisk, folderPath, idx, batch)
+		updatedBatch, err := search.IndexFilesInFolderWithBatch(params.ProjectPath, pathOnDisk, folderPath, idx, batch)
 		if err != nil {
 			log.Printf("Error indexing files for folder %s: %v", folderPath, err)
 			continue
@@ -215,7 +216,23 @@ func renameFoldersInIndex(params EventParams, data []util.FolderRenameEventData)
 		newFolderPathOnDisk := filepath.Join(params.ProjectPath, "notes", newFolderPath)
 		batch := idx.NewBatch()
 
-		batch, err := search.IndexFilesInFolderWithBatch(newFolderPathOnDisk, newFolderPath, idx, batch)
+		err := filepath.WalkDir(newFolderPathOnDisk, func(path string, entry fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			if strings.HasPrefix(entry.Name(), ".") && entry.IsDir() {
+				return filepath.SkipDir
+			}
+			if !entry.IsDir() {
+				return nil
+			}
+			folderPath, err := filepath.Rel(filepath.Join(params.ProjectPath, "notes"), path)
+			if err != nil {
+				return err
+			}
+			batch, err = search.IndexFilesInFolderWithBatch(params.ProjectPath, path, folderPath, idx, batch)
+			return err
+		})
 		if err != nil {
 			log.Printf("Error re-indexing folder %s: %v", newFolderPath, err)
 			continue

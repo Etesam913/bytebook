@@ -208,6 +208,8 @@ export function useSavedSearchUpdates() {
 export function useRegenerateSearchIndexMutation(
   options?: RegenerateSearchIndexMutationOptions
 ) {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async () => {
       const resultPromise = (async () => {
@@ -228,6 +230,7 @@ export function useRegenerateSearchIndexMutation(
       return await resultPromise;
     },
     onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.tagsAll() });
       await options?.onSuccess?.();
     },
   });
