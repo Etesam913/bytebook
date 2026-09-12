@@ -109,7 +109,7 @@ func TestSameStemFiles(t *testing.T) {
 	t.Run("deleting attachment metadata preserves its siblings", func(t *testing.T) {
 		projectPath := setupSameStemFiles(t)
 
-		require.NoError(t, Delete(projectPath, "testfolder", "report.pdf"))
+		require.NoError(t, os.Remove(PathForFile(projectPath, "testfolder", "report.pdf")))
 
 		assert.NoFileExists(t, filepath.Join(projectPath, "notes", "testfolder", ".report.pdf.json"))
 		for _, name := range []string{"report.md", "report.png"} {
@@ -174,27 +174,6 @@ func TestEnsure(t *testing.T) {
 		tags, err := ReadTags(projectPath, "testfolder", "photo.jpg")
 		require.NoError(t, err)
 		assert.ElementsMatch(t, []string{"existing"}, tags)
-	})
-}
-
-func TestDelete(t *testing.T) {
-	t.Run("deletes existing sidecar", func(t *testing.T) {
-		projectPath := setupTestDir(t)
-		err := WriteTags(projectPath, "testfolder", "photo.jpg", []string{"tag1"})
-		require.NoError(t, err)
-
-		err = Delete(projectPath, "testfolder", "photo.jpg")
-		require.NoError(t, err)
-
-		sidecarPath := PathForFile(projectPath, "testfolder", "photo.jpg")
-		_, err = os.Stat(sidecarPath)
-		assert.True(t, os.IsNotExist(err))
-	})
-
-	t.Run("returns nil if sidecar does not exist", func(t *testing.T) {
-		projectPath := setupTestDir(t)
-		err := Delete(projectPath, "testfolder", "missing.jpg")
-		assert.NoError(t, err)
 	})
 }
 

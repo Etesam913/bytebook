@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	index "github.com/blevesearch/bleve_index_api"
+	"github.com/etesam913/bytebook/internal/notes/sidecar"
 	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/stretchr/testify/assert"
@@ -161,4 +162,40 @@ func TestUpdateNotesInIndex(t *testing.T) {
 		assert.Equal(t, search.ATTACHMENT_TYPE, fields["type"])
 		assert.NotContains(t, fields, "text_content")
 	})
+}
+
+func TestWatcherDeletePreservesSidecarForPutBack(t *testing.T) {
+	// Index a note with metadata stored in its separate hidden sidecar.
+	params := createTestParams(t)
+	root := setupNotesDir(t, params.ProjectPath)
+	createNoteFile(t, root, "", "note.md", "# Note")
+	notePath := filepath.Join(root, "note.md")
+	metadata := []byte(`{"tags":["keep"],"codeResults":{"version":1,"codeBlocks":[]}}`)
+	require.NoError(t, os.WriteFile(sidecar.PathFor(notePath), metadata, 0644))
+	addCreatedNotesToIndex(params, []util.FileCreateEventData{{FilePath: "note.md"}})
+	// Finder trashes only the visible note, leaving its sidecar at the original path.
+	trashPath := filepath.Join(t.TempDir(), "note.md")
+	require.NoError(t, os.Rename(notePath, trashPath))
+
+	deleteNotesFromIndex(params, []util.FileDeleteEventData{{FilePath: "note.md"}})
+
+	// Deletion removes the search entry while retaining metadata for a possible restore.
+	actual, err := os.ReadFile(sidecar.PathFor(notePath))
+	require.NoError(t, err)
+	assert.Equal(t, metadata, actual)
+	doc, err := rawIndex(params).Document("note.md")
+	require.NoError(t, err)
+	assert.Nil(t, doc)
+
+	// Simulate Finder Put Back and the resulting create event.
+	require.NoError(t, os.Rename(trashPath, notePath))
+	addCreatedNotesToIndex(params, []util.FileCreateEventData{{FilePath: "note.md"}})
+
+	// The restored note is searchable again and still has its original metadata.
+	actual, err = os.ReadFile(sidecar.PathFor(notePath))
+	require.NoError(t, err)
+	assert.Equal(t, metadata, actual)
+	doc, err = rawIndex(params).Document("note.md")
+	require.NoError(t, err)
+	assert.NotNil(t, doc)
 }

@@ -89,11 +89,6 @@ func Ensure(projectPath, folder, fileName string) error {
 	return write(sidecarPath, Data{Tags: []string{}})
 }
 
-// Delete removes the file's sidecar if it exists.
-func Delete(projectPath, folder, fileName string) error {
-	return removeIfExists(PathForFile(projectPath, folder, fileName))
-}
-
 // Move renames the sidecar so it follows a file rename from oldFilePath to newFilePath.
 // No-op when the source sidecar does not exist; errors when a sidecar already exists at the destination.
 func Move(oldFilePath, newFilePath string) error {

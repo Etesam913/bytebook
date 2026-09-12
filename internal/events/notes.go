@@ -194,9 +194,8 @@ func deleteNotesFromIndex(params EventParams, data []util.FileDeleteEventData) {
 		notePath := filepath.Join(folder, noteName)
 		batch.Delete(notePath)
 
-		if err := sidecar.Delete(params.ProjectPath, folder, noteName); err != nil {
-			log.Println("Error deleting sidecar", err)
-		}
+		// A watcher delete may be a move out or Finder trash. Keep the sidecar so
+		// Put Back can recover it; explicit application operations own its lifecycle.
 	}
 
 	// Execute the batch

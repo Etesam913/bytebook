@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/blevesearch/bleve/v2"
+	"github.com/etesam913/bytebook/internal/config"
+	"github.com/etesam913/bytebook/internal/notes/sidecar"
 	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/stretchr/testify/assert"
@@ -107,4 +109,46 @@ func TestFileEventsCanonicalPaths(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "[target](/notes/root.md)", string(content))
 	})
+}
+
+func TestBatchRenamePreservesMetadataPinsAndLinks(t *testing.T) {
+	// Start with a note and attachment that have sidecars, pins, and incoming links.
+	params := createTestParams(t)
+	root := setupNotesDir(t, params.ProjectPath)
+	require.NoError(t, os.Mkdir(filepath.Join(root, "dest"), 0755))
+	metadata := []byte(`{"tags":["keep"],"codeResults":{"version":1,"codeBlocks":[]}}`)
+	for _, name := range []string{"note.md", "image.png"} {
+		createNoteFile(t, root, "", name, "content")
+		require.NoError(t, os.WriteFile(sidecar.PathFor(filepath.Join(root, name)), metadata, 0644))
+	}
+	createNoteFile(t, root, "", "links.md", "[note](/notes/note.md) [image](/notes/image.png)")
+	settingsPath := filepath.Join(params.ProjectPath, "settings", "settings.json")
+	require.NoError(t, os.MkdirAll(filepath.Dir(settingsPath), 0755))
+	require.NoError(t, util.WriteJsonToPath(settingsPath, config.ProjectSettingsJson{PinnedNotes: []string{"note.md", "image.png"}}))
+	handleFileCreateEvent(params, &application.CustomEvent{Data: []util.FileCreateEventData{{FilePath: "note.md"}, {FilePath: "image.png"}, {FilePath: "links.md"}}})
+	// Finder moves the visible files; the rename handler must move their sidecars.
+	for _, name := range []string{"note.md", "image.png"} {
+		require.NoError(t, os.Rename(filepath.Join(root, name), filepath.Join(root, "dest", name)))
+	}
+
+	// Deliver both moves together, as one watcher debounce batch.
+	handleFileRenameEvent(params, &application.CustomEvent{Data: []util.FileRenameEventData{
+		{OldFilePath: "note.md", NewFilePath: "dest/note.md"},
+		{OldFilePath: "image.png", NewFilePath: "dest/image.png"},
+	}})
+
+	// Metadata follows each file, and every stored reference uses its new path.
+	for _, name := range []string{"note.md", "image.png"} {
+		actual, err := os.ReadFile(sidecar.PathFor(filepath.Join(root, "dest", name)))
+		require.NoError(t, err)
+		assert.Equal(t, metadata, actual)
+		assert.NoFileExists(t, sidecar.PathFor(filepath.Join(root, name)))
+	}
+	var settings config.ProjectSettingsJson
+	require.NoError(t, util.ReadJsonFromPath(settingsPath, &settings))
+	assert.Equal(t, []string{"dest/note.md", "dest/image.png"}, settings.PinnedNotes)
+	content, err := os.ReadFile(filepath.Join(root, "links.md"))
+	require.NoError(t, err)
+	assert.Equal(t, "[note](/notes/dest/note.md) [image](/notes/dest/image.png)", string(content))
+	assertIndexedPaths(t, params, map[string]string{"dest/note.md": "dest", "dest/image.png": "dest", "links.md": ""})
 }
