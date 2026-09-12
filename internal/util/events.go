@@ -34,6 +34,8 @@ const (
 	EventFileTreeContentDrop = "file-tree:content-drop"
 	EventEditorContentDrop   = "editor:content-drop"
 	EventFolderContentDrop   = "folder:content-drop"
+	EventNavigateBack        = "navigation:back"
+	EventNavigateForward     = "navigation:forward"
 
 	// File watcher events
 	EventSettingsUpdate    = "settings:update"
@@ -136,6 +138,8 @@ func init() {
 	application.RegisterEvent[ContentDropEventData](EventFileTreeContentDrop)
 	application.RegisterEvent[ContentDropEventData](EventEditorContentDrop)
 	application.RegisterEvent[ContentDropEventData](EventFolderContentDrop)
+	application.RegisterEvent[application.Void](EventNavigateBack)
+	application.RegisterEvent[application.Void](EventNavigateForward)
 
 	application.RegisterEvent[TagsUpdateEventData](EventTagsUpdate)
 	application.RegisterEvent[application.Void](EventTagsIndexUpdate)

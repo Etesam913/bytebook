@@ -28,6 +28,8 @@ export const FILE_TREE_FILTER_FOCUS = 'file-tree:filter:focus';
 export const FILE_TREE_CONTENT_DROP = 'file-tree:content-drop';
 export const EDITOR_CONTENT_DROP = 'editor:content-drop';
 export const FOLDER_CONTENT_DROP = 'folder:content-drop';
+export const NAVIGATE_BACK = 'navigation:back';
+export const NAVIGATE_FORWARD = 'navigation:forward';
 
 // File watcher events
 export const SETTINGS_UPDATE = 'settings:update';

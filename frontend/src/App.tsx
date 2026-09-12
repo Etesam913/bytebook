@@ -12,6 +12,7 @@ import { FileSidebar } from '@components/file-sidebar';
 import { LoadingModal } from '@components/loading-modal';
 import { useProjectSettings } from '@hooks/project-settings';
 import { useTagEvents } from '@hooks/tags';
+import { useWailsEvent } from '@hooks/events';
 import { useThemeSetting } from '@hooks/theme';
 import { MAX_SIDEBAR_WIDTH } from '@utils/general';
 import { disableBackspaceNavigation } from '@utils/routing';
@@ -26,6 +27,11 @@ import {
 import { EditorWrapper } from '@components/editor-wrapper';
 import { RouteDebugView } from '@components/route-debug-view';
 import { isRegularMouseClick } from '@utils/mouse';
+import {
+  isEventInCurrentWindow,
+  NAVIGATE_BACK,
+  NAVIGATE_FORWARD,
+} from '@utils/events';
 import { isE2ETestEnvironment } from '@utils/e2e';
 import { useKernelInstanceEvents, useKernelInstancesQuery } from '@hooks/code';
 import { useAllPathsInvalidation } from '@hooks/all-paths';
@@ -65,6 +71,19 @@ function App() {
   useRestoreLastVisitedOnLaunch();
   useSyncFileMaximizedWithRoute();
   useSyncRouteWithRenames();
+
+  useWailsEvent(NAVIGATE_BACK, (data) => {
+    void (async () => {
+      if (!(await isEventInCurrentWindow(data))) return;
+      window.history.back();
+    })();
+  });
+  useWailsEvent(NAVIGATE_FORWARD, (data) => {
+    void (async () => {
+      if (!(await isEventInCurrentWindow(data))) return;
+      window.history.forward();
+    })();
+  });
 
   return (
     <AriaRouter>

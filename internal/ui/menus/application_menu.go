@@ -2,6 +2,7 @@ package menus
 
 import (
 	"log"
+	"runtime"
 
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/util"
@@ -141,6 +142,31 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 	if forceReload != nil {
 		sub.RemoveMenuItem(forceReload)
 	}
+
+	backAccelerator, forwardAccelerator := "alt+left", "alt+right"
+	if runtime.GOOS == "darwin" {
+		backAccelerator, forwardAccelerator = "cmd+[", "cmd+]"
+	}
+
+	goBack := sub.Add("Go Back")
+	goBack.SetAccelerator(backAccelerator)
+	goBack.OnClick(func(ctx *application.Context) {
+		if win := app.Window.Current(); win != nil {
+			win.EmitEvent(util.EventNavigateBack)
+		} else {
+			log.Println("Current window could not be found: navigation:back event could not be emitted")
+		}
+	})
+
+	goForward := sub.Add("Go Forward")
+	goForward.SetAccelerator(forwardAccelerator)
+	goForward.OnClick(func(ctx *application.Context) {
+		if win := app.Window.Current(); win != nil {
+			win.EmitEvent(util.EventNavigateForward)
+		} else {
+			log.Println("Current window could not be found: navigation:forward event could not be emitted")
+		}
+	})
 
 	// Replace the default zoom items so zoom is handled by the frontend UI scale instead of native magnification.
 	zoomIn := sub.FindByLabel("Zoom In")
