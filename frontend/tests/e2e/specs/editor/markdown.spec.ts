@@ -1,61 +1,28 @@
 import { test, expect } from '@playwright/test';
+import { getEditor, mockNote, NOTE_URL } from '../../utils/editor';
 import { mockBinding } from '../../utils/mock-binding';
-import {
-  MOCK_NOTE_EXISTS_RESPONSE,
-  MOCK_NOTE_MARKDOWN_RESPONSE,
-  MOCK_PROJECT_SETTINGS_RESPONSE,
-} from '../../utils/mock-responses';
+import { MOCK_PROJECT_SETTINGS_RESPONSE } from '../../utils/mock-responses';
 import { SERVICE_FILES } from '../../utils/service-files';
 
 test.describe('Markdown rendering', () => {
   test.beforeEach(async ({ context }) => {
-    await mockBinding(
-      context,
-      { file: SERVICE_FILES.NOTE_SERVICE, method: 'DoesNoteExist' },
-      MOCK_NOTE_EXISTS_RESPONSE
-    );
-
     // Mock project settings
     await mockBinding(
       context,
       { file: SERVICE_FILES.SETTINGS_SERVICE, method: 'GetProjectSettings' },
       MOCK_PROJECT_SETTINGS_RESPONSE
     );
-
-    // Mock note markdown
-    await mockBinding(
-      context,
-      {
-        file: SERVICE_FILES.NOTE_SERVICE,
-        method: 'GetNoteMarkdownWithCodeResults',
-      },
-      MOCK_NOTE_MARKDOWN_RESPONSE
-    );
   });
 
   test('renders headings correctly', async ({ page, context }) => {
-    const HEADING_MARKDOWN_RESPONSE = {
-      success: true,
-      message: '',
-      data: {
-        markdown:
-          '# Heading 1\n\n## Heading 2\n\n### Heading 3\n\nParagraph text.',
-        codeResults: { version: 1, codeBlocks: [] },
-      },
-    };
-
-    await mockBinding(
+    await mockNote(
       context,
-      {
-        file: SERVICE_FILES.NOTE_SERVICE,
-        method: 'GetNoteMarkdownWithCodeResults',
-      },
-      HEADING_MARKDOWN_RESPONSE
+      '# Heading 1\n\n## Heading 2\n\n### Heading 3\n\nParagraph text.'
     );
 
-    await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
+    await page.goto(NOTE_URL);
 
-    const editor = page.locator('#content-editable-editor');
+    const editor = getEditor(page);
     await expect(editor).toBeVisible();
 
     await expect(editor.locator('h1')).toContainText('Heading 1');
@@ -65,38 +32,25 @@ test.describe('Markdown rendering', () => {
   });
 
   test('renders lists and check lists correctly', async ({ page, context }) => {
-    const LIST_MARKDOWN_RESPONSE = {
-      success: true,
-      message: '',
-      data: {
-        markdown: [
-          '# List Example',
-          '',
-          '- Item 1',
-          '- Item 2',
-          '',
-          '1. First',
-          '2. Second',
-          '',
-          '- [ ] Unchecked item',
-          '- [x] Checked item',
-        ].join('\n'),
-        codeResults: { version: 1, codeBlocks: [] },
-      },
-    };
-
-    await mockBinding(
+    await mockNote(
       context,
-      {
-        file: SERVICE_FILES.NOTE_SERVICE,
-        method: 'GetNoteMarkdownWithCodeResults',
-      },
-      LIST_MARKDOWN_RESPONSE
+      [
+        '# List Example',
+        '',
+        '- Item 1',
+        '- Item 2',
+        '',
+        '1. First',
+        '2. Second',
+        '',
+        '- [ ] Unchecked item',
+        '- [x] Checked item',
+      ].join('\n')
     );
 
-    await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
+    await page.goto(NOTE_URL);
 
-    const editor = page.locator('#content-editable-editor');
+    const editor = getEditor(page);
     await expect(editor).toBeVisible();
 
     await expect(editor).toContainText('Item 1');
@@ -114,94 +68,57 @@ test.describe('Markdown rendering', () => {
   });
 
   test('renders bold and italic text correctly', async ({ page, context }) => {
-    const FORMATTED_MARKDOWN_RESPONSE = {
-      success: true,
-      message: '',
-      data: {
-        markdown:
-          '# Formatting\n\nThis has **bold text** and *italic text* and ***bold italic***.',
-        codeResults: { version: 1, codeBlocks: [] },
-      },
-    };
-
-    await mockBinding(
+    await mockNote(
       context,
-      {
-        file: SERVICE_FILES.NOTE_SERVICE,
-        method: 'GetNoteMarkdownWithCodeResults',
-      },
-      FORMATTED_MARKDOWN_RESPONSE
+      '# Formatting\n\nThis has **bold text** and *italic text* and ***bold italic***.'
     );
 
-    await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
+    await page.goto(NOTE_URL);
 
-    const editor = page.locator('#content-editable-editor');
+    const editor = getEditor(page);
     await expect(editor).toBeVisible();
-
-    await expect(editor).toContainText('bold text');
-    await expect(editor).toContainText('italic text');
-    await expect(editor).toContainText('bold italic');
 
     await expect(editor.locator('strong').first()).toContainText('bold text');
     await expect(editor.locator('em').first()).toContainText('italic text');
+    const boldItalic = editor
+      .locator('strong')
+      .filter({ hasText: 'bold italic' });
+    await expect(boldItalic).toHaveText('bold italic');
+    await expect(boldItalic).toHaveCSS('font-style', 'italic');
   });
 
   test('renders strikethrough text correctly', async ({ page, context }) => {
-    const STRIKETHROUGH_MARKDOWN_RESPONSE = {
-      success: true,
-      message: '',
-      data: {
-        markdown:
-          '# Strikethrough Example\n\nThis has ~~strikethrough text~~ in it.',
-        codeResults: { version: 1, codeBlocks: [] },
-      },
-    };
-
-    await mockBinding(
+    await mockNote(
       context,
-      {
-        file: SERVICE_FILES.NOTE_SERVICE,
-        method: 'GetNoteMarkdownWithCodeResults',
-      },
-      STRIKETHROUGH_MARKDOWN_RESPONSE
+      '# Strikethrough Example\n\nThis has ~~strikethrough text~~ in it.'
     );
 
-    await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
+    await page.goto(NOTE_URL);
 
-    const editor = page.locator('#content-editable-editor');
+    const editor = getEditor(page);
     await expect(editor).toBeVisible();
 
-    await expect(editor).toContainText('strikethrough text');
     await expect(editor.locator('span.text-strikethrough')).toContainText(
       'strikethrough text'
     );
   });
 
   test('renders blockquotes correctly', async ({ page, context }) => {
-    const BLOCKQUOTE_MARKDOWN_RESPONSE = {
-      success: true,
-      message: '',
-      data: {
-        markdown:
-          '# Quote Example\n\n> This is a blockquote\n> with multiple lines',
-        codeResults: { version: 1, codeBlocks: [] },
-      },
-    };
-
-    await mockBinding(
+    await mockNote(
       context,
-      {
-        file: SERVICE_FILES.NOTE_SERVICE,
-        method: 'GetNoteMarkdownWithCodeResults',
-      },
-      BLOCKQUOTE_MARKDOWN_RESPONSE
+      '# Quote Example\n\n> This is a blockquote\n> with multiple lines'
     );
 
-    await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
+    await page.goto(NOTE_URL);
 
-    const editor = page.locator('#content-editable-editor');
+    const editor = getEditor(page);
     await expect(editor).toBeVisible();
 
-    await expect(editor).toContainText('This is a blockquote');
+    await expect(editor.locator('blockquote')).toContainText(
+      'This is a blockquote'
+    );
+    await expect(editor.locator('blockquote')).toContainText(
+      'with multiple lines'
+    );
   });
 });

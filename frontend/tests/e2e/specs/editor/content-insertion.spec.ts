@@ -1,54 +1,64 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page, type Locator } from '@playwright/test';
+import { getEditor, mockNote, NOTE_URL } from '../../utils/editor';
 import { mockBinding } from '../../utils/mock-binding';
 import {
-  MOCK_NOTE_EXISTS_RESPONSE,
   MOCK_PROJECT_SETTINGS_RESPONSE,
   MOCK_FULL_TEXT_SEARCH_RESPONSE,
   MOCK_EMPTY_SEARCH_RESPONSE,
 } from '../../utils/mock-responses';
 import { SERVICE_FILES } from '../../utils/service-files';
 
-// NOTE_PATH points at Supply and Demand.md, which is one of the
+// NOTE_URL points at Supply and Demand.md, which is one of the
 // MOCK_FULL_TEXT_SEARCH_RESPONSE results — the @-picker excludes the current
 // note, so search assertions use the other two results.
-const NOTE_PATH = '/notes/Economics%20Notes/Supply%20and%20Demand.md';
 
-// Empty markdown loads the editor with a single empty paragraph, which keeps
-// the cursor at the start of an empty node so typeahead triggers (/, @) and
-// markdown shortcuts fire on the first keystroke.
-const EMPTY_NOTE_MARKDOWN = {
-  success: true,
-  message: '',
-  data: { markdown: '', codeResults: { version: 1, codeBlocks: [] } },
-};
+async function openTableDialog(page: Page) {
+  await page.goto(NOTE_URL);
+  await getEditor(page).click();
+  await page.keyboard.type('/table');
+  await page.getByRole('option', { name: 'Table', exact: true }).click();
+  return page.getByRole('dialog');
+}
+
+async function expectAddButtonAlignment(
+  cell: Locator,
+  button: Locator,
+  axis: 'row' | 'column'
+) {
+  await expect
+    .poll(async () => {
+      const cellBox = await cell.boundingBox();
+      const buttonBox = await button.boundingBox();
+      if (!cellBox || !buttonBox) return Infinity;
+      const centerOffset =
+        axis === 'column'
+          ? buttonBox.x + buttonBox.width / 2 - cellBox.x - cellBox.width / 2
+          : buttonBox.y + buttonBox.height / 2 - cellBox.y - cellBox.height / 2;
+      const edgeOffset =
+        axis === 'column'
+          ? buttonBox.y + buttonBox.height - cellBox.y - 9
+          : buttonBox.x + buttonBox.width - cellBox.x - 9;
+      return Math.max(Math.abs(centerOffset), Math.abs(edgeOffset));
+    })
+    .toBeLessThan(2);
+}
 
 test.describe('Editor content insertion', () => {
   test.beforeEach(async ({ context }) => {
     await mockBinding(
       context,
-      { file: SERVICE_FILES.NOTE_SERVICE, method: 'DoesNoteExist' },
-      MOCK_NOTE_EXISTS_RESPONSE
-    );
-    await mockBinding(
-      context,
       { file: SERVICE_FILES.SETTINGS_SERVICE, method: 'GetProjectSettings' },
       MOCK_PROJECT_SETTINGS_RESPONSE
     );
-    await mockBinding(
-      context,
-      {
-        file: SERVICE_FILES.NOTE_SERVICE,
-        method: 'GetNoteMarkdownWithCodeResults',
-      },
-      EMPTY_NOTE_MARKDOWN
-    );
+    // An empty paragraph lets typeahead and Markdown shortcuts trigger immediately.
+    await mockNote(context, '');
   });
 
   test.describe('Slash command menu', () => {
     test('opens menu on "/" and shows core options', async ({ page }) => {
-      await page.goto(NOTE_PATH);
+      await page.goto(NOTE_URL);
 
-      const editor = page.locator('#content-editable-editor');
+      const editor = getEditor(page);
       await expect(editor).toBeVisible();
 
       await editor.click();
@@ -63,9 +73,9 @@ test.describe('Editor content insertion', () => {
     });
 
     test('filters options by typed query', async ({ page }) => {
-      await page.goto(NOTE_PATH);
+      await page.goto(NOTE_URL);
 
-      const editor = page.locator('#content-editable-editor');
+      const editor = getEditor(page);
       await expect(editor).toBeVisible();
 
       await editor.click();
@@ -79,9 +89,9 @@ test.describe('Editor content insertion', () => {
     test('inserts a heading when Heading 1 option is clicked', async ({
       page,
     }) => {
-      await page.goto(NOTE_PATH);
+      await page.goto(NOTE_URL);
 
-      const editor = page.locator('#content-editable-editor');
+      const editor = getEditor(page);
       await expect(editor).toBeVisible();
 
       await editor.click();
@@ -98,9 +108,9 @@ test.describe('Editor content insertion', () => {
     test('inserts a horizontal rule when Line Break is selected', async ({
       page,
     }) => {
-      await page.goto(NOTE_PATH);
+      await page.goto(NOTE_URL);
 
-      const editor = page.locator('#content-editable-editor');
+      const editor = getEditor(page);
       await expect(editor).toBeVisible();
 
       await editor.click();
@@ -116,9 +126,9 @@ test.describe('Editor content insertion', () => {
     test('inserts via keyboard (Enter on highlighted option)', async ({
       page,
     }) => {
-      await page.goto(NOTE_PATH);
+      await page.goto(NOTE_URL);
 
-      const editor = page.locator('#content-editable-editor');
+      const editor = getEditor(page);
       await expect(editor).toBeVisible();
 
       await editor.click();
@@ -148,15 +158,15 @@ test.describe('Editor content insertion', () => {
     test('shows search results when typing a query after "@"', async ({
       page,
     }) => {
-      await page.goto(NOTE_PATH);
+      await page.goto(NOTE_URL);
 
-      const editor = page.locator('#content-editable-editor');
+      const editor = getEditor(page);
       await expect(editor).toBeVisible();
 
       await editor.click();
       await page.keyboard.type('@inflation');
 
-      // Note: NOTE_PATH points to Supply and Demand.md, which the picker
+      // Note: NOTE_URL points to Supply and Demand.md, which the picker
       // excludes from results — assert against the other two mocked results.
       const options = page.locator('li[role="option"]');
       await expect(
@@ -168,9 +178,9 @@ test.describe('Editor content insertion', () => {
     });
 
     test('inserts a link node when a result is clicked', async ({ page }) => {
-      await page.goto(NOTE_PATH);
+      await page.goto(NOTE_URL);
 
-      const editor = page.locator('#content-editable-editor');
+      const editor = getEditor(page);
       await expect(editor).toBeVisible();
 
       await editor.click();
@@ -193,9 +203,9 @@ test.describe('Editor content insertion', () => {
         MOCK_EMPTY_SEARCH_RESPONSE
       );
 
-      await page.goto(NOTE_PATH);
+      await page.goto(NOTE_URL);
 
-      const editor = page.locator('#content-editable-editor');
+      const editor = getEditor(page);
       await expect(editor).toBeVisible();
 
       await editor.click();
@@ -206,7 +216,7 @@ test.describe('Editor content insertion', () => {
   });
 
   test.describe('Markdown shortcuts', () => {
-    const blockTests: Array<{
+    const shortcutTests: Array<{
       label: string;
       input: string;
       selector: string;
@@ -242,33 +252,6 @@ test.describe('Editor content insertion', () => {
         selector: 'ol li',
         expectedText: 'First item',
       },
-    ];
-
-    for (const { label, input, selector, expectedText } of blockTests) {
-      test(label, async ({ page }) => {
-        await page.goto(NOTE_PATH);
-
-        const editor = page.locator('#content-editable-editor');
-        await expect(editor).toBeVisible();
-
-        await editor.click();
-        await page.keyboard.type(input);
-
-        await expect(editor.locator(selector)).toContainText(expectedText);
-      });
-    }
-
-    // Note: a typed "- [ ] " markdown shortcut does not trigger checklist
-    // conversion incrementally because "- " converts to a plain unordered
-    // list before "[ ] " is typed. The Check List slash-menu option is the
-    // user-facing path and is exercised in the Slash command menu describe.
-
-    const inlineTests: Array<{
-      label: string;
-      input: string;
-      selector: string;
-      expectedText: string;
-    }> = [
       {
         label: 'converts "**text** " shortcut to bold',
         input: '**bold** ',
@@ -289,11 +272,11 @@ test.describe('Editor content insertion', () => {
       },
     ];
 
-    for (const { label, input, selector, expectedText } of inlineTests) {
-      test(`${label}`, async ({ page }) => {
-        await page.goto(NOTE_PATH);
+    for (const { label, input, selector, expectedText } of shortcutTests) {
+      test(label, async ({ page }) => {
+        await page.goto(NOTE_URL);
 
-        const editor = page.locator('#content-editable-editor');
+        const editor = getEditor(page);
         await expect(editor).toBeVisible();
 
         await editor.click();
@@ -308,61 +291,41 @@ test.describe('Editor content insertion', () => {
     test('opens with default 3×3 dimensions when Table option is selected', async ({
       page,
     }) => {
-      await page.goto(NOTE_PATH);
+      const dialog = await openTableDialog(page);
 
-      const editor = page.locator('#content-editable-editor');
-      await expect(editor).toBeVisible();
-
-      await editor.click();
-      await page.keyboard.type('/table');
-      await page
-        .locator('li[role="option"]', { hasText: 'Table' })
-        .first()
-        .click();
-
-      const dialog = page.getByRole('dialog');
       await expect(dialog).toBeVisible();
       await expect(dialog).toContainText('Create Table');
-      await expect(page.locator('input#table-rows')).toHaveValue('3');
-      await expect(page.locator('input#table-columns')).toHaveValue('3');
+      await expect(dialog.getByLabel('Rows', { exact: true })).toHaveValue('3');
+      await expect(dialog.getByLabel('Columns', { exact: true })).toHaveValue(
+        '3'
+      );
     });
 
     test('inserts a table when valid dimensions are submitted', async ({
       page,
     }) => {
-      await page.goto(NOTE_PATH);
+      const dialog = await openTableDialog(page);
+      const editor = getEditor(page);
 
-      const editor = page.locator('#content-editable-editor');
-      await expect(editor).toBeVisible();
+      await dialog.getByLabel('Rows', { exact: true }).fill('2');
+      await dialog.getByLabel('Columns', { exact: true }).fill('2');
+      await dialog.getByRole('button', { name: 'Create Table' }).click();
 
-      await editor.click();
-      await page.keyboard.type('/table');
-      await page
-        .locator('li[role="option"]', { hasText: 'Table' })
-        .first()
-        .click();
-
-      await page.locator('input#table-rows').fill('2');
-      await page.locator('input#table-columns').fill('2');
-      await page.getByRole('button', { name: 'Create Table' }).click();
-
-      await expect(page.getByRole('dialog')).not.toBeVisible();
+      await expect(dialog).not.toBeVisible();
       await expect(editor.locator('table')).toBeVisible();
+      const rows = editor.locator('table tr');
+      await expect(rows).toHaveCount(2);
+      await expect(rows.nth(0).locator('td, th')).toHaveCount(2);
+      await expect(rows.nth(1).locator('td, th')).toHaveCount(2);
     });
 
     test('aligns add buttons with the hovered column and row', async ({
       page,
     }) => {
-      await page.goto(NOTE_PATH);
-      const editor = page.locator('#content-editable-editor');
-      await editor.click();
-      await page.keyboard.type('/table');
-      await page
-        .locator('li[role="option"]', { hasText: 'Table' })
-        .first()
-        .click();
-      await page.getByRole('button', { name: 'Create Table' }).click();
-      await expect(page.getByRole('dialog')).not.toBeVisible();
+      const dialog = await openTableDialog(page);
+      const editor = getEditor(page);
+      await dialog.getByRole('button', { name: 'Create Table' }).click();
+      await expect(dialog).not.toBeVisible();
       const rows = editor.locator('table tr');
       const topCell = rows.first().locator('td, th').nth(2);
       const leftCell = rows.nth(2).locator('td, th').first();
@@ -376,89 +339,38 @@ test.describe('Editor content insertion', () => {
 
       await expect(addColumn).toBeVisible();
 
-      await expect
-        .poll(async () => {
-          const cell = (await topCell.boundingBox())!;
-          const button = (await addColumn.boundingBox())!;
-          return Math.abs(
-            button.x + button.width / 2 - cell.x - cell.width / 2
-          );
-        })
-        .toBeLessThan(2);
-      await expect
-        .poll(async () => {
-          const cell = (await topCell.boundingBox())!;
-          const button = (await addColumn.boundingBox())!;
-          return Math.abs(button.y + button.height - cell.y - 9);
-        })
-        .toBeLessThan(2);
+      await expectAddButtonAlignment(topCell, addColumn, 'column');
       await addColumn.click();
       await expect(rows.first().locator('td, th')).toHaveCount(4);
 
       await leftCell.hover();
 
       await expect(addRow).toBeVisible();
-      await expect
-        .poll(async () => {
-          const cell = (await leftCell.boundingBox())!;
-          const button = (await addRow.boundingBox())!;
-          return Math.abs(
-            button.y + button.height / 2 - cell.y - cell.height / 2
-          );
-        })
-        .toBeLessThan(2);
-      await expect
-        .poll(async () => {
-          const cell = (await leftCell.boundingBox())!;
-          const button = (await addRow.boundingBox())!;
-          return Math.abs(button.x + button.width - cell.x - 9);
-        })
-        .toBeLessThan(2);
+      await expectAddButtonAlignment(leftCell, addRow, 'row');
       await addRow.click();
       await expect(rows).toHaveCount(4);
     });
 
     test('shows an error when rows is left blank', async ({ page }) => {
-      await page.goto(NOTE_PATH);
-
-      const editor = page.locator('#content-editable-editor');
-      await expect(editor).toBeVisible();
-
-      await editor.click();
-      await page.keyboard.type('/table');
-      await page
-        .locator('li[role="option"]', { hasText: 'Table' })
-        .first()
-        .click();
+      const dialog = await openTableDialog(page);
 
       // Empty value sidesteps the input's min/max HTML5 check and lets the
       // server-action validator return its own error.
-      await page.locator('input#table-rows').fill('');
-      await page.getByRole('button', { name: 'Create Table' }).click();
+      await dialog.getByLabel('Rows', { exact: true }).fill('');
+      await dialog.getByRole('button', { name: 'Create Table' }).click();
 
       await expect(
         page.getByText('Please enter a valid number of rows (1-100)')
       ).toBeVisible();
-      await expect(page.getByRole('dialog')).toBeVisible();
+      await expect(dialog).toBeVisible();
     });
 
     test('closes via the Close button', async ({ page }) => {
-      await page.goto(NOTE_PATH);
+      const dialog = await openTableDialog(page);
 
-      const editor = page.locator('#content-editable-editor');
-      await expect(editor).toBeVisible();
-
-      await editor.click();
-      await page.keyboard.type('/table');
-      await page
-        .locator('li[role="option"]', { hasText: 'Table' })
-        .first()
-        .click();
-
-      const dialog = page.getByRole('dialog');
       await expect(dialog).toBeVisible();
 
-      await page.getByRole('button', { name: 'Close dialog' }).click();
+      await dialog.getByRole('button', { name: 'Close dialog' }).click();
       await expect(dialog).not.toBeVisible();
     });
   });

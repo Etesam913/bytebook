@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { getMockBindingCalls, mockBinding } from '../utils/mock-binding';
 import {
   MOCK_ALL_PATHS_RESPONSE,
@@ -22,6 +22,18 @@ const savedOrder = [
   'tags',
   'savedSearches',
 ];
+
+async function expectSidebarOrder(page: Page, expected: string[]) {
+  await expect
+    .poll(() =>
+      page
+        .locator('[data-sidebar-panel]')
+        .evaluateAll((elements) =>
+          elements.map((element) => element.getAttribute('data-sidebar-panel'))
+        )
+    )
+    .toEqual(expected);
+}
 
 test.beforeEach(async ({ context }) => {
   await mockBinding(context, getSettings, MOCK_PROJECT_SETTINGS_RESPONSE);
@@ -73,15 +85,7 @@ test('drags an accordion and restores its saved order in a new window', async ({
   });
   const newWindow = await context.newPage();
   await newWindow.goto('/');
-  await expect
-    .poll(() =>
-      newWindow
-        .locator('[data-sidebar-panel]')
-        .evaluateAll((elements) =>
-          elements.map((element) => element.getAttribute('data-sidebar-panel'))
-        )
-    )
-    .toEqual(savedOrder);
+  await expectSidebarOrder(newWindow, savedOrder);
 });
 
 test('waits for saved settings before showing the initial accordion order', async ({
@@ -126,13 +130,5 @@ test('waits for saved settings before showing the initial accordion order', asyn
     window.dispatchEvent(new Event('release-project-settings'))
   );
 
-  await expect
-    .poll(() =>
-      page
-        .locator('[data-sidebar-panel]')
-        .evaluateAll((elements) =>
-          elements.map((element) => element.getAttribute('data-sidebar-panel'))
-        )
-    )
-    .toEqual(savedOrder);
+  await expectSidebarOrder(page, savedOrder);
 });

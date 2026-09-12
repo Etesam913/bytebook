@@ -1,8 +1,13 @@
 import { test, expect } from '@playwright/test';
+import {
+  getEditor,
+  mockNote,
+  NOTE_URL,
+  mockNoteMarkdown,
+} from '../../utils/editor';
 import { mockBinding } from '../../utils/mock-binding';
 import {
   MOCK_ALL_PATHS_RESPONSE,
-  MOCK_NOTE_EXISTS_RESPONSE,
   MOCK_NOTE_MARKDOWN_RESPONSE,
   MOCK_PROJECT_SETTINGS_RESPONSE,
 } from '../../utils/mock-responses';
@@ -20,12 +25,6 @@ test.describe('Editor', () => {
       MOCK_ALL_PATHS_RESPONSE
     );
 
-    await mockBinding(
-      context,
-      { file: SERVICE_FILES.NOTE_SERVICE, method: 'DoesNoteExist' },
-      MOCK_NOTE_EXISTS_RESPONSE
-    );
-
     // Mock project settings
     await mockBinding(
       context,
@@ -33,21 +32,13 @@ test.describe('Editor', () => {
       MOCK_PROJECT_SETTINGS_RESPONSE
     );
 
-    // Mock note markdown
-    await mockBinding(
-      context,
-      {
-        file: SERVICE_FILES.NOTE_SERVICE,
-        method: 'GetNoteMarkdownWithCodeResults',
-      },
-      MOCK_NOTE_MARKDOWN_RESPONSE
-    );
+    await mockNote(context, MOCK_NOTE_MARKDOWN_RESPONSE.data.markdown);
   });
 
   test('renders simple markdown content', async ({ page }) => {
-    await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
+    await page.goto(NOTE_URL);
 
-    const editor = page.locator('#content-editable-editor');
+    const editor = getEditor(page);
     await expect(editor).toBeVisible();
 
     await expect(editor).toContainText('Sample Note');
@@ -55,7 +46,7 @@ test.describe('Editor', () => {
   });
 
   test('renders note title correctly', async ({ page }) => {
-    await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
+    await page.goto(NOTE_URL);
 
     const noteContainer = page.locator('#note-container');
     await expect(noteContainer).toBeVisible();
@@ -67,9 +58,9 @@ test.describe('Editor', () => {
   });
 
   test('maximize button hides the file sidebar', async ({ page }) => {
-    await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
+    await page.goto(NOTE_URL);
 
-    const editor = page.locator('#content-editable-editor');
+    const editor = getEditor(page);
     await expect(editor).toBeVisible();
 
     // Verify the file sidebar is visible initially
@@ -118,7 +109,7 @@ test.describe('Editor', () => {
         FAILURE_RESPONSE
       );
 
-      await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
+      await page.goto(NOTE_URL);
 
       // When markdown fetch fails, the app redirects to the 404 page
       await expect(page).toHaveURL(/\/404/);
@@ -126,30 +117,17 @@ test.describe('Editor', () => {
   });
 
   test.describe('Floating toolbar', () => {
-    const SELECTABLE_MARKDOWN_RESPONSE = {
-      success: true,
-      message: '',
-      data: {
-        markdown: '# Sample Note\n\nThis is some selectable text for testing.',
-        codeResults: { version: 1, codeBlocks: [] },
-      },
-    };
-
     test.beforeEach(async ({ context }) => {
-      await mockBinding(
+      await mockNoteMarkdown(
         context,
-        {
-          file: SERVICE_FILES.NOTE_SERVICE,
-          method: 'GetNoteMarkdownWithCodeResults',
-        },
-        SELECTABLE_MARKDOWN_RESPONSE
+        '# Sample Note\n\nThis is some selectable text for testing.'
       );
     });
 
     test('shows toolbar buttons when text is selected', async ({ page }) => {
-      await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
+      await page.goto(NOTE_URL);
 
-      const editor = page.locator('#content-editable-editor');
+      const editor = getEditor(page);
       await editor
         .getByText('This is some selectable text')
         .click({ clickCount: 3 });
@@ -164,10 +142,10 @@ test.describe('Editor', () => {
         'Bullet List',
         'Numbered List',
         'Checklist',
-        'Insert Link',
+        'Insert Link (⌘K)',
       ]) {
         await expect(
-          floatingToolbar.locator(`button[aria-label="${label}"]`)
+          floatingToolbar.getByRole('button', { name: label, exact: true })
         ).toBeVisible();
       }
     });
@@ -182,9 +160,9 @@ test.describe('Editor', () => {
       test(`applies ${button.toLowerCase()} formatting when ${button} button is clicked`, async ({
         page,
       }) => {
-        await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
+        await page.goto(NOTE_URL);
 
-        const editor = page.locator('#content-editable-editor');
+        const editor = getEditor(page);
         await editor
           .getByText('This is some selectable text')
           .click({ clickCount: 3 });

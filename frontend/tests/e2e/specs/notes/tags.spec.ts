@@ -1,11 +1,16 @@
 import { test, expect, type Page } from '@playwright/test';
 import {
+  getEditor,
+  mockNote,
+  mockNoteMarkdown,
+  NOTE_URL,
+} from '../../utils/editor';
+import {
   getMockBindingCalls,
   mockBinding,
   updateMockBindingResponse,
 } from '../../utils/mock-binding';
 import {
-  MOCK_NOTE_EXISTS_RESPONSE,
   MOCK_NOTE_MARKDOWN_RESPONSE,
   MOCK_PROJECT_SETTINGS_RESPONSE,
   MOCK_SET_TAGS_ON_NOTES_RESPONSE,
@@ -30,39 +35,32 @@ async function expandTagsSection(page: Page) {
   return tagsSection;
 }
 
+async function openEditTags(page: Page) {
+  const tagsSection = await expandTagsSection(page);
+  await tagsSection.getByRole('button', { name: /Edit Tags/i }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(
+    dialog.getByRole('heading', { name: 'Edit Tags' })
+  ).toBeVisible();
+  return { tagsSection, dialog };
+}
+
 test.describe('Tags Workflow', () => {
   test.beforeEach(async ({ context }) => {
-    // Mock project settings
     await mockBinding(
       context,
       { file: SERVICE_FILES.SETTINGS_SERVICE, method: 'GetProjectSettings' },
       MOCK_PROJECT_SETTINGS_RESPONSE
     );
 
-    await mockBinding(
-      context,
-      { file: SERVICE_FILES.NOTE_SERVICE, method: 'DoesNoteExist' },
-      MOCK_NOTE_EXISTS_RESPONSE
-    );
+    await mockNote(context, MOCK_NOTE_MARKDOWN_RESPONSE.data.markdown);
 
-    // Mock note markdown
-    await mockBinding(
-      context,
-      {
-        file: SERVICE_FILES.NOTE_SERVICE,
-        method: 'GetNoteMarkdownWithCodeResults',
-      },
-      MOCK_NOTE_MARKDOWN_RESPONSE
-    );
-
-    // Mock tags
     await mockBinding(
       context,
       { file: SERVICE_FILES.TAGS_SERVICE, method: 'GetTags' },
       MOCK_TAGS_RESPONSE
     );
 
-    // Mock tags for notes
     await mockBinding(
       context,
       { file: SERVICE_FILES.TAGS_SERVICE, method: 'GetTagsForNotes' },
@@ -83,35 +81,19 @@ test.describe('Tags Workflow', () => {
         MOCK_SET_TAGS_ON_NOTES_RESPONSE
       );
 
-      // Navigate to a note that currently has no tags
       await page.goto('/notes/Economics%20Notes/Market%20Equilibrium.md');
 
-      // Wait for the editor to load
-      const editor = page.locator('#content-editable-editor');
+      const editor = getEditor(page);
       await expect(editor).toBeVisible();
 
-      // Expand the tags section and click its "Edit Tags" button
-      const tagsSection = await expandTagsSection(page);
-      const editTagsButton = tagsSection.getByRole('button', {
-        name: /Edit Tags/i,
-      });
-      await expect(editTagsButton).toBeVisible();
-      await editTagsButton.click();
+      const { tagsSection, dialog } = await openEditTags(page);
 
-      // The Edit Tags dialog should open
-      const dialog = page.getByRole('dialog');
-      await expect(
-        dialog.getByRole('heading', { name: 'Edit Tags' })
-      ).toBeVisible();
-
-      // Select a tag from the available tags (e.g., 'dev')
       const devTagOption = dialog.getByRole('option', {
         name: /dev tag/,
       });
       await expect(devTagOption).toBeVisible();
       await devTagOption.click();
 
-      // Update the mock to return the new tag for this note
       const updatedTagsForNotesResponse = {
         success: true,
         message: '',
@@ -127,17 +109,13 @@ test.describe('Tags Workflow', () => {
         updatedTagsForNotesResponse
       );
 
-      // Click the Save button
       const saveButton = dialog.getByRole('button', { name: 'Save' });
       await saveButton.click();
 
-      // Emit the tags:index_update event to trigger refetch
       await emitWailsEvent(page, 'tags:index_update', {});
 
-      // Wait for dialog to close
       await expect(dialog).not.toBeVisible();
 
-      // Verify the new tag appears in the tags section
       await expect(tagsSection).toContainText('dev');
     });
   });
@@ -154,20 +132,9 @@ test.describe('Tags Workflow', () => {
     };
 
     test.beforeEach(async ({ context }) => {
-      await mockBinding(
+      await mockNoteMarkdown(
         context,
-        {
-          file: SERVICE_FILES.NOTE_SERVICE,
-          method: 'GetNoteMarkdownWithCodeResults',
-        },
-        {
-          ...MOCK_NOTE_MARKDOWN_RESPONSE,
-          data: {
-            ...MOCK_NOTE_MARKDOWN_RESPONSE.data,
-            markdown:
-              '---\ntags:\n  - economics\nstatus: draft\n---\nOriginal content',
-          },
-        }
+        '---\ntags:\n  - economics\nstatus: draft\n---\nOriginal content'
       );
       await mockBinding(context, getTags, {
         success: true,
@@ -186,7 +153,7 @@ test.describe('Tags Workflow', () => {
         { file: SERVICE_FILES.TAGS_SERVICE, method: 'SetTagsOnNotes' },
         MOCK_SET_TAGS_ON_NOTES_RESPONSE
       );
-      await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
+      await page.goto(NOTE_URL);
       const tagsSection = await expandTagsSection(page);
       await updateMockBindingResponse(page, getTags, {
         success: true,
@@ -202,7 +169,7 @@ test.describe('Tags Workflow', () => {
         tagsSection.getByRole('button', { name: 'Tags (0)', exact: true })
       ).toBeVisible();
 
-      await page.locator('#content-editable-editor').fill('Edited content');
+      await getEditor(page).fill('Edited content');
 
       await expect
         .poll(
@@ -223,14 +190,14 @@ test.describe('Tags Workflow', () => {
         message: '',
         data: {},
       });
-      await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
+      await page.goto(NOTE_URL);
       await expect(
         page
           .getByTestId('note-tags')
           .getByRole('button', { name: 'Tags (0)', exact: true })
       ).toBeVisible();
 
-      await page.locator('#content-editable-editor').fill('Edited content');
+      await getEditor(page).fill('Edited content');
 
       await expect
         .poll(
@@ -246,17 +213,13 @@ test.describe('Tags Workflow', () => {
     test('existing tags for a note are displayed in the tags section', async ({
       page,
     }) => {
-      // Navigate to a note that has existing tags
-      await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
+      await page.goto(NOTE_URL);
 
-      // Wait for the editor to load
-      const editor = page.locator('#content-editable-editor');
+      const editor = getEditor(page);
       await expect(editor).toBeVisible();
 
-      // Expand the tags section
       const tagsSection = await expandTagsSection(page);
 
-      // Verify existing tags are displayed
       await expect(tagsSection).toContainText('economics');
       await expect(tagsSection).toContainText('research');
     });
@@ -265,7 +228,6 @@ test.describe('Tags Workflow', () => {
       page,
       context,
     }) => {
-      // Override mock to only return tags for the specific note being tested
       await mockBinding(
         context,
         { file: SERVICE_FILES.TAGS_SERVICE, method: 'GetTagsForNotes' },
@@ -278,26 +240,13 @@ test.describe('Tags Workflow', () => {
         }
       );
 
-      // Navigate to a note that has existing tags
-      await page.goto('/notes/Economics%20Notes/Supply%20and%20Demand.md');
+      await page.goto(NOTE_URL);
 
-      // Wait for the editor to load
-      const editor = page.locator('#content-editable-editor');
+      const editor = getEditor(page);
       await expect(editor).toBeVisible();
 
-      // Expand the tags section and open the Edit Tags dialog
-      const tagsSection = await expandTagsSection(page);
-      const editTagsButton = tagsSection.getByRole('button', {
-        name: /Edit Tags/i,
-      });
-      await editTagsButton.click();
+      const { dialog } = await openEditTags(page);
 
-      const dialog = page.getByRole('dialog');
-      await expect(
-        dialog.getByRole('heading', { name: 'Edit Tags' })
-      ).toBeVisible();
-
-      // Verify existing tags are shown as selected options
       const economicsOption = dialog.getByRole('option', {
         name: /economics tag, selected/,
       });
@@ -311,7 +260,6 @@ test.describe('Tags Workflow', () => {
       await expect(economicsOption).toHaveAttribute('aria-selected', 'true');
       await expect(researchOption).toHaveAttribute('aria-selected', 'true');
 
-      // The 'dev' tag should not be selected
       const devOption = dialog.getByRole('option', {
         name: /dev tag, not selected/,
       });

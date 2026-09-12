@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { getMockBindingCalls, mockBinding } from '../utils/mock-binding';
 import {
   MOCK_ALL_PATHS_RESPONSE,
@@ -33,11 +33,6 @@ async function expectLastSettingsUpdate(page: Page, expected: object) {
       return calls.at(-1)?.[0];
     })
     .toMatchObject(expected);
-}
-
-async function toggleSwitch(settingSwitch: Locator) {
-  await expect(settingSwitch).not.toBeChecked();
-  await settingSwitch.press('Space');
 }
 
 test.describe('Settings dialog', () => {
@@ -127,6 +122,42 @@ test.describe('Settings dialog', () => {
     });
   }
 
+  for (const setting of [
+    {
+      name: 'the table of contents default',
+      tab: 'Editor',
+      label: 'Show the table of contents by default',
+      section: 'appearance',
+      field: 'showTableOfContentsByDefault',
+    },
+    {
+      name: 'code block line wrapping',
+      tab: 'Code',
+      label: 'Enable line wrapping in code blocks',
+      section: 'code',
+      field: 'codeBlockLineWrapping',
+    },
+    {
+      name: 'code block line numbers',
+      tab: 'Code',
+      label: 'Show line numbers in code blocks',
+      section: 'code',
+      field: 'codeBlockShowLineNumbers',
+    },
+  ] as const) {
+    test(`updates ${setting.name}`, async ({ page }) => {
+      const dialog = await openSettingsTab(page, setting.tab);
+      const settingSwitch = dialog.getByRole('switch', { name: setting.label });
+      await expect(settingSwitch).not.toBeChecked();
+
+      await settingSwitch.press('Space');
+
+      await expectLastSettingsUpdate(page, {
+        [setting.section]: { [setting.field]: true },
+      });
+    });
+  }
+
   test('updates the editor line height', async ({ page }) => {
     const dialog = await openSettingsTab(page, 'Editor');
     const lineHeightInput = dialog.getByRole('textbox', {
@@ -150,18 +181,6 @@ test.describe('Settings dialog', () => {
       .toBe('2.4');
   });
 
-  test('updates the table of contents default', async ({ page }) => {
-    const dialog = await openSettingsTab(page, 'Editor');
-    const settingSwitch = dialog.getByRole('switch', {
-      name: 'Show the table of contents by default',
-    });
-
-    await toggleSwitch(settingSwitch);
-    await expectLastSettingsUpdate(page, {
-      appearance: { showTableOfContentsByDefault: true },
-    });
-  });
-
   test('updates the code block font size', async ({ page }) => {
     const dialog = await openSettingsTab(page, 'Code');
     const fontSizeInput = dialog.getByRole('textbox', {
@@ -183,30 +202,6 @@ test.describe('Settings dialog', () => {
         )
       )
       .toBe('16px');
-  });
-
-  test('updates code block line wrapping', async ({ page }) => {
-    const dialog = await openSettingsTab(page, 'Code');
-    const settingSwitch = dialog.getByRole('switch', {
-      name: 'Enable line wrapping in code blocks',
-    });
-
-    await toggleSwitch(settingSwitch);
-    await expectLastSettingsUpdate(page, {
-      code: { codeBlockLineWrapping: true },
-    });
-  });
-
-  test('updates code block line numbers', async ({ page }) => {
-    const dialog = await openSettingsTab(page, 'Code');
-    const settingSwitch = dialog.getByRole('switch', {
-      name: 'Show line numbers in code blocks',
-    });
-
-    await toggleSwitch(settingSwitch);
-    await expectLastSettingsUpdate(page, {
-      code: { codeBlockShowLineNumbers: true },
-    });
   });
 
   test('updates the default code block language', async ({ page }) => {

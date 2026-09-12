@@ -21,31 +21,18 @@ test.describe('Navigation', () => {
     );
   });
 
-  test('navigates to previous page when go back button is clicked', async ({
+  test('navigates back and forward through folder history', async ({
     page,
   }) => {
     await page.goto('/');
     const sidebar = page.getByTestId('file-sidebar');
     await sidebar.getByRole('treeitem', { name: 'Economics Notes' }).click();
-    await expect(page).toHaveURL(/\/notes\/Economics%20Notes/);
-
-    await page.getByTestId('go-back-button').click();
-
-    await expect(page).toHaveURL('/');
-  });
-
-  test('navigates to next page when go forward button is clicked', async ({
-    page,
-  }) => {
-    await page.goto('/');
-    const sidebar = page.getByTestId('file-sidebar');
-    await sidebar.getByRole('treeitem', { name: 'Economics Notes' }).click();
-    await expect(page).toHaveURL(/\/notes\/Economics%20Notes/);
+    await expect(page).toHaveURL('/notes/Economics%20Notes');
     await page.getByTestId('go-back-button').click();
     await expect(page).toHaveURL('/');
 
     await page.getByTestId('go-forward-button').click();
 
-    await expect(page).toHaveURL(/\/notes\/Economics%20Notes/);
+    await expect(page).toHaveURL('/notes/Economics%20Notes');
   });
 });

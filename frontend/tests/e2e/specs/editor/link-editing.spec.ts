@@ -1,36 +1,19 @@
-import { expect, test, type BrowserContext, type Page } from '@playwright/test';
-import { mockBinding } from '../../utils/mock-binding';
+import { expect, test, type Page } from '@playwright/test';
 import {
-  MOCK_NOTE_EXISTS_RESPONSE,
-  MOCK_PROJECT_SETTINGS_RESPONSE,
-} from '../../utils/mock-responses';
+  getEditor,
+  mockNote,
+  mockNoteMarkdown,
+  NOTE_URL,
+} from '../../utils/editor';
+import { mockBinding } from '../../utils/mock-binding';
+import { MOCK_PROJECT_SETTINGS_RESPONSE } from '../../utils/mock-responses';
 import { SERVICE_FILES } from '../../utils/service-files';
 
-const NOTE_URL = '/notes/Economics%20Notes/Supply%20and%20Demand.md';
 const INITIAL_MARKDOWN =
   '**[Example docs](https://example.com/old)** and [Other](https://other.example)\n\nPlain text';
 
-function getEditor(page: Page) {
-  return page.locator('#content-editable-editor');
-}
-
 function getUrlInput(page: Page) {
   return page.getByRole('textbox', { name: 'URL', exact: true });
-}
-
-async function mockNoteMarkdown(context: BrowserContext, markdown: string) {
-  await mockBinding(
-    context,
-    {
-      file: SERVICE_FILES.NOTE_SERVICE,
-      method: 'GetNoteMarkdownWithCodeResults',
-    },
-    {
-      success: true,
-      message: '',
-      data: { markdown, codeResults: { version: 1, codeBlocks: [] } },
-    }
-  );
 }
 
 async function appendAutomaticLink(page: Page) {
@@ -45,27 +28,19 @@ async function appendAutomaticLink(page: Page) {
   });
 }
 
-test.beforeEach(async ({ context, page }) => {
-  await mockBinding(
-    context,
-    { file: SERVICE_FILES.NOTE_SERVICE, method: 'DoesNoteExist' },
-    MOCK_NOTE_EXISTS_RESPONSE
-  );
+test.beforeEach(async ({ context }) => {
   await mockBinding(
     context,
     { file: SERVICE_FILES.SETTINGS_SERVICE, method: 'GetProjectSettings' },
     MOCK_PROJECT_SETTINGS_RESPONSE
   );
-  await mockNoteMarkdown(context, INITIAL_MARKDOWN);
-  await page.goto(NOTE_URL);
-  await expect(
-    getEditor(page).getByRole('link', { name: 'Example docs' })
-  ).toBeVisible();
+  await mockNote(context, INITIAL_MARKDOWN);
 });
 
 test('edits a hovered link without changing its formatted text or another link', async ({
   page,
 }) => {
+  await page.goto(NOTE_URL);
   const editor = getEditor(page);
   const link = editor.getByRole('link', { name: 'Example docs' });
 
@@ -91,6 +66,7 @@ test('edits a hovered link without changing its formatted text or another link',
 test('offers editing at the caret and cancels without changing the URL', async ({
   page,
 }) => {
+  await page.goto(NOTE_URL);
   const editor = getEditor(page);
   await editor.focus();
   await page.keyboard.press('ControlOrMeta+Home');
@@ -111,6 +87,7 @@ test('offers editing at the caret and cancels without changing the URL', async (
 test('removes a hovered link while keeping its text and formatting', async ({
   page,
 }) => {
+  await page.goto(NOTE_URL);
   const editor = getEditor(page);
   await editor.getByRole('link', { name: 'Example docs' }).hover();
 
@@ -126,6 +103,7 @@ test('removes a hovered link while keeping its text and formatting', async ({
 test('keeps an edited automatic link independent of its displayed URL', async ({
   page,
 }) => {
+  await page.goto(NOTE_URL);
   const link = await appendAutomaticLink(page);
   await link.hover();
 
@@ -137,12 +115,12 @@ test('keeps an edited automatic link independent of its displayed URL', async ({
   await expect(link).toHaveText('https://auto.example.com');
 });
 
-test('updates an internal link destination and supports switching to an external URL', async ({
+test('switches an internal link to an external URL', async ({
   page,
   context,
 }) => {
   await mockNoteMarkdown(context, '[Note](/notes/Old.md)');
-  await page.reload();
+  await page.goto(NOTE_URL);
   const link = getEditor(page).getByRole('link', {
     name: 'Note',
     exact: true,
@@ -160,6 +138,7 @@ test('updates an internal link destination and supports switching to an external
 test('removes an automatic link without immediately linking it again', async ({
   page,
 }) => {
+  await page.goto(NOTE_URL);
   const editor = getEditor(page);
   const link = await appendAutomaticLink(page);
   await link.hover();
@@ -175,6 +154,7 @@ test('removes an automatic link without immediately linking it again', async ({
 test('Cmd+K links selected text and preserves its highlight', async ({
   page,
 }) => {
+  await page.goto(NOTE_URL);
   const editor = getEditor(page);
   await editor
     .getByText('Plain text', { exact: true })
