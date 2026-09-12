@@ -34,6 +34,7 @@ export const queryKeys = {
 
   // Settings & kernels
   projectSettings: () => ['project-settings'] as const,
+  fontFamilies: () => ['font-families'] as const,
   kernelInstances: () => ['kernel-instances'] as const,
   kernelDescriptor: (language: string) =>
     ['kernel-descriptor', language] as const,

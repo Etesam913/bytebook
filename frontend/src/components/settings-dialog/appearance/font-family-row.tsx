@@ -1,5 +1,11 @@
 import { useState } from 'react';
-import { TextField, Input } from 'react-aria-components/TextField';
+import { ComboBox, Input } from 'react-aria-components/ComboBox';
+import { Button } from 'react-aria-components/Button';
+import { ListBox, ListBoxItem } from 'react-aria-components/ListBox';
+import { ChevronDown } from '@/icons/chevron-down';
+import { AppMenuPopover } from '@components/menu';
+import { useFontFamiliesQuery } from '@hooks/fonts';
+import { cn } from '@utils/string-formatting';
 import { ArrowRotateAnticlockwise } from '@/icons/arrow-rotate-anticlockwise';
 import { MotionIconButton } from '@components/buttons';
 import { Tooltip } from '@components/tooltip';
@@ -49,6 +55,7 @@ export function FontFamilyRow({
 }) {
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
   const projectSettings = useAtomValue(projectSettingsAtom);
+  const { data: fontFamilies = [], isPending } = useFontFamiliesQuery();
   const copy = fontFamilyCopy[setting];
   const currentFontFamily =
     setting === 'ui'
@@ -59,6 +66,13 @@ export function FontFamilyRow({
   const [fontFamilyInputValue, setFontFamilyInputValue] = useState(
     currentFontFamily || copy.defaultValue
   );
+
+  const options = [
+    { id: copy.defaultValue, name: 'Default' },
+    ...[...new Set([fontFamilyInputValue, ...fontFamilies])]
+      .filter((family) => family !== copy.defaultValue && family !== '')
+      .map((family) => ({ id: family, name: family })),
+  ];
 
   function updateFontFamily(value: string) {
     if (setting === 'code-block') {
@@ -94,20 +108,60 @@ export function FontFamilyRow({
       isFirst={isFirst}
     >
       <div className="flex items-center gap-1.5">
-        <TextField
+        <ComboBox
           aria-label={copy.ariaLabel}
-          value={fontFamilyInputValue}
-          onChange={(value: string) => {
+          defaultItems={options}
+          selectedKey={fontFamilyInputValue}
+          onSelectionChange={(key) => {
+            if (key === null) return;
+            const value = String(key);
             setFontFamilyInputValue(value);
             updateFontFamily(value);
           }}
+          menuTrigger="focus"
+          className="group/font-combobox w-56"
         >
-          <Input
-            className="bg-zinc-150 dark:bg-zinc-700 py-1 px-2 rounded-md border-2 border-zinc-300 dark:border-zinc-600 w-56 h-8 text-sm my-auto"
-            style={{ fontFamily: fontFamilyInputValue }}
-            placeholder="Arial"
-          />
-        </TextField>
+          <div className="bg-zinc-150 dark:bg-zinc-700 flex items-center rounded-md border-2 border-zinc-300 dark:border-zinc-600 h-8 focus-within:border-(--accent-color)">
+            <Input
+              className="min-w-0 flex-1 bg-transparent py-1 pl-2 text-sm outline-hidden"
+              placeholder={isPending ? 'Loading fonts…' : 'Search fonts…'}
+            />
+            <Button className="flex h-full items-center px-2 outline-hidden focus-visible:bg-zinc-200 dark:focus-visible:bg-zinc-600">
+              <ChevronDown className="transition-transform duration-150 group-data-[open]/font-combobox:rotate-180" />
+            </Button>
+          </div>
+          <AppMenuPopover className="w-(--trigger-width)" skipAnimation>
+            <ListBox<{
+              id: string;
+              name: string;
+            }>
+              shouldFocusOnHover
+              className="max-h-64 overflow-auto p-1 text-sm outline-hidden"
+            >
+              {(item) => (
+                <ListBoxItem
+                  id={item.id}
+                  textValue={item.name}
+                  style={{
+                    fontFamily:
+                      item.id === copy.defaultValue
+                        ? copy.defaultValue || 'inherit'
+                        : JSON.stringify(item.name),
+                  }}
+                  className={({ isFocused, isSelected }) =>
+                    cn(
+                      'cursor-default truncate rounded-lg px-2.5 py-1 outline-hidden',
+                      isFocused && 'bg-(--accent-color) text-white',
+                      !isFocused && isSelected && 'bg-zinc-150 dark:bg-zinc-600'
+                    )
+                  }
+                >
+                  {item.name}
+                </ListBoxItem>
+              )}
+            </ListBox>
+          </AppMenuPopover>
+        </ComboBox>
         <Tooltip
           content={
             fontFamilyInputValue === copy.defaultValue

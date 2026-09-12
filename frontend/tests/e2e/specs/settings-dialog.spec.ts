@@ -52,12 +52,80 @@ test.describe('Settings dialog', () => {
       { file: SERVICE_FILES.SETTINGS_SERVICE, method: 'GetProjectSettings' },
       MOCK_PROJECT_SETTINGS_RESPONSE
     );
+    await mockBinding(
+      context,
+      { file: SERVICE_FILES.SETTINGS_SERVICE, method: 'GetFontFamilies' },
+      {
+        success: true,
+        message: '',
+        data: ['Arial', 'Menlo', 'Times New Roman'],
+      }
+    );
     await mockBinding(context, UPDATE_SETTINGS_BINDING, {
       success: true,
       message: '',
       data: MOCK_PROJECT_SETTINGS_RESPONSE.data,
     });
   });
+
+  for (const font of [
+    {
+      tab: 'General',
+      label: 'UI font family',
+      section: 'appearance',
+      field: 'uiFontFamily',
+      defaultValue: 'ui-sans-serif',
+    },
+    {
+      tab: 'Editor',
+      label: 'Editor font family',
+      section: 'appearance',
+      field: 'editorFontFamily',
+      defaultValue: '',
+    },
+    {
+      tab: 'Code',
+      label: 'Code block font family',
+      section: 'code',
+      field: 'codeBlockFontFamily',
+      defaultValue: 'monospace',
+    },
+  ]) {
+    test(`searches, selects, and resets ${font.label}`, async ({ page }) => {
+      const dialog = await openSettings(page);
+      await dialog.getByRole('tab', { name: font.tab, exact: true }).click();
+      const input = dialog.getByRole('combobox', { name: font.label });
+
+      await input.fill('Men');
+
+      await expect(
+        page.getByRole('option', { name: 'Menlo', exact: true })
+      ).toBeVisible();
+      await expect(
+        page.getByRole('option', { name: 'Arial', exact: true })
+      ).toHaveCount(0);
+      expect(
+        await getMockBindingCalls(page, UPDATE_SETTINGS_BINDING)
+      ).toHaveLength(0);
+
+      await input.press('ArrowDown');
+      await input.press('Enter');
+
+      await expect(input).toHaveValue('Menlo');
+      await expectLastSettingsUpdate(page, {
+        [font.section]: { [font.field]: 'Menlo' },
+      });
+
+      await dialog
+        .getByRole('button', { name: 'Reset font family', exact: true })
+        .click();
+
+      await expect(input).toHaveValue('Default');
+      await expectLastSettingsUpdate(page, {
+        [font.section]: { [font.field]: font.defaultValue },
+      });
+    });
+  }
 
   test('updates the editor line height', async ({ page }) => {
     const dialog = await openSettingsTab(page, 'Editor');

@@ -1,14 +1,26 @@
 package services
 
 import (
+	"log"
 	"path/filepath"
 
 	"github.com/etesam913/bytebook/internal/config"
+	"github.com/etesam913/bytebook/internal/fonts"
 	"github.com/etesam913/bytebook/internal/util"
 )
 
 type SettingsService struct {
 	ProjectPath string
+}
+
+// GetFontFamilies returns the installed system font families.
+func (s *SettingsService) GetFontFamilies() config.BackendResponseWithData[[]string] {
+	families, err := fonts.Families()
+	if err != nil {
+		log.Printf("Failed to get font families: %v", err)
+		return config.BackendResponseWithData[[]string]{Success: false, Message: "Could not load installed fonts"}
+	}
+	return config.BackendResponseWithData[[]string]{Success: true, Data: families}
 }
 
 /*
