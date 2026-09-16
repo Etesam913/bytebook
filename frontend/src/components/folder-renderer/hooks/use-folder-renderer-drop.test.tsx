@@ -1,3 +1,4 @@
+import '../../../test/setup';
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 import { act, useRef } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
@@ -7,6 +8,7 @@ const addDroppedFilesToFolder = mock();
 const moveItems = mock();
 const wailsEventCallbacks = new Map<string, (event: unknown) => void>();
 let wailsDragHandlers: {
+  onDragEnter?: () => void;
   onDragOver?: (x: number, y: number) => void;
   onDragLeave?: () => void;
   onPlatformFileDrop?: () => void;
@@ -154,7 +156,26 @@ describe('useFolderRendererDrop', () => {
     });
   });
 
+  it('keeps the overlay hidden after a native drop until the next drag', () => {
+    container().getBoundingClientRect = () =>
+      ({ left: 0, top: 0, right: 100, bottom: 100 }) as DOMRect;
+    void act(() => wailsDragHandlers.onDragEnter?.());
+    void act(() => wailsDragHandlers.onDragOver?.(50, 50));
+    expect(isActive()).toBe(true);
+
+    void act(() => wailsDragHandlers.onPlatformFileDrop?.());
+    void act(() => wailsDragHandlers.onDragOver?.(50, 50));
+
+    expect(isActive()).toBe(false);
+
+    void act(() => wailsDragHandlers.onDragEnter?.());
+    void act(() => wailsDragHandlers.onDragOver?.(50, 50));
+
+    expect(isActive()).toBe(true);
+  });
+
   it('tracks native OS drags via the wails drag globals', () => {
+    void act(() => wailsDragHandlers.onDragEnter?.());
     container().getBoundingClientRect = () =>
       ({ left: 0, top: 0, right: 100, bottom: 100 }) as DOMRect;
     void act(() => wailsDragHandlers.onDragOver?.(50, 50));
@@ -167,6 +188,7 @@ describe('useFolderRendererDrop', () => {
   });
 
   it('adds OS files delivered by the folder content drop event', () => {
+    void act(() => wailsDragHandlers.onDragEnter?.());
     void act(() => wailsDragHandlers.onDragOver?.(50, 50));
     void act(() =>
       wailsEventCallbacks.get(FOLDER_CONTENT_DROP)?.({

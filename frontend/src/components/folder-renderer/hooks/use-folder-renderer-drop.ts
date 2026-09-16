@@ -1,4 +1,10 @@
-import { useEffect, useState, type DragEvent, type RefObject } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type DragEvent,
+  type RefObject,
+} from 'react';
 import { useAtomValue } from 'jotai';
 import { draggedGhostElementAtom } from '@/atoms';
 import { FILE_TREE_GHOST_ID } from '@components/editor/utils/drag/context';
@@ -28,14 +34,21 @@ export function useFolderRendererDrop({
   const draggedGhostElement = useAtomValue(draggedGhostElementAtom);
   const isFileTreeDrag = draggedGhostElement?.id === FILE_TREE_GHOST_ID;
   const [isDropActive, setIsDropActive] = useState(false);
+  const isNativeDragActive = useRef(false);
 
   useEffect(() => {
     function clearHighlight() {
+      isNativeDragActive.current = false;
       setIsDropActive(false);
     }
 
     const restoreWailsHooks = installWailsDragHandlers({
+      onDragEnter: () => {
+        isNativeDragActive.current = true;
+      },
       onDragOver: (x, y) => {
+        // Native hover callbacks can arrive after the drop has cleared the overlay.
+        if (!isNativeDragActive.current) return;
         const container = containerRef.current;
         if (!container) return;
         setIsDropActive(isPointInsideElement({ element: container, x, y }));
@@ -57,6 +70,7 @@ export function useFolderRendererDrop({
   }, [containerRef]);
 
   useWailsEvent(FOLDER_CONTENT_DROP, (event) => {
+    isNativeDragActive.current = false;
     setIsDropActive(false);
     const droppedFiles = event.data.droppedFiles;
     if (!droppedFiles || droppedFiles.length === 0) return;
