@@ -26,8 +26,9 @@ export const queryKeys = {
   notesTags: (paths: string[]) => ['notes-tags', paths] as const,
 
   // Search
-  filePickerFullTextSearch: (searchQuery: string) =>
-    ['file-picker-full-text-search', searchQuery] as const,
+  fileSearchAll: () => ['file-search'] as const,
+  fileSearch: (query: string, pageSize: number) =>
+    ['file-search', query, pageSize] as const,
   savedSearches: () => ['saved-searches'] as const,
   treeFilterPathsAll: () => ['tree-filter-paths'] as const,
   treeFilterPaths: (searchQuery: string) =>

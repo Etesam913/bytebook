@@ -1,3 +1,4 @@
+import { SearchExcerpt } from '@components/search-excerpt';
 import { MenuOption } from '@lexical/react/LexicalTypeaheadMenuPlugin';
 import type { JSX } from 'react';
 import { mergeProps, useHover, usePress } from 'react-aria';
@@ -64,7 +65,7 @@ export function ComponentPickerMenuItem({
       className={cn(
         'flex items-center gap-2 text-left rounded-md px-1.75 py-0.5 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-650',
         isSelected &&
-        'bg-(--accent-color) text-white hover:bg-(--accent-color) dark:hover:bg-(--accent-color)'
+          'bg-(--accent-color) text-white hover:bg-(--accent-color) dark:hover:bg-(--accent-color)'
       )}
       ref={setOptionRef}
       role="option"
@@ -79,13 +80,13 @@ export function ComponentPickerMenuItem({
 
 export type FilePickerMenuItemData =
   | {
-    kind: 'file';
-    filePath: FilePath;
-  }
+      kind: 'file';
+      filePath: FilePath;
+    }
   | {
-    kind: 'folder';
-    folder: string;
-  };
+      kind: 'folder';
+      folder: string;
+    };
 
 export function FilePickerMenuItem({
   index,
@@ -125,7 +126,7 @@ export function FilePickerMenuItem({
       className={cn(
         'rounded-md px-2 py-1 hover:bg-zinc-100 dark:hover:bg-zinc-650',
         isSelected &&
-        'bg-zinc-150 dark:bg-zinc-600 hover:bg-zinc-150 dark:hover:bg-zinc-600'
+          'bg-zinc-150 dark:bg-zinc-600 hover:bg-zinc-150 dark:hover:bg-zinc-600'
       )}
       ref={setOptionRef}
       role="option"
@@ -150,10 +151,9 @@ export function FilePickerMenuItem({
             {secondaryText}
           </p>
           {highlightHtml && (
-            <div
-              className="text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2 mt-0.5 whitespace-normal break-words"
-              dangerouslySetInnerHTML={{ __html: highlightHtml }}
-            />
+            <div className="text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2 mt-0.5 whitespace-normal break-words">
+              <SearchExcerpt html={highlightHtml} />
+            </div>
           )}
         </div>
       </div>

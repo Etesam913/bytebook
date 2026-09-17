@@ -15,7 +15,18 @@ import {
 } from '@bindings/services/searchservice';
 import { HighlightResult } from '@bindings/search/models';
 import { useWailsEvent } from '@hooks/events';
-import { SAVED_SEARCH_UPDATE } from '@utils/events';
+import {
+  SAVED_SEARCH_UPDATE,
+  FILE_CREATE,
+  FILE_DELETE,
+  FILE_WRITE,
+  FILE_RENAME,
+  FOLDER_CREATE,
+  FOLDER_DELETE,
+  FOLDER_RENAME,
+  TAGS_INDEX_UPDATE,
+} from '@utils/events';
+import { useDebouncedValue } from '@hooks/general';
 import { createFilePath, type FilePath } from '@utils/path';
 import { toast } from 'sonner';
 import { QueryError, getBackendResponseData } from '@utils/query';
@@ -91,6 +102,23 @@ function mapFullTextSearchResults(
 }
 
 const searchQueries = {
+  files: (query: string) =>
+    queryOptions({
+      queryKey: queryKeys.fileSearch(query, 15),
+      queryFn: async () => {
+        const response = await FullTextSearch(query, [], 15);
+        if (!response.success || !response.data)
+          throw new QueryError(response.message);
+        return {
+          results: mapFullTextSearchResults(response.data.results),
+          hasMore: response.data.hasMore,
+        };
+      },
+      retry: false,
+      staleTime: 0,
+      gcTime: 60_000,
+      refetchOnWindowFocus: false,
+    }),
   savedSearches: () =>
     queryOptions({
       queryKey: queryKeys.savedSearches(),
@@ -123,28 +151,48 @@ export function useTreeFilterPathsQuery({
   });
 }
 
-const FILE_PICKER_PAGE_SIZE = 15;
-
-/**
- * Hook for the editor `@` file picker. Requests a small page directly from
- * the backend instead of over-fetching and slicing client-side.
- */
-export function useFilePickerSearchQuery(searchQuery: string) {
-  return useQuery({
-    queryKey: queryKeys.filePickerFullTextSearch(searchQuery),
-    queryFn: async () => {
-      const response = await FullTextSearch(
-        searchQuery,
-        [],
-        FILE_PICKER_PAGE_SIZE
-      );
-      if (!response.success || !response.data)
-        throw new QueryError(response.message);
-      return mapFullTextSearchResults(response.data.results);
-    },
-    enabled: searchQuery.trim().length > 0,
-    placeholderData: keepPreviousData,
+// File search is shared by the editor link picker and application Quick Open.
+export function useFileSearchQuery({
+  query,
+  enabled,
+  keepPreviousResults = false,
+}: {
+  query: string;
+  enabled: boolean;
+  keepPreviousResults?: boolean;
+}) {
+  const debouncedQuery = useDebouncedValue(query, 50);
+  const hasQuery = query.trim().length > 0;
+  const isCurrentQuery = query === debouncedQuery;
+  const result = useQuery({
+    ...searchQueries.files(debouncedQuery),
+    enabled: enabled && hasQuery && isCurrentQuery,
+    placeholderData: keepPreviousResults ? keepPreviousData : undefined,
   });
+  const queryClient = useQueryClient();
+  const invalidate = () => {
+    if (enabled)
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.fileSearchAll(),
+      });
+  };
+  useWailsEvent(FILE_CREATE, invalidate);
+  useWailsEvent(FILE_DELETE, invalidate);
+  useWailsEvent(FILE_WRITE, invalidate);
+  useWailsEvent(FILE_RENAME, invalidate);
+  useWailsEvent(FOLDER_CREATE, invalidate);
+  useWailsEvent(FOLDER_DELETE, invalidate);
+  useWailsEvent(FOLDER_RENAME, invalidate);
+  useWailsEvent(TAGS_INDEX_UPDATE, invalidate);
+  return {
+    ...result,
+    data:
+      enabled && hasQuery && (isCurrentQuery || keepPreviousResults)
+        ? result.data
+        : undefined,
+    isError: enabled && hasQuery && isCurrentQuery && result.isError,
+    isSearching: enabled && hasQuery && (!isCurrentQuery || result.isFetching),
+  };
 }
 
 /**

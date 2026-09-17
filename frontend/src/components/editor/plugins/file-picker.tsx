@@ -23,8 +23,13 @@ import {
 import { $createLinkNode } from '@lexical/link';
 import { INSERT_FILES_COMMAND } from './file';
 import { RenderNoteIcon } from '@/icons/render-note-icon';
-import { FILE_TYPE } from '@utils/tree-item-types';
-import { useFilePickerSearchQuery, type SearchResult } from '@hooks/search';
+import {
+  getRecentPickerFiles,
+  excludeCurrentFile,
+} from '@utils/file-picker-results';
+import { useAllPaths } from '@hooks/all-paths';
+import { Loader } from '@/icons/loader';
+import { useFileSearchQuery, type SearchResult } from '@hooks/search';
 import { useFilePathFromRoute } from '@hooks/routes';
 
 type FilePickerOption = {
@@ -32,18 +37,6 @@ type FilePickerOption = {
   searchResult: SearchResult | null;
   dropdownOption: DropdownPickerOption;
 };
-
-// Trim the text preceding the first <mark> so the match stays inside the
-// line-clamp window of the narrow file picker. Backs off to a word boundary and
-// prefixes a single-char ellipsis when trimming.
-function centerHighlightOnMark(html: string, leadingBudget = 30): string {
-  const markIdx = html.indexOf('<mark');
-  if (markIdx <= leadingBudget) return html;
-  let tail = html.slice(markIdx - leadingBudget, markIdx);
-  const firstSpace = tail.indexOf(' ');
-  if (firstSpace > 0) tail = tail.slice(firstSpace + 1);
-  return `…${tail}${html.slice(markIdx)}`;
-}
 
 /**
  * The file picker that shows up when @ is typed in the lexical editor
@@ -58,8 +51,16 @@ export function FilePickerMenuPlugin() {
     punctuation: '',
   });
   const mostRecentItems = useAtomValue(mostRecentItemsAtom);
-  const { data: searchResults, isLoading: isSearchLoading } =
-    useFilePickerSearchQuery(searchQuery ?? '');
+  const {
+    data: searchPage,
+    isSearching: isSearchLoading,
+    isError,
+    refetch,
+  } = useFileSearchQuery({
+    query: searchQuery ?? '',
+    enabled: searchQuery !== null,
+  });
+  const { data: allPaths } = useAllPaths();
   const currentFilePath = useFilePathFromRoute();
 
   const insertLink = (text: string, url: string) => {
@@ -70,13 +71,12 @@ export function FilePickerMenuPlugin() {
     });
   };
 
-  const isCurrentNote = (filePath: { fullPath: string }) =>
-    currentFilePath ? currentFilePath.fullPath === filePath.fullPath : false;
-
-  const options: FilePickerOption[] = !searchQuery
-    ? mostRecentItems.flatMap((recentItem): FilePickerOption[] => {
-        if (recentItem.type !== FILE_TYPE) return [];
-        if (isCurrentNote(recentItem)) return [];
+  const options: FilePickerOption[] = !searchQuery?.trim()
+    ? getRecentPickerFiles({
+        recent: mostRecentItems,
+        currentPath: currentFilePath?.fullPath,
+        allPaths,
+      }).flatMap((recentItem): FilePickerOption[] => {
         return [
           buildFilePickerOption({
             item: { kind: 'file', filePath: recentItem },
@@ -86,8 +86,10 @@ export function FilePickerMenuPlugin() {
           }),
         ];
       })
-    : (searchResults ?? []).flatMap((result): FilePickerOption[] => {
-        if (isCurrentNote(result.filePath)) return [];
+    : excludeCurrentFile(
+        searchPage?.results ?? [],
+        currentFilePath?.fullPath
+      ).flatMap((result): FilePickerOption[] => {
         return [
           buildFilePickerOption({
             item: { kind: 'file', filePath: result.filePath },
@@ -127,9 +129,17 @@ export function FilePickerMenuPlugin() {
         }
 
         const showEmptyState =
-          options.length === 0 && !!searchQuery && !isSearchLoading;
+          options.length === 0 &&
+          !!searchQuery?.trim() &&
+          !isSearchLoading &&
+          !isError;
 
-        if (options.length === 0 && !showEmptyState) {
+        if (
+          options.length === 0 &&
+          !showEmptyState &&
+          !isSearchLoading &&
+          !isError
+        ) {
           return null;
         }
 
@@ -139,6 +149,27 @@ export function FilePickerMenuPlugin() {
             aria-label="Link a file"
             className="flex overflow-y-auto overflow-x-hidden text-nowrap flex-col max-h-80 gap-0.5 w-80 p-1 shadow-xl rounded-md border-1 border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-700 scroll-p-1 text-zinc-950 dark:text-zinc-100"
           >
+            {isSearchLoading && (
+              <li
+                role="status"
+                className="flex items-center gap-2 px-2 py-1 text-sm"
+              >
+                <Loader width="1rem" height="1rem" />
+                Searching…
+              </li>
+            )}
+            {isError && (
+              <li role="alert" className="px-2 py-1 text-sm">
+                Could not search notes.{' '}
+                <button
+                  type="button"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => void refetch()}
+                >
+                  Retry
+                </button>
+              </li>
+            )}
             {showEmptyState && (
               <li className="px-2 py-1 text-sm text-zinc-500 dark:text-zinc-400">
                 No results found...
@@ -151,7 +182,7 @@ export function FilePickerMenuPlugin() {
                   : undefined;
               const highlightHtml =
                 firstHighlight && !firstHighlight.isCode
-                  ? centerHighlightOnMark(firstHighlight.content)
+                  ? firstHighlight.content
                   : undefined;
 
               return (

@@ -1,6 +1,10 @@
 import { test, expect, type Page, type Locator } from '@playwright/test';
 import { getEditor, mockNote, NOTE_URL } from '../../utils/editor';
-import { mockBinding } from '../../utils/mock-binding';
+import {
+  getMockBindingCalls,
+  mockBinding,
+  updateMockBindingResponse,
+} from '../../utils/mock-binding';
 import {
   MOCK_PROJECT_SETTINGS_RESPONSE,
   MOCK_ALL_PATHS_RESPONSE,
@@ -181,6 +185,64 @@ test.describe('Editor content insertion', () => {
       await expect(
         options.filter({ hasText: 'Quantum Physics.md' }).first()
       ).toBeVisible();
+    });
+
+    test('preserves query syntax and backend ordering', async ({ page }) => {
+      await page.goto(NOTE_URL);
+      await getEditor(page).click();
+
+      await page.keyboard.type('@#work AND f:redis');
+
+      await expect
+        .poll(async () =>
+          (
+            await getMockBindingCalls(page, {
+              file: SERVICE_FILES.SEARCH_SERVICE,
+              method: 'FullTextSearch',
+            })
+          ).at(-1)
+        )
+        .toEqual(['#work AND f:redis', [], 15]);
+      const options = page.getByRole('option');
+      await expect(options).toHaveCount(2);
+      await expect(options.nth(0)).toContainText('Inflation.md');
+      await expect(options.nth(1)).toContainText('Quantum Physics.md');
+    });
+
+    test('shows search failure and retries without inserting a result', async ({
+      page,
+      context,
+    }) => {
+      const binding = {
+        file: SERVICE_FILES.SEARCH_SERVICE,
+        method: 'FullTextSearch',
+      };
+      await mockBinding(context, binding, {
+        success: false,
+        message: 'Could not search notes. Please try again.',
+      });
+      await page.goto(NOTE_URL);
+      await getEditor(page).click();
+
+      await page.keyboard.type('@r');
+
+      await expect(page.getByRole('alert')).toContainText(
+        'Could not search notes.'
+      );
+      await expect(page.getByText('No results found...')).toHaveCount(0);
+      await updateMockBindingResponse(
+        page,
+        binding,
+        MOCK_FULL_TEXT_SEARCH_RESPONSE
+      );
+      await page
+        .getByRole('alert')
+        .getByRole('button', { name: 'Retry' })
+        .click();
+      await expect(page.getByRole('option').first()).toContainText(
+        'Inflation.md'
+      );
+      await expect(getEditor(page).locator('a')).toHaveCount(0);
     });
 
     test('inserts a link node when a result is clicked', async ({ page }) => {
