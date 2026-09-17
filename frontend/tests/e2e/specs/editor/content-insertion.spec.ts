@@ -3,6 +3,7 @@ import { getEditor, mockNote, NOTE_URL } from '../../utils/editor';
 import { mockBinding } from '../../utils/mock-binding';
 import {
   MOCK_PROJECT_SETTINGS_RESPONSE,
+  MOCK_ALL_PATHS_RESPONSE,
   MOCK_FULL_TEXT_SEARCH_RESPONSE,
   MOCK_EMPTY_SEARCH_RESPONSE,
 } from '../../utils/mock-responses';
@@ -45,6 +46,11 @@ async function expectAddButtonAlignment(
 
 test.describe('Editor content insertion', () => {
   test.beforeEach(async ({ context }) => {
+    await mockBinding(
+      context,
+      { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetAllPaths' },
+      MOCK_ALL_PATHS_RESPONSE
+    );
     await mockBinding(
       context,
       { file: SERVICE_FILES.SETTINGS_SERVICE, method: 'GetProjectSettings' },

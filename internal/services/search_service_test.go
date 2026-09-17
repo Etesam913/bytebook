@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -216,4 +217,49 @@ func TestGetLinkedMentions(t *testing.T) {
 		require.Len(t, res.Data, 1)
 		assert.Equal(t, LinkedMention{Folder: "", Note: "root-ref.md"}, res.Data[0])
 	})
+}
+
+func TestFullTextSearch(t *testing.T) {
+	t.Run("Reports an unavailable index as a failure", func(t *testing.T) {
+		idx, err := bleve.New(filepath.Join(t.TempDir(), "index"), bleve.NewIndexMapping())
+		require.NoError(t, err)
+		service := SearchService{Index: search.NewIndexHolder(idx)}
+		require.NoError(t, idx.Close())
+
+		response := service.FullTextSearch("redis", nil, nil)
+		encoded, err := json.Marshal(response)
+		require.NoError(t, err)
+		var body map[string]any
+		require.NoError(t, json.Unmarshal(encoded, &body))
+
+		assert.Equal(t, false, body["success"])
+		assert.Equal(t, "Could not search notes. Please try again.", body["message"])
+	})
+}
+
+func TestFullTextSearchPages(t *testing.T) {
+	idx, err := search.OpenOrCreateIndex(t.TempDir())
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, idx.Close()) })
+	for _, name := range []string{"Alpha.md", "Beta.md", "Gamma.md"} {
+		require.NoError(t, idx.Index(name, search.MarkdownNoteBleveDocument{Type: "note", Folder: "Notes", FileName: name, TextContent: "redis caching"}))
+	}
+	service := SearchService{Index: search.NewIndexHolder(idx)}
+	size := 2
+
+	first := service.FullTextSearch("redis", nil, &size)
+	require.True(t, first.Success)
+	require.Len(t, first.Data.Results, 2)
+	second := service.FullTextSearch("redis", first.Data.NextSearchAfter, &size)
+	empty := service.FullTextSearch("zzzzzzzzzzzzzz", nil, &size)
+
+	assert.True(t, first.Data.HasMore)
+	assert.Equal(t, uint64(3), first.Data.Total)
+	require.True(t, second.Success)
+	require.Len(t, second.Data.Results, 1)
+	assert.NotEqual(t, first.Data.Results[0].Name, second.Data.Results[0].Name)
+	assert.NotEqual(t, first.Data.Results[1].Name, second.Data.Results[0].Name)
+	assert.False(t, second.Data.HasMore)
+	assert.True(t, empty.Success)
+	assert.Empty(t, empty.Data.Results)
 }

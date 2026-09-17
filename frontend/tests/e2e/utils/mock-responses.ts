@@ -121,55 +121,63 @@ export const MOCK_SUCCESS_RESPONSE = {
  * Uses the FullTextSearchPage format with results, nextSearchAfter, hasMore, total.
  */
 export const MOCK_FULL_TEXT_SEARCH_RESPONSE = {
-  results: [
-    {
-      type: 'note',
-      title: 'Supply and Demand.md',
-      folder: 'Economics Notes',
-      name: 'Supply and Demand.md',
-      tags: ['economics', 'basics'],
-      lastUpdated: '2024-01-15T10:30:00Z',
-      created: '2024-01-10T09:00:00Z',
-      highlights: [
-        {
-          content: 'This is a <mark>search</mark> result highlight',
-          isCode: false,
-          highlightedTerm: 'search',
-        },
-      ],
-      codeContent: [],
-    },
-    {
-      type: 'note',
-      title: 'Inflation.md',
-      folder: 'Economics Notes',
-      name: 'Inflation.md',
-      tags: ['economics'],
-      lastUpdated: '2024-01-14T15:00:00Z',
-      created: '2024-01-11T10:00:00Z',
-      highlights: [],
-      codeContent: [],
-    },
-    {
-      type: 'note',
-      title: 'Quantum Physics.md',
-      folder: 'Research Notes',
-      name: 'Quantum Physics.md',
-      tags: ['research', 'physics'],
-      lastUpdated: '2024-01-13T12:00:00Z',
-      created: '2024-01-12T08:00:00Z',
-      highlights: [],
-      codeContent: [],
-    },
-  ],
-  nextSearchAfter: [],
-  hasMore: false,
-  total: 3,
+  success: true,
+  message: '',
+  data: {
+    results: [
+      {
+        type: 'note',
+        title: 'Supply and Demand.md',
+        folder: 'Economics Notes',
+        name: 'Supply and Demand.md',
+        tags: ['economics', 'basics'],
+        lastUpdated: '2024-01-15T10:30:00Z',
+        created: '2024-01-10T09:00:00Z',
+        highlights: [
+          {
+            content: 'This is a <mark>search</mark> result highlight',
+            isCode: false,
+            highlightedTerm: 'search',
+          },
+        ],
+        codeContent: [],
+      },
+      {
+        type: 'note',
+        title: 'Inflation.md',
+        folder: 'Economics Notes',
+        name: 'Inflation.md',
+        tags: ['economics'],
+        lastUpdated: '2024-01-14T15:00:00Z',
+        created: '2024-01-11T10:00:00Z',
+        highlights: [],
+        codeContent: [],
+      },
+      {
+        type: 'note',
+        title: 'Quantum Physics.md',
+        folder: 'Research Notes',
+        name: 'Quantum Physics.md',
+        tags: ['research', 'physics'],
+        lastUpdated: '2024-01-13T12:00:00Z',
+        created: '2024-01-12T08:00:00Z',
+        highlights: [],
+        codeContent: [],
+      },
+    ],
+    nextSearchAfter: [],
+    hasMore: false,
+    total: 3,
+  },
 };
 
 export const MOCK_EMPTY_SEARCH_RESPONSE = {
-  results: [],
-  nextSearchAfter: [],
-  hasMore: false,
-  total: 0,
+  success: true,
+  message: '',
+  data: {
+    results: [],
+    nextSearchAfter: [],
+    hasMore: false,
+    total: 0,
+  },
 };

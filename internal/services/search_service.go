@@ -81,7 +81,7 @@ func splitNotePath(pathToNote string) (folder string, note string, ok bool) {
 	return trimmed[:slashIdx], trimmed[slashIdx+1:], true
 }
 
-func (s *SearchService) FullTextSearch(searchQuery string, searchAfter []string, pageSize *int) search.FullTextSearchPage {
+func (s *SearchService) FullTextSearch(searchQuery string, searchAfter []string, pageSize *int) config.BackendResponseWithData[search.FullTextSearchPage] {
 	effectivePageSize := search.FullTextSearchPageSize
 	if pageSize != nil && *pageSize > 0 {
 		effectivePageSize = *pageSize
@@ -98,8 +98,8 @@ func (s *SearchService) FullTextSearch(searchQuery string, searchAfter []string,
 	}()
 	if err != nil {
 		log.Println("full text search failed:", err)
-		return search.FullTextSearchPage{
-			Results: []search.SearchResult{},
+		return config.BackendResponseWithData[search.FullTextSearchPage]{
+			Success: false, Message: "Could not search notes. Please try again.",
 		}
 	}
 
@@ -115,12 +115,13 @@ func (s *SearchService) FullTextSearch(searchQuery string, searchAfter []string,
 	}
 	processedResults := search.ProcessDocumentSearchResults(res)
 
-	return search.FullTextSearchPage{
+	page := search.FullTextSearchPage{
 		Results:         processedResults,
 		NextSearchAfter: nextSearchAfter,
 		HasMore:         hasMore,
 		Total:           res.Total,
 	}
+	return config.BackendResponseWithData[search.FullTextSearchPage]{Success: true, Data: page}
 }
 
 // SearchFileNamesFromQuery performs a fuzzy filename search using the Bleve index.

@@ -47,7 +47,9 @@ export type AttachmentSearchResult = {
 
 export type SearchResult = NoteSearchResult | AttachmentSearchResult;
 
-type FullTextSearchPageResponse = Awaited<ReturnType<typeof FullTextSearch>>;
+type FullTextSearchPageResponse = NonNullable<
+  Awaited<ReturnType<typeof FullTextSearch>>['data']
+>;
 
 type RegenerateSearchIndexMutationOptions = {
   onSuccess?: () => void | Promise<void>;
@@ -131,8 +133,14 @@ export function useFilePickerSearchQuery(searchQuery: string) {
   return useQuery({
     queryKey: queryKeys.filePickerFullTextSearch(searchQuery),
     queryFn: async () => {
-      const page = await FullTextSearch(searchQuery, [], FILE_PICKER_PAGE_SIZE);
-      return mapFullTextSearchResults(page.results);
+      const response = await FullTextSearch(
+        searchQuery,
+        [],
+        FILE_PICKER_PAGE_SIZE
+      );
+      if (!response.success || !response.data)
+        throw new QueryError(response.message);
+      return mapFullTextSearchResults(response.data.results);
     },
     enabled: searchQuery.trim().length > 0,
     placeholderData: keepPreviousData,
