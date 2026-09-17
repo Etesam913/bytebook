@@ -62,3 +62,5 @@ export async function isEventInCurrentWindow(data: WailsEvent) {
   if (windowName !== data.sender) return false;
   return true;
 }
+
+export const QUICK_OPEN = 'navigation:quick-open';

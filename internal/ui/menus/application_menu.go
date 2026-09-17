@@ -81,6 +81,13 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 		return
 	}
 	sub := item.GetSubmenu()
+	quickOpen := sub.Add("Quick Open…")
+	quickOpen.SetAccelerator("cmdorctrl+p")
+	quickOpen.OnClick(func(ctx *application.Context) {
+		if win := app.Window.Current(); win != nil {
+			win.EmitEvent(util.EventQuickOpen)
+		}
+	})
 
 	toggleSidebar := sub.Add("Toggle Sidebar")
 	toggleSidebar.SetAccelerator("cmdorctrl+s")

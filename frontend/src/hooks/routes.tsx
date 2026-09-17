@@ -294,3 +294,27 @@ export function useSyncRouteWithDeletions(): void {
     });
   });
 }
+
+export function useRecordRecentItem() {
+  const routeItem = useRecentItemFromRoute();
+  const setMostRecentItems = useSetAtom(mostRecentItemsAtom);
+  // Update the "most recent items" list in the sidebar based on current route.
+  // Inserts the currently viewed item at the top, maintaining list uniqueness and max length.
+  useEffect(() => {
+    if (!routeItem) {
+      return;
+    }
+    setMostRecentItems((prev) => {
+      const next = [
+        routeItem,
+        ...prev.filter((path) => path.fullPath !== routeItem.fullPath),
+      ].slice(0, 10);
+
+      const didOrderChange =
+        next.length !== prev.length ||
+        next.some((item, index) => item.fullPath !== prev[index]?.fullPath);
+
+      return didOrderChange ? next : prev;
+    });
+  }, [routeItem, setMostRecentItems]);
+}

@@ -102,11 +102,11 @@ function mapFullTextSearchResults(
 }
 
 const searchQueries = {
-  files: (query: string) =>
+  files: (query: string, limit: number) =>
     queryOptions({
-      queryKey: queryKeys.fileSearch(query, 15),
+      queryKey: queryKeys.fileSearch(query, limit),
       queryFn: async () => {
-        const response = await FullTextSearch(query, [], 15);
+        const response = await FullTextSearch(query, [], limit);
         if (!response.success || !response.data)
           throw new QueryError(response.message);
         return {
@@ -156,16 +156,18 @@ export function useFileSearchQuery({
   query,
   enabled,
   keepPreviousResults = false,
+  limit = 15,
 }: {
   query: string;
   enabled: boolean;
   keepPreviousResults?: boolean;
+  limit?: number;
 }) {
   const debouncedQuery = useDebouncedValue(query, 50);
   const hasQuery = query.trim().length > 0;
   const isCurrentQuery = query === debouncedQuery;
   const result = useQuery({
-    ...searchQueries.files(debouncedQuery),
+    ...searchQueries.files(debouncedQuery, limit),
     enabled: enabled && hasQuery && isCurrentQuery,
     placeholderData: keepPreviousResults ? keepPreviousData : undefined,
   });

@@ -263,3 +263,32 @@ func TestFullTextSearchPages(t *testing.T) {
 	assert.True(t, empty.Success)
 	assert.Empty(t, empty.Data.Results)
 }
+
+func TestFullTextSearchSyntax(t *testing.T) {
+	project := t.TempDir()
+	idx := createTestSearchIndex(t)
+	writeTestNote(t, project, "work/redis.md", "---\ntags:\n  - work\n---\n# Redis\ncache invalidation\n\n```python\nprint('cache')\n```\nAdditional Redis notes.\n")
+	writeTestNote(t, project, "work/alpha.md", "---\ntags:\n  - work\n---\n# Alpha\ncache invalidation\n[target](/notes/work/redis.md)")
+	writeTestNote(t, project, "personal/other.md", "# Other\nunrelated content")
+	indexTestNotes(t, project, idx, "work/redis.md", "work/alpha.md", "personal/other.md")
+	service := SearchService{ProjectPath: project, Index: search.NewIndexHolder(idx)}
+	assertNames := func(t *testing.T, query string, expected []string) {
+		t.Helper()
+		page := service.FullTextSearch(query, nil, nil)
+
+		require.True(t, page.Success)
+		names := make([]string, 0, len(page.Data.Results))
+		for _, result := range page.Data.Results {
+			names = append(names, result.Name)
+		}
+		assert.Equal(t, expected, names)
+	}
+	t.Run("Filename syntax", func(t *testing.T) { assertNames(t, "f:redis", []string{"redis.md"}) })
+	t.Run("Tag type and explicit sorting", func(t *testing.T) {
+		assertNames(t, "#work AND type:note sort:size_asc", []string{"alpha.md", "redis.md"})
+	})
+	t.Run("Descending size sorting", func(t *testing.T) { assertNames(t, "#work sort:size_desc", []string{"redis.md", "alpha.md"}) })
+	t.Run("Quoted phrase and Boolean query", func(t *testing.T) { assertNames(t, "\"cache invalidation\" AND f:redis", []string{"redis.md"}) })
+	t.Run("Link syntax", func(t *testing.T) { assertNames(t, "@work/redis.md", []string{"alpha.md"}) })
+	t.Run("Language syntax", func(t *testing.T) { assertNames(t, "lang:python", []string{"redis.md"}) })
+}

@@ -7,6 +7,7 @@ import { Toaster } from 'sonner';
 import { Route, Switch, useLocation } from 'wouter';
 import { contextMenuDataAtom, isFileMaximizedAtom } from '@/atoms';
 import { ContextMenu } from '@components/context-menu';
+import { CommandPalette } from '@components/command-palette';
 import { Dialog } from '@components/dialog';
 import { FileSidebar } from '@components/file-sidebar';
 import { LoadingModal } from '@components/loading-modal';
@@ -20,6 +21,7 @@ import { RouteFallback } from '@components/route-fallback';
 import { useZoom, useFullscreen } from '@hooks/resize';
 import {
   useHistoryNavigationEvents,
+  useRecordRecentItem,
   useRestoreLastVisitedOnLaunch,
   useSyncFileMaximizedWithRoute,
   useSyncRouteWithRenames,
@@ -65,6 +67,7 @@ function App() {
   useZoom();
   useFullscreen();
   useHistoryNavigationEvents();
+  useRecordRecentItem();
   useRestoreLastVisitedOnLaunch();
   useSyncFileMaximizedWithRoute();
   useSyncRouteWithRenames();
@@ -90,6 +93,7 @@ function App() {
         </a>
         <ContextMenu />
         <Dialog />
+        <CommandPalette />
         <LoadingModal />
         <Toaster richColors theme="system" />
         {import.meta.env.DEV && !isE2ETestEnvironment() && <RouteDebugView />}

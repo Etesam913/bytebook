@@ -27,6 +27,7 @@ const (
 	EventZoomReset           = "zoom:reset"
 	EventSettingsOpen        = "settings:open"
 	EventSearchNote          = "search:note"
+	EventQuickOpen           = "navigation:quick-open"
 	EventFullscreen          = "window:fullscreen"
 	EventToggleSidebar       = "sidebar:toggle"
 	EventSidebarFilesOpen    = "sidebar:files:open"
@@ -131,6 +132,7 @@ func init() {
 	application.RegisterEvent[application.Void](EventZoomReset)
 	application.RegisterEvent[application.Void](EventSettingsOpen)
 	application.RegisterEvent[application.Void](EventSearchNote)
+	application.RegisterEvent[application.Void](EventQuickOpen)
 	application.RegisterEvent[bool](EventFullscreen)
 	application.RegisterEvent[application.Void](EventToggleSidebar)
 	application.RegisterEvent[application.Void](EventSidebarFilesOpen)

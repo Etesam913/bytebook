@@ -190,3 +190,11 @@ export type SidebarReorderOptions = {
   onReorderEnd: () => void;
   onMovePanel: (key: SidebarPanelKey, direction: number) => void;
 };
+
+export type PaletteItem = {
+  id: string;
+  label: string;
+  description: string;
+  excerpt?: string;
+  action: { kind: 'open-path'; path: import('@utils/path').FilePath };
+};

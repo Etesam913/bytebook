@@ -1,10 +1,9 @@
-import { useAtom } from 'jotai';
-import { type RefObject, useEffect, useRef } from 'react';
+import { useAtom, useAtomValue } from 'jotai';
+import { type RefObject, useRef } from 'react';
 import { fileSidebarOpenStateAtom, mostRecentItemsAtom } from '@/atoms';
 import { HourglassStart } from '@/icons/hourglass-start';
 import { AccordionItem } from '@components/accordion/accordion-item';
 import type { SidebarReorderOptions } from '@/types';
-import { useRecentItemFromRoute } from '@hooks/routes';
 import { motion } from 'motion/react';
 import { SidebarAccordionPanel } from './sidebar-accordion-panel';
 import { Folder as FolderIcon } from '@/icons/folder';
@@ -25,31 +24,10 @@ export function RecentAccordion({
 }) {
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
   const isRecentOpen = openState.recent;
-  const [mostRecentItems, setMostRecentItems] = useAtom(mostRecentItemsAtom);
-  const routeItem = useRecentItemFromRoute();
+  const mostRecentItems = useAtomValue(mostRecentItemsAtom);
   const iconSize = '1.1875rem';
   const listRef = useRef<HTMLUListElement | null>(null);
   usePreventBoundaryOverscrollFlicker({ scrollElementRef: listRef });
-
-  // Update the "most recent items" list in the sidebar based on current route.
-  // Inserts the currently viewed item at the top, maintaining list uniqueness and max length.
-  useEffect(() => {
-    if (!routeItem) {
-      return;
-    }
-    setMostRecentItems((prev) => {
-      const next = [
-        routeItem,
-        ...prev.filter((path) => path.fullPath !== routeItem.fullPath),
-      ].slice(0, 10);
-
-      const didOrderChange =
-        next.length !== prev.length ||
-        next.some((item, index) => item.fullPath !== prev[index]?.fullPath);
-
-      return didOrderChange ? next : prev;
-    });
-  }, [routeItem, setMostRecentItems]);
 
   return (
     <SidebarAccordionPanel

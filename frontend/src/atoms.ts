@@ -323,3 +323,6 @@ export const DEFAULT_SIDEBAR_FLEX_WEIGHTS: SidebarFlexWeights = {
   tags: 1,
   savedSearches: 1,
 };
+
+// Holds the open palette mode; null means the palette is closed.
+export const commandPaletteModeAtom = atom<'files' | 'commands' | null>(null);
