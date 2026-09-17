@@ -89,6 +89,14 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 		}
 	})
 
+	commands := sub.Add("Command Palette…")
+	commands.SetAccelerator("shift+cmdorctrl+p")
+	commands.OnClick(func(ctx *application.Context) {
+		if win := app.Window.Current(); win != nil {
+			win.EmitEvent(util.EventCommandPalette)
+		}
+	})
+
 	toggleSidebar := sub.Add("Toggle Sidebar")
 	toggleSidebar.SetAccelerator("cmdorctrl+s")
 	toggleSidebar.OnClick(func(ctx *application.Context) {

@@ -28,6 +28,7 @@ const (
 	EventSettingsOpen        = "settings:open"
 	EventSearchNote          = "search:note"
 	EventQuickOpen           = "navigation:quick-open"
+	EventCommandPalette      = "commands:open"
 	EventFullscreen          = "window:fullscreen"
 	EventToggleSidebar       = "sidebar:toggle"
 	EventSidebarFilesOpen    = "sidebar:files:open"
@@ -133,6 +134,7 @@ func init() {
 	application.RegisterEvent[application.Void](EventSettingsOpen)
 	application.RegisterEvent[application.Void](EventSearchNote)
 	application.RegisterEvent[application.Void](EventQuickOpen)
+	application.RegisterEvent[application.Void](EventCommandPalette)
 	application.RegisterEvent[bool](EventFullscreen)
 	application.RegisterEvent[application.Void](EventToggleSidebar)
 	application.RegisterEvent[application.Void](EventSidebarFilesOpen)

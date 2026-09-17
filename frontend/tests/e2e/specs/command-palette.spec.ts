@@ -19,7 +19,10 @@ const searchBinding = {
 };
 
 async function openPalette(page: Page, event = 'navigation:quick-open') {
-  const dialog = page.getByRole('dialog', { name: 'Quick Open', exact: true });
+  const dialog = page.getByRole('dialog', {
+    name: event === 'commands:open' ? 'Command Palette' : 'Quick Open',
+    exact: true,
+  });
   await expect(async () => {
     await emitWailsEvent(page, event, null, 'test');
     await expect(dialog).toBeVisible();
@@ -289,4 +292,57 @@ test('keeps previous results visible until the new query completes', async ({
   await expect(dialog.getByRole('menuitem')).toContainText(
     'Quantum Physics.md'
   );
+});
+
+test('opens commands and hands focus to Settings without a file search', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const dialog = await openPalette(page, 'commands:open');
+
+  await dialog.getByRole('searchbox').fill('preferences');
+  await dialog.getByRole('menuitem', { name: /Open Settings/ }).click();
+
+  await expect(
+    page.getByRole('dialog', { name: 'Settings', exact: true })
+  ).toBeVisible();
+  await expect(dialog).toHaveCount(0);
+  expect(await getMockBindingCalls(page, searchBinding)).toEqual([]);
+  await expect
+    .poll(() =>
+      page
+        .getByRole('dialog', { name: 'Settings', exact: true })
+        .evaluate((element) => element.contains(document.activeElement))
+    )
+    .toBe(true);
+});
+
+test('either palette shortcut closes an open palette without switch buttons', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const commands = await openPalette(page, 'commands:open');
+
+  await expect(
+    commands.getByRole('button', { name: 'Files', exact: true })
+  ).toHaveCount(0);
+  await emitWailsEvent(page, 'navigation:quick-open', null, 'test');
+  await expect(commands).toHaveCount(0);
+  const files = await openPalette(page);
+  await files.getByRole('searchbox').fill('@work/redis.md');
+
+  await expect
+    .poll(async () => (await getMockBindingCalls(page, searchBinding)).at(-1))
+    .toEqual(['@work/redis.md', [], 100]);
+  await expect(
+    files.getByRole('button', { name: 'Commands', exact: true })
+  ).toHaveCount(0);
+  await emitWailsEvent(page, 'commands:open', null, 'test');
+  await expect(files).toHaveCount(0);
+  await openPalette(page, 'commands:open');
+  await expect(commands.getByRole('searchbox')).toHaveValue('');
+  await commands.getByRole('menuitem', { name: /Search All Notes/ }).click();
+  await expect(
+    page.getByRole('searchbox', { name: 'Filter files' })
+  ).toBeFocused();
 });

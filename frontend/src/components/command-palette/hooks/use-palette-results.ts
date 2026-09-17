@@ -9,13 +9,13 @@ import {
   getRecentPickerFiles,
 } from '@utils/file-picker-results';
 
-export function usePaletteResults(query: string) {
+export function usePaletteResults(query: string, enabled: boolean) {
   const recent = useAtomValue(mostRecentItemsAtom);
   const { data: allPaths } = useAllPaths();
   const current = useFilePathFromRoute();
   const search = useFileSearchQuery({
     query,
-    enabled: true,
+    enabled,
     keepPreviousResults: true,
     limit: 100,
   });

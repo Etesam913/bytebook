@@ -196,5 +196,7 @@ export type PaletteItem = {
   label: string;
   description: string;
   excerpt?: string;
-  action: { kind: 'open-path'; path: import('@utils/path').FilePath };
+  action:
+    | { kind: 'open-path'; path: import('@utils/path').FilePath }
+    | { kind: 'command'; run: () => void };
 };

@@ -7,12 +7,8 @@ import {
   GetProjectSettings,
   UpdateProjectSettings,
 } from '@bindings/services/settingsservice';
-import {
-  dialogDataAtom,
-  projectSettingsAtom,
-  projectSettingsLoadedAtom,
-} from '@/atoms';
-import { SettingsDialog } from '@components/settings-dialog';
+import { projectSettingsAtom, projectSettingsLoadedAtom } from '@/atoms';
+import { useOpenSettingsDialog } from '@hooks/dialogs';
 import { useWailsEvent } from '@hooks/events';
 import type { ProjectSettings } from '@/types';
 import {
@@ -171,7 +167,7 @@ function validateProjectSettingsWrapper(data: ProjectSettingsJson) {
 export function useProjectSettings() {
   const setProjectSettings = useSetAtom(projectSettingsAtom);
   const setProjectSettingsLoaded = useSetAtom(projectSettingsLoadedAtom);
-  const setDialogData = useSetAtom(dialogDataAtom);
+  const openSettings = useOpenSettingsDialog();
 
   const { data: settings } = useQuery({
     queryKey: queryKeys.projectSettings(),
@@ -193,14 +189,7 @@ export function useProjectSettings() {
     void (async () => {
       if (!(await isEventInCurrentWindow(data))) return;
       logger.event(SETTINGS_OPEN, data);
-      setDialogData({
-        isOpen: true,
-        isPending: false,
-        title: 'Settings',
-        dialogClassName: 'w-[min(55rem,90vw)] rounded-2xl',
-        children: () => <SettingsDialog />,
-        onSubmit: async () => Promise.resolve(true),
-      });
+      openSettings();
     })();
   });
 

@@ -64,3 +64,5 @@ export async function isEventInCurrentWindow(data: WailsEvent) {
 }
 
 export const QUICK_OPEN = 'navigation:quick-open';
+
+export const COMMAND_PALETTE_OPEN = 'commands:open';

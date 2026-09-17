@@ -1,3 +1,4 @@
+import { SettingsDialog } from '@components/settings-dialog';
 import { useSetAtom } from 'jotai/react';
 import { getDefaultButtonVariants } from '@/animations';
 import { dialogDataAtom } from '@/atoms';
@@ -197,4 +198,18 @@ export function useCreateTableDialog(): (
       },
     });
   };
+}
+
+// Shared by the settings button, native menu event, and command palette.
+export function useOpenSettingsDialog() {
+  const setDialogData = useSetAtom(dialogDataAtom);
+  return () =>
+    setDialogData({
+      isOpen: true,
+      isPending: false,
+      title: 'Settings',
+      dialogClassName: 'w-[min(55rem,90vw)] rounded-2xl',
+      children: () => <SettingsDialog />,
+      onSubmit: () => Promise.resolve(true),
+    });
 }

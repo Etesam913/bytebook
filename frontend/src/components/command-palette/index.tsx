@@ -1,3 +1,4 @@
+import { usePaletteCommands } from './hooks/use-palette-commands';
 import { useEffect, useRef, useState } from 'react';
 import { useAtom, useAtomValue, useStore } from 'jotai';
 import { Autocomplete } from 'react-aria-components/Autocomplete';
@@ -24,8 +25,12 @@ import { AppIconButton, MotionButton } from '@components/buttons';
 import { AppSearchField } from '@components/input';
 import { SearchExcerpt } from '@components/search-excerpt';
 import { RenderNoteIcon } from '@/icons/render-note-icon';
-import { useWailsEvent } from '@hooks/events';
-import { isEventInCurrentWindow, QUICK_OPEN } from '@utils/events';
+import { useWailsEvent, type WailsEvent } from '@hooks/events';
+import {
+  isEventInCurrentWindow,
+  QUICK_OPEN,
+  COMMAND_PALETTE_OPEN,
+} from '@utils/events';
 import { navigateToPath } from '@utils/routes';
 import { usePaletteResults } from './hooks/use-palette-results';
 
@@ -38,20 +43,24 @@ export function CommandPalette() {
   const pendingAction = useRef<(() => void) | null>(null);
   const blocked = dialog.isOpen || backend.isLoading;
 
+  async function openMode(event: WailsEvent, nextMode: 'files' | 'commands') {
+    if (!(await isEventInCurrentWindow(event))) return;
+    if (
+      store.get(dialogDataAtom).isOpen ||
+      store.get(backendQueryAtom).isLoading
+    )
+      return;
+    store.set(contextMenuDataAtom, (previous) => ({
+      ...previous,
+      isShowing: false,
+    }));
+    setMode(store.get(commandPaletteModeAtom) === null ? nextMode : null);
+  }
   useWailsEvent(QUICK_OPEN, (event) => {
-    void (async () => {
-      if (!(await isEventInCurrentWindow(event))) return;
-      if (
-        store.get(dialogDataAtom).isOpen ||
-        store.get(backendQueryAtom).isLoading
-      )
-        return;
-      store.set(contextMenuDataAtom, (previous) => ({
-        ...previous,
-        isShowing: false,
-      }));
-      setMode(store.get(commandPaletteModeAtom) === null ? 'files' : null);
-    })();
+    void openMode(event, 'files');
+  });
+  useWailsEvent(COMMAND_PALETTE_OPEN, (event) => {
+    void openMode(event, 'commands');
   });
 
   useEffect(() => {
@@ -84,7 +93,7 @@ export function CommandPalette() {
     >
       <Modal className="w-[min(40rem,90vw)] outline-none">
         <AriaDialog
-          aria-label="Quick Open"
+          aria-label={mode === 'files' ? 'Quick Open' : 'Command Palette'}
           className="rounded-xl border border-zinc-300 bg-zinc-50 shadow-2xl outline-none dark:border-zinc-700 dark:bg-zinc-800"
         >
           <div
@@ -108,7 +117,13 @@ export function CommandPalette() {
               }
             }}
           >
-            <PaletteBody inputRef={inputRef} closeAndRun={closeAndRun} />
+            <PaletteBody
+              key={mode}
+              mode={mode}
+              onModeChange={setMode}
+              inputRef={inputRef}
+              closeAndRun={closeAndRun}
+            />
           </div>
         </AriaDialog>
       </Modal>
@@ -117,15 +132,19 @@ export function CommandPalette() {
 }
 
 function PaletteBody({
+  mode,
   inputRef,
   closeAndRun,
 }: {
+  mode: 'files' | 'commands';
   inputRef: React.RefObject<HTMLInputElement | null>;
   closeAndRun: (action: () => void) => void;
 }) {
   const [query, setQuery] = useState('');
   const helpRoot = useRef<HTMLDivElement>(null);
-  const { items, search } = usePaletteResults(query);
+  const { items: files, search } = usePaletteResults(query, mode === 'files');
+  const commands = usePaletteCommands(query);
+  const items = mode === 'files' ? files : commands;
   const store = useStore();
 
   return (
@@ -134,8 +153,16 @@ function PaletteBody({
         <AppSearchField
           ref={inputRef}
           autoFocus
-          aria-label="Search notes and attachments"
-          placeholder="Search notes…  f:filename, #tag, or a phrase"
+          aria-label={
+            mode === 'files'
+              ? 'Search notes and attachments'
+              : 'Search commands'
+          }
+          placeholder={
+            mode === 'files'
+              ? 'Search notes…  f:filename, #tag, or a phrase'
+              : 'Search commands…'
+          }
           maxLength={512}
           autoCapitalize="off"
           autoComplete="off"
@@ -143,19 +170,21 @@ function PaletteBody({
           className="m-2"
           inputClassName="pr-8"
           suffix={
-            <Tooltip
-              root={helpRoot}
-              placement="bottom"
-              content={<SearchHelpSections sections={SEARCH_HELP_SECTIONS} />}
-            >
-              <AppIconButton
-                slot={null}
-                aria-label="Search syntax help"
-                className="p-0.5 text-zinc-500 dark:text-zinc-400"
+            mode === 'files' && (
+              <Tooltip
+                root={helpRoot}
+                placement="bottom"
+                content={<SearchHelpSections sections={SEARCH_HELP_SECTIONS} />}
               >
-                <CircleInfo width="0.875rem" height="0.875rem" />
-              </AppIconButton>
-            </Tooltip>
+                <AppIconButton
+                  slot={null}
+                  aria-label="Search syntax help"
+                  className="p-0.5 text-zinc-500 dark:text-zinc-400"
+                >
+                  <CircleInfo width="0.875rem" height="0.875rem" />
+                </AppIconButton>
+              </Tooltip>
+            )
           }
         />
         <Menu
@@ -167,15 +196,25 @@ function PaletteBody({
           onAction={(id) => {
             const item = items.find((item) => item.id === id);
             if (!item) return;
-            closeAndRun(() => navigateToPath(item.action.path));
+            const action = item.action;
+            switch (action.kind) {
+              case 'open-path':
+                closeAndRun(() => navigateToPath(action.path));
+                break;
+              case 'command':
+                closeAndRun(action.run);
+                break;
+            }
           }}
           renderEmptyState={() => (
             <p className="px-2 py-2 text-sm text-zinc-500 dark:text-zinc-400">
-              {search.isError
-                ? 'Search is unavailable.'
-                : query.trim()
-                  ? 'No results found.'
-                  : 'Your recent files will appear here. Type to search.'}
+              {mode === 'commands'
+                ? 'No commands found.'
+                : search.isError
+                  ? 'Search is unavailable.'
+                  : query.trim()
+                    ? 'No results found.'
+                    : 'Your recent files will appear here. Type to search.'}
             </p>
           )}
         >
@@ -184,15 +223,25 @@ function PaletteBody({
               id={item.id}
               textValue={item.label}
               className="group flex items-center gap-1.5 rounded-md px-2 py-1 outline-none data-[focused]:bg-(--accent-color) data-[focused]:text-white"
-              aria-label={`${item.label} in ${item.description}`}
+              aria-label={
+                item.action.kind === 'open-path'
+                  ? `${item.label} in ${item.description}`
+                  : item.label
+              }
             >
-              <RenderNoteIcon filePath={item.action.path} size="sm" />
+              {item.action.kind === 'open-path' && (
+                <RenderNoteIcon filePath={item.action.path} size="sm" />
+              )}
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline gap-3">
                   <Text
                     slot="label"
                     className="min-w-0 flex-1 truncate text-sm leading-5"
-                    title={item.action.path.fullPath}
+                    title={
+                      item.action.kind === 'open-path'
+                        ? item.action.path.fullPath
+                        : item.label
+                    }
                   >
                     {item.label}
                   </Text>
@@ -215,7 +264,7 @@ function PaletteBody({
       </Autocomplete>
       <div className="flex items-center justify-between gap-2 border-t border-zinc-200 px-3 py-1 text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
         <span>↑↓ Navigate · Enter Open · Esc Close</span>
-        {search.isError && (
+        {mode === 'files' && search.isError && (
           <MotionButton
             className="px-1.5 py-0.5 text-xs"
             onPress={() => void search.refetch()}
@@ -224,7 +273,7 @@ function PaletteBody({
             Retry
           </MotionButton>
         )}
-        {search.data?.hasMore && (
+        {mode === 'files' && search.data?.hasMore && (
           <MotionButton
             isDisabled={search.isSearching}
             className="px-1.5 py-0.5 text-xs"
