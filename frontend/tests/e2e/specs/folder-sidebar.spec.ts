@@ -1,4 +1,10 @@
-import { test, expect, type Locator } from '@playwright/test';
+import {
+  test,
+  expect,
+  type Locator,
+  type Page,
+  type Route,
+} from '@playwright/test';
 import { mockNote } from '../utils/editor';
 import {
   getMockBindingCalls,
@@ -19,6 +25,38 @@ import { setupWailsEvents, emitWailsEvent } from '../utils/wails-events';
 async function openContextMenu(item: Locator) {
   await item.click({ button: 'right' });
   return item.page().getByRole('menu');
+}
+
+async function openAttachmentPicker(page: Page) {
+  const menu = await openContextMenu(
+    page
+      .getByTestId('file-sidebar')
+      .getByRole('treeitem', { name: 'Economics Notes' })
+  );
+  await menu.getByRole('menuitem', { name: 'Add attachments' }).click();
+}
+
+// Hold picker/copy responses so each progress state can be checked before continuing.
+async function holdAttachmentRequests(page: Page) {
+  const requests: Route[] = [];
+  await page.route('**/wails/runtime', async (route) => {
+    const body = route.request().postDataJSON();
+    const args = body?.args?.args;
+    if (
+      body?.object === 0 &&
+      (args?.length === 0 || args?.[1]?.[0]?.startsWith('/tmp/upload-'))
+    ) {
+      requests.push(route);
+    } else {
+      await route.fallback();
+    }
+  });
+  return async (data: string[], message = '') => {
+    await expect.poll(() => requests.length).toBe(1);
+    await requests
+      .shift()!
+      .fulfill({ json: { success: !message, data, message } });
+  };
 }
 
 test.describe('File Sidebar', () => {
@@ -61,6 +99,110 @@ test.describe('File Sidebar', () => {
       }
     );
   });
+
+  for (const eventName of [
+    'file-tree:content-drop',
+    'folder:content-drop',
+    'attachment picker',
+  ]) {
+    for (const succeeds of [true, false]) {
+      test(`${eventName} shows completed upload progress and ${succeeds ? 'success' : 'failure'}`, async ({
+        page,
+        context,
+      }) => {
+        await setupWailsEvents(context);
+        await page.goto('/notes/Economics%20Notes');
+        await expect(
+          page.getByTestId('file-sidebar').getByRole('treeitem', {
+            name: 'Economics Notes',
+          })
+        ).toBeVisible();
+        const completeRequest = await holdAttachmentRequests(page);
+
+        const droppedFiles = [
+          '/tmp/upload-first.png',
+          '/tmp/upload-second.png',
+        ];
+        if (eventName === 'attachment picker') {
+          await openAttachmentPicker(page);
+          const loadingDialog = page.getByRole('dialog', {
+            name: 'Loading: Adding attachments ...',
+          });
+          await expect(loadingDialog).toBeVisible();
+          await expect(page.locator('[data-sonner-toast]')).toHaveCount(0);
+          await completeRequest(droppedFiles);
+          await expect(loadingDialog).not.toBeVisible();
+        } else {
+          await emitWailsEvent(page, eventName, {
+            droppedFiles,
+            x: 0,
+            y: 0,
+          });
+        }
+
+        const toast = page.locator('[data-sonner-toast]');
+        await expect(toast).toHaveText('Uploading files… 0/2');
+        await expect(toast).toHaveAttribute('data-type', 'loading');
+        await expect(
+          page.locator(
+            '[data-sonner-toaster][data-y-position="bottom"][data-x-position="right"]'
+          )
+        ).toBeAttached();
+        await completeRequest(['notes/upload-first.png']);
+        await expect(toast).toHaveText('Uploading files… 1/2');
+        await completeRequest(
+          succeeds ? ['notes/upload-second.png'] : [],
+          succeeds ? '' : 'Could not copy file'
+        );
+
+        await expect(toast).toHaveCount(1);
+        await expect(toast).toHaveText(
+          succeeds
+            ? 'Upload complete · 2/2'
+            : 'Upload stopped · 1/2 completed. Could not copy file'
+        );
+        await expect(toast).toHaveAttribute(
+          'data-type',
+          succeeds ? 'success' : 'error'
+        );
+      });
+    }
+  }
+
+  for (const cancelled of [true, false]) {
+    test(`attachment picker ${cancelled ? 'cancellation' : 'failure'} clears the modal without importing`, async ({
+      page,
+      context,
+    }) => {
+      const copyBinding = {
+        file: SERVICE_FILES.NODE_SERVICE,
+        method: 'AddAttachmentsFromPaths',
+      };
+      await mockBinding(context, copyBinding, MOCK_SUCCESS_RESPONSE);
+      await mockBinding(
+        context,
+        { file: SERVICE_FILES.NODE_SERVICE, method: 'SelectAttachmentPaths' },
+        {
+          success: cancelled,
+          data: [],
+          message: cancelled ? '' : 'Picker failed',
+        }
+      );
+      await page.goto('/');
+
+      await openAttachmentPicker(page);
+
+      await expect(page.getByRole('dialog')).not.toBeVisible();
+      if (cancelled) {
+        await expect(page.locator('[data-sonner-toast]')).toHaveCount(0);
+      } else {
+        await expect(page.locator('[data-sonner-toast]')).toHaveText(
+          'Picker failed'
+        );
+      }
+      expect(await getMockBindingCalls(page, copyBinding)).toEqual([]);
+    });
+  }
 
   test('scales tree rows with text without losing expanded folders', async ({
     page,
@@ -402,7 +544,7 @@ test.describe('File Sidebar', () => {
             if (
               typeof init?.body === 'string' &&
               JSON.parse(init.body).args?.args?.[0] ===
-              'Economics Notes/My Todos'
+                'Economics Notes/My Todos'
             ) {
               await pending;
             }

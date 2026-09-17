@@ -2,9 +2,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSetAtom } from 'jotai';
 import { MoveItemsToFolder } from '@bindings/services/filetreeservice';
 import { RenameFolder } from '@bindings/services/folderservice';
-import { AddAttachments } from '@bindings/services/nodeservice';
+import { SelectAttachmentPaths } from '@bindings/services/nodeservice';
 import { RenameFile } from '@bindings/services/noteservice';
 import { backendQueryAtom } from '@/atoms';
+import { importFilesToFolder } from '@hooks/tree-items';
 import {
   replaceLastPathSegment,
   stripTrailingSlash,
@@ -102,29 +103,33 @@ export function useMoveTreeItemsMutation() {
 
 /**
  * A mutation hook for adding attachments to a folder.
- * Uses setBackendQuery to show a loading dialog.
+ * Blocks interaction during native file selection, then reports copy progress in a toast.
  */
 export function useAddFolderAttachmentsMutation() {
   const setBackendQuery = useSetAtom(backendQueryAtom);
 
   return useMutation({
     mutationFn: async (folderPath: string) => {
-      const res = await AddAttachments(stripTrailingSlash(folderPath));
-      if (!res.success) {
-        throw new QueryError(res.message);
+      let filePaths: string[];
+      try {
+        const res = await SelectAttachmentPaths();
+        if (!res.success) throw new QueryError(res.message);
+        filePaths = res.data ?? [];
+      } catch (error) {
+        throw error instanceof QueryError
+          ? error
+          : new QueryError(
+              error instanceof Error ? error.message : String(error)
+            );
+      } finally {
+        setBackendQuery({ isLoading: false, message: '' });
       }
-      return res;
+      return importFilesToFolder({ folderPath, filePaths });
     },
     onMutate: () => {
       setBackendQuery({
         isLoading: true,
         message: `Adding attachments ...`,
-      });
-    },
-    onSettled: () => {
-      setBackendQuery({
-        isLoading: false,
-        message: '',
       });
     },
   });

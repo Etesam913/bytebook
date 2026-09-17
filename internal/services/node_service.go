@@ -57,6 +57,15 @@ func addFilePathsToProject(projectPath string, filePaths []string, folderPath st
 }
 
 func (n *NodeService) AddAttachments(folder string) config.BackendResponseWithData[[]string] {
+	selection := n.SelectAttachmentPaths()
+	if !selection.Success {
+		return selection
+	}
+	return n.AddAttachmentsFromPaths(folder, selection.Data)
+}
+
+// SelectAttachmentPaths opens the native file picker without copying the selected files.
+func (n *NodeService) SelectAttachmentPaths() config.BackendResponseWithData[[]string] {
 	app := application.Get()
 	if app == nil || app.Dialog == nil {
 		return config.BackendResponseWithData[[]string]{Success: false, Message: "Application not initialized", Data: []string{}}
@@ -70,7 +79,7 @@ func (n *NodeService) AddAttachments(folder string) config.BackendResponseWithDa
 		return config.BackendResponseWithData[[]string]{Success: false, Message: err.Error(), Data: []string{}}
 	}
 
-	return n.AddAttachmentsFromPaths(folder, localFilePaths)
+	return config.BackendResponseWithData[[]string]{Success: true, Data: localFilePaths}
 }
 
 // AddAttachmentsFromPaths copies local files and folders into the requested notes folder.
