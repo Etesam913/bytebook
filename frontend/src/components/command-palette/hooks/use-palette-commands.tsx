@@ -4,11 +4,21 @@ import { focusTreeFilterInputAtom, isFileMaximizedAtom } from '@/atoms';
 import type { PaletteItem } from '@/types';
 import { useOpenSettingsDialog } from '@hooks/dialogs';
 
-export function usePaletteCommands(query: string): PaletteItem[] {
+export function usePaletteCommands(
+  query: string,
+  onCreateNote: () => void
+): PaletteItem[] {
   const store = useStore();
   const openSettings = useOpenSettingsDialog();
   const { contains } = useFilter({ sensitivity: 'base' });
   const commands = [
+    {
+      id: 'new-note',
+      label: 'New Note…',
+      keywords: 'create markdown',
+      shortcut: '',
+      run: onCreateNote,
+    },
     {
       id: 'open-settings',
       label: 'Open Settings',
@@ -56,6 +66,9 @@ export function usePaletteCommands(query: string): PaletteItem[] {
       id: command.id,
       label: command.label,
       description: command.shortcut,
-      action: { kind: 'command', run: command.run },
+      action:
+        command.id === 'new-note'
+          ? { kind: 'create-note' }
+          : { kind: 'command', run: command.run },
     }));
 }

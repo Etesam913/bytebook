@@ -198,5 +198,6 @@ export type PaletteItem = {
   excerpt?: string;
   action:
     | { kind: 'open-path'; path: import('@utils/path').FilePath }
-    | { kind: 'command'; run: () => void };
+    | { kind: 'command'; run: () => void }
+    | { kind: 'create-note' };
 };

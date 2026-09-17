@@ -346,3 +346,148 @@ test('either palette shortcut closes an open palette without switch buttons', as
     page.getByRole('searchbox', { name: 'Filter files' })
   ).toBeFocused();
 });
+
+test('creates a unique default note and reveals it in the expanded unfiltered file tree', async ({
+  page,
+  context,
+}) => {
+  const addNote = {
+    file: SERVICE_FILES.NOTE_SERVICE,
+    method: 'AddNoteToFolder',
+  };
+  await mockBinding(context, addNote, { success: true, message: '' });
+  await mockBinding(
+    context,
+    { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetAllPaths' },
+    {
+      ...MOCK_ALL_PATHS_RESPONSE,
+      data: [
+        ...MOCK_ALL_PATHS_RESPONSE.data,
+        'Economics Notes/Untitled.md',
+        'Economics Notes/Untitled 2.md',
+      ],
+    }
+  );
+  await page.goto(NOTE_URL);
+  const sidebar = page.getByTestId('file-sidebar');
+  await page.getByRole('searchbox', { name: 'Filter files' }).fill('#nothing');
+  await sidebar.getByRole('button', { name: 'Files', exact: true }).click();
+  const commands = await openPalette(page, 'commands:open');
+  await commands
+    .getByRole('menuitem', { name: 'Toggle Sidebar', exact: true })
+    .click();
+  await expect(sidebar).not.toBeVisible();
+  const palette = await openPalette(page);
+  await palette.getByRole('searchbox').fill('#work AND f:redis');
+  await palette.getByRole('button', { name: 'New Note…', exact: true }).click();
+  const picker = page.getByRole('dialog', { name: 'Create note', exact: true });
+  await expect(picker.getByRole('textbox', { name: 'Note title' })).toHaveCount(
+    0
+  );
+  await expect(picker.getByRole('menuitem').first()).toContainText(
+    'Economics Notes'
+  );
+
+  await picker.getByRole('menuitem', { name: /Economics Notes/ }).click();
+
+  await expect
+    .poll(async () => (await getMockBindingCalls(page, addNote)).at(-1))
+    .toEqual(['Economics Notes', 'Untitled 3']);
+  await expect(page).toHaveURL('/notes/Economics%20Notes/Untitled%203.md');
+  await expect(picker).toHaveCount(0);
+  await expect(sidebar).toBeVisible();
+  await expect(
+    page.getByRole('searchbox', { name: 'Filter files' })
+  ).toHaveValue('');
+  const created = sidebar.getByRole('treeitem', {
+    name: 'Untitled 3.md',
+    exact: true,
+  });
+  await expect(created).toBeInViewport();
+  await expect(created).toHaveAttribute('aria-selected', 'true');
+});
+
+test('creates only after choosing a folder and preserves the picker on failure', async ({
+  page,
+  context,
+}) => {
+  const addNote = {
+    file: SERVICE_FILES.NOTE_SERVICE,
+    method: 'AddNoteToFolder',
+  };
+  await mockBinding(context, addNote, {
+    success: false,
+    message: 'Could not create note.',
+  });
+  await page.goto('/');
+  const palette = await openPalette(page);
+  await palette.getByRole('button', { name: 'New Note…', exact: true }).click();
+  const picker = page.getByRole('dialog', { name: 'Create note', exact: true });
+  expect(await getMockBindingCalls(page, addNote)).toEqual([]);
+  await picker.getByRole('searchbox').fill('Research');
+
+  await picker
+    .getByRole('menuitem', { name: 'Research Notes', exact: true })
+    .click();
+
+  await expect(picker.getByRole('alert')).toHaveText('Could not create note.');
+  await expect(picker.getByRole('searchbox')).toHaveValue('Research');
+  await expect(page).toHaveURL('/');
+  await updateMockBindingResponse(page, addNote, {
+    success: true,
+    message: '',
+  });
+  await picker
+    .getByRole('menuitem', { name: 'Research Notes', exact: true })
+    .click();
+  await expect(page).toHaveURL('/notes/Research%20Notes/Untitled.md');
+});
+
+test('keeps a pending creation open and prevents a second submit', async ({
+  page,
+  context,
+}) => {
+  const addNote = {
+    file: SERVICE_FILES.NOTE_SERVICE,
+    method: 'AddNoteToFolder',
+  };
+  await mockBinding(context, addNote, { success: true, message: '' });
+  await page.goto(NOTE_URL);
+  await page.evaluate(() => {
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = async (input, init) => {
+      const body =
+        typeof init?.body === 'string'
+          ? (JSON.parse(init.body) as { args?: { args?: unknown[] } })
+          : null;
+      const response = await originalFetch(input, init);
+      if (body?.args?.args?.[1] === 'Untitled') {
+        await new Promise<void>((resolve) => {
+          (
+            window as unknown as { releaseCreation: () => void }
+          ).releaseCreation = resolve;
+        });
+      }
+      return response;
+    };
+  });
+  const palette = await openPalette(page);
+  await palette.getByRole('button', { name: 'New Note…', exact: true }).click();
+  const picker = page.getByRole('dialog', { name: 'Create note', exact: true });
+
+  await picker.getByRole('menuitem', { name: /Economics Notes/ }).click();
+  await expect(picker.getByRole('status')).toHaveText('Creating note…');
+  await page.keyboard.press('Escape');
+  await emitWailsEvent(page, 'navigation:quick-open', null, 'test');
+  await page.keyboard.press('Enter');
+
+  await expect(picker).toBeVisible();
+  await expect
+    .poll(async () => (await getMockBindingCalls(page, addNote)).length)
+    .toBe(1);
+  await page.evaluate(() =>
+    (window as unknown as { releaseCreation: () => void }).releaseCreation()
+  );
+  await expect(page).toHaveURL('/notes/Economics%20Notes/Untitled.md');
+  await expect(picker).toHaveCount(0);
+});

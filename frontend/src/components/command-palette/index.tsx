@@ -1,3 +1,6 @@
+import { CreateNote } from './create-note';
+import { useAddTreeItemMutation } from '@hooks/tree-items';
+import { FILE_TYPE } from '@utils/tree-item-types';
 import { usePaletteCommands } from './hooks/use-palette-commands';
 import { useEffect, useRef, useState } from 'react';
 import { useAtom, useAtomValue, useStore } from 'jotai';
@@ -12,6 +15,7 @@ import {
   contextMenuDataAtom,
   dialogDataAtom,
   focusTreeFilterInputAtom,
+  fileSidebarOpenStateAtom,
   isFileMaximizedAtom,
   treeFilterQueryAtom,
 } from '@/atoms';
@@ -36,6 +40,14 @@ import { usePaletteResults } from './hooks/use-palette-results';
 
 export function CommandPalette() {
   const [mode, setMode] = useAtom(commandPaletteModeAtom);
+  const [creating, setCreating] = useState(false);
+  const createNote = useAddTreeItemMutation();
+  function dismiss() {
+    if (createNote.isPending) return;
+    setCreating(false);
+    createNote.reset();
+    setMode(null);
+  }
   const dialog = useAtomValue(dialogDataAtom);
   const backend = useAtomValue(backendQueryAtom);
   const store = useStore();
@@ -45,6 +57,7 @@ export function CommandPalette() {
 
   async function openMode(event: WailsEvent, nextMode: 'files' | 'commands') {
     if (!(await isEventInCurrentWindow(event))) return;
+    if (createNote.isPending) return;
     if (
       store.get(dialogDataAtom).isOpen ||
       store.get(backendQueryAtom).isLoading
@@ -54,6 +67,8 @@ export function CommandPalette() {
       ...previous,
       isShowing: false,
     }));
+    setCreating(false);
+    createNote.reset();
     setMode(store.get(commandPaletteModeAtom) === null ? nextMode : null);
   }
   useWailsEvent(QUICK_OPEN, (event) => {
@@ -85,15 +100,22 @@ export function CommandPalette() {
   return (
     <ModalOverlay
       isOpen
-      isDismissable
+      isDismissable={!createNote.isPending}
+      isKeyboardDismissDisabled={createNote.isPending}
       onOpenChange={(open) => {
-        if (!open) setMode(null);
+        if (!open) dismiss();
       }}
       className="fixed inset-0 z-60 bg-black/40 flex items-start justify-center pt-[min(15vh,8rem)] px-4"
     >
       <Modal className="w-[min(40rem,90vw)] outline-none">
         <AriaDialog
-          aria-label={mode === 'files' ? 'Quick Open' : 'Command Palette'}
+          aria-label={
+            creating
+              ? 'Create note'
+              : mode === 'files'
+                ? 'Quick Open'
+                : 'Command Palette'
+          }
           className="rounded-xl border border-zinc-300 bg-zinc-50 shadow-2xl outline-none dark:border-zinc-700 dark:bg-zinc-800"
         >
           <div
@@ -113,17 +135,51 @@ export function CommandPalette() {
               if (event.key === 'Escape' && !event.nativeEvent.isComposing) {
                 event.preventDefault();
                 event.stopPropagation();
-                setMode(null);
+                dismiss();
               }
             }}
           >
-            <PaletteBody
-              key={mode}
-              mode={mode}
-              onModeChange={setMode}
-              inputRef={inputRef}
-              closeAndRun={closeAndRun}
-            />
+            {creating ? (
+              <CreateNote
+                isPending={createNote.isPending}
+                error={createNote.error}
+                onBack={() => setCreating(false)}
+                onShowFiles={() =>
+                  closeAndRun(() => {
+                    store.set(isFileMaximizedAtom, false);
+                    store.set(focusTreeFilterInputAtom);
+                  })
+                }
+                onSubmit={async ({ title, parent }) => {
+                  try {
+                    await createNote.mutateAsync({
+                      parentFolderPath: parent,
+                      addType: FILE_TYPE,
+                      newName: title,
+                    });
+                    setCreating(false);
+                    closeAndRun(() => {
+                      store.set(treeFilterQueryAtom, '');
+                      store.set(isFileMaximizedAtom, false);
+                      store.set(fileSidebarOpenStateAtom, { files: true });
+                    });
+                  } catch {
+                    // Keep the folder picker available to retry after a failure.
+                  }
+                }}
+              />
+            ) : (
+              <PaletteBody
+                key={mode}
+                mode={mode}
+                onCreateNote={() => {
+                  createNote.reset();
+                  setCreating(true);
+                }}
+                inputRef={inputRef}
+                closeAndRun={closeAndRun}
+              />
+            )}
           </div>
         </AriaDialog>
       </Modal>
@@ -133,17 +189,19 @@ export function CommandPalette() {
 
 function PaletteBody({
   mode,
+  onCreateNote,
   inputRef,
   closeAndRun,
 }: {
   mode: 'files' | 'commands';
+  onCreateNote: () => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
   closeAndRun: (action: () => void) => void;
 }) {
   const [query, setQuery] = useState('');
   const helpRoot = useRef<HTMLDivElement>(null);
   const { items: files, search } = usePaletteResults(query, mode === 'files');
-  const commands = usePaletteCommands(query);
+  const commands = usePaletteCommands(query, onCreateNote);
   const items = mode === 'files' ? files : commands;
   const store = useStore();
 
@@ -200,6 +258,9 @@ function PaletteBody({
             switch (action.kind) {
               case 'open-path':
                 closeAndRun(() => navigateToPath(action.path));
+                break;
+              case 'create-note':
+                onCreateNote();
                 break;
               case 'command':
                 closeAndRun(action.run);
@@ -263,6 +324,9 @@ function PaletteBody({
         </Menu>
       </Autocomplete>
       <div className="flex items-center justify-between gap-2 border-t border-zinc-200 px-3 py-1 text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+        <MotionButton className="px-1.5 py-0.5 text-xs" onPress={onCreateNote}>
+          New Note…
+        </MotionButton>
         <span>↑↓ Navigate · Enter Open · Esc Close</span>
         {mode === 'files' && search.isError && (
           <MotionButton
