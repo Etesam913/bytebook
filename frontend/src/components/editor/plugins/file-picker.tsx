@@ -28,7 +28,6 @@ import {
   excludeCurrentFile,
 } from '@utils/file-picker-results';
 import { useAllPaths } from '@hooks/all-paths';
-import { Loader } from '@/icons/loader';
 import { useFileSearchQuery, type SearchResult } from '@hooks/search';
 import { useFilePathFromRoute } from '@hooks/routes';
 
@@ -59,6 +58,7 @@ export function FilePickerMenuPlugin() {
   } = useFileSearchQuery({
     query: searchQuery ?? '',
     enabled: searchQuery !== null,
+    keepPreviousResults: true,
   });
   const { data: allPaths } = useAllPaths();
   const currentFilePath = useFilePathFromRoute();
@@ -71,34 +71,35 @@ export function FilePickerMenuPlugin() {
     });
   };
 
-  const options: FilePickerOption[] = !searchQuery?.trim()
-    ? getRecentPickerFiles({
-        recent: mostRecentItems,
-        currentPath: currentFilePath?.fullPath,
-        allPaths,
-      }).flatMap((recentItem): FilePickerOption[] => {
-        return [
-          buildFilePickerOption({
-            item: { kind: 'file', filePath: recentItem },
-            searchResult: null,
-            editor,
-            insertLink,
-          }),
-        ];
-      })
-    : excludeCurrentFile(
-        searchPage?.results ?? [],
-        currentFilePath?.fullPath
-      ).flatMap((result): FilePickerOption[] => {
-        return [
-          buildFilePickerOption({
-            item: { kind: 'file', filePath: result.filePath },
-            searchResult: result,
-            editor,
-            insertLink,
-          }),
-        ];
-      });
+  const options: FilePickerOption[] =
+    !searchQuery?.trim() || (!searchPage && isSearchLoading)
+      ? getRecentPickerFiles({
+          recent: mostRecentItems,
+          currentPath: currentFilePath?.fullPath,
+          allPaths,
+        }).flatMap((recentItem): FilePickerOption[] => {
+          return [
+            buildFilePickerOption({
+              item: { kind: 'file', filePath: recentItem },
+              searchResult: null,
+              editor,
+              insertLink,
+            }),
+          ];
+        })
+      : excludeCurrentFile(
+          searchPage?.results ?? [],
+          currentFilePath?.fullPath
+        ).flatMap((result): FilePickerOption[] => {
+          return [
+            buildFilePickerOption({
+              item: { kind: 'file', filePath: result.filePath },
+              searchResult: result,
+              editor,
+              insertLink,
+            }),
+          ];
+        });
 
   const onSelectOption = (
     selectedOption: DropdownPickerOption,
@@ -128,18 +129,10 @@ export function FilePickerMenuPlugin() {
           return null;
         }
 
-        const showEmptyState =
-          options.length === 0 &&
-          !!searchQuery?.trim() &&
-          !isSearchLoading &&
-          !isError;
+        const isEmpty = options.length === 0 && !isSearchLoading && !isError;
+        const showEmptyState = isEmpty && !!searchQuery?.trim();
 
-        if (
-          options.length === 0 &&
-          !showEmptyState &&
-          !isSearchLoading &&
-          !isError
-        ) {
+        if (options.length === 0 && !showEmptyState && !isError) {
           return null;
         }
 
@@ -147,17 +140,9 @@ export function FilePickerMenuPlugin() {
           <ul
             role="listbox"
             aria-label="Link a file"
+            aria-busy={isSearchLoading}
             className="flex overflow-y-auto overflow-x-hidden text-nowrap flex-col max-h-80 gap-0.5 w-80 p-1 shadow-xl rounded-md border-1 border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-700 scroll-p-1 text-zinc-950 dark:text-zinc-100"
           >
-            {isSearchLoading && (
-              <li
-                role="status"
-                className="flex items-center gap-2 px-2 py-1 text-sm"
-              >
-                <Loader width="1rem" height="1rem" />
-                Searching…
-              </li>
-            )}
             {isError && (
               <li role="alert" className="px-2 py-1 text-sm">
                 Could not search notes.{' '}

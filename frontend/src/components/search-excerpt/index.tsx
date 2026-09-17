@@ -1,5 +1,7 @@
 import { parseSearchExcerpt } from '@utils/search-excerpt';
 
+// Shared by Quick Open and the @ file picker to render highlights without injecting
+// HTML and trim long prefixes so the first match stays visible in compact rows.
 export function SearchExcerpt({ html }: { html: string }) {
   const parts = parseSearchExcerpt(html);
   const firstMatch = parts.findIndex((part) => part.highlighted);

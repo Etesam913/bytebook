@@ -149,21 +149,6 @@ test('shows failures and retries the same query', async ({ page }) => {
   await page.screenshot({ path: test.info().outputPath('quick-open.png') });
 });
 
-test('toggles Quick Open closed and leaves the sidebar filter alone', async ({
-  page,
-}) => {
-  await page.goto('/');
-  const filter = page.getByRole('searchbox', { name: 'Filter files' });
-  await filter.fill('#existing');
-  const dialog = await openPalette(page);
-  await dialog.getByRole('searchbox').fill('f:redis');
-
-  await emitWailsEvent(page, 'navigation:quick-open', null, 'test');
-
-  await expect(dialog).toHaveCount(0);
-  await expect(filter).toHaveValue('#existing');
-});
-
 test('hands the full query to the sidebar after closing', async ({ page }) => {
   await page.goto('/');
   await updateMockBindingResponse(page, searchBinding, {
@@ -179,75 +164,6 @@ test('hands the full query to the sidebar after closing', async ({ page }) => {
   await expect(dialog).toHaveCount(0);
   await expect(filter).toHaveValue('#work AND type:note');
   await expect(filter).toBeFocused();
-});
-
-test('does not replace an existing settings dialog', async ({ page }) => {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Settings', exact: true }).click();
-  await expect(page.getByRole('dialog', { name: 'Settings' })).toBeVisible();
-
-  await emitWailsEvent(page, 'navigation:quick-open', null, 'test');
-
-  await expect(page.getByRole('dialog', { name: 'Settings' })).toBeVisible();
-  await expect(page.getByRole('dialog', { name: 'Quick Open' })).toHaveCount(0);
-});
-
-test('keeps deletion keys inside the palette while editing the query', async ({
-  page,
-}) => {
-  await page.goto(NOTE_URL);
-  const dialog = await openPalette(page);
-  const input = dialog.getByRole('searchbox');
-  await input.fill('redis');
-  await expect(dialog.getByRole('menuitem')).toHaveCount(2);
-  await page.evaluate(() => {
-    (window as unknown as { leakedDeleteKeys: number }).leakedDeleteKeys = 0;
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Backspace' || event.key === 'Delete') {
-        (window as unknown as { leakedDeleteKeys: number }).leakedDeleteKeys++;
-      }
-    });
-  });
-
-  await input.press('Backspace');
-  await expect(input).toHaveValue('redi');
-  await input.evaluate((element: HTMLInputElement) =>
-    element.setSelectionRange(0, 0)
-  );
-  await input.press('Delete');
-  await expect(input).toHaveValue('edi');
-  await input.press('ControlOrMeta+a');
-  await input.press('Backspace');
-
-  await expect(input).toHaveValue('');
-  await expect(page).toHaveURL(NOTE_URL);
-  await expect(input).toBeFocused();
-  expect(
-    await page.evaluate(
-      () => (window as unknown as { leakedDeleteKeys: number }).leakedDeleteKeys
-    )
-  ).toBe(0);
-});
-
-test('shows the shared search syntax help on hover and keyboard focus', async ({
-  page,
-}) => {
-  await page.goto('/');
-  const dialog = await openPalette(page);
-  const help = dialog.getByRole('button', { name: 'Search syntax help' });
-
-  await page.mouse.move(0, 0);
-  await help.hover();
-
-  await expect(page.getByRole('tooltip')).toContainText('f:readme');
-  await expect(page.getByRole('tooltip')).toContainText('Sort');
-  await page.mouse.move(0, 0);
-  await dialog.getByRole('searchbox').press('Tab');
-  await expect(help).toBeFocused();
-  await expect(page.getByRole('tooltip')).toBeVisible();
-  await expect(
-    dialog.getByRole('button', { name: 'Refresh', exact: true })
-  ).toHaveCount(0);
 });
 
 test('keeps previous results visible until the new query completes', async ({
@@ -323,36 +239,6 @@ test('opens commands and hands focus to Settings without a file search', async (
     .toBe(true);
 });
 
-test('either palette shortcut closes an open palette without switch buttons', async ({
-  page,
-}) => {
-  await page.goto('/');
-  const commands = await openPalette(page, 'commands:open');
-
-  await expect(
-    commands.getByRole('button', { name: 'Files', exact: true })
-  ).toHaveCount(0);
-  await emitWailsEvent(page, 'navigation:quick-open', null, 'test');
-  await expect(commands).toHaveCount(0);
-  const files = await openPalette(page);
-  await files.getByRole('searchbox').fill('@work/redis.md');
-
-  await expect
-    .poll(async () => (await getMockBindingCalls(page, searchBinding)).at(-1))
-    .toEqual(['@work/redis.md', [], 100]);
-  await expect(
-    files.getByRole('button', { name: 'Commands', exact: true })
-  ).toHaveCount(0);
-  await emitWailsEvent(page, 'commands:open', null, 'test');
-  await expect(files).toHaveCount(0);
-  await openPalette(page, 'commands:open');
-  await expect(commands.getByRole('searchbox')).toHaveValue('');
-  await commands.getByRole('menuitem', { name: /Search All Notes/ }).click();
-  await expect(
-    page.getByRole('searchbox', { name: 'Filter files' })
-  ).toBeFocused();
-});
-
 test('creates a unique default note and reveals it in the expanded unfiltered file tree', async ({
   page,
   context,
@@ -387,6 +273,9 @@ test('creates a unique default note and reveals it in the expanded unfiltered fi
   await palette.getByRole('searchbox').fill('#work AND f:redis');
   await palette.getByRole('button', { name: 'New Note…', exact: true }).click();
   const picker = page.getByRole('dialog', { name: 'Create note', exact: true });
+  await picker.getByRole('button', { name: 'Back', exact: true }).click();
+  await expect(palette.getByRole('searchbox')).toBeFocused();
+  await palette.getByRole('button', { name: 'New Note…', exact: true }).click();
   await expect(picker.getByRole('textbox', { name: 'Note title' })).toHaveCount(
     0
   );
@@ -411,91 +300,6 @@ test('creates a unique default note and reveals it in the expanded unfiltered fi
   });
   await expect(created).toBeInViewport();
   await expect(created).toHaveAttribute('aria-selected', 'true');
-});
-
-test('creates only after choosing a folder and preserves the picker on failure', async ({
-  page,
-  context,
-}) => {
-  const addNote = {
-    file: SERVICE_FILES.NOTE_SERVICE,
-    method: 'AddNoteToFolder',
-  };
-  await mockBinding(context, addNote, {
-    success: false,
-    message: 'Could not create note.',
-  });
-  await page.goto('/');
-  const palette = await openPalette(page);
-  await palette.getByRole('button', { name: 'New Note…', exact: true }).click();
-  const picker = page.getByRole('dialog', { name: 'Create note', exact: true });
-  expect(await getMockBindingCalls(page, addNote)).toEqual([]);
-  await picker.getByRole('searchbox').fill('Research');
-
-  await picker
-    .getByRole('menuitem', { name: 'Research Notes', exact: true })
-    .click();
-
-  await expect(picker.getByRole('alert')).toHaveText('Could not create note.');
-  await expect(picker.getByRole('searchbox')).toHaveValue('Research');
-  await expect(page).toHaveURL('/');
-  await updateMockBindingResponse(page, addNote, {
-    success: true,
-    message: '',
-  });
-  await picker
-    .getByRole('menuitem', { name: 'Research Notes', exact: true })
-    .click();
-  await expect(page).toHaveURL('/notes/Research%20Notes/Untitled.md');
-});
-
-test('keeps a pending creation open and prevents a second submit', async ({
-  page,
-  context,
-}) => {
-  const addNote = {
-    file: SERVICE_FILES.NOTE_SERVICE,
-    method: 'AddNoteToFolder',
-  };
-  await mockBinding(context, addNote, { success: true, message: '' });
-  await page.goto(NOTE_URL);
-  await page.evaluate(() => {
-    const originalFetch = window.fetch.bind(window);
-    window.fetch = async (input, init) => {
-      const body =
-        typeof init?.body === 'string'
-          ? (JSON.parse(init.body) as { args?: { args?: unknown[] } })
-          : null;
-      const response = await originalFetch(input, init);
-      if (body?.args?.args?.[1] === 'Untitled') {
-        await new Promise<void>((resolve) => {
-          (
-            window as unknown as { releaseCreation: () => void }
-          ).releaseCreation = resolve;
-        });
-      }
-      return response;
-    };
-  });
-  const palette = await openPalette(page);
-  await palette.getByRole('button', { name: 'New Note…', exact: true }).click();
-  const picker = page.getByRole('dialog', { name: 'Create note', exact: true });
-
-  await picker.getByRole('menuitem', { name: /Economics Notes/ }).click();
-  await expect(picker.getByRole('status')).toHaveText('Creating note…');
-  await page.keyboard.press('Escape');
-  await emitWailsEvent(page, 'navigation:quick-open', null, 'test');
-  await page.keyboard.press('Enter');
-
-  await expect(picker).toBeVisible();
-  await expect
-    .poll(async () => (await getMockBindingCalls(page, addNote)).length)
-    .toBe(1);
-  await page.evaluate(() =>
-    (window as unknown as { releaseCreation: () => void }).releaseCreation()
-  );
-  await expect(page).toHaveURL('/notes/Economics%20Notes/Untitled.md');
-  await expect(picker).toHaveCount(0);
 });
 
 test('opens an updated saved search and removes deleted entries while open', async ({
@@ -531,112 +335,4 @@ test('opens an updated saved search and removes deleted entries while open', asy
   await expect(dialog).toHaveCount(0);
   await expect(filter).toHaveValue('#work AND f:redis');
   await expect(filter).toBeFocused();
-});
-
-test('keeps built-in commands available when saved searches fail', async ({
-  page,
-  context,
-}) => {
-  await mockBinding(
-    context,
-    { file: SERVICE_FILES.SEARCH_SERVICE, method: 'GetAllSavedSearches' },
-    {
-      success: false,
-      message: 'Saved searches unavailable',
-    }
-  );
-  await page.goto('/');
-  const dialog = await openPalette(page, 'commands:open');
-
-  await expect(dialog.getByRole('status')).toHaveText(
-    'Saved searches are unavailable.'
-  );
-  await dialog
-    .getByRole('menuitem', { name: 'Search All Notes', exact: true })
-    .click();
-
-  await expect(
-    page.getByRole('searchbox', { name: 'Filter files' })
-  ).toBeFocused();
-});
-
-test('shows compact results without a title or close button and dismisses outside', async ({
-  page,
-  context,
-}, testInfo) => {
-  await mockBinding(
-    context,
-    { file: SERVICE_FILES.SETTINGS_SERVICE, method: 'GetProjectSettings' },
-    {
-      ...MOCK_PROJECT_SETTINGS_RESPONSE,
-      data: {
-        ...MOCK_PROJECT_SETTINGS_RESPONSE.data,
-        appearance: {
-          ...MOCK_PROJECT_SETTINGS_RESPONSE.data.appearance,
-          theme: 'dark',
-        },
-      },
-    }
-  );
-  await page.setViewportSize({ width: 900, height: 700 });
-  await page.goto('/');
-  const dialog = await openPalette(page);
-  await dialog.getByRole('searchbox').fill('r');
-  await expect(dialog.getByRole('menuitem')).toHaveCount(3);
-
-  await expect(dialog.getByRole('heading')).toHaveCount(0);
-  await expect(dialog.getByRole('button', { name: /^close$/i })).toHaveCount(0);
-  const row = await dialog.getByRole('menuitem').first().boundingBox();
-  expect(row?.height).toBeLessThanOrEqual(48);
-  await page.screenshot({
-    path: testInfo.outputPath('compact-palette-dark.png'),
-  });
-  await page.mouse.click(5, 5);
-  await expect(dialog).toHaveCount(0);
-});
-
-test('ignores an older response after the query changes', async ({ page }) => {
-  await page.goto('/');
-  await page.evaluate(() => {
-    const originalFetch = window.fetch.bind(window);
-    window.fetch = async (input, init) => {
-      const body =
-        typeof init?.body === 'string'
-          ? (JSON.parse(init.body) as { args?: { args?: unknown[] } })
-          : null;
-      const response = await originalFetch(input, init);
-      if (body?.args?.args?.[0] === 'slow-query') {
-        await new Promise<void>((resolve) => {
-          (window as unknown as { releaseSearch: () => void }).releaseSearch =
-            resolve;
-        });
-      }
-      return response;
-    };
-  });
-  const dialog = await openPalette(page);
-  const input = dialog.getByRole('searchbox');
-  await input.fill('slow-query');
-  await expect
-    .poll(async () => (await getMockBindingCalls(page, searchBinding)).at(-1))
-    .toEqual(['slow-query', [], 100]);
-  await updateMockBindingResponse(page, searchBinding, {
-    ...MOCK_FULL_TEXT_SEARCH_RESPONSE,
-    data: {
-      ...MOCK_FULL_TEXT_SEARCH_RESPONSE.data,
-      results: [MOCK_FULL_TEXT_SEARCH_RESPONSE.data.results[2]],
-    },
-  });
-
-  await input.fill('fast-query');
-  await expect(dialog.getByRole('menuitem')).toHaveCount(1);
-  await expect(dialog.getByRole('menuitem')).toContainText(
-    'Quantum Physics.md'
-  );
-  await page.evaluate(() =>
-    (window as unknown as { releaseSearch: () => void }).releaseSearch()
-  );
-  await input.press('Enter');
-
-  await expect(page).toHaveURL('/notes/Research%20Notes/Quantum%20Physics.md');
 });

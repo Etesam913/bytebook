@@ -1,5 +1,4 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { AnimatePresence, motion } from 'motion/react';
 import {
   TableOfContentsPlugin as LexicalTableOfContentsPlugin,
   type TableOfContentsEntry,
@@ -80,29 +79,19 @@ function TableOfContentsElement({
 }
 
 export function TableOfContentsPlugin({ isVisible }: { isVisible: boolean }) {
+  if (!isVisible) return null;
+
   return (
-    <AnimatePresence initial={false}>
-      {isVisible && (
-        <motion.div
-          key="table-of-contents"
-          initial={{ height: 0, opacity: 0 }}
-          animate={{ height: 'auto', opacity: 1 }}
-          exit={{ height: 0, opacity: 0 }}
-          className="overflow-hidden shrink-0"
-        >
-          <LexicalTableOfContentsPlugin>
-            {(tableOfContentsArray) => {
-              return (
-                <TableOfContentsElement
-                  content={tableOfContentsArray.filter(
-                    ([, title]) => title.trim().length > 0
-                  )}
-                />
-              );
-            }}
-          </LexicalTableOfContentsPlugin>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div className="overflow-hidden shrink-0">
+      <LexicalTableOfContentsPlugin>
+        {(tableOfContentsArray) => (
+          <TableOfContentsElement
+            content={tableOfContentsArray.filter(
+              ([, title]) => title.trim().length > 0
+            )}
+          />
+        )}
+      </LexicalTableOfContentsPlugin>
+    </div>
   );
 }

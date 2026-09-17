@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { Autocomplete, useFilter } from 'react-aria-components/Autocomplete';
 import { Menu, MenuItem } from 'react-aria-components/Menu';
 import { AppSearchField } from '@components/input';
-import { MotionButton } from '@components/buttons';
+import { MotionIconButton, MotionButton } from '@components/buttons';
+import { getDefaultButtonVariants } from '@/animations';
 import { useAllPaths } from '@hooks/all-paths';
 import { useRecentItemFromRoute } from '@hooks/routes';
 import { getPlaceholderPath } from '@components/virtualized/virtualized-file-tree/create';
 import { splitPathSegments, stripTrailingSlash } from '@utils/path';
 import { FILE_TYPE } from '@utils/tree-item-types';
+import { CircleArrowLeft } from '@/icons/circle-arrow-left';
 import { Loader } from '@/icons/loader';
 
 export function CreateNote({
@@ -45,14 +47,25 @@ export function CreateNote({
   return (
     <>
       <Autocomplete inputValue={query} onInputChange={setQuery}>
-        <AppSearchField
-          autoFocus
-          aria-label="Destination folder"
-          placeholder="Choose a destination folder…"
-          isDisabled={isPending}
-          className="p-2"
-          autoComplete="off"
-        />
+        <div className="flex items-center gap-2 p-2">
+          <MotionIconButton
+            {...getDefaultButtonVariants({ disabled: isPending })}
+            aria-label="Back"
+            onPress={onBack}
+            isDisabled={isPending}
+            className="shrink-0"
+          >
+            <CircleArrowLeft />
+          </MotionIconButton>
+          <AppSearchField
+            autoFocus
+            aria-label="Destination folder"
+            placeholder="Choose a destination folder…"
+            isDisabled={isPending}
+            className="min-w-0 flex-1"
+            autoComplete="off"
+          />
+        </div>
         <Menu
           autoFocus="first"
           aria-label="Destination folders"
@@ -105,13 +118,6 @@ export function CreateNote({
         </p>
       )}
       <div className="flex items-center justify-between gap-2 border-t border-zinc-200 px-3 py-1 text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-        <MotionButton
-          onPress={onBack}
-          isDisabled={isPending}
-          className="px-1.5 py-0.5 text-xs"
-        >
-          Back
-        </MotionButton>
         {isPending ? (
           <span role="status" className="flex items-center gap-2">
             <Loader width="1rem" height="1rem" />
