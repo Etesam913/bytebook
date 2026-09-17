@@ -5,6 +5,7 @@ import {
   updateMockBindingResponse,
 } from '../utils/mock-binding';
 import {
+  MOCK_SAVED_SEARCHES_RESPONSE,
   MOCK_ALL_PATHS_RESPONSE,
   MOCK_PROJECT_SETTINGS_RESPONSE,
   MOCK_FULL_TEXT_SEARCH_RESPONSE,
@@ -55,6 +56,11 @@ test.beforeEach(async ({ context }) => {
     MOCK_PROJECT_SETTINGS_RESPONSE
   );
   await mockBinding(context, searchBinding, MOCK_FULL_TEXT_SEARCH_RESPONSE);
+  await mockBinding(
+    context,
+    { file: SERVICE_FILES.SEARCH_SERVICE, method: 'GetAllSavedSearches' },
+    MOCK_SAVED_SEARCHES_RESPONSE
+  );
   await mockNote(context, 'Current note');
   await context.addInitScript(() =>
     localStorage.setItem(
@@ -490,4 +496,147 @@ test('keeps a pending creation open and prevents a second submit', async ({
   );
   await expect(page).toHaveURL('/notes/Economics%20Notes/Untitled.md');
   await expect(picker).toHaveCount(0);
+});
+
+test('opens an updated saved search and removes deleted entries while open', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const dialog = await openPalette(page, 'commands:open');
+  const filter = page.getByRole('searchbox', { name: 'Filter files' });
+  await expect(
+    dialog.getByRole('menuitem', { name: 'Open saved search: My Research' })
+  ).toBeVisible();
+  await expect(filter).toHaveValue('');
+
+  await updateMockBindingResponse(
+    page,
+    { file: SERVICE_FILES.SEARCH_SERVICE, method: 'GetAllSavedSearches' },
+    {
+      success: true,
+      message: '',
+      data: [{ name: 'My Research', query: '#work AND f:redis' }],
+    }
+  );
+  await emitWailsEvent(page, 'saved-search:update', null, 'test');
+
+  await expect(
+    dialog.getByRole('menuitem', { name: 'Open saved search: Economics' })
+  ).toHaveCount(0);
+  await expect(
+    dialog.getByRole('menuitem', { name: 'Open saved search: My Research' })
+  ).toContainText('#work AND f:redis');
+  await dialog.getByRole('searchbox').fill('research');
+  await dialog.getByRole('searchbox').press('Enter');
+  await expect(dialog).toHaveCount(0);
+  await expect(filter).toHaveValue('#work AND f:redis');
+  await expect(filter).toBeFocused();
+});
+
+test('keeps built-in commands available when saved searches fail', async ({
+  page,
+  context,
+}) => {
+  await mockBinding(
+    context,
+    { file: SERVICE_FILES.SEARCH_SERVICE, method: 'GetAllSavedSearches' },
+    {
+      success: false,
+      message: 'Saved searches unavailable',
+    }
+  );
+  await page.goto('/');
+  const dialog = await openPalette(page, 'commands:open');
+
+  await expect(dialog.getByRole('status')).toHaveText(
+    'Saved searches are unavailable.'
+  );
+  await dialog
+    .getByRole('menuitem', { name: 'Search All Notes', exact: true })
+    .click();
+
+  await expect(
+    page.getByRole('searchbox', { name: 'Filter files' })
+  ).toBeFocused();
+});
+
+test('shows compact results without a title or close button and dismisses outside', async ({
+  page,
+  context,
+}, testInfo) => {
+  await mockBinding(
+    context,
+    { file: SERVICE_FILES.SETTINGS_SERVICE, method: 'GetProjectSettings' },
+    {
+      ...MOCK_PROJECT_SETTINGS_RESPONSE,
+      data: {
+        ...MOCK_PROJECT_SETTINGS_RESPONSE.data,
+        appearance: {
+          ...MOCK_PROJECT_SETTINGS_RESPONSE.data.appearance,
+          theme: 'dark',
+        },
+      },
+    }
+  );
+  await page.setViewportSize({ width: 900, height: 700 });
+  await page.goto('/');
+  const dialog = await openPalette(page);
+  await dialog.getByRole('searchbox').fill('r');
+  await expect(dialog.getByRole('menuitem')).toHaveCount(3);
+
+  await expect(dialog.getByRole('heading')).toHaveCount(0);
+  await expect(dialog.getByRole('button', { name: /^close$/i })).toHaveCount(0);
+  const row = await dialog.getByRole('menuitem').first().boundingBox();
+  expect(row?.height).toBeLessThanOrEqual(48);
+  await page.screenshot({
+    path: testInfo.outputPath('compact-palette-dark.png'),
+  });
+  await page.mouse.click(5, 5);
+  await expect(dialog).toHaveCount(0);
+});
+
+test('ignores an older response after the query changes', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => {
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = async (input, init) => {
+      const body =
+        typeof init?.body === 'string'
+          ? (JSON.parse(init.body) as { args?: { args?: unknown[] } })
+          : null;
+      const response = await originalFetch(input, init);
+      if (body?.args?.args?.[0] === 'slow-query') {
+        await new Promise<void>((resolve) => {
+          (window as unknown as { releaseSearch: () => void }).releaseSearch =
+            resolve;
+        });
+      }
+      return response;
+    };
+  });
+  const dialog = await openPalette(page);
+  const input = dialog.getByRole('searchbox');
+  await input.fill('slow-query');
+  await expect
+    .poll(async () => (await getMockBindingCalls(page, searchBinding)).at(-1))
+    .toEqual(['slow-query', [], 100]);
+  await updateMockBindingResponse(page, searchBinding, {
+    ...MOCK_FULL_TEXT_SEARCH_RESPONSE,
+    data: {
+      ...MOCK_FULL_TEXT_SEARCH_RESPONSE.data,
+      results: [MOCK_FULL_TEXT_SEARCH_RESPONSE.data.results[2]],
+    },
+  });
+
+  await input.fill('fast-query');
+  await expect(dialog.getByRole('menuitem')).toHaveCount(1);
+  await expect(dialog.getByRole('menuitem')).toContainText(
+    'Quantum Physics.md'
+  );
+  await page.evaluate(() =>
+    (window as unknown as { releaseSearch: () => void }).releaseSearch()
+  );
+  await input.press('Enter');
+
+  await expect(page).toHaveURL('/notes/Research%20Notes/Quantum%20Physics.md');
 });

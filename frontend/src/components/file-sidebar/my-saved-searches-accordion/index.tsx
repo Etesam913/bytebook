@@ -3,7 +3,7 @@ import { useAtom } from 'jotai';
 import type { RefObject } from 'react';
 import { VirtualizedListAccordion } from '@components/virtualized/virtualized-list/accordion';
 import type { SidebarReorderOptions } from '@/types';
-import { useSavedSearchesQuery, useSavedSearchUpdates } from '@hooks/search';
+import { useSavedSearchesQuery } from '@hooks/search';
 
 import { SavedSearchAccordionButton } from './saved-search-accordion-button';
 import { Box2Search } from '@/icons/box-2-search';
@@ -26,7 +26,6 @@ export function MySavedSearchesAccordion({
   storedWeightsRef: RefObject<SidebarFlexWeights>;
   reorderOptions: SidebarReorderOptions;
 }) {
-  useSavedSearchUpdates();
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
   const isOpen = openState.savedSearches;
   const {

@@ -1,14 +1,17 @@
+import { useQueryClient } from '@tanstack/react-query';
+import { useSavedSearchesQuery } from '@hooks/search';
+import { queryKeys } from '@utils/query-keys';
+import { treeFilterQueryAtom } from '@/atoms';
 import { useStore } from 'jotai';
 import { useFilter } from 'react-aria-components/Autocomplete';
 import { focusTreeFilterInputAtom, isFileMaximizedAtom } from '@/atoms';
 import type { PaletteItem } from '@/types';
 import { useOpenSettingsDialog } from '@hooks/dialogs';
 
-export function usePaletteCommands(
-  query: string,
-  onCreateNote: () => void
-): PaletteItem[] {
+export function usePaletteCommands(query: string, onCreateNote: () => void) {
   const store = useStore();
+  const queryClient = useQueryClient();
+  const savedSearches = useSavedSearchesQuery();
   const openSettings = useOpenSettingsDialog();
   const { contains } = useFilter({ sensitivity: 'base' });
   const commands = [
@@ -58,7 +61,7 @@ export function usePaletteCommands(
       run: () => window.history.forward(),
     },
   ];
-  return commands
+  const items: PaletteItem[] = commands
     .filter((command) =>
       contains(`${command.label} ${command.keywords}`, query)
     )
@@ -71,4 +74,25 @@ export function usePaletteCommands(
           ? { kind: 'create-note' }
           : { kind: 'command', run: command.run },
     }));
+  const savedItems: PaletteItem[] = (savedSearches.data ?? [])
+    .filter((search) => contains(`${search.name} ${search.query}`, query))
+    .map((search) => ({
+      id: `saved-search:${search.name}`,
+      label: `Open saved search: ${search.name}`,
+      description: search.query,
+      action: {
+        kind: 'command',
+        run: () => {
+          // Resolve at activation so updates or deletions cannot run stale queries.
+          const current = queryClient
+            .getQueryData<typeof savedSearches.data>(queryKeys.savedSearches())
+            ?.find((item) => item.name === search.name);
+          if (!current) return;
+          store.set(treeFilterQueryAtom, current.query);
+          store.set(isFileMaximizedAtom, false);
+          store.set(focusTreeFilterInputAtom);
+        },
+      },
+    }));
+  return { items, savedItems, savedSearches };
 }

@@ -32,6 +32,7 @@ import { RouteDebugView } from '@components/route-debug-view';
 import { isRegularMouseClick } from '@utils/mouse';
 import { isE2ETestEnvironment } from '@utils/e2e';
 import { useKernelInstanceEvents, useKernelInstancesQuery } from '@hooks/code';
+import { useSavedSearchUpdates } from '@hooks/search';
 import { useAllPathsInvalidation } from '@hooks/all-paths';
 
 const KernelInfo = lazy(() =>
@@ -59,6 +60,7 @@ function App() {
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
 
   useTagEvents();
+  useSavedSearchUpdates();
   useAllPathsInvalidation();
   useThemeSetting();
   useProjectSettings();

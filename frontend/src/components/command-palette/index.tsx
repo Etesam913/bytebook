@@ -6,7 +6,10 @@ import { useEffect, useRef, useState } from 'react';
 import { useAtom, useAtomValue, useStore } from 'jotai';
 import { Autocomplete } from 'react-aria-components/Autocomplete';
 import { Dialog as AriaDialog } from 'react-aria-components/Dialog';
-import { Menu, MenuItem } from 'react-aria-components/Menu';
+import { Collection } from 'react-aria-components/Collection';
+import { Header } from 'react-aria-components/Header';
+import type { PaletteItem } from '@/types';
+import { Menu, MenuItem, MenuSection } from 'react-aria-components/Menu';
 import { Modal, ModalOverlay } from 'react-aria-components/Modal';
 import { Text } from 'react-aria-components/Text';
 import {
@@ -202,7 +205,8 @@ function PaletteBody({
   const helpRoot = useRef<HTMLDivElement>(null);
   const { items: files, search } = usePaletteResults(query, mode === 'files');
   const commands = usePaletteCommands(query, onCreateNote);
-  const items = mode === 'files' ? files : commands;
+  const items =
+    mode === 'files' ? files : [...commands.items, ...commands.savedItems];
   const store = useStore();
 
   return (
@@ -249,7 +253,6 @@ function PaletteBody({
           autoFocus="first"
           aria-label="Search results"
           aria-busy={search.isSearching}
-          items={items}
           className="max-h-[50vh] overflow-y-auto px-2 pb-2 outline-none"
           onAction={(id) => {
             const item = items.find((item) => item.id === id);
@@ -279,50 +282,37 @@ function PaletteBody({
             </p>
           )}
         >
-          {(item) => (
-            <MenuItem
-              id={item.id}
-              textValue={item.label}
-              className="group flex items-center gap-1.5 rounded-md px-2 py-1 outline-none data-[focused]:bg-(--accent-color) data-[focused]:text-white"
-              aria-label={
-                item.action.kind === 'open-path'
-                  ? `${item.label} in ${item.description}`
-                  : item.label
-              }
-            >
-              {item.action.kind === 'open-path' && (
-                <RenderNoteIcon filePath={item.action.path} size="sm" />
+          {mode === 'files' ? (
+            <Collection items={files}>
+              {(item) => <PaletteResult item={item} />}
+            </Collection>
+          ) : (
+            <>
+              <Collection items={commands.items}>
+                {(item) => <PaletteResult item={item} />}
+              </Collection>
+              {commands.savedItems.length > 0 && (
+                <MenuSection>
+                  <Header className="px-2 py-1 text-xs text-zinc-500 dark:text-zinc-400">
+                    Saved searches
+                  </Header>
+                  <Collection items={commands.savedItems}>
+                    {(item) => <PaletteResult item={item} />}
+                  </Collection>
+                </MenuSection>
               )}
-              <div className="min-w-0 flex-1">
-                <div className="flex items-baseline gap-3">
-                  <Text
-                    slot="label"
-                    className="min-w-0 flex-1 truncate text-sm leading-5"
-                    title={
-                      item.action.kind === 'open-path'
-                        ? item.action.path.fullPath
-                        : item.label
-                    }
-                  >
-                    {item.label}
-                  </Text>
-                  <Text
-                    slot="description"
-                    className="max-w-[45%] truncate text-xs text-zinc-500 dark:text-zinc-400 group-data-[focused]:text-white/85"
-                  >
-                    {item.description}
-                  </Text>
-                </div>
-                {item.excerpt && (
-                  <div className="truncate text-xs leading-4">
-                    <SearchExcerpt html={item.excerpt} />
-                  </div>
-                )}
-              </div>
-            </MenuItem>
+            </>
           )}
         </Menu>
       </Autocomplete>
+      {mode === 'commands' && commands.savedSearches.isError && (
+        <p
+          role="status"
+          className="px-3 pb-2 text-xs text-zinc-500 dark:text-zinc-400"
+        >
+          Saved searches are unavailable.
+        </p>
+      )}
       <div className="flex items-center justify-between gap-2 border-t border-zinc-200 px-3 py-1 text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
         <MotionButton className="px-1.5 py-0.5 text-xs" onPress={onCreateNote}>
           New Note…
@@ -354,5 +344,50 @@ function PaletteBody({
         )}
       </div>
     </div>
+  );
+}
+
+function PaletteResult({ item }: { item: PaletteItem }) {
+  return (
+    <MenuItem
+      id={item.id}
+      textValue={item.label}
+      className="group flex items-center gap-1.5 rounded-md px-2 py-1 outline-none data-[focused]:bg-(--accent-color) data-[focused]:text-white"
+      aria-label={
+        item.action.kind === 'open-path'
+          ? `${item.label} in ${item.description}`
+          : item.label
+      }
+    >
+      {item.action.kind === 'open-path' && (
+        <RenderNoteIcon filePath={item.action.path} size="sm" />
+      )}
+      <div className="min-w-0 flex-1">
+        <div className="flex items-baseline gap-3">
+          <Text
+            slot="label"
+            className="min-w-0 flex-1 truncate text-sm leading-5"
+            title={
+              item.action.kind === 'open-path'
+                ? item.action.path.fullPath
+                : item.label
+            }
+          >
+            {item.label}
+          </Text>
+          <Text
+            slot="description"
+            className="max-w-[45%] truncate text-xs text-zinc-500 dark:text-zinc-400 group-data-[focused]:text-white/85 dark:group-data-[focused]:text-white/85"
+          >
+            {item.description}
+          </Text>
+        </div>
+        {item.excerpt && (
+          <div className="truncate text-xs leading-4">
+            <SearchExcerpt html={item.excerpt} />
+          </div>
+        )}
+      </div>
+    </MenuItem>
   );
 }
