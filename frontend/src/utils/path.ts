@@ -147,7 +147,10 @@ export type FileOrFolderPath = FilePath | FolderPath;
  * Normalizes the input filePath by removing extra slashes.
  */
 export function createFilePath(filePath: string): FilePath | null {
-  // Normalize the path: remove repeated slashes, trim, remove trailing slash
+  // A trailing slash explicitly marks a folder
+  if (filePath.endsWith('/')) return null;
+
+  // Normalize repeated and leading slashes.
   const normalizedPath = splitPathSegments(filePath).join('/');
 
   const lastSegment = normalizedPath.split('/').pop();
@@ -204,11 +207,6 @@ export function createFolderPath(folderPath: string): FolderPath | null {
 
   const parts = normalizedPath.split('/');
   const folder = parts[parts.length - 1];
-
-  // If the folder path points to a file (contains a dot in the last segment), it's not a folder
-  if (folder.includes('.')) {
-    return null;
-  }
 
   const encodedPath = normalizedPath
     .split('/')

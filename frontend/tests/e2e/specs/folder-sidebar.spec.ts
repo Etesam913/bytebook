@@ -402,7 +402,7 @@ test.describe('File Sidebar', () => {
             if (
               typeof init?.body === 'string' &&
               JSON.parse(init.body).args?.args?.[0] ===
-                'Economics Notes/My Todos'
+              'Economics Notes/My Todos'
             ) {
               await pending;
             }
@@ -760,8 +760,11 @@ test.describe('File Sidebar', () => {
     });
   });
 
-  test('creates a folder via inline input', async ({ page, context }) => {
-    const NEW_FOLDER_NAME = 'My Todos';
+  test('creates a dotted folder via inline input', async ({
+    page,
+    context,
+  }) => {
+    const NEW_FOLDER_NAME = 'My Todos.v1';
 
     await mockBinding(
       context,
@@ -789,8 +792,9 @@ test.describe('File Sidebar', () => {
 
     // Verify navigation to the new folder
     await expect(page).toHaveURL(
-      new RegExp(`/notes/${encodeURIComponent(NEW_FOLDER_NAME)}`)
+      `/notes/${encodeURIComponent(NEW_FOLDER_NAME)}`
     );
+    await expect(page.getByText('This folder is empty')).toBeVisible();
   });
 
   test.describe('Pinned Accordion', () => {

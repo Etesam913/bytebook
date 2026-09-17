@@ -5,6 +5,7 @@ import { NoteRenderer } from '@components/note-renderer';
 import { FolderRenderer } from '@components/folder-renderer';
 import { useFilePathFromRoute, useFolderPathFromRoute } from '@hooks/routes';
 import { useNoteExists } from '@hooks/notes';
+import { useAllPaths } from '@hooks/all-paths';
 import { RouteFallback } from '@components/route-fallback';
 import { NotFound } from '@/routes/not-found';
 import { routeUrls } from '@utils/routes';
@@ -13,6 +14,7 @@ export function EditorWrapper() {
   const filePath = useFilePathFromRoute();
   const folderPath = useFolderPathFromRoute();
   const animationControls = useAnimationControls();
+  const { isPending: isLoadingPaths } = useAllPaths();
   const {
     data: noteExists,
     isLoading,
@@ -31,19 +33,22 @@ export function EditorWrapper() {
     }
   }, [error, filePath, isLoading, isFetching, noteExists]);
 
-  if (filePath) {
-    if (isLoading || noteExists === false || error) {
-      return (
-        <div className="flex h-full min-w-0 flex-1">
-          <RouteFallback
-            height="2.625rem"
-            width="2.625rem"
-            className="mx-auto my-auto"
-          />
-        </div>
-      );
-    }
+  const isNoteUnavailable = isLoading || noteExists === false || !!error;
+  const showNoteFallback = filePath !== null && isNoteUnavailable;
 
+  if (isLoadingPaths || showNoteFallback) {
+    return (
+      <div className="flex h-full min-w-0 flex-1">
+        <RouteFallback
+          height="2.625rem"
+          width="2.625rem"
+          className="mx-auto my-auto"
+        />
+      </div>
+    );
+  }
+
+  if (filePath) {
     return (
       <div className="flex h-full min-w-0 flex-1">
         <NoteRenderer filePath={filePath} />

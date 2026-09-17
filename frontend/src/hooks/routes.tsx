@@ -4,6 +4,7 @@ import { useAtomValue, useSetAtom } from 'jotai';
 import { useLocation, useRoute, useSearchParams } from 'wouter';
 import { isFileMaximizedAtom, mostRecentItemsAtom } from '@/atoms';
 import { useWailsEvent } from './events';
+import { useAllPaths } from './all-paths';
 import {
   FILE_DELETE,
   FOLDER_DELETE,
@@ -80,8 +81,8 @@ export function useDecodedNotesWildcardPath(): string | null {
  * @returns FilePath object if on a file route, null if not or if invalid.
  */
 export function useFilePathFromRoute(): FilePath | null {
-  const decodedPath = useDecodedNotesWildcardPath();
-  return decodedPath ? createFilePath(decodedPath) : null;
+  const path = useRecentItemFromRoute();
+  return path?.type === 'file' ? path : null;
 }
 
 /**
@@ -90,8 +91,8 @@ export function useFilePathFromRoute(): FilePath | null {
  * @returns FolderPath object if on a folder route, null if not or if invalid.
  */
 export function useFolderPathFromRoute(): FolderPath | null {
-  const decodedPath = useDecodedNotesWildcardPath();
-  return decodedPath ? createFolderPath(decodedPath) : null;
+  const path = useRecentItemFromRoute();
+  return path?.type === 'folder' ? path : null;
 }
 
 /**
@@ -102,8 +103,16 @@ export function useFolderPathFromRoute(): FolderPath | null {
  */
 export function useRecentItemFromRoute(): FileOrFolderPath | null {
   const decodedNotesPath = useDecodedNotesWildcardPath();
+  const { data: allPaths, isPending } = useAllPaths();
+
+  // Slashless URLs cannot distinguish a dotted folder from a file. Wait for
+  // the filesystem snapshot before enabling file queries or recording history.
+  if (isPending) return null;
 
   if (decodedNotesPath) {
+    if (allPaths?.includes(`${decodedNotesPath}/`)) {
+      return createFolderPath(decodedNotesPath);
+    }
     return (
       createFilePath(decodedNotesPath) ?? createFolderPath(decodedNotesPath)
     );

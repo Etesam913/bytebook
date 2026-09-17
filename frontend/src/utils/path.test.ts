@@ -139,11 +139,20 @@ describe('createFilePath', () => {
     });
   });
 
-  it('normalizes repeated and surrounding slashes', () => {
-    const fp = createFilePath('//foo//bar//note.md//');
+  it('normalizes repeated and leading slashes', () => {
+    const fp = createFilePath('//foo//bar//note.md');
     expect(fp?.fullPath).toBe('foo/bar/note.md');
     expect(fp?.folder).toBe('foo/bar');
   });
+
+  it.each(['releases/v1.0/', 'notes.md/', 'notes.md//'])(
+    'rejects the folder path %s',
+    (path) => {
+      const result = createFilePath(path);
+
+      expect(result).toBeNull();
+    }
+  );
 
   it('lowercases the extension', () => {
     expect(createFilePath('foo/note.MD')?.extension).toBe('md');
@@ -181,7 +190,7 @@ describe('createFilePath', () => {
 
   it('equals() compares by fullPath', () => {
     const a = createFilePath('foo/bar/note.md')!;
-    const b = createFilePath('//foo//bar//note.md/')!;
+    const b = createFilePath('//foo//bar//note.md')!;
     const c = createFilePath('foo/bar/other.md')!;
     expect(a.equals(b)).toBe(true);
     expect(a.equals(c)).toBe(false);
@@ -226,10 +235,15 @@ describe('createFolderPath', () => {
     expect(createFolderPath('///')).toBeNull();
   });
 
-  it('returns null when the last segment looks like a file (contains a dot)', () => {
-    expect(createFolderPath('foo/bar.md')).toBeNull();
-    expect(createFolderPath('note.txt')).toBeNull();
-  });
+  it.each(['v1.0', '.config', 'archive.', 'notes.md'])(
+    'accepts the folder name %s',
+    (name) => {
+      const path = createFolderPath(`releases/${name}`);
+
+      expect(path?.fullPath).toBe(`releases/${name}/`);
+      expect(path?.encodedFolderUrl).toBe(`/notes/releases/${name}`);
+    }
+  );
 
   it('equals() compares by fullPath', () => {
     const a = createFolderPath('foo/bar')!;
