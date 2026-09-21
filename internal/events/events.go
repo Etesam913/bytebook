@@ -3,6 +3,7 @@ package events
 import (
 	"log"
 
+	"github.com/blevesearch/bleve/v2"
 	"github.com/etesam913/bytebook/internal/ingest"
 	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/util"
@@ -18,45 +19,45 @@ type EventParams struct {
 
 func ListenToEvents(params EventParams) {
 	// File Events
-	params.App.Event.On(util.EventFileCreate, func(event *application.CustomEvent) {
-		log.Printf("%s: %+v", util.EventFileCreate, event.Data)
-		handleFileCreateEvent(params, event)
-	})
-
-	params.App.Event.On(util.EventFileRename, func(event *application.CustomEvent) {
-		log.Printf("%s: %+v", util.EventFileRename, event.Data)
-		handleFileRenameEvent(params, event)
-	})
-
-	params.App.Event.On(util.EventFileDelete, func(event *application.CustomEvent) {
-		log.Printf("%s: %+v", util.EventFileDelete, event.Data)
-		handleFileDeleteEvent(params, event)
-	})
-
-	params.App.Event.On(util.EventFileWrite, func(event *application.CustomEvent) {
-		log.Printf("%s: %+v", util.EventFileWrite, event.Data)
-		handleFileWriteEvent(params, event)
-	})
+	on(params, util.EventFileCreate, addCreatedNotesToIndex)
+	on(params, util.EventFileRename, handleFileRenameEvent)
+	on(params, util.EventFileDelete, handleFileDeleteEvent)
+	on(params, util.EventFileWrite, updateNotesInIndex)
 
 	// Folder Events
-	params.App.Event.On(util.EventFolderRename, func(event *application.CustomEvent) {
-		log.Printf("%s: %+v", util.EventFolderRename, event.Data)
-		handleFolderRenameEvent(params, event)
-	})
-
-	params.App.Event.On(util.EventFolderDelete, func(event *application.CustomEvent) {
-		log.Printf("%s: %+v", util.EventFolderDelete, event.Data)
-		handleFolderDeleteEvent(params, event)
-	})
-
-	params.App.Event.On(util.EventFolderCreate, func(event *application.CustomEvent) {
-		log.Printf("%s: %+v", util.EventFolderCreate, event.Data)
-		handleFolderCreateEvent(params, event)
-	})
+	on(params, util.EventFolderRename, handleFolderRenameEvent)
+	on(params, util.EventFolderDelete, handleFolderDeleteEvent)
+	on(params, util.EventFolderCreate, handleFolderCreateEvent)
 
 	// Tag Events
-	params.App.Event.On(util.EventTagsUpdate, func(event *application.CustomEvent) {
-		log.Printf("%s: %+v", util.EventTagsUpdate, event.Data)
-		handleTagsUpdateEvent(params, event)
+	on(params, util.EventTagsUpdate, handleTagsUpdateEvent)
+}
+
+// on registers handle for eventName and only invokes it when the payload has type T.
+func on[T any](params EventParams, eventName string, handle func(EventParams, T)) {
+	params.App.Event.On(eventName, func(event *application.CustomEvent) {
+		log.Printf("%s: %+v", eventName, event.Data)
+		data, ok := event.Data.(T)
+		if !ok {
+			var want T
+			log.Printf("%s: event data is not %T", eventName, want)
+			return
+		}
+		handle(params, data)
 	})
+}
+
+// withBatch runs fn against the current index under the read lock and commits
+// whatever fn left in the batch.
+func (params EventParams) withBatch(fn func(idx bleve.Index, batch *bleve.Batch)) {
+	idx := params.Index.RLock()
+	defer params.Index.RUnlock()
+	batch := idx.NewBatch()
+	fn(idx, batch)
+	if batch.Size() == 0 {
+		return
+	}
+	if err := idx.Batch(batch); err != nil {
+		log.Println("Error indexing batch", err)
+	}
 }

@@ -4,6 +4,7 @@ import (
 	"log"
 	"path/filepath"
 
+	"github.com/blevesearch/bleve/v2"
 	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -11,13 +12,7 @@ import (
 
 // Re-indexes all the notes that have updated tags.
 // The tags are added to the index as a new document with the same id.
-func handleTagsUpdateEvent(params EventParams, event *application.CustomEvent) {
-	data, ok := event.Data.(util.TagsUpdateEventData)
-	if !ok {
-		log.Println("Tags update event data is not a TagsUpdateEventData")
-		return
-	}
-
+func handleTagsUpdateEvent(params EventParams, data util.TagsUpdateEventData) {
 	var folderAndNoteNames []string
 	for folderAndNoteName := range data {
 		folderAndNoteNames = append(folderAndNoteNames, folderAndNoteName)
@@ -31,58 +26,51 @@ func reIndexNotesWithUpdatedTags(
 	params EventParams,
 	folderAndNoteNames []string,
 ) {
-	idx := params.Index.RLock()
-	defer params.Index.RUnlock()
-	batch := idx.NewBatch()
+	params.withBatch(func(idx bleve.Index, batch *bleve.Batch) {
+		for _, folderAndNoteName := range folderAndNoteNames {
+			filePath := filepath.Join(params.ProjectPath, "notes", folderAndNoteName)
 
-	for _, folderAndNoteName := range folderAndNoteNames {
-		filePath := filepath.Join(params.ProjectPath, "notes", folderAndNoteName)
-
-		// Extract folder and filename from the path
-		folder := filepath.Dir(folderAndNoteName)
-		if folder == "." {
-			folder = ""
-		}
-		fileName := filepath.Base(folderAndNoteName)
-
-		// Check file extension to determine how to index
-		if filepath.Ext(fileName) == ".md" {
-			_, err := search.AddMarkdownNoteToBatch(
-				batch,
-				idx,
-				filePath,
-				folder,
-				fileName,
-				true,
-			)
-
-			if err != nil {
-				log.Printf("Error adding markdown note %s to batch: %v", folderAndNoteName, err)
+			// Extract folder and filename from the path
+			folder := filepath.Dir(folderAndNoteName)
+			if folder == "." {
+				folder = ""
 			}
-		} else {
-			// Handle non-markdown files as attachments
-			fileExtension := filepath.Ext(fileName)
-			_, err := search.AddAttachmentToBatch(
-				batch,
-				idx,
-				params.ProjectPath,
-				folder,
-				fileName,
-				fileExtension,
-				true,
-			)
+			fileName := filepath.Base(folderAndNoteName)
 
-			if err != nil {
-				log.Printf("Error adding attachment %s to batch: %v", folderAndNoteName, err)
+			// Check file extension to determine how to index
+			if filepath.Ext(fileName) == ".md" {
+				_, err := search.AddMarkdownNoteToBatch(
+					batch,
+					idx,
+					filePath,
+					folder,
+					fileName,
+					true,
+				)
+
+				if err != nil {
+					log.Printf("Error adding markdown note %s to batch: %v", folderAndNoteName, err)
+				}
+			} else {
+				// Handle non-markdown files as attachments
+				fileExtension := filepath.Ext(fileName)
+				_, err := search.AddAttachmentToBatch(
+					batch,
+					idx,
+					params.ProjectPath,
+					folder,
+					fileName,
+					fileExtension,
+					true,
+				)
+
+				if err != nil {
+					log.Printf("Error adding attachment %s to batch: %v", folderAndNoteName, err)
+				}
 			}
 		}
-	}
+	})
 
-	// Execute the batch
-	err := idx.Batch(batch)
-	if err != nil {
-		log.Println("Error batching tags update operations", err)
-	}
 	app := application.Get()
 	if app != nil {
 		app.Event.EmitEvent(&application.CustomEvent{

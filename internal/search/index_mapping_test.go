@@ -85,8 +85,7 @@ func (env *TestEnv) verifyDocumentExists(docId string) {
 
 func indexFolderAndFlush(t *testing.T, idx bleve.Index, projectPath, folderPath, folderName string) error {
 	batch := idx.NewBatch()
-	batch, err := IndexFilesInFolderWithBatch(projectPath, folderPath, folderName, idx, batch)
-	if err != nil {
+	if err := IndexFilesInFolderWithBatch(projectPath, folderPath, folderName, idx, batch); err != nil {
 		return err
 	}
 
@@ -474,9 +473,8 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 			env.createAttachmentFile(folderPath, fmt.Sprintf("attachment-%04d.bin", i), "data")
 		}
 
-		batch, err := IndexFilesInFolderWithBatch(env.TmpDir, folderPath, folderName, env.Index, env.Index.NewBatch())
-		require.NoError(t, err)
-		require.NotNil(t, batch)
+		batch := env.Index.NewBatch()
+		require.NoError(t, IndexFilesInFolderWithBatch(env.TmpDir, folderPath, folderName, env.Index, batch))
 		assert.Equal(t, 1, batch.Size())
 
 		documentCount, err := env.Index.DocCount()

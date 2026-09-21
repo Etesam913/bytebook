@@ -15,7 +15,6 @@ import (
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/util"
-	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 // Regex patterns for markdown links and images
@@ -26,13 +25,7 @@ var (
 	linkRegex = regexp.MustCompile(`\[([^\]]+)\]\(([^)]+)\)`)
 )
 
-func handleFolderDeleteEvent(params EventParams, event *application.CustomEvent) {
-	data, ok := event.Data.([]util.FolderDeleteEventData)
-	if !ok {
-		log.Println("Folder delete event data is not []util.FolderDeleteEventData")
-		return
-	}
-
+func handleFolderDeleteEvent(params EventParams, data []util.FolderDeleteEventData) {
 	for _, item := range data {
 		if item.FolderPath == "" {
 			continue
@@ -45,13 +38,7 @@ func handleFolderDeleteEvent(params EventParams, event *application.CustomEvent)
 	deleteFoldersFromIndex(params, data)
 }
 
-func handleFolderCreateEvent(params EventParams, event *application.CustomEvent) {
-	data, ok := event.Data.([]util.FolderCreateEventData)
-	if !ok {
-		log.Println("Folder create event data is not []util.FolderCreateEventData")
-		return
-	}
-
+func handleFolderCreateEvent(params EventParams, data []util.FolderCreateEventData) {
 	if params.ImportCoordinator != nil {
 		for _, folder := range data {
 			if folder.FolderPath == "" {
@@ -67,35 +54,20 @@ func handleFolderCreateEvent(params EventParams, event *application.CustomEvent)
 }
 
 func addFoldersToIndex(params EventParams, data []util.FolderCreateEventData) {
-	idx := params.Index.RLock()
-	defer params.Index.RUnlock()
-	batch := idx.NewBatch()
+	params.withBatch(func(idx bleve.Index, batch *bleve.Batch) {
+		for _, folder := range data {
+			folderPath := folder.FolderPath
+			if folderPath == "" {
+				log.Println("Folder create event data missing folderPath")
+				continue
+			}
 
-	for _, folder := range data {
-		folderPath := folder.FolderPath
-		if folderPath == "" {
-			log.Println("Folder create event data missing folderPath")
-			continue
+			pathOnDisk := filepath.Join(params.ProjectPath, "notes", folderPath)
+			if err := search.IndexFilesInFolderWithBatch(params.ProjectPath, pathOnDisk, folderPath, idx, batch); err != nil {
+				log.Printf("Error indexing files for folder %s: %v", folderPath, err)
+			}
 		}
-
-		// Index files within the folder
-		pathOnDisk := filepath.Join(params.ProjectPath, "notes", folderPath)
-		updatedBatch, err := search.IndexFilesInFolderWithBatch(params.ProjectPath, pathOnDisk, folderPath, idx, batch)
-		if err != nil {
-			log.Printf("Error indexing files for folder %s: %v", folderPath, err)
-			continue
-		}
-		batch = updatedBatch
-	}
-
-	if batch.Size() == 0 {
-		return
-	}
-
-	err := idx.Batch(batch)
-	if err != nil {
-		log.Println("Error indexing batch", err)
-	}
+	})
 }
 
 // createFolderAndDescendantsQuery builds a query that matches documents in the
@@ -117,56 +89,41 @@ func createFolderAndDescendantsQuery(folderPath string) query.Query {
 }
 
 func deleteFoldersFromIndex(params EventParams, data []util.FolderDeleteEventData) {
-	idx := params.Index.RLock()
-	defer params.Index.RUnlock()
-	batch := idx.NewBatch()
+	params.withBatch(func(idx bleve.Index, batch *bleve.Batch) {
+		for _, eventData := range data {
+			folderPath := eventData.FolderPath
+			if folderPath == "" {
+				log.Println("Folder delete event data missing folderPath")
+				continue
+			}
 
-	for _, eventData := range data {
-		folderPath := eventData.FolderPath
-		if folderPath == "" {
-			log.Println("Folder delete event data missing folderPath")
-			continue
-		}
+			// Delete all file documents inside the folder
+			folderQuery := createFolderAndDescendantsQuery(folderPath)
 
-		// Delete all file documents inside the folder
-		folderQuery := createFolderAndDescendantsQuery(folderPath)
+			searchRequest := bleve.NewSearchRequest(folderQuery)
+			searchRequest.Size = search.MaxDeleteSearchResults
+			searchRequest.Fields = []string{search.FieldFolder}
 
-		searchRequest := bleve.NewSearchRequest(folderQuery)
-		searchRequest.Size = search.MaxDeleteSearchResults
-		searchRequest.Fields = []string{search.FieldFolder}
+			searchResult, err := idx.Search(searchRequest)
+			if err != nil {
+				log.Printf("Error searching for documents in folder %s: %v", folderPath, err)
+				continue
+			}
 
-		searchResult, err := idx.Search(searchRequest)
-		if err != nil {
-			log.Printf("Error searching for documents in folder %s: %v", folderPath, err)
-			continue
-		}
-
-		for _, hit := range searchResult.Hits {
-			batch.Delete(hit.ID)
-			if batch.Size() >= search.DefaultBatchSize {
-				if err := idx.Batch(batch); err != nil {
-					log.Printf("Error flushing delete batch for folder %s: %v", folderPath, err)
+			for _, hit := range searchResult.Hits {
+				batch.Delete(hit.ID)
+				if batch.Size() >= search.DefaultBatchSize {
+					if err := idx.Batch(batch); err != nil {
+						log.Printf("Error flushing delete batch for folder %s: %v", folderPath, err)
+					}
+					batch.Reset()
 				}
-				batch = idx.NewBatch()
 			}
 		}
-
-	}
-
-	if batch.Size() > 0 {
-		if err := idx.Batch(batch); err != nil {
-			log.Printf("Error batching delete operations: %v", err)
-		}
-	}
+	})
 }
 
-func handleFolderRenameEvent(params EventParams, event *application.CustomEvent) {
-	data, ok := event.Data.([]util.FolderRenameEventData)
-	if !ok {
-		log.Println("Folder rename event data is not []util.FolderRenameEventData")
-		return
-	}
-
+func handleFolderRenameEvent(params EventParams, data []util.FolderRenameEventData) {
 	// Update markdown files before re-indexing so the new folder's indexed links
 	// reflect the rewritten file contents immediately.
 	for _, eventData := range data {
@@ -193,57 +150,58 @@ func handleFolderRenameEvent(params EventParams, event *application.CustomEvent)
 }
 
 func renameFoldersInIndex(params EventParams, data []util.FolderRenameEventData) {
-	idx := params.Index.RLock()
-	defer params.Index.RUnlock()
-	// Process each folder rename event in the batch
-	for _, eventData := range data {
-		oldFolderPath := eventData.OldFolderPath
-		newFolderPath := eventData.NewFolderPath
+	params.withBatch(func(idx bleve.Index, batch *bleve.Batch) {
+		// Each rename commits its own re-index so a failed walk discards only its
+		// own partial batch.
+		for _, eventData := range data {
+			oldFolderPath := eventData.OldFolderPath
+			newFolderPath := eventData.NewFolderPath
 
-		if oldFolderPath == "" {
-			log.Println("Folder rename event data missing oldFolderPath")
-			continue
-		}
-		if newFolderPath == "" {
-			log.Println("Folder rename event data missing newFolderPath")
-			continue
-		}
+			if oldFolderPath == "" {
+				log.Println("Folder rename event data missing oldFolderPath")
+				continue
+			}
+			if newFolderPath == "" {
+				log.Println("Folder rename event data missing newFolderPath")
+				continue
+			}
 
-		// Step 1: Delete all entries with the old folder name
-		deleteRenameFolderFromIndexLocked(idx, oldFolderPath)
+			// Step 1: Delete all entries with the old folder name
+			deleteRenameFolderFromIndexLocked(idx, oldFolderPath)
 
-		// Step 2: Re-index all files in the new folder
-		newFolderPathOnDisk := filepath.Join(params.ProjectPath, "notes", newFolderPath)
-		batch := idx.NewBatch()
+			// Step 2: Re-index all files in the new folder
+			newFolderPathOnDisk := filepath.Join(params.ProjectPath, "notes", newFolderPath)
 
-		err := filepath.WalkDir(newFolderPathOnDisk, func(path string, entry fs.DirEntry, err error) error {
+			err := filepath.WalkDir(newFolderPathOnDisk, func(path string, entry fs.DirEntry, err error) error {
+				if err != nil {
+					return err
+				}
+				if strings.HasPrefix(entry.Name(), ".") && entry.IsDir() {
+					return filepath.SkipDir
+				}
+				if !entry.IsDir() {
+					return nil
+				}
+				folderPath, err := filepath.Rel(filepath.Join(params.ProjectPath, "notes"), path)
+				if err != nil {
+					return err
+				}
+				return search.IndexFilesInFolderWithBatch(params.ProjectPath, path, folderPath, idx, batch)
+			})
 			if err != nil {
-				return err
+				log.Printf("Error re-indexing folder %s: %v", newFolderPath, err)
+				batch.Reset()
+				continue
 			}
-			if strings.HasPrefix(entry.Name(), ".") && entry.IsDir() {
-				return filepath.SkipDir
-			}
-			if !entry.IsDir() {
-				return nil
-			}
-			folderPath, err := filepath.Rel(filepath.Join(params.ProjectPath, "notes"), path)
-			if err != nil {
-				return err
-			}
-			batch, err = search.IndexFilesInFolderWithBatch(params.ProjectPath, path, folderPath, idx, batch)
-			return err
-		})
-		if err != nil {
-			log.Printf("Error re-indexing folder %s: %v", newFolderPath, err)
-			continue
-		}
 
-		if batch.Size() > 0 {
-			if err := idx.Batch(batch); err != nil {
-				log.Printf("Error committing re-index batch for folder %s: %v", newFolderPath, err)
+			if batch.Size() > 0 {
+				if err := idx.Batch(batch); err != nil {
+					log.Printf("Error committing re-index batch for folder %s: %v", newFolderPath, err)
+				}
+				batch.Reset()
 			}
 		}
-	}
+	})
 }
 
 // deleteRenameFolderFromIndexLocked deletes all documents associated with the old

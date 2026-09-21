@@ -408,27 +408,27 @@ func AddAttachmentToBatch(
 }
 
 // IndexFilesInFolderWithBatch processes all files in a specific folder and adds them to the provided batch.
-// It flushes and replaces the batch when it reaches the default batch size.
-// Returns the active batch containing any operations that have not yet been flushed.
+// It flushes and resets the batch in place when it reaches the default batch size, so on return
+// the batch holds only operations that have not yet been flushed.
 func IndexFilesInFolderWithBatch(
 	projectPath,
 	folderPath,
 	folderName string,
 	index bleve.Index,
 	batch *bleve.Batch,
-) (*bleve.Batch, error) {
+) error {
 	if batch == nil {
-		return nil, nil
+		return nil
 	}
 
 	if _, err := os.Stat(folderPath); os.IsNotExist(err) {
-		return batch, err
+		return err
 	}
 
 	// Process all files in the folder
 	files, err := os.ReadDir(folderPath)
 	if err != nil {
-		return batch, err
+		return err
 	}
 
 	for _, file := range files {
@@ -470,12 +470,12 @@ func IndexFilesInFolderWithBatch(
 		if batch.Size() >= DefaultBatchSize {
 			if err := FlushBatch(index, batch); err != nil {
 				log.Printf("Error flushing batch: %v", err)
-				return batch, err
+				return err
 			}
-			batch = index.NewBatch()
+			batch.Reset()
 		}
 	}
-	return batch, nil
+	return nil
 }
 
 // RegenerateSearchIndex builds a fresh search index without disturbing the
