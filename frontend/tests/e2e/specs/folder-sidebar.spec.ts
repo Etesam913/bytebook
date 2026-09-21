@@ -265,6 +265,42 @@ test.describe('File Sidebar', () => {
   });
 
   test.describe('File Tree', () => {
+    for (const filtered of [false, true]) {
+      test(`shows full-name tooltips when hovering between ${filtered ? 'filtered' : 'canonical'} rows`, async ({
+        page,
+      }) => {
+        await page.goto('/');
+        const sidebar = page.getByTestId('file-sidebar');
+        const filter = sidebar.getByRole('searchbox', { name: 'Filter files' });
+        if (filtered) await filter.fill('#economics');
+        else {
+          await sidebar
+            .getByRole('treeitem', { name: 'Economics Notes', exact: true })
+            .click();
+        }
+        await filter.hover();
+        const tooltip = page.getByRole('tooltip');
+
+        await sidebar
+          .getByRole('treeitem', { name: 'Economics Notes', exact: true })
+          .hover();
+
+        await expect(tooltip).toHaveText('Economics Notes');
+        await expect(tooltip).toBeVisible();
+
+        await sidebar
+          .getByRole('treeitem', { name: 'Inflation.md', exact: true })
+          .hover();
+
+        await expect(tooltip).toHaveText('Inflation.md');
+        await expect(tooltip).toBeVisible();
+
+        await filter.hover();
+
+        await expect(tooltip).toBeHidden();
+      });
+    }
+
     test('reveals the selected search result when clearing the filter repeatedly', async ({
       page,
       context,

@@ -49,6 +49,7 @@ import { TreeContextMenu } from './tree-context-menu';
 import { TreeFilterSummary } from './tree-filter-summary';
 import { TreeHeader } from './tree-header';
 import { TreeSearchInput } from './tree-search-input';
+import { TreeNameTooltip } from './tree-name-tooltip';
 import { Loader } from '@/icons/loader';
 
 // Later path updates sync directly into the model, so prepare only once.
@@ -427,6 +428,7 @@ function PierreFileTreeInner({
           routeTargetPath={routeTargetPath}
         />
       )}
+      {!isFilterMode && <TreeNameTooltip model={model} />}
     </div>
   );
 }

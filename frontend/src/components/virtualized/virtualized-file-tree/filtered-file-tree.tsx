@@ -6,6 +6,7 @@ import { Loader } from '@/icons/loader';
 import { navigateToTreePath } from './model-utils';
 import { FILE_TREE_UNSAFE_CSS } from './styles';
 import { usePierreRowHeight } from './hooks/use-pierre-row-height';
+import { TreeNameTooltip } from './tree-name-tooltip';
 
 function TreeMessage({ children }: { children: React.ReactNode }) {
   return (
@@ -78,5 +79,10 @@ function FilteredTreeHost({
 
   usePierreRowHeight(model);
 
-  return <FileTree model={model} style={hostStyle} />;
+  return (
+    <>
+      <FileTree model={model} style={hostStyle} />
+      <TreeNameTooltip model={model} />
+    </>
+  );
 }
