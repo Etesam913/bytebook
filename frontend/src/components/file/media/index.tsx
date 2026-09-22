@@ -25,6 +25,9 @@ import { contextMenuDataAtom } from '@/atoms';
 import { removeDecoratorNode } from '@utils/commands';
 import { Link } from '@/icons/link';
 import { Trash } from '@/icons/trash';
+import { Maximize } from '@/icons/maximize';
+import { $getNodeByKey, $getSelection, HISTORY_PUSH_TAG } from 'lexical';
+import { $isFileNode } from '@components/editor/nodes/file';
 import { Browser } from '@wailsio/runtime';
 import { navigate } from 'wouter/use-browser-location';
 import {
@@ -79,6 +82,10 @@ export function MediaContainer({
   const widthMotionValue = useMotionValue<number>(
     dimensionsWrittenToNode.width
   );
+  // Menu actions and undo update the node without going through the resize handle.
+  useEffect(() => {
+    widthMotionValue.set(dimensionsWrittenToNode.width);
+  }, [dimensionsWrittenToNode.width, widthMotionValue]);
   const { moveProps } = useMediaResizeMove({
     elementRef: mediaRef,
     handleRef: resizeHandleRef,
@@ -126,6 +133,19 @@ export function MediaContainer({
     );
   }
 
+  function getContextMenuTargetKeys() {
+    return editor.getEditorState().read(() => {
+      const selectedMediaKeys =
+        $getSelection()
+          ?.getNodes()
+          .filter($isFileNode)
+          .map((node) => node.getKey()) ?? [];
+      return selectedMediaKeys.includes(nodeKey)
+        ? selectedMediaKeys
+        : [nodeKey];
+    });
+  }
+
   return (
     <>
       {!isInViewport ? (
@@ -151,6 +171,7 @@ export function MediaContainer({
             className="inline-block relative cursor-auto mx-1 mr-2"
             onContextMenu={(e) => {
               e.preventDefault();
+              const targetKeys = getContextMenuTargetKeys();
               const localFilePath = isALocalFile
                 ? createFilePath(src.replace(/^\/notes\//, ''))
                 : null;
@@ -161,6 +182,54 @@ export function MediaContainer({
                 isShowing: true,
                 targetId: null,
                 items: [
+                  {
+                    value: 'full-width',
+                    label: (
+                      <MenuItemLabel
+                        icon={<Maximize height="1.0625rem" width="1.0625rem" />}
+                      >
+                        Full width
+                      </MenuItemLabel>
+                    ),
+                    onChange: () => {
+                      const root = editor.getRootElement();
+                      const container = containerRef.current;
+                      if (!root || !container) return;
+                      const style = getComputedStyle(container);
+                      const width = Math.floor(
+                        root.clientWidth -
+                          parseFloat(style.marginLeft) -
+                          parseFloat(style.marginRight)
+                      );
+                      if (width <= 0) return;
+
+                      editor.update(
+                        () => {
+                          for (const key of targetKeys) {
+                            const node = $getNodeByKey(key);
+                            if (!$isFileNode(node)) continue;
+                            const type = node.getElementType();
+                            if (type !== 'image' && type !== 'video') continue;
+                            const dimensions = node.getDimensions();
+                            node.setDimensions(
+                              {
+                                width,
+                                height:
+                                  dimensions.height === undefined
+                                    ? undefined
+                                    : Math.round(
+                                        (width * dimensions.height) /
+                                          dimensions.width
+                                      ),
+                              },
+                              editor
+                            );
+                          }
+                        },
+                        { tag: HISTORY_PUSH_TAG }
+                      );
+                    },
+                  },
                   ...(localFilePath
                     ? [revealInFinder({ path: localFilePath })]
                     : []),

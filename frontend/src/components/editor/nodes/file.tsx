@@ -86,12 +86,14 @@ export class FileNode extends DecoratorNode<JSX.Element> {
   }
 
   static clone(node: FileNode): FileNode {
-    return new FileNode({
+    const clone = new FileNode({
       src: node.__src,
       alt: node.__alt,
       dimensions: node.__dimensions,
       key: node.__key,
     });
+    clone.__elementType = node.__elementType;
+    return clone;
   }
 
   static importJSON(serializedNode: SerializedFileNode): FileNode {
