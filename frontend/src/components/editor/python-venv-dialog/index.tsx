@@ -10,7 +10,7 @@ import { backendQueryAtom, projectSettingsAtom } from '@/atoms';
 import { ShareRight } from '@/icons/share-right';
 import { MotionButton, MotionIconButton } from '@components/buttons';
 import { getDefaultButtonVariants } from '@/animations';
-import { QueryError } from '@utils/query';
+import { getBackendResponseData } from '@utils/query';
 import { PlainCodeSnippet } from '@components/plain-code-snippet';
 import { FloppyDisk } from '@/icons/floppy-disk';
 import { DialogErrorText } from '@components/dialog';
@@ -32,13 +32,8 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
   const projectSettings = useAtomValue(projectSettingsAtom);
   const setBackendQuery = useSetAtom(backendQueryAtom);
   const { mutateAsync: chooseCustomVirtualEnvironmentPath } = useMutation({
-    mutationFn: async () => {
-      const res = await ChooseCustomVirtualEnvironmentPath();
-      if (!res.success) {
-        throw new QueryError(res.message);
-      }
-      return res;
-    },
+    mutationFn: () =>
+      getBackendResponseData(ChooseCustomVirtualEnvironmentPath()),
     onSuccess: () => {
       setBackendQuery({
         isLoading: false,
@@ -149,10 +144,8 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
                           message: 'Select a virtual environment folder',
                         });
 
-                        const res = await chooseCustomVirtualEnvironmentPath();
-                        if (res.success) {
-                          setCustomVenvPath(res.data ?? null);
-                        }
+                        const path = await chooseCustomVirtualEnvironmentPath();
+                        setCustomVenvPath(path ?? null);
                       })();
                     }}
                   >

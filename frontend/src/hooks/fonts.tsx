@@ -1,15 +1,13 @@
 import { queryOptions, useQuery } from '@tanstack/react-query';
 import { GetFontFamilies } from '@bindings/services/settingsservice';
 import { queryKeys } from '@utils/query-keys';
-import { QueryError } from '@utils/query';
+import { getBackendResponseData } from '@utils/query';
 
 const fontQueries = {
   families: queryOptions({
     queryKey: queryKeys.fontFamilies(),
     queryFn: async () => {
-      const res = await GetFontFamilies();
-      if (!res.success) throw new QueryError(res.message);
-      return res.data ?? [];
+      return (await getBackendResponseData(GetFontFamilies())) ?? [];
     },
     staleTime: 5 * 60 * 1000,
   }),

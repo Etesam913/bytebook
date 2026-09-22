@@ -18,7 +18,7 @@ import { useWailsEvent } from '@hooks/events';
 import { SAVED_SEARCH_UPDATE } from '@utils/events';
 import { createFilePath, type FilePath } from '@utils/path';
 import { toast } from 'sonner';
-import { QueryError } from '@utils/query';
+import { QueryError, getBackendResponseData } from '@utils/query';
 import { queryKeys } from '@utils/query-keys';
 
 export type NoteSearchResult = {
@@ -92,13 +92,7 @@ const searchQueries = {
   savedSearches: () =>
     queryOptions({
       queryKey: queryKeys.savedSearches(),
-      queryFn: async () => {
-        const response = await GetAllSavedSearches();
-        if (!response.success) {
-          throw new QueryError(response.message);
-        }
-        return response.data;
-      },
+      queryFn: () => getBackendResponseData(GetAllSavedSearches()),
       retry: false,
     }),
 };
@@ -115,10 +109,11 @@ export function useTreeFilterPathsQuery({
   return useQuery({
     queryKey: queryKeys.treeFilterPaths(searchQuery),
     queryFn: async () => {
-      const res = await GetPathsFromSearchQuery(searchQuery);
       // Distinguishes a broken index from a query that matched nothing.
-      if (!res.success) throw new QueryError(res.message);
-      return res.data ?? [];
+      return (
+        (await getBackendResponseData(GetPathsFromSearchQuery(searchQuery))) ??
+        []
+      );
     },
     enabled,
     placeholderData: keepPreviousData,
@@ -163,11 +158,7 @@ export function useSaveSearchMutation() {
       searchQuery: string;
       name: string;
     }) => {
-      const response = await AddSavedSearch(name, searchQuery);
-      if (!response.success) {
-        throw new QueryError(response.message);
-      }
-      return response;
+      await getBackendResponseData(AddSavedSearch(name, searchQuery));
     },
   });
 }
@@ -177,13 +168,8 @@ export function useSaveSearchMutation() {
  */
 export function useDeleteSavedSearchMutation() {
   return useMutation({
-    mutationFn: async ({ name }: { name: string }) => {
-      const response = await RemoveSavedSearch(name);
-      if (!response.success) {
-        throw new QueryError(response.message);
-      }
-      return response;
-    },
+    mutationFn: ({ name }: { name: string }) =>
+      getBackendResponseData(RemoveSavedSearch(name)),
   });
 }
 

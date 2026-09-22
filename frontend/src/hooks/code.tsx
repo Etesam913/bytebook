@@ -25,7 +25,11 @@ import {
   ShutdownKernel,
   ShutdownKernelsByLanguage,
 } from '@bindings/services/codeservice';
-import { QueryError } from '@utils/query';
+import {
+  QueryError,
+  getBackendResponseData,
+  requireBackendResponseData,
+} from '@utils/query';
 import { queryKeys } from '@utils/query-keys';
 import { $nodesOfType, LexicalEditor } from 'lexical';
 import { toast } from 'sonner';
@@ -70,10 +74,7 @@ export function useKernelInstancesQuery() {
     staleTime: Infinity,
     refetchOnWindowFocus: false,
     queryFn: async () => {
-      const { success, message, data } = await ListKernels();
-      if (!success || !data) {
-        throw new QueryError(message);
-      }
+      const data = await requireBackendResponseData(ListKernels());
 
       return data.reduce<Record<string, KernelInstanceData>>(
         (acc, snapshot) => {
@@ -414,15 +415,9 @@ export function useSendInputReplyMutation(
       if (!kernelInstanceId) {
         throw new QueryError('No kernel instance bound to this code block');
       }
-      const res = await SendInputReply(
-        kernelInstanceId,
-        codeBlockId,
-        executionId,
-        value
+      await getBackendResponseData(
+        SendInputReply(kernelInstanceId, codeBlockId, executionId, value)
       );
-      if (!res.success) {
-        throw new QueryError(res.message);
-      }
     },
   });
 }
@@ -496,16 +491,11 @@ export function useSendInterruptRequestMutation(onSuccess?: () => void) {
       const inst = instances[kernelInstanceId];
       if (!inst || inst.heartbeat !== 'success') return;
 
-      const res = await SendInterruptRequest(
-        kernelInstanceId,
-        codeBlockId,
-        newExecutionId
-      );
       // Must reject: resolving here would run onSuccess and flip the code block
       // to idle while the kernel is still executing.
-      if (!res.success) {
-        throw new QueryError(res.message);
-      }
+      await getBackendResponseData(
+        SendInterruptRequest(kernelInstanceId, codeBlockId, newExecutionId)
+      );
     },
     onSuccess,
   });
@@ -523,10 +513,7 @@ export function useShutdownKernelMutation() {
       kernelInstanceId: string;
       restart: boolean;
     }) => {
-      const res = await ShutdownKernel(kernelInstanceId, restart);
-      if (!res.success) {
-        throw new QueryError(res.message);
-      }
+      await getBackendResponseData(ShutdownKernel(kernelInstanceId, restart));
     },
   });
 }
@@ -544,11 +531,8 @@ export function useEnsureKernelMutation() {
       noteId: string;
       language: LanguagesWithKernels;
     }) => {
-      const res = await EnsureKernel(noteId, language);
-      if (!res.success) {
-        throw new QueryError(res.message);
-      }
-      return res.data?.kernelInstanceId ?? null;
+      const data = await getBackendResponseData(EnsureKernel(noteId, language));
+      return data?.kernelInstanceId ?? null;
     },
   });
 }

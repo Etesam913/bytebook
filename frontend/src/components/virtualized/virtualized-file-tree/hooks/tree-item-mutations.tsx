@@ -11,7 +11,7 @@ import {
   stripTrailingSlash,
   type FilePath,
 } from '@utils/path';
-import { QueryError } from '@utils/query';
+import { QueryError, getBackendResponseData } from '@utils/query';
 import { queryKeys } from '@utils/query-keys';
 import { NAME_CHARS } from '@utils/string-formatting';
 
@@ -53,11 +53,11 @@ export function useRenameTreeItemMutation() {
       );
       const newPath = replaceLastPathSegment(oldPath, trimmedName);
 
-      const res =
+      await getBackendResponseData(
         args.itemType === 'folder'
-          ? await RenameFolder(oldPath, newPath)
-          : await RenameFile(oldPath, newPath);
-      if (!res.success) throw new QueryError(res.message);
+          ? RenameFolder(oldPath, newPath)
+          : RenameFile(oldPath, newPath)
+      );
     },
   });
 }
@@ -87,10 +87,7 @@ export function useMoveTreeItemsMutation() {
         return true;
       });
       if (filtered.length === 0) return;
-      const res = await MoveItemsToFolder(filtered, targetFolder);
-      if (!res.success) {
-        throw new QueryError(res.message);
-      }
+      await getBackendResponseData(MoveItemsToFolder(filtered, targetFolder));
     },
     onError: (_error, variables) => variables.onError?.(),
     // Keep the mutation pending until the authoritative paths have refreshed.
@@ -112,9 +109,8 @@ export function useAddFolderAttachmentsMutation() {
     mutationFn: async (folderPath: string) => {
       let filePaths: string[];
       try {
-        const res = await SelectAttachmentPaths();
-        if (!res.success) throw new QueryError(res.message);
-        filePaths = res.data ?? [];
+        filePaths =
+          (await getBackendResponseData(SelectAttachmentPaths())) ?? [];
       } catch (error) {
         throw error instanceof QueryError
           ? error

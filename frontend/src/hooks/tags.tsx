@@ -8,7 +8,7 @@ import {
   GetTagsForNotes,
   SetTagsOnNotes,
 } from '@bindings/services/tagsservice';
-import { QueryError } from '@utils/query';
+import { getBackendResponseData } from '@utils/query';
 import { queryKeys } from '@utils/query-keys';
 import { Dispatch, SetStateAction } from 'react';
 
@@ -42,13 +42,8 @@ export function useTagEvents() {
 export function useTagsQuery() {
   return useQuery({
     queryKey: queryKeys.tagsAll(),
-    queryFn: async (): Promise<string[]> => {
-      const res = await GetTags();
-      if (!res.success) {
-        throw new QueryError(res.message);
-      }
-      return res.data ?? [];
-    },
+    queryFn: async (): Promise<string[]> =>
+      (await getBackendResponseData(GetTags())) ?? [],
   });
 }
 
@@ -61,11 +56,8 @@ export function useTagsForNotesQuery(paths: string[]) {
   return useQuery({
     queryKey: queryKeys.notesTags(paths),
     queryFn: async (): Promise<Record<string, string[]>> => {
-      const res = await GetTagsForNotes(paths);
-      if (!res.success) {
-        throw new QueryError(res.message);
-      }
-      return (res.data ?? {}) as Record<string, string[]>;
+      const data = await getBackendResponseData(GetTagsForNotes(paths));
+      return (data ?? {}) as Record<string, string[]>;
     },
   });
 }
@@ -93,16 +85,9 @@ export function useEditTagsFormMutation() {
         (formData.get('tag-names-to-remove') as string) ?? '[]'
       ) as string[];
 
-      const res = await SetTagsOnNotes(
-        filePaths,
-        tagNamesToAdd,
-        tagNamesToRemove
+      await getBackendResponseData(
+        SetTagsOnNotes(filePaths, tagNamesToAdd, tagNamesToRemove)
       );
-
-      if (!res.success) {
-        throw new QueryError(res.message);
-      }
-
       return true;
     },
     onError: (error, variables) => {
@@ -122,10 +107,9 @@ export function useDeleteTagFromNoteMutation(filePath: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ tagToDelete }: { tagToDelete: string }) => {
-      const res = await SetTagsOnNotes([filePath], [], [tagToDelete]);
-      if (!res.success) {
-        throw new QueryError(res.message);
-      }
+      await getBackendResponseData(
+        SetTagsOnNotes([filePath], [], [tagToDelete])
+      );
       return true;
     },
     onSuccess: () => {
@@ -148,10 +132,7 @@ type DeleteTagsMutationVariables = {
 export function useDeleteTagsMutation() {
   return useMutation({
     mutationFn: async (variables: DeleteTagsMutationVariables) => {
-      const res = await DeleteTags(variables.tagsToDelete);
-      if (!res.success) {
-        throw new QueryError(res.message);
-      }
+      await getBackendResponseData(DeleteTags(variables.tagsToDelete));
       return true;
     },
     onError: (error, variables) => {

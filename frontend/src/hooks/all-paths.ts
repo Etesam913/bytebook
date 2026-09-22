@@ -14,7 +14,7 @@ import {
   FOLDER_RENAME,
 } from '@utils/events';
 import { remapPathThroughRenames, type PathRename } from '@utils/path';
-import { QueryError } from '@utils/query';
+import { requireBackendResponseData } from '@utils/query';
 import { queryKeys } from '@utils/query-keys';
 
 /**
@@ -32,13 +32,7 @@ export function useAllPaths() {
     queryKey: queryKeys.allPaths(),
     staleTime: Infinity,
     refetchOnWindowFocus: false,
-    queryFn: async (): Promise<string[]> => {
-      const res = await GetAllPaths();
-      if (!res.success || !res.data) {
-        throw new QueryError(res.message);
-      }
-      return res.data;
-    },
+    queryFn: () => requireBackendResponseData(GetAllPaths()),
   });
 }
 

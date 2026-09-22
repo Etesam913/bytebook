@@ -11,7 +11,7 @@ import {
   joinPath,
   stripTrailingSlash,
 } from '@utils/path';
-import { QueryError } from '@utils/query';
+import { QueryError, getBackendResponseData } from '@utils/query';
 import { queryKeys } from '@utils/query-keys';
 import { navigateToPath } from '@utils/routes';
 import { NAME_CHARS } from '@utils/string-formatting';
@@ -58,14 +58,11 @@ export function useAddTreeItemMutation() {
         throw new Error(`"${trimmedName}" is not a valid name`);
       }
 
-      const res =
+      await getBackendResponseData(
         newItemPath.type === FOLDER_TYPE
-          ? await AddFolder(stripTrailingSlash(newItemPath.fullPath))
-          : await AddNoteToFolder(
-              stripTrailingSlash(parentFolderPath!),
-              trimmedName
-            );
-      if (!res.success) throw new QueryError(res.message);
+          ? AddFolder(stripTrailingSlash(newItemPath.fullPath))
+          : AddNoteToFolder(stripTrailingSlash(parentFolderPath!), trimmedName)
+      );
 
       queryClient.setQueryData<string[]>(queryKeys.allPaths(), (paths) => {
         if (!paths || paths.includes(newItemPath.fullPath)) return paths;
@@ -179,12 +176,10 @@ export async function importFilesToFolder({
     // The copy response confirms completion; watcher events can arrive
     // before a file has finished copying and also include unrelated files.
     for (const filePath of filePaths) {
-      const res = await AddAttachmentsFromPaths(
-        stripTrailingSlash(folderPath),
-        [filePath]
+      const imported = await getBackendResponseData(
+        AddAttachmentsFromPaths(stripTrailingSlash(folderPath), [filePath])
       );
-      if (!res.success) throw new QueryError(res.message);
-      importedPaths.push(...(res.data ?? []));
+      importedPaths.push(...(imported ?? []));
       completed += 1;
       toast.loading(`Uploading files… ${completed}/${total}`, {
         ...options,

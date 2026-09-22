@@ -28,7 +28,10 @@ import {
   SETTINGS_UPDATE,
 } from '@utils/events';
 import { parseRGB } from '@utils/string-formatting';
-import { QueryError } from '@utils/query';
+import {
+  getBackendResponseData,
+  requireBackendResponseData,
+} from '@utils/query';
 import { queryKeys } from '@utils/query-keys';
 import { ProjectSettingsJson } from '@bindings/config/models';
 
@@ -173,11 +176,9 @@ export function useProjectSettings() {
   const { data: settings } = useQuery({
     queryKey: queryKeys.projectSettings(),
     queryFn: async () => {
-      const { success, message, data } = await GetProjectSettings();
-      if (!success || !data) {
-        throw new QueryError(message);
-      }
-      return validateProjectSettingsWrapper(data);
+      return validateProjectSettingsWrapper(
+        await requireBackendResponseData(GetProjectSettings())
+      );
     },
   });
 
@@ -247,11 +248,12 @@ export function useUpdateProjectSettingsMutation() {
     }: {
       newProjectSettings: ProjectSettings;
     }) => {
-      const res = await UpdateProjectSettings({
-        ...newProjectSettings,
-        pinnedNotes: [...newProjectSettings.pinnedNotes],
-      });
-      if (!res.success) throw new QueryError(res.message);
+      await getBackendResponseData(
+        UpdateProjectSettings({
+          ...newProjectSettings,
+          pinnedNotes: [...newProjectSettings.pinnedNotes],
+        })
+      );
     },
   });
 }

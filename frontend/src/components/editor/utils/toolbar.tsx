@@ -45,7 +45,7 @@ import type { DropdownItem, EditorBlockTypes, FloatingDataType } from '@/types';
 import { LinkNode, $isAutoLinkNode } from '../nodes/link';
 import type { FilePayload } from '../nodes/file';
 import { INSERT_FILES_COMMAND } from '../plugins/file';
-import { QueryError } from '@utils/query';
+import { getBackendResponseData } from '@utils/query';
 import { QuoteIcon } from '@/icons/quote';
 
 // Capture the current selection and position for both the toolbar action and Cmd+K.
@@ -67,8 +67,8 @@ export function $openLinkEditor({
   const focusLink = $getNearestNodeOfType(selection.focus.getNode(), LinkNode);
   const link =
     anchorLink &&
-      anchorLink.is(focusLink) &&
-      !($isAutoLinkNode(anchorLink) && anchorLink.getIsUnlinked())
+    anchorLink.is(focusLink) &&
+    !($isAutoLinkNode(anchorLink) && anchorLink.getIsUnlinked())
       ? anchorLink
       : null;
   const nativeSelection = window.getSelection();
@@ -188,8 +188,8 @@ export function changeSelectedBlocksType({
   newBlockType: EditorBlockTypes;
   insertAttachmentsMutation: UseMutationResult<void, Error, void, unknown>;
   openCreateTableDialog?:
-  | ((editor: LexicalEditor, editorSelection: RangeSelection | null) => void)
-  | undefined;
+    | ((editor: LexicalEditor, editorSelection: RangeSelection | null) => void)
+    | undefined;
 }) {
   editor.update(() => {
     const selection = $getSelection();
@@ -402,10 +402,8 @@ export async function insertAttachmentFromFile({
   editor: LexicalEditor;
   editorSelection: BaseSelection | null;
 }) {
-  const { success, message, data } = await AddAttachments(folder);
   // Thrown errors surface as toasts via the global MutationCache onError.
-  if (!success) throw new QueryError(message);
-  const paths = data ?? [];
+  const paths = (await getBackendResponseData(AddAttachments(folder))) ?? [];
   if (paths.length === 0) return;
 
   // Goes through all the files and add them to the editor

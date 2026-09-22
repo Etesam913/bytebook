@@ -15,7 +15,7 @@ import { projectSettingsAtom } from '@/atoms';
 import { previousMarkdownAtom } from '@components/editor/atoms';
 import { CUSTOM_TRANSFORMERS } from '@components/editor/transformers';
 import { DEFAULT_SONNER_OPTIONS } from '@utils/general';
-import { QueryError } from '@utils/query';
+import { getBackendResponseData } from '@utils/query';
 import { queryKeys } from '@utils/query-keys';
 import { getNavigationTargetForDeletedPaths } from '@utils/routes';
 import {
@@ -52,13 +52,12 @@ const noteQueries = {
 export function useRevealInFinderMutation() {
   return useMutation({
     mutationFn: async ({ path }: { path: FileOrFolderPath }) => {
-      const res = await RevealFolderOrFileInFinder(
-        `notes/${stripTrailingSlash(path.fullPath)}`,
-        true
+      await getBackendResponseData(
+        RevealFolderOrFileInFinder(
+          `notes/${stripTrailingSlash(path.fullPath)}`,
+          true
+        )
       );
-      if (!res.success) {
-        throw new QueryError(res.message);
-      }
     },
   });
 }
@@ -81,9 +80,11 @@ export function useMoveToTrashMutation() {
 
   return useMutation({
     mutationFn: async ({ paths }: { paths: string[] }) => {
-      const res = await MoveToTrash(paths.map(stripTrailingSlash));
-      if (!res.success) throw new QueryError(res.message);
-      return res.data ?? [];
+      return (
+        (await getBackendResponseData(
+          MoveToTrash(paths.map(stripTrailingSlash))
+        )) ?? []
+      );
     },
     onMutate: ({ paths }) => {
       // Navigate immediately if the current route was among the deleted paths
@@ -125,10 +126,7 @@ function useRestoreFromTrashMutation() {
     }: {
       restoreItems: TrashRestoreInfo[];
     }) => {
-      const res = await RestoreFromTrash(restoreItems);
-      if (!res.success) {
-        throw new QueryError(res.message);
-      }
+      await getBackendResponseData(RestoreFromTrash(restoreItems));
     },
   });
 }
@@ -182,11 +180,9 @@ export function useRenameFileMutation() {
       newPath: FilePath;
       setErrorText: Dispatch<SetStateAction<string>>;
     }) => {
-      const res = await RenameFile(oldPath.fullPath, newPath.fullPath);
-      if (!res.success) {
-        throw new QueryError(res.message);
-      }
-      return res.data;
+      return getBackendResponseData(
+        RenameFile(oldPath.fullPath, newPath.fullPath)
+      );
     },
     onError: (error, variables) => {
       if (error instanceof Error) {
