@@ -7,7 +7,6 @@ import (
 	"github.com/blevesearch/bleve/v2"
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/notes"
-	"github.com/etesam913/bytebook/internal/notes/sidecar"
 	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -29,43 +28,22 @@ func (t *TagsService) SetTagsOnNotes(
 	eventData := util.TagsUpdateEventData{}
 
 	for _, folderAndNoteName := range folderAndNoteNames {
-		extension := filepath.Ext(folderAndNoteName)
-		if extension == ".md" {
-			err := notes.AddTagsToNote(t.ProjectPath, folderAndNoteName, tagsToAdd)
-			if err != nil {
-				return config.BackendResponseWithoutData{
-					Success: false,
-					Message: "Failed to fully update tags",
-				}
+		if _, err := notes.AddTags(t.ProjectPath, folderAndNoteName, tagsToAdd); err != nil {
+			return config.BackendResponseWithoutData{
+				Success: false,
+				Message: "Failed to fully update tags",
 			}
-
-			// Get the final tags after both add and delete operations
-			tags, err := notes.DeleteTagsFromNote(t.ProjectPath, folderAndNoteName, tagsToRemove)
-			if err != nil {
-				return config.BackendResponseWithoutData{
-					Success: false,
-					Message: "Failed to fully update tags",
-				}
-			}
-			eventData[folderAndNoteName] = tags
-		} else {
-			_, err := sidecar.AddTags(t.ProjectPath, folderAndNoteName, tagsToAdd)
-			if err != nil {
-				return config.BackendResponseWithoutData{
-					Success: false,
-					Message: "Failed to fully update tags",
-				}
-			}
-
-			tags, err := sidecar.DeleteTags(t.ProjectPath, folderAndNoteName, tagsToRemove)
-			if err != nil {
-				return config.BackendResponseWithoutData{
-					Success: false,
-					Message: "Failed to fully update tags",
-				}
-			}
-			eventData[folderAndNoteName] = tags
 		}
+
+		// The delete result is the final tag set after both operations.
+		tags, err := notes.DeleteTags(t.ProjectPath, folderAndNoteName, tagsToRemove)
+		if err != nil {
+			return config.BackendResponseWithoutData{
+				Success: false,
+				Message: "Failed to fully update tags",
+			}
+		}
+		eventData[folderAndNoteName] = tags
 	}
 
 	app := application.Get()
@@ -90,28 +68,15 @@ func (t *TagsService) GetTagsForNotes(
 	tagsMap := make(map[string][]string)
 
 	for _, folderAndNoteName := range folderAndNoteNames {
-		extension := filepath.Ext(folderAndNoteName)
-		if extension == ".md" {
-			tags, _, err := notes.GetTagsFromNote(t.ProjectPath, folderAndNoteName)
-			if err != nil {
-				return config.BackendResponseWithData[map[string][]string]{
-					Success: false,
-					Message: "Failed to get tags for notes",
-					Data:    map[string][]string{},
-				}
+		tags, err := notes.GetTags(t.ProjectPath, folderAndNoteName)
+		if err != nil {
+			return config.BackendResponseWithData[map[string][]string]{
+				Success: false,
+				Message: "Failed to get tags for notes",
+				Data:    map[string][]string{},
 			}
-			tagsMap[folderAndNoteName] = tags
-		} else {
-			tags, err := sidecar.GetTags(t.ProjectPath, folderAndNoteName)
-			if err != nil {
-				return config.BackendResponseWithData[map[string][]string]{
-					Success: false,
-					Message: "Failed to get tags for notes",
-					Data:    map[string][]string{},
-				}
-			}
-			tagsMap[folderAndNoteName] = tags
 		}
+		tagsMap[folderAndNoteName] = tags
 	}
 
 	return config.BackendResponseWithData[map[string][]string]{
@@ -211,23 +176,13 @@ func (t *TagsService) DeleteTags(tagsToDelete []string) config.BackendResponseWi
 			folderAndNoteName = filepath.Join(folder, fileName)
 		}
 
-		// Remove tags from the note's frontmatter
-		if filepath.Ext(folderAndNoteName) == ".md" {
-			updatedTags, err := notes.DeleteTagsFromNote(t.ProjectPath, folderAndNoteName, tagsToDelete)
-			if err != nil {
-				// Log the error but continue processing other notes
-				log.Printf("failed to delete tags from markdown note %s: %v", folderAndNoteName, err)
-				continue
-			}
-			eventData[folderAndNoteName] = updatedTags
-		} else {
-			updatedTags, err := sidecar.DeleteTags(t.ProjectPath, folderAndNoteName, tagsToDelete)
-			if err != nil {
-				log.Printf("failed to delete tags from sidecar for %s: %v", folderAndNoteName, err)
-				continue
-			}
-			eventData[folderAndNoteName] = updatedTags
+		updatedTags, err := notes.DeleteTags(t.ProjectPath, folderAndNoteName, tagsToDelete)
+		if err != nil {
+			// Log the error but continue processing other notes
+			log.Printf("failed to delete tags from %s: %v", folderAndNoteName, err)
+			continue
 		}
+		eventData[folderAndNoteName] = updatedTags
 	}
 
 	// Emit event for frontend updates & bleve indexing

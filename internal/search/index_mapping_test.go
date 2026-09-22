@@ -236,16 +236,16 @@ func TestIndexOperations(t *testing.T) {
 	})
 }
 
-func TestAddMarkdownNoteToBatch(t *testing.T) {
+func TestAddFileToBatchMarkdown(t *testing.T) {
 	env := setupTestEnv(t)
 	defer env.Close()
 
 	t.Run("should add new markdown note to batch", func(t *testing.T) {
 		folderPath := env.createTestFolder("test-folder")
-		filePath := env.createMarkdownFile(folderPath, "test.md", basicMarkdown)
+		env.createMarkdownFile(folderPath, "test.md", basicMarkdown)
 
 		batch := env.Index.NewBatch()
-		fileId, err := AddMarkdownNoteToBatch(batch, env.Index, filePath, "test-folder", "test.md", false)
+		fileId, err := AddFileToBatch(batch, env.Index, env.TmpDir, "test-folder", "test.md", false)
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, fileId)
@@ -257,7 +257,7 @@ func TestAddMarkdownNoteToBatch(t *testing.T) {
 
 	t.Run("should not add existing note if lastUpdated hasn't changed", func(t *testing.T) {
 		folderPath := env.createTestFolder("test-folder-2")
-		filePath := env.createMarkdownFile(folderPath, "test.md", markdownWithIdAndLastUpdated)
+		env.createMarkdownFile(folderPath, "test.md", markdownWithIdAndLastUpdated)
 
 		// Pre-index the document
 		bleveDoc := CreateMarkdownNoteBleveDocument(markdownWithIdAndLastUpdated, "test-folder-2", "test.md")
@@ -267,7 +267,7 @@ func TestAddMarkdownNoteToBatch(t *testing.T) {
 		batch := env.Index.NewBatch()
 		initialSize := batch.Size()
 
-		returnedId, err := AddMarkdownNoteToBatch(batch, env.Index, filePath, "test-folder-2", "test.md", false)
+		returnedId, err := AddFileToBatch(batch, env.Index, env.TmpDir, "test-folder-2", "test.md", false)
 
 		assert.NoError(t, err)
 		assert.Equal(t, "test-folder-2/test.md", returnedId)
@@ -275,7 +275,7 @@ func TestAddMarkdownNoteToBatch(t *testing.T) {
 	})
 }
 
-func TestAddAttachmentToBatch(t *testing.T) {
+func TestAddFileToBatchAttachment(t *testing.T) {
 	env := setupTestEnv(t)
 	defer env.Close()
 
@@ -284,7 +284,7 @@ func TestAddAttachmentToBatch(t *testing.T) {
 		env.createAttachmentFile(folderPath, "test.pdf", "fake pdf content")
 
 		batch := env.Index.NewBatch()
-		fileId, err := AddAttachmentToBatch(batch, env.Index, env.TmpDir, "test-folder", "test.pdf", ".pdf", false)
+		fileId, err := AddFileToBatch(batch, env.Index, env.TmpDir, "test-folder", "test.pdf", false)
 
 		assert.NoError(t, err)
 		assert.Equal(t, "test-folder/test.pdf", fileId)
@@ -304,7 +304,7 @@ func TestAddAttachmentToBatch(t *testing.T) {
 		batch := env.Index.NewBatch()
 		initialSize := batch.Size()
 
-		returnedId, err := AddAttachmentToBatch(batch, env.Index, env.TmpDir, "test-folder-2", "existing.jpg", ".jpg", false)
+		returnedId, err := AddFileToBatch(batch, env.Index, env.TmpDir, "test-folder-2", "existing.jpg", false)
 
 		assert.NoError(t, err)
 		assert.Equal(t, fileId, returnedId)
@@ -331,7 +331,7 @@ func TestAddAttachmentToBatch(t *testing.T) {
 				batch := env.Index.NewBatch()
 				expectedId := filepath.Join(folderName, tc.fileName)
 
-				fileId, err := AddAttachmentToBatch(batch, env.Index, env.TmpDir, folderName, tc.fileName, tc.extension, false)
+				fileId, err := AddFileToBatch(batch, env.Index, env.TmpDir, folderName, tc.fileName, false)
 
 				assert.NoError(t, err)
 				assert.Equal(t, expectedId, fileId)
@@ -347,7 +347,7 @@ func TestAddAttachmentToBatch(t *testing.T) {
 		require.NoError(t, sidecar.WriteTags(env.TmpDir, folderName, "tagged.pdf", []string{"a", "b"}))
 
 		batch := env.Index.NewBatch()
-		fileId, err := AddAttachmentToBatch(batch, env.Index, env.TmpDir, folderName, "tagged.pdf", ".pdf", true)
+		fileId, err := AddFileToBatch(batch, env.Index, env.TmpDir, folderName, "tagged.pdf", true)
 		require.NoError(t, err)
 		require.Equal(t, filepath.Join(folderName, "tagged.pdf"), fileId)
 		require.NoError(t, env.Index.Batch(batch))

@@ -560,7 +560,7 @@ func TestAddTagsToNote(t *testing.T) {
 		err := os.WriteFile(testFile1, []byte("# Test Note"), 0644)
 		assert.NoError(t, err)
 
-		err = AddTagsToNote(tmpDir, "test-folder/test1.md", []string{"golang", "testing"})
+		_, err = AddTagsToNote(tmpDir, "test-folder/test1.md", []string{"golang", "testing"})
 		assert.NoError(t, err)
 
 		content, _ := os.ReadFile(testFile1)
@@ -574,7 +574,7 @@ func TestAddTagsToNote(t *testing.T) {
 		err = os.WriteFile(testFile2, []byte(initialContent), 0644)
 		assert.NoError(t, err)
 
-		err = AddTagsToNote(tmpDir, "test-folder/test2.md", []string{"existing", "new", "", "  "})
+		_, err = AddTagsToNote(tmpDir, "test-folder/test2.md", []string{"existing", "new", "", "  "})
 		assert.NoError(t, err)
 
 		content, _ = os.ReadFile(testFile2)
@@ -587,11 +587,11 @@ func TestAddTagsToNote(t *testing.T) {
 
 	t.Run("should handle errors", func(t *testing.T) {
 		// Non-existent file
-		err := AddTagsToNote(tmpDir, "test-folder/nonexistent.md", []string{"tag"})
+		_, err := AddTagsToNote(tmpDir, "test-folder/nonexistent.md", []string{"tag"})
 		assert.Error(t, err)
 
 		// Invalid folder path
-		err = AddTagsToNote(tmpDir, "nonexistent-folder/test.md", []string{"tag"})
+		_, err = AddTagsToNote(tmpDir, "nonexistent-folder/test.md", []string{"tag"})
 		assert.Error(t, err)
 	})
 }

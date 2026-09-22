@@ -20,38 +20,15 @@ func addCreatedNotesToIndex(params EventParams, data []util.FileCreateEventData)
 		for _, note := range data {
 			folder, noteName := util.SplitFolderAndFile(note.FilePath)
 
-			notePath := filepath.Join(folder, noteName)
-			filePath := filepath.Join(params.ProjectPath, "notes", notePath)
-
 			err := util.RetryWithExponentialBackoff(
 				func() error {
-					if filepath.Ext(noteName) == ".md" {
-						_, err := search.AddMarkdownNoteToBatch(
-							batch,
-							idx,
-							filePath,
-							folder,
-							noteName,
-							true,
-						)
-						return err
-					} else {
-						// Handle attachment files
-						fileExtension := filepath.Ext(noteName)
+					if filepath.Ext(noteName) != ".md" {
 						if err := sidecar.Ensure(params.ProjectPath, folder, noteName); err != nil {
 							log.Printf("Error ensuring sidecar for %s: %v", noteName, err)
 						}
-						_, err := search.AddAttachmentToBatch(
-							batch,
-							idx,
-							params.ProjectPath,
-							folder,
-							noteName,
-							fileExtension,
-							true,
-						)
-						return err
 					}
+					_, err := search.AddFileToBatch(batch, idx, params.ProjectPath, folder, noteName, true)
+					return err
 				},
 				5,                   // maxRetries
 				10*time.Millisecond, // initialDelay
@@ -97,32 +74,8 @@ func renameFilesInIndex(params EventParams, data []util.FileRenameEventData) {
 				log.Printf("Error moving sidecar from %s to %s: %v", oldFilePath, newFilePath, err)
 			}
 
-			if filepath.Ext(newNoteName) == ".md" {
-				_, err := search.AddMarkdownNoteToBatch(
-					batch,
-					idx,
-					newFilePath,
-					newFolder,
-					newNoteName,
-					true,
-				)
-				if err != nil {
-					log.Println("Error adding renamed note to batch", err)
-				}
-			} else {
-				fileExtension := filepath.Ext(newNoteName)
-				_, err := search.AddAttachmentToBatch(
-					batch,
-					idx,
-					params.ProjectPath,
-					newFolder,
-					newNoteName,
-					fileExtension,
-					true,
-				)
-				if err != nil {
-					log.Println("Error adding renamed attachment to batch", err)
-				}
+			if _, err := search.AddFileToBatch(batch, idx, params.ProjectPath, newFolder, newNoteName, true); err != nil {
+				log.Println("Error adding renamed file to batch", err)
 			}
 		}
 	})
@@ -165,15 +118,7 @@ func updateNotesInIndex(params EventParams, data []util.FileWriteEventData) {
 			if filepath.Ext(noteName) != ".md" {
 				// Attachments are indexed by file metadata only — never read
 				// their contents into the markdown pipeline.
-				_, err := search.AddAttachmentToBatch(
-					attachmentBatch,
-					idx,
-					params.ProjectPath,
-					folder,
-					noteName,
-					filepath.Ext(noteName),
-					true,
-				)
+				_, err := search.AddFileToBatch(attachmentBatch, idx, params.ProjectPath, folder, noteName, true)
 				if err != nil {
 					log.Printf("Error adding attachment to batch %s: %v", notePath, err)
 				}

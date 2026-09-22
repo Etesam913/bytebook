@@ -2,7 +2,6 @@ package events
 
 import (
 	"log"
-	"path/filepath"
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/etesam913/bytebook/internal/search"
@@ -28,45 +27,9 @@ func reIndexNotesWithUpdatedTags(
 ) {
 	params.withBatch(func(idx bleve.Index, batch *bleve.Batch) {
 		for _, folderAndNoteName := range folderAndNoteNames {
-			filePath := filepath.Join(params.ProjectPath, "notes", folderAndNoteName)
-
-			// Extract folder and filename from the path
-			folder := filepath.Dir(folderAndNoteName)
-			if folder == "." {
-				folder = ""
-			}
-			fileName := filepath.Base(folderAndNoteName)
-
-			// Check file extension to determine how to index
-			if filepath.Ext(fileName) == ".md" {
-				_, err := search.AddMarkdownNoteToBatch(
-					batch,
-					idx,
-					filePath,
-					folder,
-					fileName,
-					true,
-				)
-
-				if err != nil {
-					log.Printf("Error adding markdown note %s to batch: %v", folderAndNoteName, err)
-				}
-			} else {
-				// Handle non-markdown files as attachments
-				fileExtension := filepath.Ext(fileName)
-				_, err := search.AddAttachmentToBatch(
-					batch,
-					idx,
-					params.ProjectPath,
-					folder,
-					fileName,
-					fileExtension,
-					true,
-				)
-
-				if err != nil {
-					log.Printf("Error adding attachment %s to batch: %v", folderAndNoteName, err)
-				}
+			folder, fileName := util.SplitFolderAndFile(folderAndNoteName)
+			if _, err := search.AddFileToBatch(batch, idx, params.ProjectPath, folder, fileName, true); err != nil {
+				log.Printf("Error adding %s to batch: %v", folderAndNoteName, err)
 			}
 		}
 	})

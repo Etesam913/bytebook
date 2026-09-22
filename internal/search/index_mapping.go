@@ -349,61 +349,41 @@ func createAttachmentDocumentMapping() *mapping.DocumentMapping {
 	return documentMapping
 }
 
-// AddMarkdownNoteToBatch processes a markdown file and adds it to the batch if it needs indexing.
-// Returns the ID used for indexing and any error encountered.
-func AddMarkdownNoteToBatch(
-	batch *bleve.Batch,
-	index bleve.Index,
-	filePath,
-	folderName,
-	fileName string,
-	forceIndex bool,
-) (string, error) {
-	// Read the file content
-	content, err := os.ReadFile(filePath)
-	if err != nil {
-		return "", err
-	}
-
-	markdown := string(content)
-
-	fileId := filepath.Join(folderName, fileName)
-
-	docInfo, err := index.Document(fileId)
-	if err != nil {
-		return "", err
-	}
-
-	if docInfo == nil || forceIndex {
-		bleveDocument := CreateMarkdownNoteBleveDocument(markdown, folderName, fileName)
-		batch.Index(fileId, bleveDocument)
-	}
-	return fileId, nil
-}
-
-// AddAttachmentToBatch processes an attachment file and adds it to the batch if it needs indexing.
-// Returns the ID used for indexing and any error encountered.
-func AddAttachmentToBatch(
+// AddFileToBatch adds the note or attachment at notes/<folderName>/<fileName> to the batch
+// when it is not indexed yet or forceIndex is set. Markdown notes are read from disk;
+// attachments are indexed from file metadata only.
+// Returns the document ID used for indexing and any error encountered.
+func AddFileToBatch(
 	batch *bleve.Batch,
 	index bleve.Index,
 	projectPath,
 	folderName,
-	fileName,
-	fileExtension string,
+	fileName string,
 	forceIndex bool,
 ) (string, error) {
-	// For attachments, use the file path as the unique ID
 	fileId := filepath.Join(folderName, fileName)
-	docInfo, err := index.Document(fileId)
-	if err != nil {
-		return "", err
+
+	if !forceIndex {
+		docInfo, err := index.Document(fileId)
+		if err != nil {
+			return "", err
+		}
+		if docInfo != nil {
+			return fileId, nil
+		}
 	}
 
-	if docInfo == nil || forceIndex {
-		bleveDocument := createAttachmentBleveDocument(projectPath, folderName, fileName, fileExtension)
-		batch.Index(fileId, bleveDocument)
+	var bleveDocument any
+	if filepath.Ext(fileName) == ".md" {
+		content, err := os.ReadFile(filepath.Join(projectPath, "notes", fileId))
+		if err != nil {
+			return "", err
+		}
+		bleveDocument = CreateMarkdownNoteBleveDocument(string(content), folderName, fileName)
+	} else {
+		bleveDocument = createAttachmentBleveDocument(projectPath, folderName, fileName, filepath.Ext(fileName))
 	}
-
+	batch.Index(fileId, bleveDocument)
 	return fileId, nil
 }
 
@@ -441,30 +421,9 @@ func IndexFilesInFolderWithBatch(
 			continue // Skip subdirectories
 		}
 
-		filePath := filepath.Join(folderPath, file.Name())
-
-		if strings.HasSuffix(file.Name(), ".md") {
-			// Handle markdown files
-			_, err := AddMarkdownNoteToBatch(
-				batch,
-				index,
-				filePath,
-				folderName,
-				file.Name(),
-				false,
-			)
-			if err != nil {
-				log.Printf("Error processing markdown file %s: %v", filePath, err)
-				continue
-			}
-		} else {
-			// Handle attachment files
-			fileExtension := filepath.Ext(file.Name())
-			_, err := AddAttachmentToBatch(batch, index, projectPath, folderName, file.Name(), fileExtension, false)
-			if err != nil {
-				log.Printf("Error processing attachment file %s: %v", filePath, err)
-				continue
-			}
+		if _, err := AddFileToBatch(batch, index, projectPath, folderName, file.Name(), false); err != nil {
+			log.Printf("Error processing file %s: %v", filepath.Join(folderPath, file.Name()), err)
+			continue
 		}
 
 		if batch.Size() >= DefaultBatchSize {

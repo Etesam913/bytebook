@@ -312,15 +312,15 @@ func GetTagsFromNote(projectPath string, folderAndNoteName string) ([]string, bo
 // AddTagsToNote adds the specified tags to a note's frontmatter.
 // It reads the existing tags from the frontmatter, adds new tags while removing duplicates, and writes the file back.
 // The folderAndNoteName parameter should be in format "folderName/noteName.md".
-// Returns an error if the file cannot be read, parsed, or written.
-func AddTagsToNote(projectPath string, folderAndNoteName string, newTags []string) error {
+// Returns the updated tags and an error if the file cannot be read, parsed, or written.
+func AddTagsToNote(projectPath string, folderAndNoteName string, newTags []string) ([]string, error) {
 	// Construct the full file path
 	noteFilePath := filepath.Join(projectPath, "notes", folderAndNoteName)
 
 	// Read the existing file content
 	content, err := os.ReadFile(noteFilePath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	markdown := string(content)
@@ -343,7 +343,10 @@ func AddTagsToNote(projectPath string, folderAndNoteName string, newTags []strin
 
 	updatedMarkdown := updateFrontmatterWithTags(markdown, finalTags)
 
-	return os.WriteFile(noteFilePath, []byte(updatedMarkdown), 0644)
+	if err := os.WriteFile(noteFilePath, []byte(updatedMarkdown), 0644); err != nil {
+		return nil, err
+	}
+	return finalTags, nil
 }
 
 // DeleteTagsFromNote removes the specified tags from a note's frontmatter.
