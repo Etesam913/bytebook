@@ -6,7 +6,8 @@ import { TableCellNode, TableNode, TableRowNode } from '@lexical/table';
 import { type EditorThemeClasses, LineBreakNode, ParagraphNode } from 'lexical';
 import { CodeNode } from './nodes/code';
 import { FileNode } from './nodes/file';
-import { AutoLinkNode, LinkNode } from './nodes/link';
+import { AutoLinkNode, LinkNode } from '@lexical/link';
+import { BytebookLinkNode, linkNodeReplacement } from './nodes/link';
 
 // Catch any errors that occur during Lexical updates and log them
 // or throw them as needed. If you don't throw them, Lexical will
@@ -75,5 +76,7 @@ export const editorConfig: InitialConfigType = {
     TableRowNode,
     CodeNode,
     AutoLinkNode,
+    BytebookLinkNode,
+    linkNodeReplacement,
   ],
 };

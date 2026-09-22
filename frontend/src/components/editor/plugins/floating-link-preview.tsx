@@ -31,7 +31,7 @@ import {
   $isLinkNode,
   LinkNode,
   TOGGLE_LINK_COMMAND,
-} from '../nodes/link';
+} from '@lexical/link';
 import { $getNearestNodeOfType } from '@lexical/utils';
 import { AppTextField } from '@components/input';
 import { $setSelection } from 'lexical';
@@ -101,14 +101,14 @@ export function FloatingLinkPreview({
       });
       setFloatingData((previous) =>
         previous.type === 'link-preview' &&
-          previous.linkNodeKey !== selectedLinkKey
+        previous.linkNodeKey !== selectedLinkKey
           ? {
-            isOpen: false,
-            type: null,
-            top: 0,
-            left: 0,
-            previousSelection: null,
-          }
+              isOpen: false,
+              type: null,
+              top: 0,
+              left: 0,
+              previousSelection: null,
+            }
           : previous
       );
     }, 250);
@@ -198,7 +198,8 @@ export function FloatingLinkPreview({
           const text = $createTextNode(url).setFormat(selection.format);
           selection.insertNodes([$createLinkNode(url).append(text)]);
         } else {
-          editor.dispatchCommand(TOGGLE_LINK_COMMAND, { url });
+          // A null payload removes the link.
+          editor.dispatchCommand(TOGGLE_LINK_COMMAND, url ? { url } : null);
         }
       }
     });

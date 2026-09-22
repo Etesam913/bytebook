@@ -14,6 +14,7 @@
         "@codemirror/state": "6.5.4",
         "@codemirror/view": "6.39.15",
         "@floating-ui/react": "^0.27.18",
+        "@lexical/link": "^0.49.0",
         "@lexical/list": "^0.49.0",
         "@lexical/markdown": "^0.49.0",
         "@lexical/react": "^0.49.0",

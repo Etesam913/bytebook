@@ -24,7 +24,7 @@ import {
 } from '@utils/path';
 import { WAILS_URL } from '@utils/general';
 import type { FilePayload } from '../nodes/file';
-import { $createLinkNode } from '../nodes/link';
+import { $createLinkNode } from '@lexical/link';
 import { INSERT_FILES_COMMAND } from '../plugins/file';
 import { SAVE_MARKDOWN_CONTENT } from '../plugins/save';
 import { caretPositionFromPointInEditor } from './drag';

@@ -42,7 +42,7 @@ import { Text } from '@/icons/text';
 import { UnorderedList } from '@/icons/unordered-list';
 import type { DropdownItem, EditorBlockTypes, FloatingDataType } from '@/types';
 
-import { LinkNode, $isAutoLinkNode } from '../nodes/link';
+import { LinkNode, $isAutoLinkNode } from '@lexical/link';
 import type { FilePayload } from '../nodes/file';
 import { INSERT_FILES_COMMAND } from '../plugins/file';
 import { getBackendResponseData } from '@utils/query';

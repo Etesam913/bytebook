@@ -43,7 +43,7 @@ void mock.module('sonner', () => ({
   },
 }));
 
-const { handleATagClick, sanitizeUrl } = await import('./link');
+const { openLinkInBrowser } = await import('./link');
 
 describe('editor link utils', () => {
   beforeEach(() => {
@@ -53,12 +53,8 @@ describe('editor link utils', () => {
 
   it('opens regular links via the runtime browser', () => {
     openUrl.mockImplementation(() => Promise.resolve(undefined));
-    const anchor = document.createElement('a');
-    anchor.href = 'https://example.com/docs';
-    const child = document.createElement('span');
-    anchor.append(child);
 
-    handleATagClick(child);
+    openLinkInBrowser('https://example.com/docs');
 
     expect(openUrl).toHaveBeenCalledWith('https://example.com/docs');
     expect(toastError).not.toHaveBeenCalled();
@@ -68,25 +64,12 @@ describe('editor link utils', () => {
     openUrl.mockImplementation(() => {
       return Promise.reject(new Error('network'));
     });
-    const anchor = document.createElement('a');
-    anchor.href = 'https://example.com/fail';
-    const child = document.createElement('span');
-    anchor.append(child);
-
-    handleATagClick(child);
+    openLinkInBrowser('https://example.com/fail');
     await Promise.resolve();
 
     expect(toastError).toHaveBeenCalledWith(
       'Failed to open link: https://example.com/fail',
       DEFAULT_SONNER_OPTIONS
     );
-  });
-
-  it('sanitizes unsupported protocols while keeping unparsable input', () => {
-    expect(sanitizeUrl('mailto:hello@example.com')).toBe(
-      'mailto:hello@example.com'
-    );
-    expect(sanitizeUrl('ftp://bad.example')).toBe('about:blank');
-    expect(sanitizeUrl('not a url')).toBe('not a url');
   });
 });

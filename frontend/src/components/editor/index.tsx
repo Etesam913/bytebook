@@ -38,8 +38,10 @@ import { FilePickerMenuPlugin } from './plugins/file-picker.tsx';
 import { FocusPlugin } from './plugins/focus.tsx';
 import { LinkedMentions } from './linked-mentions';
 import { Tags } from './tags';
-import { LinkMatcherPlugin } from './plugins/link-matcher.tsx';
-import { LinkPlugin } from './plugins/link.tsx';
+import { AutoLinkPlugin } from '@lexical/react/LexicalAutoLinkPlugin';
+import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
+import { LinkClickPlugin } from './plugins/link-click';
+import { LINK_MATCHERS } from './utils/link';
 import { SavePlugin } from './plugins/save.tsx';
 import { TableOfContentsPlugin } from './plugins/table-of-contents.tsx';
 import { Toolbar } from './toolbar';
@@ -248,7 +250,8 @@ export function NotesEditor({
                 filePath={filePath}
               />
               <FocusPlugin />
-              <LinkMatcherPlugin />
+              <AutoLinkPlugin matchers={LINK_MATCHERS} />
+              <LinkClickPlugin />
               {/* <InlineTreeViewPlugin /> */}
             </div>
             <Tags filePath={filePath} />

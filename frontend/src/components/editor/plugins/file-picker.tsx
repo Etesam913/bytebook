@@ -20,7 +20,7 @@ import {
   FilePickerMenuItem,
   type FilePickerMenuItemData,
 } from '@components/dropdown/dropdown-picker';
-import { $createLinkNode } from '../nodes/link';
+import { $createLinkNode } from '@lexical/link';
 import { INSERT_FILES_COMMAND } from './file';
 import { RenderNoteIcon } from '@/icons/render-note-icon';
 import { FILE_TYPE } from '@utils/tree-item-types';

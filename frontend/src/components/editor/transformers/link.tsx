@@ -13,7 +13,7 @@ import {
   $isAutoLinkNode,
   $isLinkNode,
   LinkNode,
-} from '../nodes/link';
+} from '@lexical/link';
 
 // Percent-encodes each path segment using the same rules as encodeLinkUrl so
 // the Go backend can produce identical strings when doing link rewrites.
