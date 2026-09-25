@@ -1,12 +1,9 @@
-import { prepareFileTreeInput, type FileTreeDropResult } from '@pierre/trees';
+import { prepareFileTreeInput } from '@pierre/trees';
 import { FileTree, useFileTree } from '@pierre/trees/react';
 import { FILE_TREE_ICONS } from './icons';
-import { useEffect, useRef } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@utils/query-keys';
-import { reconcileTreePaths } from './reconcile';
-import { useAtomValue, useSetAtom } from 'jotai';
-import { draggedGhostElementAtom, isDarkModeOnAtom } from '@/atoms';
+import { useEffect, useRef, useState } from 'react';
+import { useAtomValue } from 'jotai';
+import { isDarkModeOnAtom } from '@/atoms';
 import {
   createFolderPath,
   remapPathThroughRename,
@@ -14,8 +11,7 @@ import {
   stripTrailingSlash,
 } from '@utils/path';
 import {
-  useAddFolderAttachmentsMutation,
-  useMoveTreeItemsMutation,
+  useAddFilesToFolderMutation,
   useRenameTreeItemMutation,
 } from './hooks/tree-item-mutations';
 import { useAllPaths } from '@hooks/all-paths';
@@ -28,24 +24,25 @@ import {
   getPlaceholderPath,
   type TreeItemType,
 } from './create';
-import {
-  buildFileTreeDragPayload,
-  createFileTreeDragGhost,
-  excludeActiveItemFromDrag,
-  restoreSelectionAfterDrag,
-} from './drag';
 import { FilteredFileTree } from './filtered-file-tree';
 import { usePierreRouteFocus } from './hooks/use-pierre-route-focus';
 import { usePierreTreeEvents } from './hooks/use-pierre-tree-events';
 import { usePierreFileTreeDrop } from './hooks/use-pierre-file-tree-drop';
 import { usePierreRowHeight } from './hooks/use-pierre-row-height';
+import {
+  usePierreTreeDragHandlers,
+  usePierreTreeDragSession,
+} from './hooks/use-pierre-tree-drag';
 import { usePierreRouteTargetPath } from './hooks/use-route-target-path';
 import { useSyncAllPaths } from './hooks/use-sync-all-paths';
 import { useTreeFilter } from './hooks/use-tree-filter';
 import { getRenameInput, getTreeHost, navigateToTreePath } from './model-utils';
 import { applyTreeRename } from './rename';
 import { FILE_TREE_HOST_STYLE, FILE_TREE_UNSAFE_CSS } from './styles';
-import { TreeContextMenu } from './tree-context-menu';
+import {
+  TreeBackgroundContextMenu,
+  TreeContextMenu,
+} from './tree-context-menu';
 import { TreeFilterSummary } from './tree-filter-summary';
 import { TreeHeader } from './tree-header';
 import { TreeSearchInput } from './tree-search-input';
@@ -107,19 +104,9 @@ function PierreFileTreeInner({
     lastNavigatedRef.current = routeTargetPath;
   }, [routeTargetPath]);
 
-  // Set by canDrag (the only pierre hook that runs before startDrag selects the
-  // dragged row) and cleared on dragend. While set, selection emissions must
-  // not route: the drag-start selection and the post-drop re-selection of a
-  // moved item (not yet on disk) would both navigate otherwise.
-  const draggedPathsRef = useRef<readonly string[] | null>(null);
-
   // ── Backend mutations ────────────────────────────────────────────────
   const { mutateAsync: renameTreeItem } = useRenameTreeItemMutation();
-  const queryClient = useQueryClient();
-  const movePendingRef = useRef(false);
-  const { mutateAsync: moveItems, isPending: isMovePending } =
-    useMoveTreeItemsMutation();
-  const { mutate: addFolderAttachments } = useAddFolderAttachmentsMutation();
+  const { mutate: addFilesToFolder } = useAddFilesToFolderMutation();
   const { mutateAsync: addTreeItem } = useAddTreeItemMutation();
 
   // Distinguishes inline creation from a normal rename. `unsubscribe` releases
@@ -132,6 +119,7 @@ function PierreFileTreeInner({
   } | null>(null);
 
   // ── Tree model ───────────────────────────────────────────────────────
+  const dragSession = usePierreTreeDragSession();
   const preparedInput = usePreparedTreeInput(initialPaths);
 
   const { model } = useFileTree({
@@ -150,7 +138,7 @@ function PierreFileTreeInner({
       },
     },
     onSelectionChange: (selectedPaths) => {
-      if (draggedPathsRef.current) return;
+      if (dragSession.draggedPathsRef.current) return;
       if (selectedPaths.length !== 1) return;
       const path = selectedPaths[0];
 
@@ -163,39 +151,7 @@ function PierreFileTreeInner({
       lastNavigatedRef.current = path;
       navigateToTreePath(path);
     },
-    dragAndDrop: {
-      canDrag: (paths) => {
-        if (movePendingRef.current) return false;
-        draggedPathsRef.current = paths;
-        return true;
-      },
-      canDrop: ({ target }) =>
-        !movePendingRef.current && target.directoryPath !== null,
-      onDropComplete: (result: FileTreeDropResult) => {
-        const destination = result.target.directoryPath;
-        if (destination === null) return;
-        // The new path isn't on disk yet; useSyncRouteWithRenames moves the
-        // route once the watcher reports the rename.
-        movePendingRef.current = true;
-        void moveItems({
-          itemPaths: result.draggedPaths,
-          newFolder: destination,
-          onError: () => {
-            const paths = queryClient.getQueryData<readonly string[]>(
-              queryKeys.allPaths()
-            );
-            if (paths) reconcileTreePaths(model, paths);
-            restoreSelectionAfterDrag(model, routeTargetPath);
-          },
-        })
-          .catch(() => {
-            // The mutation rolls back and the global QueryError handler reports the failure.
-          })
-          .finally(() => {
-            movePendingRef.current = false;
-          });
-      },
-    },
+    dragAndDrop: dragSession.dragAndDrop,
     renaming: {
       onRename: (event) => {
         const pending = pendingCreateRef.current;
@@ -264,6 +220,12 @@ function PierreFileTreeInner({
     filteredPaths,
     isFilterLoading,
   } = useTreeFilter();
+
+  const { isMovePending, dragHandlers } = usePierreTreeDragHandlers({
+    model,
+    session: dragSession,
+    routeTargetPath,
+  });
 
   useSyncAllPaths({ model, preparedInput, isMovePending });
   usePierreTreeEvents(model);
@@ -334,37 +296,7 @@ function PierreFileTreeInner({
     });
   }
 
-  const setDraggedGhostElement = useSetAtom(draggedGhostElementAtom);
-  const dragGhostRef = useRef<{ destroy: () => void } | null>(null);
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
-
-  // Runs after pierre's row handler (preact, own root inside the shadow DOM),
-  // so overriding its move-only, raw-path payload here sticks. The editor
-  // requests dropEffect 'copy' and parses comma-joined wails URLs.
-  function handleDragStart(event: React.DragEvent) {
-    if (!draggedPathsRef.current || !event.dataTransfer) return;
-    const paths = excludeActiveItemFromDrag(
-      draggedPathsRef.current,
-      routeTargetPath
-    );
-    event.dataTransfer.effectAllowed = 'copyMove';
-    event.dataTransfer.setData('text/plain', buildFileTreeDragPayload(paths));
-    const ghost = createFileTreeDragGhost({ paths, isDarkModeOn });
-    // setDragImage needs the element rendered in the document.
-    document.body.appendChild(ghost.element);
-    event.dataTransfer.setDragImage(ghost.element, 8, 8);
-    dragGhostRef.current = ghost;
-    setDraggedGhostElement(ghost.element);
-  }
-
-  function handleDragEnd() {
-    if (!draggedPathsRef.current) return;
-    draggedPathsRef.current = null;
-    dragGhostRef.current?.destroy();
-    dragGhostRef.current = null;
-    setDraggedGhostElement(null);
-    restoreSelectionAfterDrag(model, routeTargetPath);
-  }
 
   // ── Keyboard handling ────────────────────────────────────────────────
   // Pierre handles F2 but not Enter for renaming focused rows.
@@ -376,6 +308,21 @@ function PierreFileTreeInner({
     if (!focusedPath) return;
     event.preventDefault();
     handleStartRename(focusedPath);
+  }
+
+  // ── Background context menu ──────────────────────────────────────────
+  const [backgroundMenuPoint, setBackgroundMenuPoint] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+
+  // Pierre's row handler prevents default, so an unhandled event landed on
+  // empty space. The DOM check skips React-bubbled events from portaled menus.
+  function handleBackgroundContextMenu(event: React.MouseEvent) {
+    if (event.defaultPrevented) return;
+    if (!event.currentTarget.contains(event.target as Node)) return;
+    event.preventDefault();
+    setBackgroundMenuPoint({ x: event.clientX, y: event.clientY });
   }
 
   // ── Render ───────────────────────────────────────────────────────────
@@ -391,9 +338,7 @@ function PierreFileTreeInner({
       data-file-drop-target
       className="relative flex flex-1 flex-col min-h-0 overflow-hidden text-sm"
       onKeyDown={handleKeyDown}
-      // Drag events are composed, so they bubble out of pierre's shadow root.
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
+      {...dragHandlers}
     >
       {/* Keep the header outside shadow DOM so its input retains key events. */}
       <TreeHeader>
@@ -405,7 +350,10 @@ function PierreFileTreeInner({
         isLoading={isFilterLoading}
       />
       {/* Keep tree state and sync active while filtered results are shown. */}
-      <div className={cn('contents', isFilterMode && 'hidden')}>
+      <div
+        className={cn('contents', isFilterMode && 'hidden')}
+        onContextMenu={handleBackgroundContextMenu}
+      >
         <FileTree
           model={model}
           renderContextMenu={(item, context) => (
@@ -413,7 +361,7 @@ function PierreFileTreeInner({
               item={item}
               context={context}
               selectedPaths={model.getSelectedPaths()}
-              onAddFolderAttachments={addFolderAttachments}
+              onAddFiles={addFilesToFolder}
               onStartRename={handleStartRename}
               onStartCreate={handleStartCreate}
             />
@@ -421,6 +369,19 @@ function PierreFileTreeInner({
           style={hostStyle}
         />
       </div>
+      {backgroundMenuPoint && (
+        <TreeBackgroundContextMenu
+          anchorRect={{
+            top: backgroundMenuPoint.y,
+            left: backgroundMenuPoint.x,
+            width: 0,
+            height: 0,
+          }}
+          onClose={() => setBackgroundMenuPoint(null)}
+          onStartCreate={handleStartCreate}
+          onAddFiles={addFilesToFolder}
+        />
+      )}
       {isFilterMode && (
         <FilteredFileTree
           paths={filteredPaths}

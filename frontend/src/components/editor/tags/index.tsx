@@ -5,9 +5,9 @@ import {
   DisclosurePanel,
   Heading,
 } from 'react-aria-components/Disclosure';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useSetAtom } from 'jotai';
 import { motion } from 'motion/react';
-import { dialogDataAtom, isFileMaximizedAtom } from '@/atoms';
+import { dialogDataAtom } from '@/atoms';
 import { ChevronDown } from '@/icons/chevron-down';
 import { Loader } from '@/icons/loader';
 import { TagPlus } from '@/icons/tag-plus';
@@ -23,7 +23,6 @@ import { TagChips } from '../bottom-bar/tag';
 
 export function Tags({ filePath }: { filePath: FilePath }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const isFileMaximized = useAtomValue(isFileMaximizedAtom);
   const setDialogData = useSetAtom(dialogDataAtom);
   const { data: tagsMap, isLoading } = useTagsForNotesQuery([
     filePath.fullPath,
@@ -38,10 +37,7 @@ export function Tags({ filePath }: { filePath: FilePath }) {
   return (
     <section
       data-testid="note-tags"
-      className={cn(
-        'group mt-2 pt-1 border-t border-gray-200 dark:border-gray-600',
-        isFileMaximized && 'px-3'
-      )}
+      className="group mt-2 pt-1 border-t border-gray-200 dark:border-gray-600"
     >
       <Disclosure isExpanded={isExpanded} onExpandedChange={setIsExpanded}>
         <Heading className="m-0 text-xs">

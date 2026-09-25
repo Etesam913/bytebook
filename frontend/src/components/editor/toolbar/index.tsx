@@ -134,25 +134,25 @@ export function Toolbar({
 
   const FloatingPlugin = noteContainerElement
     ? createPortal(
-      <FloatingMenuPlugin
-        floatingData={floatingData}
-        setFloatingData={setFloatingData}
-        noteContainerRef={noteContainerRef}
-      >
-        <ToolbarButtons
-          canUndo={canUndo}
-          canRedo={canRedo}
-          shouldShowLinkAction
-          disabled={disabled}
-          isNodeSelection={isNodeSelection}
-          currentBlockType={currentBlockType}
-          setCurrentBlockType={setCurrentBlockType}
-          currentSelectionFormat={currentSelectionFormat}
-          setCurrentSelectionFormat={setCurrentSelectionFormat}
-        />
-      </FloatingMenuPlugin>,
-      noteContainerElement
-    )
+        <FloatingMenuPlugin
+          floatingData={floatingData}
+          setFloatingData={setFloatingData}
+          noteContainerRef={noteContainerRef}
+        >
+          <ToolbarButtons
+            canUndo={canUndo}
+            canRedo={canRedo}
+            shouldShowLinkAction
+            disabled={disabled}
+            isNodeSelection={isNodeSelection}
+            currentBlockType={currentBlockType}
+            setCurrentBlockType={setCurrentBlockType}
+            currentSelectionFormat={currentSelectionFormat}
+            setCurrentSelectionFormat={setCurrentSelectionFormat}
+          />
+        </FloatingMenuPlugin>,
+        noteContainerElement
+      )
     : null;
 
   // If the note markdown fails to load, navigate to the not found fallback route

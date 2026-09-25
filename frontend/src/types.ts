@@ -45,11 +45,11 @@ export type DialogDataType = {
   children: ((errorText: string, isPending: boolean) => ReactNode) | null;
   dialogClassName?: string;
   onSubmit:
-  | ((
-    formData: FormData,
-    setErrorText: Dispatch<SetStateAction<string>>
-  ) => Promise<boolean>)
-  | null;
+    | ((
+        formData: FormData,
+        setErrorText: Dispatch<SetStateAction<string>>
+      ) => Promise<boolean>)
+    | null;
   onClose?: () => void;
   isPending: boolean;
 };

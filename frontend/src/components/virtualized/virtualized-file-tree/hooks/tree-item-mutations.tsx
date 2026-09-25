@@ -99,10 +99,10 @@ export function useMoveTreeItemsMutation() {
 }
 
 /**
- * A mutation hook for adding attachments to a folder.
+ * A mutation hook for adding picked files to a folder.
  * Blocks interaction during native file selection, then reports copy progress in a toast.
  */
-export function useAddFolderAttachmentsMutation() {
+export function useAddFilesToFolderMutation() {
   const setBackendQuery = useSetAtom(backendQueryAtom);
 
   return useMutation({
@@ -125,7 +125,7 @@ export function useAddFolderAttachmentsMutation() {
     onMutate: () => {
       setBackendQuery({
         isLoading: true,
-        message: `Adding attachments ...`,
+        message: `Adding files ...`,
       });
     },
   });

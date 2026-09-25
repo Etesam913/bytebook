@@ -74,6 +74,11 @@ export const FILE_TREE_UNSAFE_CSS = `
     outline-offset: var(--trees-focus-ring-offset) !important;
   }
 
+  :host([data-root-drop-target]) [data-file-tree-virtualized-scroll='true'] {
+    outline: 1px solid var(--trees-focus-ring-color) !important;
+    outline-offset: -1px !important;
+  }
+
   [data-type='item'][data-item-drag-target='true'] {
     color: var(--trees-selected-fg) !important;
   }
@@ -109,5 +114,7 @@ export const FILE_TREE_UNSAFE_CSS = `
       calc(var(--trees-padding-inline) - var(--trees-item-margin-x)),
       0px
     ) !important;
+    /* Blank space past the last row so a full tree still has a root drop zone. */
+    padding-bottom: var(--trees-item-height) !important;
   }
 `;

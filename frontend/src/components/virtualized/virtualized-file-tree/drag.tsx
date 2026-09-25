@@ -11,16 +11,6 @@ import {
   splitPathSegments,
 } from '@utils/path';
 
-// Pierre keeps the route's row selected as the active-item highlight, so a
-// multi-select drag would otherwise always carry the open note along.
-export function excludeActiveItemFromDrag(
-  paths: readonly string[],
-  routeTargetPath: string | null
-): readonly string[] {
-  const others = paths.filter((path) => path !== routeTargetPath);
-  return others.length > 0 ? others : paths;
-}
-
 const MAX_GHOST_ROWS = 10;
 
 export function getTreeItemName(path: string): string {
@@ -51,8 +41,8 @@ function DragGhostRows({ paths }: { paths: readonly string[] }) {
 // Pierre skips its custom drag image on WebKit, leaving the default snapshot
 // of the grabbed row, which hides the rest of a multi-select. The editor
 // identifies file-tree drags by FILE_TREE_GHOST_ID on draggedGhostElementAtom.
-// Rendered synchronously because setDragImage must see the element during
-// dragstart; `destroy` unmounts the root and removes the element.
+// Rendered synchronously and inside the viewport because WebKit snapshots the
+// element after dragstart; the caller moves it offscreen once captured.
 export function createFileTreeDragGhost({
   paths,
   isDarkModeOn,
@@ -63,7 +53,7 @@ export function createFileTreeDragGhost({
   const element = document.createElement('div');
   element.id = FILE_TREE_GHOST_ID;
   element.className =
-    'absolute top-0 left-[-9999px] pointer-events-none flex flex-col gap-1.5 rounded-lg border-2 px-2.5 py-1.5 text-sm whitespace-nowrap shadow-md';
+    'fixed top-0 left-0 pointer-events-none flex flex-col gap-1.5 rounded-lg border-2 px-2.5 py-1.5 text-sm whitespace-nowrap shadow-md';
   Object.assign(element.style, {
     colorScheme: isDarkModeOn ? 'dark' : 'light',
     backgroundColor: 'light-dark(rgb(252, 252, 252), rgb(39, 39, 42))',
@@ -114,4 +104,23 @@ export function restoreSelectionAfterDrag(
     }
   }
   if (routeTargetPath) model.getItem(routeTargetPath)?.select();
+}
+
+export type RootDropKind = 'background' | 'top-level-row';
+
+// Pierre resolves a root target for top-level file rows but none for the blank
+// space below the rows, so that case is detected from the composed path.
+export function getRootDropKind(
+  composedPath: readonly (EventTarget | undefined)[]
+): RootDropKind | null {
+  for (const node of composedPath) {
+    if (!(node instanceof HTMLElement)) continue;
+    if (node.dataset.type === 'item') {
+      const isTopLevelFile =
+        node.dataset.itemType !== 'folder' && !node.dataset.itemParentPath;
+      return isTopLevelFile ? 'top-level-row' : null;
+    }
+    if (node.dataset.fileTreeVirtualizedScroll === 'true') return 'background';
+  }
+  return null;
 }

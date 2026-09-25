@@ -8,6 +8,7 @@ import { useRef } from 'react';
 import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { AppMenu, AppMenuItem } from '@components/menu';
+import { useOnInteractOutside } from '@hooks/general';
 import { projectSettingsAtom } from '@/atoms';
 import {
   createFilePath,
@@ -26,6 +27,11 @@ import { PaperclipPlus } from '@/icons/paperclip-plus';
 import type { TreeItemType } from './create';
 import { FILE_TYPE, FOLDER_TYPE } from '@utils/tree-item-types';
 
+type StartCreateHandler = (args: {
+  folderPath: string;
+  itemType: TreeItemType;
+}) => void;
+
 type MenuRow = {
   key: string;
   content: ReactNode;
@@ -42,6 +48,61 @@ function dropdownItemToMenuRow(item: DropdownItem): MenuRow {
   };
 }
 
+function addFilesRow(onSelect: () => void): MenuRow {
+  return {
+    key: 'add-files',
+    content: (
+      <MenuItemLabel
+        icon={<PaperclipPlus height="1.0625rem" width="1.0625rem" />}
+      >
+        Add files
+      </MenuItemLabel>
+    ),
+    onSelect,
+  };
+}
+
+// Create rows hand focus to pierre's inline input, so `close` must not
+// restore focus to the tree.
+function createRows({
+  folderPath,
+  close,
+  onStartCreate,
+}: {
+  folderPath: string;
+  close: () => void;
+  onStartCreate: StartCreateHandler;
+}): MenuRow[] {
+  return [
+    {
+      key: 'create-folder',
+      content: (
+        <MenuItemLabel icon={<FolderPen {...ICON_PROPS} />}>
+          Create Folder
+        </MenuItemLabel>
+      ),
+      keepFocus: true,
+      onSelect: () => {
+        close();
+        onStartCreate({ folderPath, itemType: FOLDER_TYPE });
+      },
+    },
+    {
+      key: 'create-note',
+      content: (
+        <MenuItemLabel icon={<Blog {...ICON_PROPS} />}>
+          Create Note
+        </MenuItemLabel>
+      ),
+      keepFocus: true,
+      onSelect: () => {
+        close();
+        onStartCreate({ folderPath, itemType: FILE_TYPE });
+      },
+    },
+  ];
+}
+
 // Bespoke context menu rendered for the @pierre/trees model. Pierre would
 // project this content into its shadow root via a slot, but we portal it to
 // document.body instead so no shadow container can clip or intercept it.
@@ -50,16 +111,16 @@ export function TreeContextMenu({
   item,
   context,
   selectedPaths,
-  onAddFolderAttachments,
+  onAddFiles,
   onStartRename,
   onStartCreate,
 }: {
   item: FileTreeContextMenuItem;
   context: FileTreeContextMenuOpenContext;
   selectedPaths: readonly string[];
-  onAddFolderAttachments: (folderPath: string) => void;
+  onAddFiles: (folderPath: string) => void;
   onStartRename: (path: string) => void;
-  onStartCreate: (args: { folderPath: string; itemType: TreeItemType }) => void;
+  onStartCreate: StartCreateHandler;
 }) {
   const { editTags, moveToTrash, pin, rename, revealInFinder } =
     useContextMenuItems();
@@ -107,48 +168,17 @@ export function TreeContextMenu({
 
   if (isFolder && !isMultiSelection) {
     rows.push(
-      {
-        key: 'create-folder',
-        content: (
-          <MenuItemLabel icon={<FolderPen {...ICON_PROPS} />}>
-            Create Folder
-          </MenuItemLabel>
-        ),
-        keepFocus: true,
-        onSelect: () => {
-          context.close({ restoreFocus: false });
-          onStartCreate({ folderPath: item.path, itemType: FOLDER_TYPE });
-        },
-      },
-      {
-        key: 'create-note',
-        content: (
-          <MenuItemLabel icon={<Blog {...ICON_PROPS} />}>
-            Create Note
-          </MenuItemLabel>
-        ),
-        keepFocus: true,
-        onSelect: () => {
-          context.close({ restoreFocus: false });
-          onStartCreate({ folderPath: item.path, itemType: FILE_TYPE });
-        },
-      },
+      ...createRows({
+        folderPath: item.path,
+        close: () => context.close({ restoreFocus: false }),
+        onStartCreate,
+      }),
       renameRow()
     );
   }
 
   if (isFolder) {
-    rows.push({
-      key: 'add-attachments',
-      content: (
-        <MenuItemLabel
-          icon={<PaperclipPlus height="1.0625rem" width="1.0625rem" />}
-        >
-          Add attachments
-        </MenuItemLabel>
-      ),
-      onSelect: () => onAddFolderAttachments(item.path),
-    });
+    rows.push(addFilesRow(() => onAddFiles(item.path)));
   }
 
   // pinnedNotes stores slashless paths (the settings.json format), so
@@ -205,13 +235,65 @@ export function TreeContextMenu({
 
   // When opened via the row trigger button or keyboard, align to the button's
   // right edge and open downwards; when opened via pointer (right click),
-  // open from the click point. useOverlayPosition measures the real menu and
-  // flips/constrains it against the viewport, so no size estimates needed.
+  // open from the click point.
   const isPointer =
     context.anchorElement?.style.position === 'fixed' ||
     context.anchorRect.width === 0;
 
-  // The target is an invisible div in the portal replicating pierre's
+  return (
+    <TreeMenuPopover
+      rows={rows}
+      anchorRect={context.anchorRect}
+      isPointer={isPointer}
+      onClose={context.close}
+    />
+  );
+}
+
+// Opened by right-clicking empty space below the rows; creates at the root.
+export function TreeBackgroundContextMenu({
+  anchorRect,
+  onClose,
+  onStartCreate,
+  onAddFiles,
+}: {
+  anchorRect: AnchorRect;
+  onClose: () => void;
+  onStartCreate: StartCreateHandler;
+  onAddFiles: (folderPath: string) => void;
+}) {
+  return (
+    <TreeMenuPopover
+      rows={[
+        ...createRows({ folderPath: '', close: onClose, onStartCreate }),
+        addFilesRow(() => onAddFiles('')),
+      ]}
+      anchorRect={anchorRect}
+      isPointer
+      isSelfDismissing
+      onClose={onClose}
+    />
+  );
+}
+
+type AnchorRect = Pick<DOMRect, 'top' | 'left' | 'width' | 'height'>;
+
+function TreeMenuPopover({
+  rows,
+  anchorRect,
+  isPointer,
+  isSelfDismissing = false,
+  onClose,
+}: {
+  rows: MenuRow[];
+  anchorRect: AnchorRect;
+  isPointer: boolean;
+  /** Pierre dismisses its own menu; the background menu must dismiss itself. */
+  isSelfDismissing?: boolean;
+  onClose: (options: { restoreFocus: boolean }) => void;
+}) {
+  // useOverlayPosition measures the real menu and flips/constrains it against
+  // the viewport, so no size estimates needed. The target is an invisible div in the portal replicating pierre's
   // anchorRect: pierre's own anchor element can't be used because its trigger
   // button's rect differs from the click point on right-click opens.
   const anchorRef = useRef<HTMLDivElement>(null);
@@ -224,14 +306,21 @@ export function TreeContextMenu({
     isOpen: true,
   });
 
+  useOnInteractOutside(
+    menuRef,
+    () => onClose({ restoreFocus: false }),
+    !isSelfDismissing
+  );
+
   // A standalone Tab press should close the menu. RAC normally leaves that to
-  // its Popover, but pierre owns open/close here and only closes on outside
-  // mousedown and Escape (its document-level capture listener — RAC never
-  // needs to see Escape).
+  // its Popover, but pierre owns open/close of its menu and only closes on
+  // outside mousedown and Escape (its document-level capture listener).
   function handleKeyDown(event: React.KeyboardEvent) {
-    if (event.key !== 'Tab') return;
+    const shouldClose =
+      event.key === 'Tab' || (isSelfDismissing && event.key === 'Escape');
+    if (!shouldClose) return;
     event.preventDefault();
-    context.close({ restoreFocus: true });
+    onClose({ restoreFocus: true });
   }
 
   // Portaled to document.body to avoid clipping from overflow containers and shadow DOM key capture.
@@ -245,10 +334,10 @@ export function TreeContextMenu({
         aria-hidden="true"
         style={{
           position: 'fixed',
-          top: `${context.anchorRect.top}px`,
-          left: `${context.anchorRect.left}px`,
-          width: `${context.anchorRect.width}px`,
-          height: `${context.anchorRect.height}px`,
+          top: `${anchorRect.top}px`,
+          left: `${anchorRect.left}px`,
+          width: `${anchorRect.width}px`,
+          height: `${anchorRect.height}px`,
           pointerEvents: 'none',
         }}
       />
@@ -263,7 +352,7 @@ export function TreeContextMenu({
           aria-label="File tree actions"
           autoFocus="first"
           shouldFocusWrap
-          onClose={() => context.close({ restoreFocus: true })}
+          onClose={() => onClose({ restoreFocus: true })}
         >
           {rows.map((row) => (
             <AppMenuItem

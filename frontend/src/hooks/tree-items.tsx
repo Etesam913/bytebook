@@ -46,10 +46,6 @@ export function useAddTreeItemMutation() {
           'Names can only contain letters, numbers, spaces, hyphens, and underscores.'
         );
       }
-      if (addType === FILE_TYPE && !parentFolderPath) {
-        throw new Error('Parent folder is required to add a note');
-      }
-
       const newItemPath =
         addType === FOLDER_TYPE
           ? createFolderPath(joinPath(parentFolderPath, trimmedName))
@@ -61,7 +57,10 @@ export function useAddTreeItemMutation() {
       await getBackendResponseData(
         newItemPath.type === FOLDER_TYPE
           ? AddFolder(stripTrailingSlash(newItemPath.fullPath))
-          : AddNoteToFolder(stripTrailingSlash(parentFolderPath!), trimmedName)
+          : AddNoteToFolder(
+              stripTrailingSlash(parentFolderPath ?? ''),
+              trimmedName
+            )
       );
 
       queryClient.setQueryData<string[]>(queryKeys.allPaths(), (paths) => {

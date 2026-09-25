@@ -118,7 +118,7 @@ function useFloatingMenuPosition({
     },
     placement:
       floatingData.type === 'text-format' ||
-        (floatingData.type === 'link' && !floatingData.linkNodeKey)
+      (floatingData.type === 'link' && !floatingData.linkNodeKey)
         ? 'top'
         : 'bottom',
     whileElementsMounted: autoUpdate,

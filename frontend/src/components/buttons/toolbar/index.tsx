@@ -140,14 +140,14 @@ export function ToolbarButtons({
 
   const linkAction: ActionItem | null = shouldShowLinkAction
     ? {
-      icon: <Link />,
-      key: 'link',
-      tooltip: 'Insert Link',
-      shortcut: '⌘K',
-      onPress: () => {
-        editor.dispatchCommand(OPEN_LINK_EDITOR_COMMAND, undefined);
-      },
-    }
+        icon: <Link />,
+        key: 'link',
+        tooltip: 'Insert Link',
+        shortcut: '⌘K',
+        onPress: () => {
+          editor.dispatchCommand(OPEN_LINK_EDITOR_COMMAND, undefined);
+        },
+      }
     : null;
 
   const DISABLED_FORMATTING_MESSAGE = 'Click inside note text to format';
