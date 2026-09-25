@@ -80,6 +80,10 @@ function $canUnmerge(): boolean {
   ) {
     return false;
   }
+  // $getNodeTriplet throws when the selection is outside a table (e.g. on remount).
+  if (!$getTableCellNodeFromLexicalNode(selection.anchor.getNode())) {
+    return false;
+  }
   const [cell] = $getNodeTriplet(selection.anchor);
   return cell.__colSpan > 1 || cell.__rowSpan > 1;
 }

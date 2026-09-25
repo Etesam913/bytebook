@@ -163,7 +163,7 @@ export function useFileSearchQuery({
   keepPreviousResults?: boolean;
   limit?: number;
 }) {
-  const debouncedQuery = useDebouncedValue(query, 50);
+  const debouncedQuery = useDebouncedValue(query, 20);
   const hasQuery = query.trim().length > 0;
   const isCurrentQuery = query === debouncedQuery;
   const result = useQuery({

@@ -396,8 +396,9 @@ function PierreFileTreeInner({
       onDragEnd={handleDragEnd}
     >
       {/* Keep the header outside shadow DOM so its input retains key events. */}
-      <TreeHeader />
-      <TreeSearchInput value={searchValue} onChange={onSearchChange} />
+      <TreeHeader>
+        <TreeSearchInput value={searchValue} onChange={onSearchChange} />
+      </TreeHeader>
       <TreeFilterSummary
         query={searchValue}
         resultCount={filteredPaths?.length ?? 0}
