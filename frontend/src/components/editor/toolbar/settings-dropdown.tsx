@@ -5,6 +5,7 @@ import { Button } from 'react-aria-components/Button';
 import { dialogDataAtom, isFullscreenAtom, projectSettingsAtom } from '@/atoms';
 import {
   useMoveToTrashMutation,
+  useOpenInNewWindowMutation,
   useRevealInFinderMutation,
 } from '@hooks/notes';
 import { createFilePath } from '@utils/path';
@@ -12,6 +13,7 @@ import { isTableOfContentsVisible } from '@utils/project-settings';
 import { useEditTagsFormMutation } from '@hooks/tags';
 import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
 import { EditTagDialogChildren } from '@/routes/notes-sidebar/edit-tag-dialog-children';
+import { ShareRight } from '@/icons/share-right';
 import { Finder } from '@/icons/finder';
 import { HorizontalDots } from '@/icons/horizontal-dots';
 import { PinTack2 } from '@/icons/pin-tack-2';
@@ -47,6 +49,7 @@ export function SettingsDropdown({
 
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
   const { mutate: moveToTrash } = useMoveToTrashMutation();
+  const { mutate: openInNewWindow } = useOpenInNewWindowMutation();
   const { mutate: revealInFinder } = useRevealInFinderMutation();
   const { mutateAsync: editTags } = useEditTagsFormMutation();
 
@@ -56,6 +59,15 @@ export function SettingsDropdown({
   });
 
   const items = [
+    {
+      id: 'open-in-new-window',
+      label: (
+        <span className="flex items-center gap-1.5 will-change-transform">
+          <ShareRight height="1.125rem" width="1.125rem" />
+          Open in New Window
+        </span>
+      ),
+    },
     {
       id: 'reveal-in-finder',
       label: (
@@ -135,6 +147,11 @@ export function SettingsDropdown({
         });
         break;
       }
+      case 'open-in-new-window': {
+        const filePath = createFilePath(`${folder}/${note}.md`);
+        if (filePath) openInNewWindow({ path: filePath });
+        break;
+      }
       case 'reveal-in-finder': {
         const filePath = createFilePath(`${folder}/${note}.md`);
         if (filePath) {
@@ -197,7 +214,7 @@ export function SettingsDropdown({
             <HorizontalDots />
           </Button>
         </Tooltip>
-        <AppMenuPopover className="w-52">
+        <AppMenuPopover className="w-60">
           <AppMenu onAction={handleAction}>
             {items.map((item) => (
               <AppMenuItem key={item.id} id={item.id}>

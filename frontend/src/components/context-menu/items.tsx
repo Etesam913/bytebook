@@ -4,10 +4,12 @@ import { navigate } from 'wouter/use-browser-location';
 import { dialogDataAtom } from '@/atoms';
 import {
   useMoveToTrashMutation,
+  useOpenInNewWindowMutation,
   usePinPathMutation,
   useRevealInFinderMutation,
 } from '@hooks/notes';
 import { useEditTagsFormMutation } from '@hooks/tags';
+import { ShareRight } from '@/icons/share-right';
 import { Finder } from '@/icons/finder';
 import { FolderOpen } from '@/icons/folder-open';
 import { PinTack2 } from '@/icons/pin-tack-2';
@@ -44,6 +46,7 @@ export function MenuItemLabel({
  * the result inside the `items` array passed to `setContextMenuData`.
  */
 export function useContextMenuItems() {
+  const { mutate: openInNewWindow } = useOpenInNewWindowMutation();
   const { mutate: revealInFinder } = useRevealInFinderMutation();
   const { mutate: pinPath } = usePinPathMutation();
   const { mutate: moveToTrash } = useMoveToTrashMutation();
@@ -51,6 +54,15 @@ export function useContextMenuItems() {
   const setDialogData = useSetAtom(dialogDataAtom);
 
   return {
+    openInNewWindow: ({ path }: { path: FileOrFolderPath }): DropdownItem => ({
+      value: 'open-in-new-window',
+      label: (
+        <MenuItemLabel icon={<ShareRight {...ICON_PROPS} />}>
+          Open in New Window
+        </MenuItemLabel>
+      ),
+      onChange: () => openInNewWindow({ path }),
+    }),
     revealInFinder: ({ path }: { path: FileOrFolderPath }): DropdownItem => ({
       value: 'reveal-in-finder',
       label: (

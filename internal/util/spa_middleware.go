@@ -9,20 +9,21 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-// SPAFallbackMiddleware rewrites 404s for extension-less paths to "/"
-// (index.html) so deep links like "/notes/<folder>/<note>" still boot the app
-// inside the packaged build.
-//
-// Flow:
-//   - Only handles likely SPA navigation requests (GET/HEAD, extension-less
-//     path, and an Accept header that wants HTML).
-//   - Runs the underlying asset handler in a recorder first for those requests.
-//   - If the handler returned 404, it replays the request with path set to "/"
-//     so index.html is served.
-//   - All non-SPA-like requests are passed through directly (no buffering).
+// SPAFallbackMiddleware serves the app shell for HTML note navigation and
+// retries extensionless HTML routes at root when the asset handler returns 404.
 func SPAFallbackMiddleware() application.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Note routes share URLs with raw attachments. Document navigation must
+			// reach the app shell before LocalFileMiddleware can serve file bytes.
+			if isHTMLNavigation(r) && strings.HasPrefix(r.URL.Path, "/notes/") {
+				clone := r.Clone(r.Context())
+				clone.URL.Path = "/"
+				clone.URL.RawPath = ""
+				next.ServeHTTP(w, clone)
+				return
+			}
+
 			if !shouldAttemptSPAFallback(r) {
 				next.ServeHTTP(w, r)
 				return
@@ -37,6 +38,7 @@ func SPAFallbackMiddleware() application.Middleware {
 				// Retry against root to serve index.html
 				clone := r.Clone(r.Context())
 				clone.URL.Path = "/"
+				clone.URL.RawPath = ""
 				next.ServeHTTP(w, clone)
 				return
 			}
@@ -54,12 +56,11 @@ func SPAFallbackMiddleware() application.Middleware {
 }
 
 func shouldAttemptSPAFallback(r *http.Request) bool {
-	if r.Method != http.MethodGet && r.Method != http.MethodHead {
-		return false
-	}
+	return isHTMLNavigation(r) && path.Ext(r.URL.Path) == ""
+}
 
-	// Route-like URLs don't have an asset extension.
-	if path.Ext(r.URL.Path) != "" {
+func isHTMLNavigation(r *http.Request) bool {
+	if r.Method != http.MethodGet && r.Method != http.MethodHead {
 		return false
 	}
 

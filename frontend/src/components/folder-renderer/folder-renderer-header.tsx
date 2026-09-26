@@ -37,7 +37,8 @@ export function FolderRendererHeader({
   const projectSettings = useAtomValue(projectSettingsAtom);
   const setTreeFilterQuery = useSetAtom(treeFilterQueryAtom);
   const focusTreeFilterInput = useSetAtom(focusTreeFilterInputAtom);
-  const { revealInFinder, pin, moveToTrash } = useContextMenuItems();
+  const { openInNewWindow, revealInFinder, pin, moveToTrash } =
+    useContextMenuItems();
 
   // pinnedNotes stores slashless paths (the settings.json format).
   const isPinned = projectSettings.pinnedNotes.has(
@@ -45,6 +46,7 @@ export function FolderRendererHeader({
   );
 
   const items = [
+    openInNewWindow({ path: folderPath }),
     revealInFinder({ path: folderPath }),
     pin({
       paths: [folderPath.fullPath],
@@ -85,7 +87,7 @@ export function FolderRendererHeader({
               <HorizontalDots />
             </Button>
           </Tooltip>
-          <AppMenuPopover className="w-52" placement="bottom end">
+          <AppMenuPopover className="w-60" placement="bottom end">
             <AppMenu onAction={handleAction}>
               {items.map((item) => (
                 <AppMenuItem key={item.value} id={item.value}>

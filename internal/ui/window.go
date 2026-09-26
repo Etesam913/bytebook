@@ -52,3 +52,11 @@ func CreateWindow(app *application.App, url string, backgroundColor application.
 
 	return window.Show()
 }
+
+// WindowBackgroundColor returns the native window background for the current appearance.
+func WindowBackgroundColor(app *application.App) application.RGBA {
+	if app.Env.IsDarkMode() {
+		return application.NewRGB(39, 39, 43)
+	}
+	return application.NewRGB(27, 38, 54)
+}

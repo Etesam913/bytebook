@@ -3,16 +3,39 @@ package services
 import (
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/notes/sidecar"
+	"github.com/etesam913/bytebook/internal/ui"
 	"github.com/etesam913/bytebook/internal/util"
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 type NoteService struct {
 	ProjectPath string
+}
+
+// OpenInNewWindow opens a project file or folder in a new Bytebook window.
+// Returns whether the window was opened successfully.
+func (n *NoteService) OpenInNewWindow(path string) config.BackendResponseWithoutData {
+	target, err := util.SafeJoin(filepath.Join(n.ProjectPath, "notes"), path)
+	if err != nil {
+		return config.BackendResponseWithoutData{Success: false, Message: "Invalid file or folder path"}
+	}
+	if _, err := os.Stat(target); err != nil {
+		return config.BackendResponseWithoutData{Success: false, Message: "File or folder does not exist"}
+	}
+	app := application.Get()
+	if app == nil {
+		return config.BackendResponseWithoutData{Success: false, Message: "Application is not available"}
+	}
+	// URL.Path escapes filename characters such as # and ? without treating them as navigation syntax.
+	route := (&url.URL{Path: "/notes/" + filepath.ToSlash(filepath.Clean(path))}).String()
+	ui.CreateWindow(app, route, ui.WindowBackgroundColor(app))
+	return config.BackendResponseWithoutData{Success: true, Message: "Opened in new window"}
 }
 
 // RenameFile renames a file or folder from oldFolderNotePath to newFolderNotePath.

@@ -41,6 +41,13 @@ cd frontend
 bun dev
 ```
 
+On macOS, development launches `bin/Bytebook.dev.app` with its own Bytebook Dev
+identity instead of a bare executable associated with the terminal. Wails still
+captures logs and restarts the app after Go changes. Development builds enable
+the local Wails fork's Web Inspector bridge; use **View → Open Developer Tools**
+or **⌥⌘I**. After changing the development build or launch tasks, stop and restart
+`bun dev` to apply them.
+
 ## 🧪 Tests
 
 ### golang

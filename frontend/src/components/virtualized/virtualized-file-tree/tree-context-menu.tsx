@@ -122,8 +122,14 @@ export function TreeContextMenu({
   onStartRename: (path: string) => void;
   onStartCreate: StartCreateHandler;
 }) {
-  const { editTags, moveToTrash, pin, rename, revealInFinder } =
-    useContextMenuItems();
+  const {
+    editTags,
+    moveToTrash,
+    pin,
+    rename,
+    revealInFinder,
+    openInNewWindow,
+  } = useContextMenuItems();
   const projectSettings = useAtomValue(projectSettingsAtom);
   const isFolder = item.kind === 'directory';
   const filePath = isFolder ? null : createFilePath(item.path);
@@ -163,7 +169,10 @@ export function TreeContextMenu({
 
   const revealTarget = filePath ?? folderPath;
   if (revealTarget) {
-    rows.push(dropdownItemToMenuRow(revealInFinder({ path: revealTarget })));
+    rows.push(
+      dropdownItemToMenuRow(openInNewWindow({ path: revealTarget })),
+      dropdownItemToMenuRow(revealInFinder({ path: revealTarget }))
+    );
   }
 
   if (isFolder && !isMultiSelection) {

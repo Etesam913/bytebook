@@ -22,7 +22,7 @@ func TestSPAFallbackMiddleware(t *testing.T) {
 		})
 
 		handler := SPAFallbackMiddleware()(next)
-		req := httptest.NewRequest(http.MethodGet, "/notes/folder/note", nil)
+		req := httptest.NewRequest(http.MethodGet, "/kernels/python", nil)
 		req.Header.Set("Accept", "text/html")
 		rec := httptest.NewRecorder()
 

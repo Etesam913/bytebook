@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { navigate } from 'wouter/use-browser-location';
 import {
   DoesNoteExist,
+  OpenInNewWindow,
   MoveToTrash,
   RenameFile,
   RestoreFromTrash,
@@ -43,6 +44,16 @@ const noteQueries = {
       },
     }),
 };
+
+export function useOpenInNewWindowMutation() {
+  return useMutation({
+    mutationFn: async ({ path }: { path: FileOrFolderPath }) => {
+      await getBackendResponseData(
+        OpenInNewWindow(stripTrailingSlash(path.fullPath))
+      );
+    },
+  });
+}
 
 /**
  * Reveals a single file or folder inside the project's `notes/` directory in
