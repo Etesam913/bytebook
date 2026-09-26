@@ -58,7 +58,6 @@ export function Toolbar({
   animationControls,
   frontmatter,
   setFrontmatter,
-  tableActionsRef,
   setPlaceholderLineData,
 }: {
   folder: string;
@@ -70,7 +69,6 @@ export function Toolbar({
   overflowContainerRef: RefObject<HTMLDivElement | null>;
   frontmatter: Frontmatter;
   setFrontmatter: Dispatch<SetStateAction<Frontmatter>>;
-  tableActionsRef: RefObject<HTMLButtonElement | null>;
   setPlaceholderLineData: Dispatch<SetStateAction<PlaceholderLineData>>;
 }) {
   const [editor] = useLexicalComposerContext();
@@ -117,7 +115,6 @@ export function Toolbar({
     setNoteSelection,
     setFloatingData,
     noteContainerRef,
-    tableActionsRef,
     setPlaceholderLineData,
   });
 

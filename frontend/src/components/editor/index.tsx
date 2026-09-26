@@ -76,8 +76,6 @@ export function NotesEditor({
   const queryClient = useQueryClient();
   const setEditor = useSetAtom(editorAtom);
 
-  const tableActionsRef = useRef<HTMLButtonElement | null>(null);
-
   const noteContainerRef = useRef<HTMLDivElement | null>(null);
   const [editorAnchorElem, setEditorAnchorElem] = useState<HTMLElement | null>(
     null
@@ -138,7 +136,6 @@ export function NotesEditor({
           setFloatingData={setFloatingData}
           frontmatter={frontmatter}
           setFrontmatter={setFrontmatter}
-          tableActionsRef={tableActionsRef}
           setPlaceholderLineData={setPlaceholderLineData}
         />
         <div

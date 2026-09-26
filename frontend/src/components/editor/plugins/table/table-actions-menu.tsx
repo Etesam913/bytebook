@@ -98,7 +98,6 @@ function $selectLastDescendant(node: ElementNode): void {
     lastDescendant.selectNext();
   }
 }
-void $selectLastDescendant;
 
 function TableCellActionMenuContainer({
   anchorElem,
@@ -557,7 +556,6 @@ export default function TableActionMenuPlugin({
   anchorElem = document.body,
 }: {
   anchorElem?: HTMLElement;
-  cellMerge?: boolean;
 }): null | ReactPortal {
   const isEditable = useLexicalEditable();
 

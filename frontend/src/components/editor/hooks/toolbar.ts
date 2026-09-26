@@ -54,7 +54,6 @@ import { OPEN_LINK_EDITOR_COMMAND } from '../nodes/link';
 import { $openLinkEditor, updateToolbar } from '../utils/toolbar';
 import { useWailsEvent } from '@hooks/events';
 import { $convertFromMarkdownString } from '@lexical/markdown';
-import { showTableCellActionsButton } from '../utils/table';
 import type { PlaceholderLineData } from '../types';
 import { updatePlaceholderLineData } from '../utils/placeholder-line';
 import { applyCodeResultsSidecar } from '../utils/code-results';
@@ -155,7 +154,6 @@ export function useToolbarEvents({
   setNoteSelection,
   setFloatingData,
   noteContainerRef,
-  tableActionsRef,
   setPlaceholderLineData,
 }: {
   editor: LexicalEditor;
@@ -167,7 +165,6 @@ export function useToolbarEvents({
   setNoteSelection: Dispatch<SetStateAction<BaseSelection | null>>;
   setFloatingData: Dispatch<SetStateAction<FloatingDataType>>;
   noteContainerRef: RefObject<HTMLDivElement | null>;
-  tableActionsRef: RefObject<HTMLButtonElement | null>;
   setPlaceholderLineData: Dispatch<SetStateAction<PlaceholderLineData>>;
 }) {
   const draggedGhostElement = useAtomValue(draggedGhostElementAtom);
@@ -188,11 +185,6 @@ export function useToolbarEvents({
       editor.registerCommand(
         SELECTION_CHANGE_COMMAND,
         () => {
-          showTableCellActionsButton({
-            editor,
-            tableActionsRef,
-            noteContainerRef,
-          });
           updateToolbar({
             editor,
             setDisabled,
@@ -361,7 +353,6 @@ export function useToolbarEvents({
     setNoteSelection,
     setFloatingData,
     noteContainerRef,
-    tableActionsRef,
     draggedGhostElement,
     setPlaceholderLineData,
   ]);
