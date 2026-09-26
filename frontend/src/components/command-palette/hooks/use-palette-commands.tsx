@@ -2,15 +2,30 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useSavedSearchesQuery } from '@hooks/search';
 import { queryKeys } from '@utils/query-keys';
 import { treeFilterQueryAtom } from '@/atoms';
-import { useStore } from 'jotai';
+import { useAtomValue, useStore } from 'jotai';
+import { activeNoteCommandsAtom } from '@components/editor/atoms';
+import { useFilePathFromRoute } from '@hooks/routes';
+import {
+  useNoteExists,
+  useOpenInNewWindowMutation,
+  useRevealInFinderMutation,
+} from '@hooks/notes';
 import { useFilter } from 'react-aria-components/Autocomplete';
 import { focusTreeFilterInputAtom, isFileMaximizedAtom } from '@/atoms';
-import type { PaletteItem } from '@/types';
+import type { NotePaletteCommand, PaletteItem } from '@/types';
 import { useOpenSettingsDialog } from '@hooks/dialogs';
 
 export function usePaletteCommands(query: string, onCreateNote: () => void) {
   const store = useStore();
   const queryClient = useQueryClient();
+  const filePath = useFilePathFromRoute();
+  const noteExists = useNoteExists(filePath);
+  const activeNote = useAtomValue(activeNoteCommandsAtom);
+  const { mutate: openInNewWindow } = useOpenInNewWindowMutation();
+  const { mutate: revealInFinder } = useRevealInFinderMutation();
+  const isFileReady =
+    !!filePath && noteExists.data === true && !noteExists.isError;
+  const isNoteReady = isFileReady && activeNote?.path === filePath.fullPath;
   const savedSearches = useSavedSearchesQuery();
   const openSettings = useOpenSettingsDialog();
   const { contains } = useFilter({ sensitivity: 'base' });
@@ -74,6 +89,81 @@ export function usePaletteCommands(query: string, onCreateNote: () => void) {
           ? { kind: 'create-note' }
           : { kind: 'command', run: command.run },
     }));
+  const noteCommands: NotePaletteCommand[] = [
+    {
+      id: 'open-in-new-window',
+      label: 'Open in New Window',
+      keywords: 'separate window detach',
+    },
+    {
+      id: 'find-in-note',
+      label: 'Find in Note',
+      keywords: 'search text content',
+      shortcut: '⌘F',
+    },
+    { id: 'rename-note', label: 'Rename Note…', keywords: 'title name' },
+    { id: 'edit-tags', label: 'Edit Tags…', keywords: 'labels metadata' },
+    {
+      id: isNoteReady && activeNote.isPinned ? 'unpin-note' : 'pin-note',
+      label: isNoteReady && activeNote.isPinned ? 'Unpin Note' : 'Pin Note',
+      keywords: 'favorite bookmark',
+    },
+    {
+      id:
+        isNoteReady && activeNote.isTocVisible
+          ? 'hide-table-of-contents'
+          : 'show-table-of-contents',
+      label:
+        isNoteReady && activeNote.isTocVisible
+          ? 'Hide Table of Contents'
+          : 'Show Table of Contents',
+      keywords: 'outline headings toc',
+    },
+    {
+      id: 'reveal-in-finder',
+      label: 'Reveal in Finder',
+      keywords: 'file location disk',
+    },
+  ];
+  const noteItems: PaletteItem[] = noteCommands
+    .filter((command) =>
+      contains(`${command.label} ${command.keywords}`, query)
+    )
+    .map((command) => {
+      const isFileCommand =
+        command.id === 'reveal-in-finder' ||
+        command.id === 'open-in-new-window';
+      const isEnabled = isFileCommand ? isFileReady : isNoteReady;
+      return {
+        id: command.id,
+        label: command.label,
+        isDisabled: !isEnabled,
+        description: isEnabled
+          ? (command.shortcut ?? '')
+          : isFileCommand
+            ? 'Open a note or attachment first'
+            : filePath?.extension === 'md'
+              ? 'Note is loading…'
+              : 'Open a note first',
+        action: {
+          kind: 'command',
+          run: () => {
+            if (!isEnabled) return;
+            if (isFileCommand && filePath) {
+              if (command.id === 'open-in-new-window') {
+                openInNewWindow({ path: filePath });
+              } else {
+                revealInFinder({ path: filePath });
+              }
+              return;
+            }
+            // Resolve after the palette closes so an unmounted editor cannot run an action.
+            const current = store.get(activeNoteCommandsAtom);
+            if (current?.path === filePath?.fullPath) current?.run(command.id);
+          },
+        },
+      };
+    });
   const savedItems: PaletteItem[] = (savedSearches.data ?? [])
     .filter((search) => contains(`${search.name} ${search.query}`, query))
     .map((search) => ({
@@ -94,5 +184,5 @@ export function usePaletteCommands(query: string, onCreateNote: () => void) {
         },
       },
     }));
-  return { items, savedItems, savedSearches };
+  return { items, noteItems, savedItems, savedSearches };
 }

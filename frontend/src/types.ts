@@ -191,7 +191,24 @@ export type SidebarReorderOptions = {
   onMovePanel: (key: SidebarPanelKey, direction: number) => void;
 };
 
+export type NotePaletteCommand = {
+  id:
+    | 'open-in-new-window'
+    | 'find-in-note'
+    | 'rename-note'
+    | 'edit-tags'
+    | 'pin-note'
+    | 'unpin-note'
+    | 'show-table-of-contents'
+    | 'hide-table-of-contents'
+    | 'reveal-in-finder';
+  label: string;
+  keywords: string;
+  shortcut?: string;
+};
+
 export type PaletteItem = {
+  isDisabled?: boolean;
   id: string;
   label: string;
   description: string;

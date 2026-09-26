@@ -1,18 +1,7 @@
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { useAtomValue, useSetAtom } from 'jotai';
-import type { Key } from 'react-aria-components';
+import { useNoteActions } from '../hooks/note-actions';
+import { useAtomValue } from 'jotai';
 import { Button } from 'react-aria-components/Button';
-import { dialogDataAtom, isFullscreenAtom, projectSettingsAtom } from '@/atoms';
-import {
-  useMoveToTrashMutation,
-  useOpenInNewWindowMutation,
-  useRevealInFinderMutation,
-} from '@hooks/notes';
-import { createFilePath } from '@utils/path';
-import { isTableOfContentsVisible } from '@utils/project-settings';
-import { useEditTagsFormMutation } from '@hooks/tags';
-import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
-import { EditTagDialogChildren } from '@/routes/notes-sidebar/edit-tag-dialog-children';
+import { isFullscreenAtom } from '@/atoms';
 import { ShareRight } from '@/icons/share-right';
 import { Finder } from '@/icons/finder';
 import { HorizontalDots } from '@/icons/horizontal-dots';
@@ -20,14 +9,12 @@ import { PinTack2 } from '@/icons/pin-tack-2';
 import { TagPlus } from '@/icons/tag-plus';
 import { Table } from '@/icons/table';
 import { Trash } from '@/icons/trash';
-import type { ProjectSettings } from '@/types';
 import {
   AppMenu,
   AppMenuItem,
   AppMenuPopover,
   AppMenuTrigger,
 } from '@components/menu';
-import { SAVE_MARKDOWN_CONTENT } from '../plugins/save';
 import type { Frontmatter } from '@/types';
 import { Tooltip } from '@components/tooltip';
 import { cn } from '@utils/string-formatting';
@@ -42,22 +29,11 @@ export function SettingsDropdown({
   frontmatter: Frontmatter;
 }) {
   const isFullscreen = useAtomValue(isFullscreenAtom);
-  const projectSettings = useAtomValue(projectSettingsAtom);
-  const isPinned = projectSettings.pinnedNotes.has(`${folder}/${note}.md`);
-  const setDialogData = useSetAtom(dialogDataAtom);
-  const [editor] = useLexicalComposerContext();
-
-  const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
-  const { mutate: moveToTrash } = useMoveToTrashMutation();
-  const { mutate: openInNewWindow } = useOpenInNewWindowMutation();
-  const { mutate: revealInFinder } = useRevealInFinderMutation();
-  const { mutateAsync: editTags } = useEditTagsFormMutation();
-
-  const isTocVisible = isTableOfContentsVisible({
+  const { isPinned, isTocVisible, handleAction } = useNoteActions({
+    folder,
+    note,
     frontmatter,
-    projectSettings,
   });
-
   const items = [
     {
       id: 'open-in-new-window',
@@ -114,87 +90,6 @@ export function SettingsDropdown({
       ),
     },
   ];
-
-  function handleAction(key: Key) {
-    switch (key) {
-      case 'pin-note':
-      case 'unpin-note': {
-        const newPinnedNotes = new Set(projectSettings.pinnedNotes);
-        if (key === 'pin-note') {
-          newPinnedNotes.add(`${folder}/${note}.md`);
-        } else {
-          newPinnedNotes.delete(`${folder}/${note}.md`);
-        }
-        const newProjectSettings: ProjectSettings = {
-          ...projectSettings,
-          pinnedNotes: newPinnedNotes,
-        };
-        updateProjectSettings({
-          newProjectSettings,
-        });
-        break;
-      }
-      case 'show-table-of-contents':
-      case 'hide-table-of-contents': {
-        const copyOfFrontmatter = { ...frontmatter };
-        copyOfFrontmatter.showTableOfContents =
-          key === 'show-table-of-contents' ? 'true' : 'false';
-
-        editor.update(() => {
-          editor.dispatchCommand(SAVE_MARKDOWN_CONTENT, {
-            newFrontmatter: copyOfFrontmatter,
-          });
-        });
-        break;
-      }
-      case 'open-in-new-window': {
-        const filePath = createFilePath(`${folder}/${note}.md`);
-        if (filePath) openInNewWindow({ path: filePath });
-        break;
-      }
-      case 'reveal-in-finder': {
-        const filePath = createFilePath(`${folder}/${note}.md`);
-        if (filePath) {
-          revealInFinder({ path: filePath });
-        }
-        break;
-      }
-      case 'edit-tags': {
-        const filePath = createFilePath(`${folder}/${note}.md`);
-        if (!filePath) return;
-        const filePaths = [filePath.fullPath];
-        setDialogData({
-          isOpen: true,
-          isPending: false,
-          title: 'Edit Tags',
-          dialogClassName: 'w-[min(30rem,90vw)]',
-          children: (errorText) => (
-            <EditTagDialogChildren
-              filePaths={filePaths}
-              errorText={errorText}
-            />
-          ),
-          onSubmit: async (formData, setErrorText) => {
-            try {
-              return await editTags({
-                formData,
-                setErrorText,
-                filePaths,
-              });
-            } catch {
-              // onError fills in the dialog's error text; keep it open.
-              return false;
-            }
-          },
-        });
-        break;
-      }
-      case 'move-to-trash': {
-        moveToTrash({ paths: [`${folder}/${note}.md`] });
-        break;
-      }
-    }
-  }
 
   return (
     <div className="ml-auto flex flex-col">

@@ -305,6 +305,7 @@ export function FloatingLinkPreview({
                   aria-label="URL"
                   defaultValue={floatingData.previousUrl ?? 'https://'}
                   autoFocus
+                  onFocus={(event) => event.target.select()}
                   inputClassName="text-sm w-64"
                   maxLength={undefined}
                   onKeyDown={(e) => {

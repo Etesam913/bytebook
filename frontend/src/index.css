@@ -215,7 +215,12 @@ textarea,
   }
 
   .link-internal {
-    @apply text-(--accent-color) underline decoration-2 underline-offset-2 inline-flex items-baseline gap-0.5 w-fit cursor-pointer;
+    @apply text-(--accent-color) underline decoration-2 underline-offset-2 cursor-pointer;
+  }
+
+  .link-internal > svg {
+    /* Account for the icon's bottom viewBox inset so its stroke meets the text baseline. */
+    @apply inline-block align-baseline mr-0.5 translate-y-[calc(1.25rem/18)];
   }
 
   .link-internal:hover {

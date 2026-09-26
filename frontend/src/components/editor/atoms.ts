@@ -1,4 +1,5 @@
 import { atom } from 'jotai';
+import type { NotePaletteCommand } from '@/types';
 import type { RefObject } from 'react';
 import { BaseSelection, LexicalEditor } from 'lexical';
 
@@ -26,3 +27,11 @@ export const noteSeenFileNodeKeysAtom = atom<Set<string>>(new Set([]));
 
 // Previous markdown tracking atom
 export const previousMarkdownAtom = atom<string>('');
+
+// Commands belong to the loaded note and are removed when its toolbar unmounts.
+export const activeNoteCommandsAtom = atom<{
+  path: string;
+  isPinned: boolean;
+  isTocVisible: boolean;
+  run: (command: NotePaletteCommand['id']) => void;
+} | null>(null);

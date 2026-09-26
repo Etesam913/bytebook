@@ -69,6 +69,7 @@ export function NoteFindPanel({
             autoCorrect="off"
             spellCheck={false}
             onChange={handleSearch}
+            id="note-find-input"
             inputAttrs={{
               onFocus: (e) => e.target.select(),
             }}

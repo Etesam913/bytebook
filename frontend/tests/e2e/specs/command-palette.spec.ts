@@ -336,3 +336,293 @@ test('opens an updated saved search and removes deleted entries while open', asy
   await expect(filter).toHaveValue('#work AND f:redis');
   await expect(filter).toBeFocused();
 });
+
+test('keeps note commands searchable but disabled without a note', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const dialog = await openPalette(page, 'commands:open');
+
+  await expect(dialog.getByText('Current Note', { exact: true })).toBeVisible();
+  await expect(
+    dialog.getByRole('menuitem', { name: 'Open in New Window', exact: true })
+  ).toBeDisabled();
+  await expect(
+    dialog.getByRole('menuitem', { name: 'Rename Note…', exact: true })
+  ).toBeDisabled();
+  await dialog.getByRole('searchbox').fill('rename');
+  await dialog.getByRole('searchbox').press('Enter');
+
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole('menuitem')).toBeDisabled();
+  await expect(dialog.getByText('Open a note first')).toBeVisible();
+  await expect(page).toHaveURL('/');
+});
+
+test('hands focus to find and rename and clears note commands on folder navigation', async ({
+  page,
+}) => {
+  await page.goto(NOTE_URL);
+  await expect(getEditor(page)).toContainText('Current note');
+  let dialog = await openPalette(page, 'commands:open');
+
+  await dialog
+    .getByRole('menuitem', { name: 'Find in Note', exact: true })
+    .click();
+
+  const find = page.getByPlaceholder('Search in note...');
+  await expect(find).toBeFocused();
+  await find.fill('Current');
+  dialog = await openPalette(page, 'commands:open');
+  await dialog
+    .getByRole('menuitem', { name: 'Find in Note', exact: true })
+    .click();
+  await expect(find).toBeFocused();
+  await expect(find).toHaveValue('Current');
+
+  dialog = await openPalette(page, 'commands:open');
+  await dialog
+    .getByRole('menuitem', { name: 'Rename Note…', exact: true })
+    .click();
+  const title = page.getByRole('textbox', { name: 'Note title' });
+  await expect(title).toBeFocused();
+  await expect
+    .poll(() =>
+      title.evaluate(
+        (input: HTMLInputElement) => input.selectionEnd! - input.selectionStart!
+      )
+    )
+    .toBe('Supply and Demand'.length);
+
+  await page
+    .getByRole('treeitem', { name: 'Research Notes', exact: true })
+    .dblclick();
+  await expect(page).toHaveURL('/notes/Research%20Notes');
+  dialog = await openPalette(page, 'commands:open');
+  await expect(
+    dialog.getByRole('menuitem', { name: 'Find in Note', exact: true })
+  ).toBeDisabled();
+});
+
+test('shares note actions and reflects table of contents state', async ({
+  page,
+  context,
+}) => {
+  const save = {
+    file: SERVICE_FILES.NOTE_SERVICE,
+    method: 'SetNoteMarkdownWithCodeResults',
+  };
+  const settings = {
+    file: SERVICE_FILES.SETTINGS_SERVICE,
+    method: 'UpdateProjectSettings',
+  };
+  const reveal = {
+    file: SERVICE_FILES.NOTE_SERVICE,
+    method: 'RevealFolderOrFileInFinder',
+  };
+  await mockBinding(context, save, { success: true, message: '' });
+  await mockBinding(context, settings, MOCK_PROJECT_SETTINGS_RESPONSE);
+  await mockBinding(context, reveal, { success: true, message: '' });
+  await mockNote(
+    context,
+    '---\nshowTableOfContents: false\n---\n# Heading\nCurrent note'
+  );
+  await page.goto(NOTE_URL);
+  await expect(getEditor(page)).toContainText('Current note');
+  let dialog = await openPalette(page, 'commands:open');
+
+  await dialog
+    .getByRole('menuitem', { name: 'Show Table of Contents', exact: true })
+    .click();
+
+  await expect
+    .poll(async () => (await getMockBindingCalls(page, save)).at(-1)?.[2])
+    .toContain('showTableOfContents: true');
+  dialog = await openPalette(page, 'commands:open');
+  await expect(
+    dialog.getByRole('menuitem', {
+      name: 'Hide Table of Contents',
+      exact: true,
+    })
+  ).toBeEnabled();
+  await dialog
+    .getByRole('menuitem', { name: 'Unpin Note', exact: true })
+    .click();
+  await expect
+    .poll(async () => (await getMockBindingCalls(page, settings)).at(-1)?.[0])
+    .toMatchObject({ pinnedNotes: ['Research Notes/Quantum Physics.md'] });
+
+  await emitWailsEvent(page, 'settings:update', {
+    ...MOCK_PROJECT_SETTINGS_RESPONSE.data,
+    pinnedNotes: ['Research Notes/Quantum Physics.md'],
+  });
+  dialog = await openPalette(page, 'commands:open');
+  await expect(
+    dialog.getByRole('menuitem', { name: 'Pin Note', exact: true })
+  ).toBeEnabled();
+  await dialog
+    .getByRole('menuitem', { name: 'Reveal in Finder', exact: true })
+    .click();
+  await expect
+    .poll(() => getMockBindingCalls(page, reveal))
+    .toEqual([['notes/Economics Notes/Supply and Demand.md', true]]);
+
+  dialog = await openPalette(page, 'commands:open');
+  await dialog
+    .getByRole('menuitem', { name: 'Edit Tags…', exact: true })
+    .click();
+  await expect(
+    page.getByRole('dialog', { name: 'Edit Tags', exact: true })
+  ).toBeVisible();
+  await expect(dialog).toHaveCount(0);
+});
+
+test('enables note commands only after markdown loads', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => {
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = async (input, init) => {
+      const response = await originalFetch(input, init);
+      const payload = (await response
+        .clone()
+        .json()
+        .catch(() => null)) as { data?: { markdown?: string } } | null;
+      if (payload?.data?.markdown === 'Current note') {
+        await new Promise<void>((resolve) => {
+          (window as unknown as { releaseNote: () => void }).releaseNote =
+            resolve;
+        });
+      }
+      return response;
+    };
+  });
+  const quickOpen = await openPalette(page);
+  await quickOpen.getByRole('menuitem').first().click();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          typeof (window as unknown as { releaseNote?: () => void }).releaseNote
+      )
+    )
+    .toBe('function');
+  const dialog = await openPalette(page, 'commands:open');
+  await expect(
+    dialog.getByRole('menuitem', { name: 'Find in Note', exact: true })
+  ).toBeDisabled();
+
+  await page.evaluate(() =>
+    (window as unknown as { releaseNote: () => void }).releaseNote()
+  );
+
+  await expect(
+    dialog.getByRole('menuitem', { name: 'Find in Note', exact: true })
+  ).toBeEnabled();
+});
+
+test('allows Finder reveal for attachments while note commands stay disabled', async ({
+  page,
+  context,
+}) => {
+  const reveal = {
+    file: SERVICE_FILES.NOTE_SERVICE,
+    method: 'RevealFolderOrFileInFinder',
+  };
+  await mockBinding(context, reveal, { success: true, message: '' });
+  await page.goto('/notes/attachment.txt');
+  const dialog = await openPalette(page, 'commands:open');
+  await expect(
+    dialog.getByRole('menuitem', { name: 'Find in Note', exact: true })
+  ).toBeDisabled();
+
+  await dialog
+    .getByRole('menuitem', { name: 'Reveal in Finder', exact: true })
+    .click();
+
+  await expect
+    .poll(() => getMockBindingCalls(page, reveal))
+    .toEqual([['notes/attachment.txt', true]]);
+});
+
+test('shows and hides the rendered table of contents from keyboard commands', async ({
+  page,
+  context,
+}) => {
+  await mockBinding(
+    context,
+    {
+      file: SERVICE_FILES.NOTE_SERVICE,
+      method: 'SetNoteMarkdownWithCodeResults',
+    },
+    { success: true, message: '' }
+  );
+  await mockNote(
+    context,
+    '---\nshowTableOfContents: false\n---\n# Heading\nCurrent note'
+  );
+  await page.goto(NOTE_URL);
+  await expect(getEditor(page)).toContainText('Current note');
+  await getEditor(page).click();
+  const toc = page.getByRole('heading', {
+    name: 'Table of Contents',
+    exact: true,
+  });
+  await expect(toc).toHaveCount(0);
+
+  let dialog = await openPalette(page, 'commands:open');
+  await dialog.getByRole('searchbox').fill('table of contents');
+  await dialog.getByRole('searchbox').press('Enter');
+
+  await expect(dialog).toHaveCount(0);
+  await expect(toc).toBeVisible();
+  await expect(
+    page
+      .getByRole('listbox', { name: 'Table of contents' })
+      .getByRole('option', { name: 'Heading' })
+  ).toBeVisible();
+
+  dialog = await openPalette(page, 'commands:open');
+  await dialog.getByRole('searchbox').fill('table of contents');
+  await dialog.getByRole('searchbox').press('Enter');
+
+  await expect(dialog).toHaveCount(0);
+  await expect(toc).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Note settings menu' }).click();
+  await page
+    .getByRole('menuitem', { name: 'Show Table of Contents', exact: true })
+    .click();
+  await expect(toc).toBeVisible();
+  await page.getByRole('button', { name: 'Note settings menu' }).click();
+  await page
+    .getByRole('menuitem', { name: 'Hide Table of Contents', exact: true })
+    .click();
+  await expect(toc).toHaveCount(0);
+});
+
+for (const { url, path } of [
+  { url: NOTE_URL, path: 'Economics Notes/Supply and Demand.md' },
+  { url: '/notes/attachment.txt', path: 'attachment.txt' },
+]) {
+  test(`opens ${path} in a new window from the palette`, async ({
+    page,
+    context,
+  }) => {
+    const openWindow = {
+      file: SERVICE_FILES.NOTE_SERVICE,
+      method: 'OpenInNewWindow',
+    };
+    await mockBinding(context, openWindow, { success: true, message: '' });
+    await page.goto(url);
+    const dialog = await openPalette(page, 'commands:open');
+
+    await dialog.getByRole('searchbox').fill('new window');
+    await dialog.getByRole('searchbox').press('Enter');
+
+    await expect
+      .poll(() => getMockBindingCalls(page, openWindow))
+      .toEqual([[path]]);
+    await expect(dialog).toHaveCount(0);
+    await expect(page).toHaveURL(url);
+  });
+}

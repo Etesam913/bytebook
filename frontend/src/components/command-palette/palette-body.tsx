@@ -39,7 +39,9 @@ export function PaletteBody({
   const { items: files, search } = usePaletteResults(query, mode === 'files');
   const commands = usePaletteCommands(query, onCreateNote);
   const items =
-    mode === 'files' ? files : [...commands.items, ...commands.savedItems];
+    mode === 'files'
+      ? files
+      : [...commands.items, ...commands.noteItems, ...commands.savedItems];
   const store = useStore();
 
   return (
@@ -88,7 +90,7 @@ export function PaletteBody({
           className="max-h-[50vh] overflow-y-auto px-2 pb-2 outline-none"
           onAction={(id) => {
             const item = items.find((item) => item.id === id);
-            if (!item) return;
+            if (!item || item.isDisabled) return;
             const action = item.action;
             switch (action.kind) {
               case 'open-path':
@@ -123,9 +125,19 @@ export function PaletteBody({
               <Collection items={commands.items}>
                 {(item) => <PaletteResult item={item} />}
               </Collection>
+              {commands.noteItems.length > 0 && (
+                <MenuSection>
+                  <Header className="px-2 pt-2 pb-1 text-xs text-zinc-500 dark:text-zinc-400">
+                    Current Note
+                  </Header>
+                  <Collection items={commands.noteItems}>
+                    {(item) => <PaletteResult item={item} />}
+                  </Collection>
+                </MenuSection>
+              )}
               {commands.savedItems.length > 0 && (
                 <MenuSection>
-                  <Header className="px-2 py-1 text-xs text-zinc-500 dark:text-zinc-400">
+                  <Header className="px-2 pt-2 pb-1 text-xs text-zinc-500 dark:text-zinc-400">
                     Saved searches
                   </Header>
                   <Collection items={commands.savedItems}>
@@ -183,8 +195,9 @@ function PaletteResult({ item }: { item: PaletteItem }) {
   return (
     <MenuItem
       id={item.id}
+      isDisabled={item.isDisabled}
       textValue={item.label}
-      className="group flex items-center gap-1.5 rounded-md px-2 py-1 outline-none data-[focused]:bg-(--accent-color) data-[focused]:text-white"
+      className="group data-[disabled]:opacity-50 flex items-center gap-1.5 rounded-md px-2 py-1 outline-none data-[focused]:bg-(--accent-color) data-[focused]:text-white"
       aria-label={
         item.action.kind === 'open-path'
           ? `${item.label} in ${item.description}`

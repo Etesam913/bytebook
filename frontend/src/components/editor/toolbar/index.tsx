@@ -1,3 +1,4 @@
+import { useNotePaletteCommands } from '../hooks/palette-commands';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import type { LegacyAnimationControls } from 'motion/react';
 import { useAtom, useAtomValue } from 'jotai/react';
@@ -103,6 +104,17 @@ export function Toolbar({
     overflowContainerRef,
     setCurrentSelectionFormat,
     setFrontmatter,
+  });
+
+  useNotePaletteCommands({
+    folder,
+    note,
+    frontmatter,
+    isReady: getNoteMarkdownQuery.isSuccess && !getNoteMarkdownQuery.isFetching,
+    openFind: () => {
+      setIsSearchOpen(true);
+      document.getElementById('note-find-input')?.focus();
+    },
   });
 
   useToolbarEvents({
