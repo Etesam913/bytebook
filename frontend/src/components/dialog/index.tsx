@@ -109,12 +109,12 @@ export function Dialog() {
             >
               <Heading
                 slot="title"
-                className="px-3 text-xl pb-2 border-b-2 border-zinc-150 dark:border-zinc-750"
+                className="px-5 text-xl pb-2 border-b-2 border-zinc-150 dark:border-zinc-750"
               >
                 {dialogData.title}
               </Heading>
 
-              <div className="py-2 px-3 overflow-x-hidden flex flex-col gap-5 flex-1 min-h-0">
+              <div className="py-2 px-5 overflow-x-hidden flex flex-col gap-5 flex-1 min-h-0">
                 {dialogData.children?.(errorText, dialogData.isPending)}
               </div>
 

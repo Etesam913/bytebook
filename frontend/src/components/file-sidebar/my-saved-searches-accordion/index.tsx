@@ -15,6 +15,7 @@ import { Loader } from '@/icons/loader';
 import { SidebarAccordionPanel } from '../sidebar-accordion-panel';
 import type { SidebarFlexWeights } from '@/atoms';
 import type { FlexWeightMVs } from '../index';
+
 export function MySavedSearchesAccordion({
   containerRef,
   flexWeightMVs,

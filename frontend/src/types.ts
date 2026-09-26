@@ -187,6 +187,8 @@ export type TrashRestoreInfo = {
 export type SidebarReorderOptions = {
   visibleOrder: SidebarPanelKey[];
   isSaving: boolean;
+  layoutVersion: number;
+  onPrepareReorder: () => void;
   onReorderEnd: () => void;
   onMovePanel: (key: SidebarPanelKey, direction: number) => void;
 };

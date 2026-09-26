@@ -45,6 +45,78 @@ test.beforeEach(async ({ context }) => {
   );
 });
 
+for (const fromAbove of [false, true]) {
+  test(`reorders across collapsed Files from ${fromAbove ? 'above' : 'below'}`, async ({
+    page,
+    context,
+  }) => {
+    const swappedOrder = [
+      'pinned',
+      'recent',
+      'files',
+      'kernels',
+      'tags',
+      'savedSearches',
+    ];
+    const initialOrder = fromAbove ? swappedOrder : savedOrder;
+    const nextOrder = fromAbove ? savedOrder : swappedOrder;
+    await mockBinding(context, getSettings, {
+      ...MOCK_PROJECT_SETTINGS_RESPONSE,
+      data: {
+        ...MOCK_PROJECT_SETTINGS_RESPONSE.data,
+        appearance: {
+          ...MOCK_PROJECT_SETTINGS_RESPONSE.data.appearance,
+          sidebarOrder: initialOrder,
+        },
+      },
+    });
+    await page.goto('/');
+    const files = page.getByRole('button', { name: 'Files', exact: true });
+    await files.click();
+    await expect(files).toHaveAttribute('aria-expanded', 'false');
+    const filesHeader = (await files.boundingBox())!;
+    await expect
+      .poll(
+        async () =>
+          (await page.locator('[data-sidebar-panel="files"]').boundingBox())!
+            .height
+      )
+      .toBeLessThanOrEqual(filesHeader.height + 1);
+    const target = (await files.boundingBox())!;
+    const recent = (await page
+      .getByRole('button', { name: 'Recent', exact: true })
+      .boundingBox())!;
+
+    await page.mouse.move(
+      recent.x + recent.width / 2,
+      recent.y + recent.height / 2
+    );
+    await page.mouse.down();
+    await page.mouse.move(
+      recent.x + recent.width / 2,
+      recent.y + recent.height / 2 + (fromAbove ? 8 : -8),
+      { steps: 2 }
+    );
+    await expectSidebarOrder(page, initialOrder);
+    await page.mouse.move(
+      target.x + target.width / 2,
+      target.y + target.height / 2 + (fromAbove ? 2 : -2),
+      {
+        steps: 20,
+      }
+    );
+    await expectSidebarOrder(page, nextOrder);
+    await page.mouse.up();
+
+    await expect(files).toHaveAttribute('aria-expanded', 'false');
+    await expect
+      .poll(async () =>
+        (await getMockBindingCalls(page, updateSettings)).map((call) => call[0])
+      )
+      .toMatchObject([{ appearance: { sidebarOrder: nextOrder } }]);
+  });
+}
+
 test('drags an accordion and restores its saved order in a new window', async ({
   page,
   context,

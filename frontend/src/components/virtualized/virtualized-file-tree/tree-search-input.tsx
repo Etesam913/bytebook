@@ -33,7 +33,7 @@ export function TreeSearchInput({
   const setIsFileMaximized = useSetAtom(isFileMaximizedAtom);
   const setOpenState = useSetAtom(fileSidebarOpenStateAtom);
   const focusSignal = useAtomValue(treeFilterFocusSignalAtom);
-  const isInitialMount = useRef(true);
+  const lastFocusSignalRef = useRef(focusSignal);
 
   const focusInput = () => {
     setIsFileMaximized(false);
@@ -45,10 +45,9 @@ export function TreeSearchInput({
   };
 
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
+    // Reordering can replay effects in StrictMode without a new focus request.
+    if (lastFocusSignalRef.current === focusSignal) return;
+    lastFocusSignalRef.current = focusSignal;
     focusInput();
   }, [focusSignal]);
 

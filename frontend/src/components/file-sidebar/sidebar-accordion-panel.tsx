@@ -55,6 +55,9 @@ export function SidebarAccordionPanel({
       value={panelKey}
       dragListener={false}
       dragControls={dragControls}
+      // Flex-weight animations change panel sizes outside React. Bump this before
+      // dragging so reorder bounds reflect current heights, including closed panels.
+      layoutDependency={reorderOptions.layoutVersion}
       onDragStart={() => {
         didDragRef.current = true;
       }}
@@ -85,6 +88,9 @@ export function SidebarAccordionPanel({
           onPointerDown={(event) => {
             didDragRef.current = false;
             if (!reorderOptions.isSaving && event.button === 0) {
+              // Flex-weight animations and resizing can leave cached reorder
+              // bounds stale. Measure every panel before the pointer starts moving.
+              reorderOptions.onPrepareReorder();
               // Allow small pointer movements during a click before starting a drag.
               dragControls.start(event, { distanceThreshold: 6 });
             }

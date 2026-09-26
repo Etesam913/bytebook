@@ -86,6 +86,7 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
   const settingsLoaded = useAtomValue(projectSettingsLoadedAtom);
   const isSaving = isPending || !settingsLoaded;
   const [draftOrder, setDraftOrder] = useState<SidebarPanelKey[] | null>(null);
+  const [layoutVersion, setLayoutVersion] = useState(0);
   const draftOrderRef = useRef<SidebarPanelKey[] | null>(null);
   const order = draftOrder ?? projectSettings.appearance.sidebarOrder;
   // Mount panels in their saved positions instead of animating from the default order.
@@ -215,6 +216,9 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
                 reorderOptions={{
                   visibleOrder,
                   isSaving,
+                  layoutVersion,
+                  onPrepareReorder: () =>
+                    setLayoutVersion((version) => version + 1),
                   onReorderEnd: finishDrag,
                   onMovePanel: movePanel,
                 }}
