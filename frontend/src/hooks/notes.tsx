@@ -31,7 +31,7 @@ import { useUpdateProjectSettingsMutation } from './project-settings';
 import type { Frontmatter, TrashRestoreInfo } from '@/types';
 import { $convertFromMarkdownString } from '@lexical/markdown';
 import { parseFrontMatter } from '@components/editor/utils/note-metadata';
-import { useFilePathFromRoute, useFolderPathFromRoute } from './routes';
+import { useRecentItemFromRoute } from './routes';
 import { applyCodeResultsSidecar } from '@components/editor/utils/code-results';
 
 const noteQueries = {
@@ -82,12 +82,8 @@ export function useRevealInFinderMutation() {
  */
 export function useMoveToTrashMutation() {
   const { mutate: restoreFromTrash } = useRestoreFromTrashMutation();
-  const currentRouteFilePath = useFilePathFromRoute();
-  const currentRouteFolderPath = useFolderPathFromRoute();
-
   /** The currently-viewed path (file or folder), if any. */
-  const currentRoutePath =
-    currentRouteFilePath?.fullPath ?? currentRouteFolderPath?.fullPath ?? null;
+  const currentRoutePath = useRecentItemFromRoute()?.fullPath ?? null;
 
   return useMutation({
     mutationFn: async ({ paths }: { paths: string[] }) => {

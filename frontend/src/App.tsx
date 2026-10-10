@@ -26,7 +26,7 @@ import {
   useSyncFileMaximizedWithRoute,
   useSyncRouteWithRenames,
   useSyncRouteWithDeletions,
-} from '@hooks/routes';
+} from '@hooks/route-sync';
 import { EditorWrapper } from '@components/editor-wrapper';
 import { RouteDebugView } from '@components/route-debug-view';
 import { isRegularMouseClick } from '@utils/mouse';
