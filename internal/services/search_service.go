@@ -30,13 +30,6 @@ func buildSearchAfterFromHit(sortValues []string, score float64, docID string) [
 	return append([]string{}, sortValues...)
 }
 
-// FilePickerSearchResult represents a search hit returned to the editor's @ mention picker.
-type FilePickerSearchResult struct {
-	Type   string `json:"type"`
-	Folder string `json:"folder"`
-	Note   string `json:"note,omitempty"`
-}
-
 // LinkedMention is a single note that links to a queried note.
 type LinkedMention struct {
 	Folder string `json:"folder"`
@@ -122,50 +115,6 @@ func (s *SearchService) FullTextSearch(searchQuery string, searchAfter []string,
 		Total:           res.Total,
 	}
 	return config.BackendResponseWithData[search.FullTextSearchPage]{Success: true, Data: page}
-}
-
-// SearchFileNamesFromQuery performs a fuzzy filename search using the Bleve index.
-// It reuses the filename query logic from the search package to align editor @ mentions
-// with the backend search experience.
-func (s *SearchService) SearchFileNamesFromQuery(searchQuery string) []FilePickerSearchResult {
-	normalizedQuery := strings.ToLower(strings.TrimSpace(searchQuery))
-	filenameQuery := search.CreateFilenameQuery(normalizedQuery, 1.0)
-	searchRequest := search.CreateSearchRequest(filenameQuery, 20, nil, nil)
-
-	idx := s.Index.RLock()
-	defer s.Index.RUnlock()
-	results, err := idx.Search(searchRequest)
-	if err != nil {
-		log.Println("filename search failed:", err)
-		return []FilePickerSearchResult{}
-	}
-
-	searchResults := []FilePickerSearchResult{}
-	seen := make(util.Set[string])
-
-	for _, hit := range results.Hits {
-		docType, _ := hit.Fields[search.FieldType].(string)
-		folder, _ := hit.Fields[search.FieldFolder].(string)
-		fileName, _ := hit.Fields[search.FieldFileName].(string)
-
-		if folder == "" || fileName == "" {
-			continue
-		}
-
-		key := docType + ":" + folder + "/" + fileName
-		if seen.Has(key) {
-			continue
-		}
-		seen.Add(key)
-
-		searchResults = append(searchResults, FilePickerSearchResult{
-			Type:   docType,
-			Folder: folder,
-			Note:   fileName,
-		})
-	}
-
-	return searchResults
 }
 
 // GetPathsFromSearchQuery runs the given filter-syntax query against the search

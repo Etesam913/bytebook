@@ -106,13 +106,17 @@ export function PaletteBody({
           }}
           renderEmptyState={() => (
             <p className="px-2 py-2 text-sm text-zinc-500 dark:text-zinc-400">
-              {mode === 'commands'
-                ? 'No commands found.'
-                : search.isError
-                  ? 'Search is unavailable.'
-                  : query.trim()
-                    ? 'No results found.'
-                    : 'Your recent files will appear here. Type to search.'}
+              {mode === 'commands' ? (
+                'No commands found.'
+              ) : search.isError ? (
+                <span className="text-red-500 dark:text-red-400">
+                  Search is unavailable.
+                </span>
+              ) : query.trim() ? (
+                'No results found.'
+              ) : (
+                'Your recent files will appear here. Type to search.'
+              )}
             </p>
           )}
         >
@@ -152,41 +156,39 @@ export function PaletteBody({
       {mode === 'commands' && commands.savedSearches.isError && (
         <p
           role="status"
-          className="px-3 pb-2 text-xs text-zinc-500 dark:text-zinc-400"
+          className="pr-3 pl-4 pb-2 text-xs text-red-500 dark:text-red-400"
         >
           Saved searches are unavailable.
         </p>
       )}
-      <div className="flex items-center justify-between gap-2 border-t border-zinc-200 px-3 py-1 text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-        <MotionButton className="px-1.5 py-0.5 text-xs" onPress={onCreateNote}>
-          New Note…
-        </MotionButton>
-        <span>↑↓ Navigate · Enter Open · Esc Close</span>
-        {mode === 'files' && search.isError && (
-          <MotionButton
-            className="px-1.5 py-0.5 text-xs"
-            onPress={() => void search.refetch()}
-            isDisabled={search.isSearching}
-          >
-            Retry
-          </MotionButton>
-        )}
-        {mode === 'files' && search.data?.hasMore && (
-          <MotionButton
-            isDisabled={search.isSearching}
-            className="px-1.5 py-0.5 text-xs"
-            onPress={() =>
-              closeAndRun(() => {
-                store.set(treeFilterQueryAtom, query);
-                store.set(isFileMaximizedAtom, false);
-                store.set(focusTreeFilterInputAtom);
-              })
-            }
-          >
-            Search all results
-          </MotionButton>
-        )}
-      </div>
+      {mode === 'files' && (search.isError || search.data?.hasMore) && (
+        <div className="flex items-center justify-between gap-2 border-t border-zinc-200 px-3 py-1 text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+          {search.isError && (
+            <MotionButton
+              className="px-1.5 py-0.5 text-xs"
+              onPress={() => void search.refetch()}
+              isDisabled={search.isSearching}
+            >
+              Retry
+            </MotionButton>
+          )}
+          {search.data?.hasMore && (
+            <MotionButton
+              isDisabled={search.isSearching}
+              className="px-1.5 py-0.5 text-xs"
+              onPress={() =>
+                closeAndRun(() => {
+                  store.set(treeFilterQueryAtom, query);
+                  store.set(isFileMaximizedAtom, false);
+                  store.set(focusTreeFilterInputAtom);
+                })
+              }
+            >
+              Search all results
+            </MotionButton>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -194,15 +194,19 @@ export function useToolbarEvents({
             setFloatingData,
             noteContainerRef,
           });
-          updatePlaceholderLineData({
-            editor,
-            noteContainerRef,
-            setPlaceholderLineData,
-          });
           return false;
         },
         COMMAND_PRIORITY_LOW
       ),
+      // Measure after the selection and DOM have committed, so the hint follows
+      // the current caret rather than the previous line.
+      editor.registerUpdateListener(() => {
+        updatePlaceholderLineData({
+          editor,
+          noteContainerRef,
+          setPlaceholderLineData,
+        });
+      }),
       editor.registerCommand(
         CONTROLLED_TEXT_INSERTION_COMMAND,
         (e) => {

@@ -269,7 +269,7 @@ test('creates a unique default note and reveals it in the expanded unfiltered fi
     .getByRole('menuitem', { name: 'Toggle Sidebar', exact: true })
     .click();
   await expect(sidebar).not.toBeVisible();
-  const palette = await openPalette(page);
+  const palette = await openPalette(page, 'commands:open');
   await palette.getByRole('searchbox').fill('#work AND f:redis');
   await palette.getByRole('button', { name: 'New Note…', exact: true }).click();
   const picker = page.getByRole('dialog', { name: 'Create note', exact: true });

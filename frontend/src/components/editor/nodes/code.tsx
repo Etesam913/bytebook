@@ -22,7 +22,6 @@ export interface CodePayload {
   status?: CodeBlockStatus;
   executionId?: string;
   hideResults?: boolean;
-  kernelInstanceId?: string | null;
 }
 
 type SerializedCodeNode = Spread<
@@ -304,9 +303,8 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
       const writable = this.getWritable();
       this.setIsWaitingForInput(true, editor);
 
-      writable.__lastExecutedResult += `<div class="prompt-block flex gap-2 items-center flex-wrap"><label>${inputPrompt.prompt}</label><span><input class="bg-zinc-100 dark:bg-zinc-800 px-1.5 py-1" type="${
-        inputPrompt.isPassword ? 'password' : 'text'
-      }"/><button type="submit" class="ml-2 px-2 py-1 bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600">Submit</button></span></div>`;
+      writable.__lastExecutedResult += `<div class="prompt-block flex gap-2 items-center flex-wrap"><label>${inputPrompt.prompt}</label><span><input class="bg-zinc-100 dark:bg-zinc-800 px-1.5 py-1" type="${inputPrompt.isPassword ? 'password' : 'text'
+        }"/><button type="submit" class="ml-2 px-2 py-1 bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600">Submit</button></span></div>`;
       writable.__lastRan = new Date().toISOString();
     });
   }
