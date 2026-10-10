@@ -1,6 +1,5 @@
-import { Events as WailsEvents } from '@wailsio/runtime';
+import { Events as WailsEvents, Window } from '@wailsio/runtime';
 import { useEffect, useRef } from 'react';
-import { isEventInCurrentWindow, type WailsEvent } from '@utils/events';
 
 /** Helper to do something when a wails event is emitted from the backend */
 export function useWailsEvent<E extends WailsEvents.WailsEventName>(
@@ -49,11 +48,16 @@ export function useWailsEvents(
 /** Like useWailsEvent, but the callback only runs for events emitted by this window. */
 export function useCurrentWindowWailsEvent<
   E extends WailsEvents.WailsEventName,
->(eventName: E, callback: (event: WailsEvent<E>) => void) {
+>(eventName: E, callback: (event: WailsEvents.WailsEvent<E>) => void) {
   useWailsEvent(eventName, (event) => {
     void (async () => {
       if (!(await isEventInCurrentWindow(event))) return;
       callback(event);
     })();
   });
+}
+
+// Returns true if the Wails event was emitted by the current window.
+async function isEventInCurrentWindow(event: WailsEvents.WailsEvent) {
+  return (await Window.Name()) === event.sender;
 }

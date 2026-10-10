@@ -11,7 +11,7 @@ import {
   FOLDER_CREATE,
   FOLDER_DELETE,
   FOLDER_RENAME,
-} from '@utils/events';
+} from '@bindings/util/event-names';
 import { queryKeys } from '@utils/query-keys';
 
 const FILTER_DEBOUNCE_MS = 150;

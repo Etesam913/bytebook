@@ -1,7 +1,7 @@
 import { mergeRegister } from '@lexical/utils';
 import { useQuery } from '@tanstack/react-query';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { SEARCH_NOTE } from '@utils/events';
+import { SEARCH_NOTE } from '@bindings/util/event-names';
 import {
   $getSelection,
   $isNodeSelection,

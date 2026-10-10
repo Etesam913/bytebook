@@ -100,7 +100,7 @@ The filesystem is the source of truth for the notes tree. Service mutations writ
 - `frontend/src/hooks/` is the frontend data layer: hooks call generated Wails bindings, own query/mutation behavior, and subscribe to Wails events.
 - `frontend/src/utils/query-keys.ts` is the source of truth for TanStack Query keys. TanStack Query owns backend/server state; Jotai atoms own local and cross-component UI state.
 - Exported Go service methods generate TypeScript RPC bindings in `frontend/bindings/`. Regenerate them after changing a service signature or a bound model.
-- Custom event names originate in `internal/util/events.go` and are mirrored by `frontend/src/utils/events.ts`. Payload registration is split across the Go package that owns each payload type so Wails can generate typed event bindings.
+- Custom event names originate in `internal/util/events.go` and are generated into `frontend/bindings/github.com/etesam913/bytebook/internal/util/event-names.ts`; import them from `@bindings/util/event-names`. Payload registration is split across the Go package that owns each payload type so Wails can generate typed event bindings.
 
 ### Path conventions
 

@@ -12,7 +12,7 @@ import { useMoveTreeItemsMutation } from '@components/virtualized/virtualized-fi
 import { useWailsEvent } from '@hooks/events';
 import { useAddDroppedFilesToFolderMutation } from '@hooks/tree-items';
 import { installWailsDragHandlers } from '@utils/wails-drag';
-import { FOLDER_CONTENT_DROP } from '@utils/events';
+import { FOLDER_CONTENT_DROP } from '@bindings/util/event-names';
 import type { FolderPath } from '@utils/path';
 import { isPointInsideElement, resolveFolderDrop } from '../drop';
 

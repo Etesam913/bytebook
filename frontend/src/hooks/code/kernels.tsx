@@ -34,7 +34,7 @@ import {
   KERNEL_INSTANCE_HEARTBEAT,
   KERNEL_INSTANCE_LAUNCH_ERROR,
   KERNEL_INSTANCE_EXITED,
-} from '@utils/events';
+} from '@bindings/util/event-names';
 import { useWailsEvent } from '@hooks/events';
 import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
 

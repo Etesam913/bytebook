@@ -14,7 +14,7 @@ import {
 import { Tooltip } from '@components/tooltip';
 import { CircleInfo } from '@/icons/circle-info';
 import { useCurrentWindowWailsEvent } from '@hooks/events';
-import { FILE_TREE_FILTER_FOCUS } from '@utils/events';
+import { FILE_TREE_FILTER_FOCUS } from '@bindings/util/event-names';
 
 // The tree filter reuses the search syntax, but result ordering is fixed, so
 // the Sort examples don't apply here.

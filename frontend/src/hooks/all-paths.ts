@@ -12,7 +12,7 @@ import {
   FOLDER_CREATE,
   FOLDER_DELETE,
   FOLDER_RENAME,
-} from '@utils/events';
+} from '@bindings/util/event-names';
 import { remapPathThroughRenames, type PathRename } from '@utils/path';
 import { requireBackendResponseData } from '@utils/query';
 import { queryKeys } from '@utils/query-keys';

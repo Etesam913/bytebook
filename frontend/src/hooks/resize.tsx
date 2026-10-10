@@ -1,6 +1,11 @@
 import { useSetAtom } from 'jotai/react';
 import { useWailsEvent } from './events';
-import { ZOOM_IN, ZOOM_OUT, ZOOM_RESET, FULLSCREEN } from '@utils/events';
+import {
+  ZOOM_IN,
+  ZOOM_OUT,
+  ZOOM_RESET,
+  FULLSCREEN,
+} from '@bindings/util/event-names';
 import { logger } from '@utils/logging';
 import { isFullscreenAtom } from '@/atoms';
 import { useEffect, useRef } from 'react';

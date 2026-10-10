@@ -40,7 +40,7 @@ import { MySavedSearchesAccordion } from './my-saved-searches-accordion/index';
 import { Tooltip } from '@components/tooltip/index';
 import { cn } from '@utils/string-formatting';
 import { useCurrentWindowWailsEvent } from '@hooks/events';
-import { SIDEBAR_FILES_OPEN } from '@utils/events';
+import { SIDEBAR_FILES_OPEN } from '@bindings/util/event-names';
 
 const SIDEBAR_ACCORDIONS = {
   files: MyFilesAccordion,

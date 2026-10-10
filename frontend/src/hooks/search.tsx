@@ -25,7 +25,7 @@ import {
   FOLDER_DELETE,
   FOLDER_RENAME,
   TAGS_INDEX_UPDATE,
-} from '@utils/events';
+} from '@bindings/util/event-names';
 import { useDebouncedValue } from '@hooks/general';
 import { createFilePath, type FilePath } from '@utils/path';
 import { toast } from 'sonner';

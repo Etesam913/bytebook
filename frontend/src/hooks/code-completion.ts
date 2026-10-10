@@ -10,7 +10,7 @@ import { Completion as LSPCompletion } from '@bindings/services/lspservice';
 import type { CompletionItem as LSPCompletionItem } from '@bindings/lsp/models';
 import type { CompleteReplyEvent } from '@bindings/jupyter_protocol/sockets/models';
 import type { Languages } from '@/types';
-import { CODE_BLOCK_COMPLETE_REPLY } from '@utils/events';
+import { CODE_BLOCK_COMPLETE_REPLY } from '@bindings/util/event-names';
 import { useWailsEvent } from './events';
 
 type CompletionInputs = {

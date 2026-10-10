@@ -4,7 +4,7 @@ import { Browser } from '@wailsio/runtime';
 import { toast } from 'sonner';
 import { SendInspectRequest } from '@bindings/services/codeservice';
 import { Languages } from '@/types';
-import { CODE_BLOCK_INSPECT_REPLY } from '@utils/events';
+import { CODE_BLOCK_INSPECT_REPLY } from '@bindings/util/event-names';
 import { DEFAULT_SONNER_OPTIONS } from '@utils/general';
 import { useWailsEvent } from './events';
 

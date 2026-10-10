@@ -13,7 +13,7 @@ import {
   KERNEL_INSTANCE_EXITED,
   KERNEL_INSTANCE_LAUNCH_ERROR,
   KERNEL_INSTANCE_SHUTDOWN,
-} from '@utils/events';
+} from '@bindings/util/event-names';
 import { isKernelStatus } from './kernels';
 
 // Message ids are "<codeBlockId>|<executionId>"; the execution id is absent on some messages.

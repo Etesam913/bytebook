@@ -16,13 +16,8 @@ import {
   isFileMaximizedAtom,
   treeFilterQueryAtom,
 } from '@/atoms';
-import { useWailsEvent } from '@hooks/events';
-import {
-  isEventInCurrentWindow,
-  QUICK_OPEN,
-  COMMAND_PALETTE_OPEN,
-  type WailsEvent,
-} from '@utils/events';
+import { useCurrentWindowWailsEvent } from '@hooks/events';
+import { QUICK_OPEN, COMMAND_PALETTE_OPEN } from '@bindings/util/event-names';
 
 export function CommandPalette() {
   const [mode, setMode] = useAtom(commandPaletteModeAtom);
@@ -40,8 +35,7 @@ export function CommandPalette() {
   const pendingAction = useRef<(() => void) | null>(null);
   const blocked = dialog.isOpen || backend.isLoading;
 
-  async function openMode(event: WailsEvent, nextMode: 'files' | 'commands') {
-    if (!(await isEventInCurrentWindow(event))) return;
+  function openMode(nextMode: 'files' | 'commands') {
     if (createNote.isPending) return;
     if (
       store.get(dialogDataAtom).isOpen ||
@@ -56,11 +50,11 @@ export function CommandPalette() {
     createNote.reset();
     setMode(store.get(commandPaletteModeAtom) === null ? nextMode : null);
   }
-  useWailsEvent(QUICK_OPEN, (event) => {
-    void openMode(event, 'files');
+  useCurrentWindowWailsEvent(QUICK_OPEN, () => {
+    openMode('files');
   });
-  useWailsEvent(COMMAND_PALETTE_OPEN, (event) => {
-    void openMode(event, 'commands');
+  useCurrentWindowWailsEvent(COMMAND_PALETTE_OPEN, () => {
+    openMode('commands');
   });
 
   useEffect(() => {

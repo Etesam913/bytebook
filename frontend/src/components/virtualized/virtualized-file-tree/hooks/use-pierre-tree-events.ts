@@ -10,7 +10,7 @@ import {
   FOLDER_CREATE,
   FOLDER_DELETE,
   FOLDER_RENAME,
-} from '@utils/events';
+} from '@bindings/util/event-names';
 
 /**
  * The frontend (and @pierre/trees) mark directories with a trailing slash,

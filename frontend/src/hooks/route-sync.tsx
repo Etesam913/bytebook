@@ -12,7 +12,7 @@ import {
   FOLDER_RENAME,
   NAVIGATE_BACK,
   NAVIGATE_FORWARD,
-} from '@utils/events';
+} from '@bindings/util/event-names';
 import {
   createFolderPath,
   createFilePath,

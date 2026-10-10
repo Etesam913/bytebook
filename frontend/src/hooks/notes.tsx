@@ -26,7 +26,7 @@ import {
   type FilePath,
 } from '@utils/path';
 import { useWailsEvent } from './events';
-import { CODE_RESULTS_UPDATE, FILE_WRITE } from '@utils/events';
+import { CODE_RESULTS_UPDATE, FILE_WRITE } from '@bindings/util/event-names';
 import { useUpdateProjectSettingsMutation } from './project-settings';
 import type { Frontmatter, TrashRestoreInfo } from '@/types';
 import { $convertFromMarkdownString } from '@lexical/markdown';

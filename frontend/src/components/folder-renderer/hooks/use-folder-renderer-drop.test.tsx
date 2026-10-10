@@ -43,7 +43,7 @@ const { useFolderRendererDrop } = await import('./use-folder-renderer-drop');
 const { draggedGhostElementAtom } = await import('@/atoms');
 const { FILE_TREE_GHOST_ID } =
   await import('@components/editor/utils/drag/context');
-const { FOLDER_CONTENT_DROP } = await import('@utils/events');
+const { FOLDER_CONTENT_DROP } = await import('@bindings/util/event-names');
 const { createFolderPath } = await import('@utils/path');
 
 (

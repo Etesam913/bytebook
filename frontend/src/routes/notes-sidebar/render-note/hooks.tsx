@@ -1,7 +1,7 @@
 import { useSetAtom } from 'jotai';
 import { isFileMaximizedAtom } from '@/atoms';
 import { useCurrentWindowWailsEvent } from '@hooks/events';
-import { TOGGLE_SIDEBAR } from '@utils/events';
+import { TOGGLE_SIDEBAR } from '@bindings/util/event-names';
 import { LegacyAnimationControls } from 'motion';
 import { easingFunctions } from '@/animations';
 import { logger } from '@utils/logging';

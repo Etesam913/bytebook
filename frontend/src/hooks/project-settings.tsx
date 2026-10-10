@@ -19,7 +19,7 @@ import {
   validateEditorFontSize,
   validateEditorLineHeight,
 } from '@utils/project-settings';
-import { SETTINGS_OPEN, SETTINGS_UPDATE } from '@utils/events';
+import { SETTINGS_OPEN, SETTINGS_UPDATE } from '@bindings/util/event-names';
 import { parseRGB } from '@utils/string-formatting';
 import {
   getBackendResponseData,

@@ -13,7 +13,8 @@ import {
 import { type RefObject, useEffect } from 'react';
 import { draggableBlockElementAtom, draggedGhostElementAtom } from '../atoms';
 import { useWailsEvent } from '@hooks/events';
-import { EDITOR_CONTENT_DROP, type WailsEvent } from '@utils/events';
+import { EDITOR_CONTENT_DROP } from '@bindings/util/event-names';
+import type { Events } from '@wailsio/runtime';
 import { createFilePath, type FilePath } from '@utils/path';
 import { useAddDroppedFilesToFolderMutation } from '@hooks/tree-items';
 import type { FilePayload } from '../nodes/file';
@@ -110,7 +111,9 @@ function useInsertFilesOnEditorDrop({
   const { mutateAsync: addDroppedFilesToFolder } =
     useAddDroppedFilesToFolderMutation();
 
-  function onEditorContentDrop(event: WailsEvent<typeof EDITOR_CONTENT_DROP>) {
+  function onEditorContentDrop(
+    event: Events.WailsEvent<typeof EDITOR_CONTENT_DROP>
+  ) {
     setTimeout(() => {
       // timeout helps to avoid issue with stale caret
       dragAndDropCaretMotionValues.opacity.set(0);

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useWailsEvent } from './events';
-import { TAGS_INDEX_UPDATE } from '@utils/events';
+import { TAGS_INDEX_UPDATE } from '@bindings/util/event-names';
 import { logger } from '@utils/logging';
 import {
   DeleteTags,
