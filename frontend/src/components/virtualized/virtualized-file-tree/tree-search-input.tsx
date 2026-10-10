@@ -13,8 +13,8 @@ import {
 } from '@components/search-help';
 import { Tooltip } from '@components/tooltip';
 import { CircleInfo } from '@/icons/circle-info';
-import { useWailsEvent } from '@hooks/events';
-import { FILE_TREE_FILTER_FOCUS, isEventInCurrentWindow } from '@utils/events';
+import { useCurrentWindowWailsEvent } from '@hooks/events';
+import { FILE_TREE_FILTER_FOCUS } from '@utils/events';
 
 // The tree filter reuses the search syntax, but result ordering is fixed, so
 // the Sort examples don't apply here.
@@ -67,11 +67,8 @@ export function TreeSearchInput({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  useWailsEvent(FILE_TREE_FILTER_FOCUS, (data) => {
-    void (async () => {
-      if (!(await isEventInCurrentWindow(data))) return;
-      focusInput();
-    })();
+  useCurrentWindowWailsEvent(FILE_TREE_FILTER_FOCUS, () => {
+    focusInput();
   });
 
   return (

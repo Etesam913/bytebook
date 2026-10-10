@@ -5,7 +5,6 @@ import { RenameFolder } from '@bindings/services/folderservice';
 import { SelectAttachmentPaths } from '@bindings/services/nodeservice';
 import { RenameFile } from '@bindings/services/noteservice';
 import { backendQueryAtom } from '@/atoms';
-import { importFilesToFolder } from '@hooks/tree-items';
 import {
   replaceLastPathSegment,
   stripTrailingSlash,
@@ -14,6 +13,7 @@ import {
 import { QueryError, getBackendResponseData } from '@utils/query';
 import { queryKeys } from '@utils/query-keys';
 import { NAME_CHARS } from '@utils/string-formatting';
+import { importFilesToFolder } from '@utils/import-files';
 
 export type RenameTreeItemPayload = (
   | RenameFolderPayload

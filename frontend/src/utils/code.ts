@@ -7,7 +7,7 @@ import {
   Languages,
   LanguagesWithKernels,
 } from '@/types';
-import { createLeadingThrottle } from './general';
+import { createLeadingThrottle } from './timing';
 
 /**
  * Type for the ensureKernel mutation function.

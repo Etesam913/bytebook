@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import type { FileTree as PierreFileTree } from '@pierre/trees';
 import { useWailsEvent } from '@hooks/events';
 import { useAddDroppedFilesToFolderMutation } from '@hooks/tree-items';
-import { installWailsDragHandlers } from '@hooks/wails-drag';
+import { installWailsDragHandlers } from '@utils/wails-drag';
 import { EDITOR_CONTENT_DROP, FILE_TREE_CONTENT_DROP } from '@utils/events';
 import {
   clearDropTargetHighlight,

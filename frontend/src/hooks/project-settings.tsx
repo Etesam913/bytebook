@@ -8,7 +8,7 @@ import {
 } from '@bindings/services/settingsservice';
 import { projectSettingsAtom, projectSettingsLoadedAtom } from '@/atoms';
 import { useOpenSettingsDialog } from '@hooks/dialogs';
-import { useWailsEvent } from '@hooks/events';
+import { useWailsEvent, useCurrentWindowWailsEvent } from '@hooks/events';
 import type { ProjectSettings } from '@/types';
 import {
   DEFAULT_ACCENT_COLOR,
@@ -19,11 +19,7 @@ import {
   validateEditorFontSize,
   validateEditorLineHeight,
 } from '@utils/project-settings';
-import {
-  isEventInCurrentWindow,
-  SETTINGS_OPEN,
-  SETTINGS_UPDATE,
-} from '@utils/events';
+import { SETTINGS_OPEN, SETTINGS_UPDATE } from '@utils/events';
 import { parseRGB } from '@utils/string-formatting';
 import {
   getBackendResponseData,
@@ -128,12 +124,9 @@ export function useProjectSettings() {
   }, []);
 
   // Open the settings dialog on 'settings:open' event.
-  useWailsEvent(SETTINGS_OPEN, (data) => {
-    void (async () => {
-      if (!(await isEventInCurrentWindow(data))) return;
-      logger.event(SETTINGS_OPEN, data);
-      openSettings();
-    })();
+  useCurrentWindowWailsEvent(SETTINGS_OPEN, (data) => {
+    logger.event(SETTINGS_OPEN, data);
+    openSettings();
   });
 
   useWailsEvent(SETTINGS_UPDATE, (body) => {

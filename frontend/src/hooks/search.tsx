@@ -14,7 +14,7 @@ import {
   RegenerateSearchIndex,
 } from '@bindings/services/searchservice';
 import { HighlightResult } from '@bindings/search/models';
-import { useWailsEvent } from '@hooks/events';
+import { useWailsEvent, useWailsEvents } from '@hooks/events';
 import {
   SAVED_SEARCH_UPDATE,
   FILE_CREATE,
@@ -174,14 +174,19 @@ export function useFileSearchQuery({
         queryKey: queryKeys.fileSearchAll(),
       });
   };
-  useWailsEvent(FILE_CREATE, invalidate);
-  useWailsEvent(FILE_DELETE, invalidate);
-  useWailsEvent(FILE_WRITE, invalidate);
-  useWailsEvent(FILE_RENAME, invalidate);
-  useWailsEvent(FOLDER_CREATE, invalidate);
-  useWailsEvent(FOLDER_DELETE, invalidate);
-  useWailsEvent(FOLDER_RENAME, invalidate);
-  useWailsEvent(TAGS_INDEX_UPDATE, invalidate);
+  useWailsEvents(
+    [
+      FILE_CREATE,
+      FILE_DELETE,
+      FILE_WRITE,
+      FILE_RENAME,
+      FOLDER_CREATE,
+      FOLDER_DELETE,
+      FOLDER_RENAME,
+      TAGS_INDEX_UPDATE,
+    ],
+    invalidate
+  );
   return {
     ...result,
     data:

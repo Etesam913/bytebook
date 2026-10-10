@@ -15,7 +15,6 @@ import { draggableBlockElementAtom, draggedGhostElementAtom } from '../atoms';
 import { useWailsEvent } from '@hooks/events';
 import { EDITOR_CONTENT_DROP, type WailsEvent } from '@utils/events';
 import { createFilePath, type FilePath } from '@utils/path';
-import { throttle } from '@utils/draggable';
 import { useAddDroppedFilesToFolderMutation } from '@hooks/tree-items';
 import type { FilePayload } from '../nodes/file';
 import { INSERT_FILES_COMMAND } from '../plugins/file';
@@ -31,7 +30,8 @@ import {
 } from '../utils/drag';
 import { setSelectionFromPointerInNoteEditor } from '../utils/note-commands';
 import { FILE_TREE_GHOST_ID } from '../utils/drag/context';
-import { installWailsDragHandlers } from '@hooks/wails-drag';
+import { installWailsDragHandlers } from '@utils/wails-drag';
+import { throttle } from '@utils/timing';
 
 /** Prefix stripped from paths returned by `addDroppedFilesToFolder`. */
 const NOTES_PREFIX = 'notes/';

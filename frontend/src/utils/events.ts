@@ -43,7 +43,6 @@ export const NAVIGATE_FORWARD = 'navigation:forward';
 
 // File watcher events
 export const SETTINGS_UPDATE = 'settings:update';
-export const TAGS_UPDATE = 'tags:update';
 export const TAGS_INDEX_UPDATE = 'tags:index_update';
 export const SAVED_SEARCH_UPDATE = 'saved-search:update';
 export const CODE_RESULTS_UPDATE = 'code-results:update';
@@ -66,7 +65,6 @@ export const CODE_BLOCK_IOPUB_ERROR = 'code:code-block:iopub_error';
 export const CODE_BLOCK_INPUT_REQUEST = 'code:code-block:input_request';
 export const CODE_BLOCK_INSPECT_REPLY = 'code:code-block:inspect_reply';
 export const CODE_BLOCK_COMPLETE_REPLY = 'code:code-block:complete_reply';
-export const CODE_BLOCK_EXECUTE_REPLY = 'code:code-block:execute_reply';
 
 // Returns true if the Wails event was emitted by the current window.
 export async function isEventInCurrentWindow(data: WailsEvent) {

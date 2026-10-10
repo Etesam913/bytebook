@@ -11,7 +11,7 @@ import { FILE_TREE_GHOST_ID } from '@components/editor/utils/drag/context';
 import { useMoveTreeItemsMutation } from '@components/virtualized/virtualized-file-tree/hooks/tree-item-mutations';
 import { useWailsEvent } from '@hooks/events';
 import { useAddDroppedFilesToFolderMutation } from '@hooks/tree-items';
-import { installWailsDragHandlers } from '@hooks/wails-drag';
+import { installWailsDragHandlers } from '@utils/wails-drag';
 import { FOLDER_CONTENT_DROP } from '@utils/events';
 import type { FolderPath } from '@utils/path';
 import { isPointInsideElement, resolveFolderDrop } from '../drop';

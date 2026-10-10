@@ -4,7 +4,7 @@ import {
   type QueryClient,
 } from '@tanstack/react-query';
 import { GetAllPaths } from '@bindings/services/filetreeservice';
-import { useWailsEvent } from './events';
+import { useWailsEvent, useWailsEvents } from './events';
 import {
   FILE_CREATE,
   FILE_DELETE,
@@ -70,17 +70,12 @@ export function useAllPathsInvalidation() {
     });
   };
 
-  useWailsEvent(FOLDER_CREATE, invalidate);
-  useWailsEvent(FILE_CREATE, invalidate);
-  useWailsEvent(FOLDER_DELETE, invalidate);
-  useWailsEvent(FILE_DELETE, invalidate);
+  useWailsEvents(
+    [FOLDER_CREATE, FILE_CREATE, FOLDER_DELETE, FILE_DELETE],
+    invalidate
+  );
   useWailsEvent(FOLDER_RENAME, (event) => {
-    const renames = (
-      (event.data as Array<{
-        oldFolderPath: string;
-        newFolderPath: string;
-      }>) ?? []
-    ).map((item) => ({
+    const renames = event.data.map((item) => ({
       oldPath: item.oldFolderPath,
       newPath: item.newFolderPath,
     }));
@@ -88,9 +83,7 @@ export function useAllPathsInvalidation() {
     invalidate();
   });
   useWailsEvent(FILE_RENAME, (event) => {
-    const renames = (
-      (event.data as Array<{ oldFilePath: string; newFilePath: string }>) ?? []
-    ).map((item) => ({
+    const renames = event.data.map((item) => ({
       oldPath: item.oldFilePath,
       newPath: item.newFilePath,
     }));

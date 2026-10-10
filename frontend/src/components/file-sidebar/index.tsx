@@ -39,8 +39,8 @@ import { MyKernelsAccordion } from './my-kernels-accordion/index';
 import { MySavedSearchesAccordion } from './my-saved-searches-accordion/index';
 import { Tooltip } from '@components/tooltip/index';
 import { cn } from '@utils/string-formatting';
-import { useWailsEvent } from '@hooks/events';
-import { isEventInCurrentWindow, SIDEBAR_FILES_OPEN } from '@utils/events';
+import { useCurrentWindowWailsEvent } from '@hooks/events';
+import { SIDEBAR_FILES_OPEN } from '@utils/events';
 
 const SIDEBAR_ACCORDIONS = {
   files: MyFilesAccordion,
@@ -155,12 +155,9 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
     ),
   };
 
-  useWailsEvent(SIDEBAR_FILES_OPEN, (data) => {
-    void (async () => {
-      if (!(await isEventInCurrentWindow(data))) return;
-      setIsFileMaximized(false);
-      setOpenState((prev) => ({ ...prev, files: true }));
-    })();
+  useCurrentWindowWailsEvent(SIDEBAR_FILES_OPEN, () => {
+    setIsFileMaximized(false);
+    setOpenState((prev) => ({ ...prev, files: true }));
   });
 
   return (

@@ -11,7 +11,7 @@ import type { DragContext } from '../context';
 /** Block reorder: user grabbed the in-note drag handle. */
 export const blockReorder = {
   dragOver(event: DragEvent, ctx: DragContext): boolean {
-    return ctx.updateBlockTargetLine(event);
+    return ctx.updateBlockTargetLine(event) ?? false;
   },
 
   drop(event: DragEvent, ctx: DragContext): boolean {

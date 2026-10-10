@@ -48,37 +48,3 @@ export function createGhostElementFromHtmlElement({
   }
   return ghostElement;
 }
-
-// Throttles a function so it fires immediately then at most once per wait interval, trailing calls are coalesced.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const throttle = <T extends (...args: any[]) => any>(
-  fn: T,
-  wait = 300
-): ((...args: Parameters<T>) => ReturnType<T>) => {
-  let inThrottle: boolean;
-  let lastFn: ReturnType<typeof setTimeout>;
-  let lastTime: number;
-
-  return function (
-    this: unknown,
-    ...args: Parameters<T>
-  ): ReturnType<T> | undefined {
-    if (!inThrottle) {
-      const result: ReturnType<T> = fn.apply(this, args) as ReturnType<T>;
-      lastTime = Date.now();
-      inThrottle = true;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      return result;
-    }
-    clearTimeout(lastFn);
-    lastFn = setTimeout(
-      () => {
-        if (Date.now() - lastTime >= wait) {
-          fn.apply(this, args);
-          lastTime = Date.now();
-        }
-      },
-      Math.max(wait - (Date.now() - lastTime), 0)
-    );
-  } as (...args: Parameters<T>) => ReturnType<T>;
-};

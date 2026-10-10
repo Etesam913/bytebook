@@ -1,15 +1,11 @@
 import { useSetAtom } from 'jotai';
 import { isFileMaximizedAtom } from '@/atoms';
-import { useWailsEvent } from '@hooks/events';
-import {
-  isEventInCurrentWindow,
-  TOGGLE_SIDEBAR,
-  type WailsEvent,
-} from '@utils/events';
+import { useCurrentWindowWailsEvent } from '@hooks/events';
+import { TOGGLE_SIDEBAR } from '@utils/events';
 import { LegacyAnimationControls } from 'motion';
 import { easingFunctions } from '@/animations';
 import { logger } from '@utils/logging';
-import { createLeadingThrottle } from '@utils/general';
+import { createLeadingThrottle } from '@utils/timing';
 
 const throttleSidebarToggle = createLeadingThrottle(250);
 
@@ -22,19 +18,16 @@ export function useToggleSidebarEvent(
 ): void {
   const setIsFileMaximized = useSetAtom(isFileMaximizedAtom);
 
-  useWailsEvent(TOGGLE_SIDEBAR, (data: WailsEvent) => {
-    void (async () => {
-      if (!(await isEventInCurrentWindow(data))) return;
-      if (!throttleSidebarToggle('sidebar')) return;
-      logger.event(TOGGLE_SIDEBAR);
-      setIsFileMaximized((prev) => {
-        void animationControls.start({
-          x: prev ? [-40, 0] : [50, 0],
-          transition: { ease: easingFunctions['ease-out-quint'] },
-        });
-
-        return !prev;
+  useCurrentWindowWailsEvent(TOGGLE_SIDEBAR, () => {
+    if (!throttleSidebarToggle('sidebar')) return;
+    logger.event(TOGGLE_SIDEBAR);
+    setIsFileMaximized((prev) => {
+      void animationControls.start({
+        x: prev ? [-40, 0] : [50, 0],
+        transition: { ease: easingFunctions['ease-out-quint'] },
       });
-    })();
+
+      return !prev;
+    });
   });
 }

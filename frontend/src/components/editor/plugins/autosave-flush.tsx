@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import type { Debounced } from '@hooks/debounce';
+import type { Debounced } from '@utils/timing';
 import type { noteHandleChange } from '../utils/note-commands';
 
 /**

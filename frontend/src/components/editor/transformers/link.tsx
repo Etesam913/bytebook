@@ -1,13 +1,13 @@
 import type { TextMatchTransformer } from '@lexical/markdown';
 import { $createTextNode, $isTextNode } from 'lexical';
+import { WAILS_URL } from '@utils/general';
 import {
   encodeLinkUrl,
   encodeLinkAltText,
   decodeLinkAltText,
   isInternalLink,
   unescapeUnderscore,
-} from '@utils/string-formatting';
-import { WAILS_URL } from '@utils/general';
+} from '@components/editor/utils/markdown-links';
 import {
   $createLinkNode,
   $isAutoLinkNode,

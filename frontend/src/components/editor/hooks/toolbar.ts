@@ -1,7 +1,7 @@
 import { mergeRegister } from '@lexical/utils';
 import { useQuery } from '@tanstack/react-query';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { isEventInCurrentWindow, SEARCH_NOTE } from '@utils/events';
+import { SEARCH_NOTE } from '@utils/events';
 import {
   $getSelection,
   $isNodeSelection,
@@ -52,7 +52,7 @@ import { handleKeyboardShortcuts } from '../utils/hotkeys';
 import { parseFrontMatter } from '../utils/note-metadata';
 import { OPEN_LINK_EDITOR_COMMAND } from '../nodes/link';
 import { $openLinkEditor, updateToolbar } from '../utils/toolbar';
-import { useWailsEvent } from '@hooks/events';
+import { useCurrentWindowWailsEvent } from '@hooks/events';
 import { $convertFromMarkdownString } from '@lexical/markdown';
 import type { PlaceholderLineData } from '../types';
 import { updatePlaceholderLineData } from '../utils/placeholder-line';
@@ -374,11 +374,8 @@ export function useSearchNoteEvent(): [
 ] {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  useWailsEvent(SEARCH_NOTE, (data) => {
-    void (async () => {
-      if (!(await isEventInCurrentWindow(data))) return;
-      setIsSearchOpen((prev) => !prev);
-    })();
+  useCurrentWindowWailsEvent(SEARCH_NOTE, () => {
+    setIsSearchOpen((prev) => !prev);
   });
 
   return [isSearchOpen, setIsSearchOpen];

@@ -5,8 +5,8 @@ import { $getNearestNodeFromDOMNode, isDOMNode } from 'lexical';
 import { useEffect } from 'react';
 import { navigate } from 'wouter/use-browser-location';
 import { WAILS_URL } from '@utils/general';
-import { isInternalLink } from '@utils/string-formatting';
 import { openLinkInBrowser } from '../utils/link';
+import { isInternalLink } from '@components/editor/utils/markdown-links';
 
 /**
  * Routes clicks on links: note links navigate in-app, everything else opens

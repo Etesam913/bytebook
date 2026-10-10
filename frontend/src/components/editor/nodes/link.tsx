@@ -7,7 +7,7 @@ import {
 } from 'lexical';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Note } from '@/icons/page';
-import { isInternalLink } from '@utils/string-formatting';
+import { isInternalLink } from '@components/editor/utils/markdown-links';
 
 export const OPEN_LINK_EDITOR_COMMAND: LexicalCommand<void> = createCommand(
   'OPEN_LINK_EDITOR_COMMAND'

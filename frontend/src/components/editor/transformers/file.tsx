@@ -2,11 +2,13 @@ import type { TextMatchTransformer } from '@lexical/markdown';
 import { $createFileNode, $isFileNode, FileNode } from '../nodes/file';
 import {
   addQueryParam,
-  escapeFileContentForMarkdown,
   getQueryParamValue,
   removeQueryParam,
+} from '@components/editor/utils/query-params';
+import {
+  escapeFileContentForMarkdown,
   unescapeFileContentFromMarkdown,
-} from '@utils/string-formatting';
+} from '@components/editor/utils/markdown-links';
 
 const srcRegex = /\/notes\/([^/]+)\/([^/]+)\//;
 

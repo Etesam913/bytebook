@@ -168,12 +168,8 @@ async function getKernelCompletions({
   if (!res.success || !messageId) return [];
 
   return new Promise((resolve) => {
-    let settled = false;
-
     pendingCompletions.set(messageId, (payload) => {
       pendingCompletions.delete(messageId);
-      if (settled) return;
-      settled = true;
 
       if (payload.status !== 'ok') {
         resolve([]);
@@ -194,12 +190,6 @@ async function getKernelCompletions({
           )
       );
     });
-
-    setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      resolve([]);
-    }, COMPLETION_DEADLINE_MS);
 
     setTimeout(() => {
       pendingCompletions.delete(messageId);

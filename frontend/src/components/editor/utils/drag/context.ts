@@ -32,7 +32,7 @@ export type DragContext = {
   dragAndDropCaretMotionValues: DragAndDropCaretMotionValues;
   setDraggableBlockElement: (el: HTMLElement | null) => void;
   /** Pre-throttled block-reorder target-line updater. */
-  updateBlockTargetLine: (event: DragEvent) => boolean;
+  updateBlockTargetLine: (event: DragEvent) => boolean | undefined;
 };
 
 /** Syncs the custom vertical caret to the pointer. */

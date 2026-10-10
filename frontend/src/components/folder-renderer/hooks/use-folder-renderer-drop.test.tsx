@@ -27,8 +27,10 @@ void mock.module('../../../hooks/events', () => ({
   useWailsEvent: (name: string, callback: (event: unknown) => void) => {
     wailsEventCallbacks.set(name, callback);
   },
+  useWailsEvents: () => {},
+  useCurrentWindowWailsEvent: () => {},
 }));
-void mock.module('../../../hooks/wails-drag', () => ({
+void mock.module('../../../utils/wails-drag', () => ({
   installWailsDragHandlers: (handlers: typeof wailsDragHandlers) => {
     wailsDragHandlers = handlers;
     return () => {

@@ -2,19 +2,8 @@ import '@/test/setup';
 import { describe, it, expect } from 'bun:test';
 import {
   cn,
-  getQueryParamValue,
-  addQueryParam,
-  removeQueryParam,
-  isInternalLink,
   getTagNameFromSelectionRange,
   parseRGB,
-  escapeQuotes,
-  encodeLinkUrl,
-  encodeLinkAltText,
-  decodeLinkAltText,
-  escapeFileContentForMarkdown,
-  unescapeFileContentFromMarkdown,
-  unescapeUnderscore,
 } from './string-formatting';
 
 describe('cn', () => {
@@ -28,94 +17,6 @@ describe('cn', () => {
 
   it('returns an empty string for no inputs', () => {
     expect(cn()).toBe('');
-  });
-});
-
-describe('getQueryParamValue', () => {
-  it('returns the value of a present query param', () => {
-    expect(getQueryParamValue('https://example.com/x?foo=bar', 'foo')).toBe(
-      'bar'
-    );
-  });
-
-  it('returns null for a missing query param', () => {
-    expect(
-      getQueryParamValue('https://example.com/x?foo=bar', 'baz')
-    ).toBeNull();
-  });
-
-  it('returns null when the URL has no query string', () => {
-    expect(getQueryParamValue('https://example.com/x', 'foo')).toBeNull();
-  });
-
-  it('handles multiple params correctly', () => {
-    const url = 'https://example.com/x?a=1&b=2&c=3';
-    expect(getQueryParamValue(url, 'a')).toBe('1');
-    expect(getQueryParamValue(url, 'b')).toBe('2');
-    expect(getQueryParamValue(url, 'c')).toBe('3');
-  });
-});
-
-describe('addQueryParam', () => {
-  it('appends a new query string when none exists', () => {
-    expect(addQueryParam('https://example.com/x', 'foo', 'bar')).toBe(
-      'https://example.com/x?foo=bar'
-    );
-  });
-
-  it('updates an existing key in place', () => {
-    expect(addQueryParam('https://example.com/x?foo=old', 'foo', 'new')).toBe(
-      'https://example.com/x?foo=new'
-    );
-  });
-
-  it('appends a new key while preserving other params', () => {
-    expect(addQueryParam('https://example.com/x?a=1', 'b', '2')).toBe(
-      'https://example.com/x?a=1&b=2'
-    );
-  });
-});
-
-describe('removeQueryParam', () => {
-  it('removes the target key while keeping other params', () => {
-    expect(removeQueryParam('https://example.com/x?a=1&b=2', 'a')).toBe(
-      'https://example.com/x?b=2'
-    );
-  });
-
-  it('drops the leading "?" when the last param is removed', () => {
-    expect(removeQueryParam('https://example.com/x?foo=bar', 'foo')).toBe(
-      'https://example.com/x'
-    );
-  });
-
-  it('is a no-op when the URL has no query string', () => {
-    expect(removeQueryParam('https://example.com/x', 'foo')).toBe(
-      'https://example.com/x'
-    );
-  });
-
-  it('is a no-op when the key is absent', () => {
-    expect(removeQueryParam('https://example.com/x?a=1', 'b')).toBe(
-      'https://example.com/x?a=1'
-    );
-  });
-});
-
-describe('isInternalLink', () => {
-  it('returns true for wails: URLs', () => {
-    expect(isInternalLink('wails:foo')).toBe(true);
-    expect(isInternalLink('wails://host/path')).toBe(true);
-  });
-
-  it('returns false for external URLs', () => {
-    expect(isInternalLink('https://example.com')).toBe(false);
-    expect(isInternalLink('http://example.com')).toBe(false);
-    expect(isInternalLink('mailto:a@b.com')).toBe(false);
-  });
-
-  it('returns false for empty string', () => {
-    expect(isInternalLink('')).toBe(false);
   });
 });
 
@@ -164,78 +65,5 @@ describe('parseRGB', () => {
     expect(parseRGB('not a color')).toBeNull();
     expect(parseRGB('hsl(0, 0%, 0%)')).toBeNull();
     expect(parseRGB('')).toBeNull();
-  });
-});
-
-describe('escapeQuotes', () => {
-  it('escapeQuotes prepends backslashes to single and double quotes', () => {
-    expect(escapeQuotes(`a"b'c`)).toBe(`a\\"b\\'c`);
-  });
-});
-
-describe('encodeLinkUrl', () => {
-  it('URL-encodes and escapes parentheses', () => {
-    expect(encodeLinkUrl('https://example.com/path(test)')).toBe(
-      'https%3A%2F%2Fexample.com%2Fpath%28test%29'
-    );
-  });
-
-  it('escapes both opening and closing parens explicitly', () => {
-    expect(encodeLinkUrl('(')).toBe('%28');
-    expect(encodeLinkUrl(')')).toBe('%29');
-  });
-});
-
-describe('encodeLinkAltText / decodeLinkAltText', () => {
-  it('encodes square brackets to %30 and %31', () => {
-    expect(encodeLinkAltText('foo[bar]')).toBe('foo%30bar%31');
-  });
-
-  it('decodes %30 and %31 back to square brackets', () => {
-    expect(decodeLinkAltText('foo%30bar%31')).toBe('foo[bar]');
-  });
-
-  it('round-trips arbitrary text', () => {
-    const input = 'a [nested [list]] item';
-    expect(decodeLinkAltText(encodeLinkAltText(input))).toBe(input);
-  });
-
-  it('leaves other characters untouched', () => {
-    expect(encodeLinkAltText('plain text')).toBe('plain text');
-  });
-});
-
-describe('escapeFileContentForMarkdown / unescapeFileContentFromMarkdown', () => {
-  it('escapes backslashes, brackets, and parens', () => {
-    expect(escapeFileContentForMarkdown('file[name](test)')).toBe(
-      'file%30name%31\\(test\\)'
-    );
-  });
-
-  it('escapes a literal backslash before other transforms', () => {
-    // Source string is 3 chars: 'a', backslash, 'b'.
-    expect(escapeFileContentForMarkdown('a\\b')).toBe('a\\\\b');
-  });
-
-  it.each([
-    'file[name](test)',
-    'a\\b',
-    'mixed [a](b) \\ () []',
-    'plain text',
-    '',
-  ])('round-trips %j', (input) => {
-    expect(
-      unescapeFileContentFromMarkdown(escapeFileContentForMarkdown(input))
-    ).toBe(input);
-  });
-});
-
-describe('unescapeUnderscore', () => {
-  it('replaces escaped underscores with plain underscores', () => {
-    expect(unescapeUnderscore('foo\\_bar')).toBe('foo_bar');
-  });
-
-  it('leaves non-escaped underscores untouched', () => {
-    expect(unescapeUnderscore('foo_bar')).toBe('foo_bar');
   });
 });

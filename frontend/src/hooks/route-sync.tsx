@@ -4,13 +4,12 @@ import { useAtomValue, useSetAtom } from 'jotai';
 import { useLocation, useSearchParams } from 'wouter';
 import { navigate } from 'wouter/use-browser-location';
 import { isFileMaximizedAtom, mostRecentItemsAtom } from '@/atoms';
-import { useWailsEvent } from './events';
+import { useWailsEvent, useCurrentWindowWailsEvent } from './events';
 import {
   FILE_DELETE,
   FOLDER_DELETE,
   FILE_RENAME,
   FOLDER_RENAME,
-  isEventInCurrentWindow,
   NAVIGATE_BACK,
   NAVIGATE_FORWARD,
 } from '@utils/events';
@@ -35,18 +34,12 @@ import {
 
 /** Handles native back and forward navigation events for the current window. */
 export function useHistoryNavigationEvents(): void {
-  useWailsEvent(NAVIGATE_BACK, (event) => {
-    void (async () => {
-      if (!(await isEventInCurrentWindow(event))) return;
-      window.history.back();
-    })();
+  useCurrentWindowWailsEvent(NAVIGATE_BACK, () => {
+    window.history.back();
   });
 
-  useWailsEvent(NAVIGATE_FORWARD, (event) => {
-    void (async () => {
-      if (!(await isEventInCurrentWindow(event))) return;
-      window.history.forward();
-    })();
+  useCurrentWindowWailsEvent(NAVIGATE_FORWARD, () => {
+    window.history.forward();
   });
 }
 
@@ -117,13 +110,8 @@ export function useSyncRouteWithRenames(): void {
   };
 
   useWailsEvent(FOLDER_RENAME, (event) => {
-    const rawData =
-      (event.data as Array<{
-        oldFolderPath: string;
-        newFolderPath: string;
-      }>) ?? [];
     navigateIfCurrentPathRenamed({
-      renames: rawData.map((item) => ({
+      renames: event.data.map((item) => ({
         oldPath: item.oldFolderPath,
         newPath: item.newFolderPath,
       })),
@@ -132,10 +120,8 @@ export function useSyncRouteWithRenames(): void {
   });
 
   useWailsEvent(FILE_RENAME, (event) => {
-    const rawData =
-      (event.data as Array<{ oldFilePath: string; newFilePath: string }>) ?? [];
     navigateIfCurrentPathRenamed({
-      renames: rawData.map((item) => ({
+      renames: event.data.map((item) => ({
         oldPath: item.oldFilePath,
         newPath: item.newFilePath,
       })),
