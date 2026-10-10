@@ -173,9 +173,13 @@ describe('createFilePath', () => {
     expect(fp?.fullPath).toBe('my folder/some note.md');
   });
 
-  it('returns null when the last segment has no extension', () => {
-    expect(createFilePath('foo/bar')).toBeNull();
-    expect(createFilePath('justaname')).toBeNull();
+  it('treats a last segment with no dot as a file with an empty extension', () => {
+    const fp = createFilePath('foo/Makefile');
+    expect(fp?.type).toBe('file');
+    expect(fp?.extension).toBe('');
+    expect(fp?.noteWithoutExtension).toBe('Makefile');
+    expect(fp?.fileUrl).toBe('/notes/foo/Makefile');
+    expect(createFilePath('justaname')?.extension).toBe('');
   });
 
   it('returns null for an empty or slash-only path', () => {

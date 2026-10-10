@@ -17,6 +17,7 @@ func TestNoteNavigationServesApp(t *testing.T) {
 	require.NoError(t, os.MkdirAll(filepath.Join(project, "notes", "folder.v1"), 0755))
 	require.NoError(t, os.WriteFile(filepath.Join(project, "notes", "note.md"), []byte("# Note"), 0644))
 	require.NoError(t, os.WriteFile(filepath.Join(project, "notes", "image.svg"), []byte("<svg/>"), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(project, "notes", "doc.pdf"), []byte("%PDF-1.4"), 0644))
 	assets := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
 			w.Header().Set("Content-Type", "text/html")
@@ -59,5 +60,25 @@ func TestNoteNavigationServesApp(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.Equal(t, "<svg/>", rec.Body.String())
+	})
+	t.Run("embedded PDF iframe receives raw file bytes", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/notes/doc.pdf?embed", nil)
+		req.Header.Set("Accept", "text/html,application/xhtml+xml,*/*;q=0.8")
+		rec := httptest.NewRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, "%PDF-1.4", rec.Body.String())
+	})
+	t.Run("top-level PDF navigation still loads the app", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/notes/doc.pdf", nil)
+		req.Header.Set("Accept", "text/html,application/xhtml+xml,*/*;q=0.8")
+		rec := httptest.NewRecorder()
+
+		handler.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, "<html>Bytebook</html>", rec.Body.String())
 	})
 }

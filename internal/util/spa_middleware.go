@@ -14,6 +14,13 @@ import (
 func SPAFallbackMiddleware() application.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Embedded PDF iframes send Accept: text/html but need the file bytes.
+			// WKWebView sends no Fetch Metadata, so the frontend marks them with ?embed.
+			if isEmbeddedRequest(r) {
+				next.ServeHTTP(w, r)
+				return
+			}
+
 			// Note routes share URLs with raw attachments. Document navigation must
 			// reach the app shell before LocalFileMiddleware can serve file bytes.
 			if isHTMLNavigation(r) && strings.HasPrefix(r.URL.Path, "/notes/") {
@@ -57,6 +64,12 @@ func SPAFallbackMiddleware() application.Middleware {
 
 func shouldAttemptSPAFallback(r *http.Request) bool {
 	return isHTMLNavigation(r) && path.Ext(r.URL.Path) == ""
+}
+
+// isEmbeddedRequest reports whether the request is an embedded document (such
+// as a PDF iframe) that needs file bytes rather than the app shell.
+func isEmbeddedRequest(r *http.Request) bool {
+	return r.URL.Query().Has("embed")
 }
 
 func isHTMLNavigation(r *http.Request) bool {

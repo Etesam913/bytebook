@@ -155,20 +155,19 @@ export function createFilePath(filePath: string): FilePath | null {
 
   const lastSegment = normalizedPath.split('/').pop();
 
-  // The filePath has to point to a file, not a folder
-  if (!lastSegment || !lastSegment.includes('.')) {
+  if (!lastSegment) {
     return null;
   }
 
   const folder = normalizedPath.split('/').slice(0, -1).join('/');
   const note = lastSegment;
-  const extension = lastSegment.split('.').pop()?.toLowerCase();
-  if (!note || !extension) {
+  // A name without a dot is a file with no extension; a trailing dot is invalid.
+  const lastDotIndex = note.lastIndexOf('.');
+  if (lastDotIndex !== -1 && lastDotIndex === note.length - 1) {
     return null;
   }
-
-  // Compute noteWithoutExtension by finding the last dot and taking everything before it
-  const lastDotIndex = note.lastIndexOf('.');
+  const extension =
+    lastDotIndex === -1 ? '' : note.substring(lastDotIndex + 1).toLowerCase();
   const noteWithoutExtension =
     lastDotIndex === -1 ? note : note.substring(0, lastDotIndex);
   const encodedPath = normalizedPath

@@ -25,7 +25,7 @@ describe('buildFileTreeDragPayload', () => {
   });
 
   it('skips paths that are neither a valid file nor folder', () => {
-    const payload = buildFileTreeDragPayload(['Makefile', 'a/note.md']);
+    const payload = buildFileTreeDragPayload(['a/note.', 'a/note.md']);
 
     expect(payload).toBe('wails:/notes/a/note.md');
   });

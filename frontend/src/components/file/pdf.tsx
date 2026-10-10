@@ -53,7 +53,7 @@ export function Pdf({
             'w-full h-[calc(100%-1.4rem)] rounded-md',
             draggedGhostElement && 'pointer-events-none'
           )}
-          src={src}
+          src={`${src}?embed`}
         />
       </div>
     </div>

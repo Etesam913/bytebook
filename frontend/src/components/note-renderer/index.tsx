@@ -15,8 +15,7 @@ export function NoteRenderer({ filePath }: { filePath: FilePath }) {
   const isMarkdown = extension === 'md';
   const isImage = extension && IMAGE_FILE_EXTENSIONS.includes(extension);
   const isVideo = extension && VIDEO_FILE_EXTENSIONS.includes(extension);
-  const isUnknownFile =
-    !isPdf && !isMarkdown && !isImage && !isVideo && extension;
+  const isUnknownFile = !isPdf && !isMarkdown && !isImage && !isVideo;
 
   if (isPdf) {
     return (
@@ -25,7 +24,7 @@ export function NoteRenderer({ filePath }: { filePath: FilePath }) {
         animate={animationControls}
       >
         <iframe
-          src={filePath.fileUrl}
+          src={`${filePath.fileUrl}?embed`}
           className="w-full h-full min-w-0 flex-1"
         />
       </motion.div>
