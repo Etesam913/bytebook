@@ -60,7 +60,7 @@ import { applyCodeResultsSidecar } from '../utils/code-results';
 import type { FilePath } from '@utils/path';
 import { queryKeys } from '@utils/query-keys';
 
-/** Gets note markdown from local system on mount */
+/** Fetches a note snapshot and loads it into the editor when it changes */
 export function useNoteMarkdown({
   editor,
   filePath,
@@ -79,8 +79,6 @@ export function useNoteMarkdown({
   const getNoteMarkdownQuery = useQuery({
     queryKey: queryKeys.noteMarkdown(filePath.fullPath),
     queryFn: async () => {
-      // Reset previous markdown when loading a new note
-      setPreviousMarkdown('');
       const res = await GetNoteMarkdownWithCodeResults(
         `notes/${filePath.fullPath}`
       );
@@ -89,45 +87,57 @@ export function useNoteMarkdown({
           `Failed to get note markdown for ${filePath.fullPath}`
         );
       }
-
-      editor.setEditable(true);
-      // You don't want a different note to access the same history when you switch notes
-      editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
-      const markdownWithFrontmatter = res.data?.markdown ?? '';
-      setPreviousMarkdown(markdownWithFrontmatter);
-
-      editor.update(
-        () => {
-          // Clear formatting
-          setCurrentSelectionFormat((prev) => {
-            for (const format of prev)
-              editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
-            return [];
-          });
-          const markdown = markdownWithFrontmatter;
-
-          const { frontMatter, content } = parseFrontMatter(markdown);
-
-          setFrontmatter(frontMatter);
-
-          $convertFromMarkdownString(
-            content,
-            CUSTOM_TRANSFORMERS,
-            undefined,
-            true,
-            false
-          );
-          applyCodeResultsSidecar(res.data?.codeResults);
-
-          // Scroll to top of page after note markdown has loaded in
-          overflowContainerRef.current?.scrollTo(0, 0);
-        },
-        { tag: ['note:initial-load', SKIP_DOM_SELECTION_TAG] }
-      );
-
-      return markdownWithFrontmatter;
+      return {
+        markdown: res.data?.markdown ?? '',
+        codeResults: res.data?.codeResults,
+      };
     },
   });
+
+  const snapshot = getNoteMarkdownQuery.data;
+
+  // The single place a fetched note is applied to the editor
+  useEffect(() => {
+    if (!snapshot) return;
+    editor.setEditable(true);
+    // A different note must not share undo history
+    editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
+    setPreviousMarkdown(snapshot.markdown);
+
+    editor.update(
+      () => {
+        // Clear formatting
+        setCurrentSelectionFormat((prev) => {
+          for (const format of prev)
+            editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
+          return [];
+        });
+
+        const { frontMatter, content } = parseFrontMatter(snapshot.markdown);
+        setFrontmatter(frontMatter);
+
+        $convertFromMarkdownString(
+          content,
+          CUSTOM_TRANSFORMERS,
+          undefined,
+          true,
+          false
+        );
+        applyCodeResultsSidecar(snapshot.codeResults);
+
+        overflowContainerRef.current?.scrollTo(0, 0);
+      },
+      { tag: ['note:initial-load', SKIP_DOM_SELECTION_TAG] }
+    );
+  }, [
+    editor,
+    snapshot,
+    overflowContainerRef,
+    setCurrentSelectionFormat,
+    setFrontmatter,
+    setPreviousMarkdown,
+  ]);
+
   return { getNoteMarkdownQuery };
 }
 
