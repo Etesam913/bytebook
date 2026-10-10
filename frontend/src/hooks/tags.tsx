@@ -22,7 +22,7 @@ export function useTagEvents() {
   useWailsEvent(TAGS_INDEX_UPDATE, () => {
     logger.event(TAGS_INDEX_UPDATE);
 
-    void queryClient.invalidateQueries({ queryKey: queryKeys.tagsAll() });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.tags() });
     // Prefix invalidation: notes-tags queries are keyed by an array of paths
     // (possibly multiple, e.g. the edit-tag dialog), so a single-path key
     // would never partial-match them.
@@ -41,16 +41,15 @@ export function useTagEvents() {
  */
 export function useTagsQuery() {
   return useQuery({
-    queryKey: queryKeys.tagsAll(),
+    queryKey: queryKeys.tags(),
     queryFn: async (): Promise<string[]> =>
       (await getBackendResponseData(GetTags())) ?? [],
   });
 }
 
 /**
- *
- * @param paths - An array of folder and note paths with .ext at the end
- * @returns A result map containing a map of note paths to their tags
+ * @param paths - Note paths with extensions
+ * @returns A map of note path to its tags
  */
 export function useTagsForNotesQuery(paths: string[]) {
   return useQuery({

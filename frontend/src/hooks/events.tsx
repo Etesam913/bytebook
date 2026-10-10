@@ -1,15 +1,6 @@
 import { Events as WailsEvents } from '@wailsio/runtime';
 import { useEffect, useRef } from 'react';
 
-/**
- * A Wails event. For event names registered on the backend, `data` is typed
- * via the generated `Events.CustomEvents` augmentation in
- * bindings/github.com/wailsapp/wails/v3/internal/eventdata.d.ts.
- */
-export type WailsEvent<
-  E extends WailsEvents.WailsEventName = WailsEvents.WailsEventName,
-> = WailsEvents.WailsEvent<E>;
-
 /** Helper to do something when a wails event is emitted from the backend */
 export function useWailsEvent<E extends WailsEvents.WailsEventName>(
   eventName: E,

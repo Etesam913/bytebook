@@ -27,7 +27,7 @@ export function useInspectTooltip({
   pendingInspections: Map<string, (data: HoverTooltipData) => void>;
 }) {
   useWailsEvent(CODE_BLOCK_INSPECT_REPLY, (body) => {
-    logger.event('code:code-block:inspect_reply', body);
+    logger.event(CODE_BLOCK_INSPECT_REPLY, body);
     const inspectData = body.data;
     if (!inspectData.found) {
       // Resolve the pending promise with null so the tooltip knows there's nothing to show

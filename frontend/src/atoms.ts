@@ -44,7 +44,7 @@ function atomWithLogging<T>(name: string, initialValue: T) {
         typeof update === 'function'
           ? (update as (prev: T) => T)(prev)
           : update;
-      logger.state(name, { prev, next: newValue });
+      if (import.meta.env.DEV) logger.state(name, { prev, next: newValue });
       set(baseAtom, newValue);
     }
   );

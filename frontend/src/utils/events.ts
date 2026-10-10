@@ -1,5 +1,13 @@
-import { Window } from '@wailsio/runtime';
-import { WailsEvent } from '@hooks/events';
+import { Events as WailsEvents, Window } from '@wailsio/runtime';
+
+/**
+ * A Wails event. For event names registered on the backend, `data` is typed
+ * via the generated `Events.CustomEvents` augmentation in
+ * bindings/github.com/wailsapp/wails/v3/internal/eventdata.d.ts.
+ */
+export type WailsEvent<
+  E extends WailsEvents.WailsEventName = WailsEvents.WailsEventName,
+> = WailsEvents.WailsEvent<E>;
 
 // Event name constants — mirrors internal/util/events.go
 // Frontend-only events are noted below.
@@ -21,6 +29,8 @@ export const ZOOM_OUT = 'zoom:out';
 export const ZOOM_RESET = 'zoom:reset';
 export const SETTINGS_OPEN = 'settings:open';
 export const SEARCH_NOTE = 'search:note';
+export const QUICK_OPEN = 'navigation:quick-open';
+export const COMMAND_PALETTE_OPEN = 'commands:open';
 export const FULLSCREEN = 'window:fullscreen';
 export const TOGGLE_SIDEBAR = 'sidebar:toggle';
 export const SIDEBAR_FILES_OPEN = 'sidebar:files:open';
@@ -33,6 +43,7 @@ export const NAVIGATE_FORWARD = 'navigation:forward';
 
 // File watcher events
 export const SETTINGS_UPDATE = 'settings:update';
+export const TAGS_UPDATE = 'tags:update';
 export const TAGS_INDEX_UPDATE = 'tags:index_update';
 export const SAVED_SEARCH_UPDATE = 'saved-search:update';
 export const CODE_RESULTS_UPDATE = 'code-results:update';
@@ -55,6 +66,7 @@ export const CODE_BLOCK_IOPUB_ERROR = 'code:code-block:iopub_error';
 export const CODE_BLOCK_INPUT_REQUEST = 'code:code-block:input_request';
 export const CODE_BLOCK_INSPECT_REPLY = 'code:code-block:inspect_reply';
 export const CODE_BLOCK_COMPLETE_REPLY = 'code:code-block:complete_reply';
+export const CODE_BLOCK_EXECUTE_REPLY = 'code:code-block:execute_reply';
 
 // Returns true if the Wails event was emitted by the current window.
 export async function isEventInCurrentWindow(data: WailsEvent) {
@@ -62,7 +74,3 @@ export async function isEventInCurrentWindow(data: WailsEvent) {
   if (windowName !== data.sender) return false;
   return true;
 }
-
-export const QUICK_OPEN = 'navigation:quick-open';
-
-export const COMMAND_PALETTE_OPEN = 'commands:open';

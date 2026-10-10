@@ -10,7 +10,7 @@ import {
 } from 'react';
 import { Components, Virtuoso } from 'react-virtuoso';
 import { sidebarSelectionAtom } from '@/atoms';
-import { useOnInteractOutside } from '@hooks/general';
+import { useInteractOutside } from 'react-aria';
 import { cn } from '@utils/string-formatting';
 import type { SetSelectionUpdater } from '@utils/selection';
 import { VirtualizedListItem } from './virtualized-list-item';
@@ -117,29 +117,32 @@ export function VirtualizedList<T>({
   ]);
   usePreventBoundaryOverscrollFlicker({ scrollElementRef: internalListRef });
 
-  useOnInteractOutside(internalListRef, (e) => {
-    if (!isRegularMouseClick(e)) return;
+  useInteractOutside({
+    ref: internalListRef,
+    onInteractOutside: (e) => {
+      if (!isRegularMouseClick(e)) return;
 
-    // Check if the click is on a sidebar item button (including nested children like SVGs)
-    const target = e.target as HTMLElement;
-    const clickedButton = target.closest('button');
-    const isSidebarItemClick =
-      clickedButton?.classList.contains('list-sidebar-item');
+      // Check if the click is on a sidebar item button (including nested children like SVGs)
+      const target = e.target as HTMLElement;
+      const clickedButton = target.closest('button');
+      const isSidebarItemClick =
+        clickedButton?.classList.contains('list-sidebar-item');
 
-    if (isSidebarItemClick) {
-      return;
-    }
+      if (isSidebarItemClick) {
+        return;
+      }
 
-    if (selectionRange.size === 0 || contentType === undefined) return;
-    const selectionSetAsArray = Array.from(selectionRange);
-    /*
+      if (selectionRange.size === 0 || contentType === undefined) return;
+      const selectionSetAsArray = Array.from(selectionRange);
+      /*
 			When a click is detected outside of the sidebar and the selection is of the same
 			type as the contentType, then you can clear the selection. You do not want a
 			file sidebar onClickOutside to clear the selection for a note valid click
 		*/
-    if (selectionSetAsArray[0].startsWith(contentType)) {
-      setSelectionRange(() => new Set());
-    }
+      if (selectionSetAsArray[0].startsWith(contentType)) {
+        setSelectionRange(() => new Set());
+      }
+    },
   });
 
   const items = data ?? [];

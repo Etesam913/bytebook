@@ -101,10 +101,7 @@ export function TagAccordionButton({
         className="will-change-transform"
       />
       <p className="whitespace-nowrap text-ellipsis overflow-hidden">
-        {sidebarTagName}{' '}
-        {/* {tagPreviewCount !== undefined && (
-          <span className="tracking-wider">({tagPreviewCount})</span>
-        )} */}
+        {sidebarTagName}
       </p>
     </Button>
   );

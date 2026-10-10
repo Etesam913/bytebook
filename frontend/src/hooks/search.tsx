@@ -29,7 +29,11 @@ import {
 import { useDebouncedValue } from '@hooks/general';
 import { createFilePath, type FilePath } from '@utils/path';
 import { toast } from 'sonner';
-import { QueryError, getBackendResponseData } from '@utils/query';
+import {
+  QueryError,
+  getBackendResponseData,
+  requireBackendResponseData,
+} from '@utils/query';
 import { queryKeys } from '@utils/query-keys';
 
 export type NoteSearchResult = {
@@ -61,10 +65,6 @@ export type SearchResult = NoteSearchResult | AttachmentSearchResult;
 type FullTextSearchPageResponse = NonNullable<
   Awaited<ReturnType<typeof FullTextSearch>>['data']
 >;
-
-type RegenerateSearchIndexMutationOptions = {
-  onSuccess?: () => void | Promise<void>;
-};
 
 function mapFullTextSearchResults(
   data: FullTextSearchPageResponse['results'] | undefined
@@ -106,24 +106,21 @@ const searchQueries = {
     queryOptions({
       queryKey: queryKeys.fileSearch(query, limit),
       queryFn: async () => {
-        const response = await FullTextSearch(query, [], limit);
-        if (!response.success || !response.data)
-          throw new QueryError(response.message);
+        const data = await requireBackendResponseData(
+          FullTextSearch(query, [], limit)
+        );
         return {
-          results: mapFullTextSearchResults(response.data.results),
-          hasMore: response.data.hasMore,
+          results: mapFullTextSearchResults(data.results),
+          hasMore: data.hasMore,
         };
       },
-      retry: false,
       staleTime: 0,
       gcTime: 60_000,
-      refetchOnWindowFocus: false,
     }),
   savedSearches: () =>
     queryOptions({
       queryKey: queryKeys.savedSearches(),
       queryFn: () => getBackendResponseData(GetAllSavedSearches()),
-      retry: false,
     }),
 };
 
@@ -147,7 +144,6 @@ export function useTreeFilterPathsQuery({
     },
     enabled,
     placeholderData: keepPreviousData,
-    refetchOnWindowFocus: false,
   });
 }
 
@@ -240,18 +236,16 @@ export function useSavedSearchUpdates() {
 
   useWailsEvent(SAVED_SEARCH_UPDATE, () => {
     void queryClient.invalidateQueries({
-      queryKey: searchQueries.savedSearches().queryKey,
+      queryKey: queryKeys.savedSearches(),
     });
   });
 }
 
 /**
  * Hook to regenerate the search index.
- * Shows success/error toast notifications with a loading spinner.
+ * Shows a loading toast, then a success toast.
  */
-export function useRegenerateSearchIndexMutation(
-  options?: RegenerateSearchIndexMutationOptions
-) {
+export function useRegenerateSearchIndexMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -263,19 +257,15 @@ export function useRegenerateSearchIndexMutation(
         }
         return response;
       })();
+      // Errors toast via the global MutationCache handler
       toast.promise(resultPromise, {
         loading: 'Regenerating search index...',
         success: (data) => data.message,
-        error: (err) =>
-          err instanceof QueryError
-            ? err.message
-            : 'Failed to regenerate search index',
       });
       return await resultPromise;
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: queryKeys.tagsAll() });
-      await options?.onSuccess?.();
+      await queryClient.invalidateQueries({ queryKey: queryKeys.tags() });
     },
   });
 }

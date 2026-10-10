@@ -285,10 +285,6 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
     });
   }
 
-  setStreamResult(streamText: string, editor: LexicalEditor): void {
-    this.setExecutionResult(streamText, editor);
-  }
-
   setIsWaitingForInput(
     isWaitingForInput: boolean,
     editor: LexicalEditor
@@ -303,8 +299,9 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
       const writable = this.getWritable();
       this.setIsWaitingForInput(true, editor);
 
-      writable.__lastExecutedResult += `<div class="prompt-block flex gap-2 items-center flex-wrap"><label>${inputPrompt.prompt}</label><span><input class="bg-zinc-100 dark:bg-zinc-800 px-1.5 py-1" type="${inputPrompt.isPassword ? 'password' : 'text'
-        }"/><button type="submit" class="ml-2 px-2 py-1 bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600">Submit</button></span></div>`;
+      writable.__lastExecutedResult += `<div class="prompt-block flex gap-2 items-center flex-wrap"><label>${inputPrompt.prompt}</label><span><input class="bg-zinc-100 dark:bg-zinc-800 px-1.5 py-1" type="${
+        inputPrompt.isPassword ? 'password' : 'text'
+      }"/><button type="submit" class="ml-2 px-2 py-1 bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600">Submit</button></span></div>`;
       writable.__lastRan = new Date().toISOString();
     });
   }
@@ -345,13 +342,6 @@ export class CodeNode extends DecoratorNode<JSX.Element> {
 
   getId(): string {
     return this.__id;
-  }
-
-  setLanguage(language: Languages, editor: LexicalEditor): void {
-    editor.update(() => {
-      const writable = this.getWritable();
-      writable.__language = language;
-    });
   }
 
   getExecutionId() {

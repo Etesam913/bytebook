@@ -1,4 +1,3 @@
-import type { Dispatch, KeyboardEvent, SetStateAction } from 'react';
 import { SidebarContentType } from '@/types';
 
 /** Selects are represent as strings with a separator between the prefix and value.
@@ -78,20 +77,4 @@ export function handleContextMenuSelection({
   return newSelectionRange;
 }
 
-// Handles Escape key in the editor: exits maximized mode or moves focus to the selected note button.
-/**
- * Handles escape key behavior in the editor, toggling maximized state and managing focus.
- * @param e - The keyboard event
- * @param isFileMaximized - Boolean indicating if file is currently maximized
- * @param setIsFileMaximized - State setter function for the maximized state
- */
-export function handleEditorEscape(
-  e: KeyboardEvent,
-  isFileMaximized: boolean,
-  setIsFileMaximized: Dispatch<SetStateAction<boolean>>
-) {
-  if (e.key === 'Escape' && isFileMaximized) {
-    setIsFileMaximized(false);
-  }
-}
 export const FILE_SELECTION_PREFIX = 'file';

@@ -63,12 +63,6 @@ const languageCommandData: {
     icon: <GolangLogo />,
     name: 'Go',
   },
-  // {
-  //   id: 'java',
-  //   keywords: ['java', 'coffee'],
-  //   icon: <JavaLogo />,
-  //   name: 'Java',
-  // },
   {
     languageName: LANGUAGES.PYTHON,
     keywords: ['python', 'py'],
@@ -81,37 +75,12 @@ const languageCommandData: {
     icon: <JavascriptLogo />,
     name: 'Javascript',
   },
-  // {
-  //   id: 'react',
-  //   keywords: ['javascript', 'react', 'jsx'],
-  //   icon: <ReactLogo />,
-  //   name: 'React',
-  // },
-  // { id: 'rust', keywords: ['rust', 'rs'], icon: <RustLogo />, name: 'Rust' },
   {
     languageName: LANGUAGES.JAVA,
     keywords: ['java', 'jjava'],
     icon: <JavaLogo />,
     name: 'Java',
   },
-  // { id: 'c', keywords: ['c', 'c++', 'clang'], icon: <CppLogo />, name: 'C' },
-  // {
-  //   id: 'angular',
-  //   keywords: ['javascript', 'angular', 'js', 'google'],
-  //   icon: <AngularLogo />,
-  //   name: 'Angular',
-  // },
-  // {
-  //   id: 'vue',
-  //   keywords: ['javascript', 'vue', 'js'],
-  //   icon: <VueLogo />,
-  //   name: 'Vue',
-  // },
-  // {
-  //   id: 'svelte',
-  //   keywords: ['javascript', 'svelte', 'js'],
-  //   icon: <SvelteLogo height="17" width="17" />,
-  //   name: 'Svelte',
 ];
 /**
  * Generates a list of base options for the dropdown picker menu in the Lexical editor.

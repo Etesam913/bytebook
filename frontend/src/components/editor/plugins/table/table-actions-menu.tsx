@@ -148,18 +148,23 @@ function TableCellActionMenuContainer({
     );
   }, [editor, tableCellNode]);
 
-  useEffect(() => {
-    editor.getEditorState().read(() => {
-      const selection = $getSelection();
-      if ($isTableSelection(selection)) {
-        const currentSelectionCounts = computeSelectionCount(selection);
-        setCanMergeCells(
-          currentSelectionCounts.columns > 1 || currentSelectionCounts.rows > 1
-        );
-      }
-      setCanUnmergeCell($canUnmerge());
-    });
-  }, [editor]);
+  // Selection changes while the menu is closed, so recompute when it opens
+  function handleOpenChange(open: boolean) {
+    if (open) {
+      editor.getEditorState().read(() => {
+        const selection = $getSelection();
+        if ($isTableSelection(selection)) {
+          const currentSelectionCounts = computeSelectionCount(selection);
+          setCanMergeCells(
+            currentSelectionCounts.columns > 1 ||
+              currentSelectionCounts.rows > 1
+          );
+        }
+        setCanUnmergeCell($canUnmerge());
+      });
+    }
+    setIsMenuOpen(open);
+  }
 
   const checkTableCellOverflow = (
     tableCellParentNodeDOM: HTMLElement
@@ -493,7 +498,7 @@ function TableCellActionMenuContainer({
   return (
     <div className="table-cell-action-button-container" ref={menuButtonRef}>
       {tableCellNode != null && (
-        <AppMenuTrigger isOpen={isMenuOpen} onOpenChange={setIsMenuOpen}>
+        <AppMenuTrigger isOpen={isMenuOpen} onOpenChange={handleOpenChange}>
           <Button
             aria-label="Table cell actions"
             className="table-cell-action-button outline-hidden"
@@ -552,7 +557,7 @@ function TableCellActionMenuContainer({
   );
 }
 
-export default function TableActionMenuPlugin({
+export function TableActionMenuPlugin({
   anchorElem = document.body,
 }: {
   anchorElem?: HTMLElement;

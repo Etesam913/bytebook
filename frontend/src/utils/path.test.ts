@@ -248,12 +248,4 @@ describe('createFolderPath', () => {
       expect(path?.encodedFolderUrl).toBe(`/notes/releases/${name}`);
     }
   );
-
-  it('equals() compares by fullPath', () => {
-    const a = createFolderPath('foo/bar')!;
-    const b = createFolderPath('foo/bar/')!;
-    const c = createFolderPath('foo/baz')!;
-    expect(a.equals(b)).toBe(true);
-    expect(a.equals(c)).toBe(false);
-  });
 });

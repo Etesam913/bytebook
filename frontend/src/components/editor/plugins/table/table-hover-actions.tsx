@@ -126,7 +126,7 @@ function isCellWithinScrollableWrapper(cell: HTMLTableCellElement): boolean {
   );
 }
 
-function TableHoverActionsV2({
+function TableHoverActions({
   anchorElem,
 }: {
   anchorElem: HTMLElement;
@@ -451,7 +451,7 @@ function TableHoverActionsV2({
   );
 }
 
-export default function TableHoverActionsV2Plugin({
+export function TableHoverActionsPlugin({
   anchorElem = document.body,
 }: {
   anchorElem?: HTMLElement;
@@ -460,7 +460,7 @@ export default function TableHoverActionsV2Plugin({
 
   return isEditable
     ? createPortal(
-        <TableHoverActionsV2 anchorElem={anchorElem} />,
+        <TableHoverActions anchorElem={anchorElem} />,
         // Fixed coordinates must stay outside the editor's CSS query container.
         document.body
       )

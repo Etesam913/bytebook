@@ -27,16 +27,16 @@ import {
   type SidebarPanelKey,
 } from '@/atoms';
 import { MotionIconButton } from '@components/buttons/index';
-import { BottomItems } from './bottom-items.tsx';
-import { MyFilesAccordion } from './my-files-accordion/index.tsx';
-import { MyTagsAccordion } from './my-tags-accordion/index.tsx';
-import { PinnedAccordion } from './pinned-accordion.tsx';
-import { RecentAccordion } from './recent-accordion.tsx';
-import { Spacer } from './spacer.tsx';
+import { BottomItems } from './bottom-items';
+import { MyFilesAccordion } from './my-files-accordion/index';
+import { MyTagsAccordion } from './my-tags-accordion/index';
+import { PinnedAccordion } from './pinned-accordion';
+import { RecentAccordion } from './recent-accordion';
+import { Spacer } from './spacer';
 import { CircleArrowLeft } from '@/icons/circle-arrow-left';
 import { CircleArrowRight } from '@/icons/circle-arrow-right';
-import { MyKernelsAccordion } from './my-kernels-accordion/index.tsx';
-import { MySavedSearchesAccordion } from './my-saved-searches-accordion/index.tsx';
+import { MyKernelsAccordion } from './my-kernels-accordion/index';
+import { MySavedSearchesAccordion } from './my-saved-searches-accordion/index';
 import { Tooltip } from '@components/tooltip/index';
 import { cn } from '@utils/string-formatting';
 import { useWailsEvent } from '@hooks/events';

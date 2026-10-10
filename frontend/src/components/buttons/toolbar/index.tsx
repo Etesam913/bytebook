@@ -102,19 +102,24 @@ export function ToolbarButtons({
         tooltip: 'Strikethrough',
         shortcut: '⌘⇧X',
       },
-    ] as const
+    ] as const satisfies readonly {
+      icon: ReactNode;
+      key: TextFormatType;
+      tooltip: string;
+      shortcut: string;
+    }[]
   ).map(({ icon, key, tooltip, shortcut }) => ({
     icon,
     key,
     tooltip,
     shortcut,
-    isSelected: currentSelectionFormat.includes(key as TextFormatType),
+    isSelected: currentSelectionFormat.includes(key),
     onToggle: () =>
       handleToolbarTextFormattingClick({
         editor,
         currentSelectionFormat,
         setCurrentSelectionFormat,
-        textFormat: key as TextFormatType,
+        textFormat: key,
       }),
   }));
 

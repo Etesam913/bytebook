@@ -149,7 +149,7 @@ export function useProjectSettings() {
  * update fails. On success, the backend's 'settings:update' event re-applies
  * the authoritative values.
  *
- * @returns  Te mutation object from useMutation.
+ * @returns The mutation object from useMutation.
  */
 export function useUpdateProjectSettingsMutation() {
   return useMutation({

@@ -46,19 +46,9 @@ export const ROUTE_PATTERNS = {
 // Route builders - functions to construct routes with parameters
 const routeBuilders = {
   /**
-   * Build root route
-   */
-  root: () => '/',
-
-  /**
    * Build kernel route
    */
   kernel: (kernelName: string) => `/kernels/${encodeURIComponent(kernelName)}`,
-
-  /**
-   * Build folder route
-   */
-  folder: (folderName: string) => `/notes/${encodeURIComponent(folderName)}`,
 
   /**
    * Build 404 fallback route

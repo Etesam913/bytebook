@@ -22,7 +22,6 @@ import { isFileMaximizedAtom } from '@/atoms';
 import { projectSettingsAtom } from '@/atoms';
 import type { FloatingDataType, Frontmatter } from '@/types';
 import { isTableOfContentsVisible } from '@utils/project-settings';
-import { handleEditorEscape } from '@utils/selection';
 import { cn } from '@utils/string-formatting';
 import { BottomBar } from './bottom-bar';
 import { editorConfig } from './editor-config';
@@ -31,20 +30,20 @@ import { AutosaveFlush } from './plugins/autosave-flush';
 import { CodePlugin } from './plugins/code';
 import { ComponentPickerMenuPlugin } from './plugins/component-picker';
 import { HorizontalRulePlugin } from '@lexical/react/LexicalHorizontalRulePlugin';
-import { CustomMarkdownShortcutPlugin } from './plugins/custom-markdown-shortcut.tsx';
-import { DraggableBlockPlugin } from './plugins/draggable-block.tsx';
-import { EmptyLinePlaceholderPlugin } from './plugins/empty-line-placeholder.tsx';
+import { CustomMarkdownShortcutPlugin } from './plugins/custom-markdown-shortcut';
+import { DraggableBlockPlugin } from './plugins/draggable-block';
+import { EmptyLinePlaceholderPlugin } from './plugins/empty-line-placeholder';
 import { FilesPlugin } from './plugins/file';
-import { FilePickerMenuPlugin } from './plugins/file-picker.tsx';
-import { FocusPlugin } from './plugins/focus.tsx';
+import { FilePickerMenuPlugin } from './plugins/file-picker';
+import { FocusPlugin } from './plugins/focus';
 import { LinkedMentions } from './linked-mentions';
 import { Tags } from './tags';
 import { AutoLinkPlugin } from '@lexical/react/LexicalAutoLinkPlugin';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
 import { LinkClickPlugin } from './plugins/link-click';
 import { LINK_MATCHERS } from './utils/link';
-import { SavePlugin } from './plugins/save.tsx';
-import { TableOfContentsPlugin } from './plugins/table-of-contents.tsx';
+import { SavePlugin } from './plugins/save';
+import { TableOfContentsPlugin } from './plugins/table-of-contents';
 import { Toolbar } from './toolbar';
 import { CUSTOM_TRANSFORMERS } from './transformers';
 import { noteHandleChange } from './utils/note-commands.ts';
@@ -54,8 +53,8 @@ import { useLspNoteLifecycle } from '@hooks/lsp';
 import { useNoteIntersectionObserver } from './hooks/intersection-observer';
 import { FilePath } from '@utils/path';
 import type { PlaceholderLineData } from './types';
-import TableHoverActionsV2Plugin from './plugins/table/table-hover-actions.tsx';
-import TableActionMenuPlugin from './plugins/table/table-actions-menu.tsx';
+import { TableHoverActionsPlugin } from './plugins/table/table-hover-actions';
+import { TableActionMenuPlugin } from './plugins/table/table-actions-menu';
 import { usePreventBoundaryOverscrollFlicker } from '@components/virtualized/virtualized-list/hooks';
 // import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 // import { TreeView } from '@lexical/react/LexicalTreeView';
@@ -121,7 +120,7 @@ export function NotesEditor({
 
   // Use custom hooks for code cleanup and intersection observer
   useCodeCleanup(noteContainerRef);
-  useNoteIntersectionObserver(folder, note, noteContainerRef);
+  useNoteIntersectionObserver({ folder, note, noteContainerRef });
   useLspNoteLifecycle();
 
   return (
@@ -191,11 +190,9 @@ export function NotesEditor({
                     <ContentEditable
                       onContextMenu={(e) => e.stopPropagation()}
                       onKeyDown={(e) => {
-                        handleEditorEscape(
-                          e,
-                          isFileMaximized,
-                          setIsFileMaximized
-                        );
+                        if (e.key === 'Escape' && isFileMaximized) {
+                          setIsFileMaximized(false);
+                        }
                         setDraggableBlockElement(null);
                       }}
                       id="content-editable-editor"
@@ -230,7 +227,7 @@ export function NotesEditor({
               <TableActionMenuPlugin
                 anchorElem={editorAnchorElem ?? document.body}
               />
-              <TableHoverActionsV2Plugin
+              <TableHoverActionsPlugin
                 anchorElem={editorAnchorElem ?? document.body}
               />
               <SavePlugin filePath={filePath} setFrontmatter={setFrontmatter} />

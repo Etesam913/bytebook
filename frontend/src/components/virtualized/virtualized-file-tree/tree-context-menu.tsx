@@ -8,7 +8,7 @@ import { useRef } from 'react';
 import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { AppMenu, AppMenuItem } from '@components/menu';
-import { useOnInteractOutside } from '@hooks/general';
+import { useInteractOutside } from 'react-aria';
 import { projectSettingsAtom } from '@/atoms';
 import {
   createFilePath,
@@ -315,11 +315,11 @@ function TreeMenuPopover({
     isOpen: true,
   });
 
-  useOnInteractOutside(
-    menuRef,
-    () => onClose({ restoreFocus: false }),
-    !isSelfDismissing
-  );
+  useInteractOutside({
+    ref: menuRef,
+    onInteractOutside: () => onClose({ restoreFocus: false }),
+    isDisabled: isSelfDismissing,
+  });
 
   // A standalone Tab press should close the menu. RAC normally leaves that to
   // its Popover, but pierre owns open/close of its menu and only closes on

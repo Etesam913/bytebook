@@ -5,11 +5,15 @@ import {
   noteSeenFileNodeKeysAtom,
 } from '../atoms';
 
-export function useNoteIntersectionObserver(
-  folder: string,
-  note: string,
-  noteContainerRef: React.RefObject<HTMLDivElement | null>
-) {
+export function useNoteIntersectionObserver({
+  folder,
+  note,
+  noteContainerRef,
+}: {
+  folder: string;
+  note: string;
+  noteContainerRef: React.RefObject<HTMLDivElement | null>;
+}) {
   const setNoteIntersectionObserver = useSetAtom(noteIntersectionObserverAtom);
   const setSeenFileNodeKeys = useSetAtom(noteSeenFileNodeKeysAtom);
 

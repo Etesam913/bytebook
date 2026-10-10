@@ -1,5 +1,4 @@
-import { type RefObject, useEffect, useState } from 'react';
-import { useInteractOutside } from 'react-aria';
+import { useEffect, useState } from 'react';
 
 export function useDebouncedValue<T>(value: T, delayMs: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -10,13 +9,4 @@ export function useDebouncedValue<T>(value: T, delayMs: number): T {
   }, [value, delayMs]);
 
   return debouncedValue;
-}
-
-/** Fires when a pointer interaction completes outside `ref`. Presses that start inside are ignored. */
-export function useOnInteractOutside(
-  ref: RefObject<HTMLElement | null>,
-  handler: (event: PointerEvent) => void,
-  isDisabled = false
-): void {
-  useInteractOutside({ ref, onInteractOutside: handler, isDisabled });
 }

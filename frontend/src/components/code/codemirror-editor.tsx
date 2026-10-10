@@ -128,7 +128,6 @@ export function CodeMirrorEditor({
   const projectSettings = useAtomValue(projectSettingsAtom);
   const [, setSelected, clearSelection] = useLexicalNodeSelection(nodeKey);
   const isInNodeSelection = useNodeInNodeSelection(lexicalEditor, nodeKey);
-  const internalCodeMirrorRef = useRef<ReactCodeMirrorRef | null>(null);
   const lspNotifyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
@@ -171,7 +170,6 @@ export function CodeMirrorEditor({
   }, [projectSettings.code.codeBlockVimMode]);
 
   function handleEditorRef(instance: ReactCodeMirrorRef | null) {
-    internalCodeMirrorRef.current = instance;
     setCodeMirrorInstance(instance);
     const didRestoreViewState = restoreCodeMirrorViewState(instance);
     if (instance?.view && isCreatedNow && !didRestoreViewState) {

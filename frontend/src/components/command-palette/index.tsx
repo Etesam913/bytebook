@@ -16,11 +16,12 @@ import {
   isFileMaximizedAtom,
   treeFilterQueryAtom,
 } from '@/atoms';
-import { useWailsEvent, type WailsEvent } from '@hooks/events';
+import { useWailsEvent } from '@hooks/events';
 import {
   isEventInCurrentWindow,
   QUICK_OPEN,
   COMMAND_PALETTE_OPEN,
+  type WailsEvent,
 } from '@utils/events';
 
 export function CommandPalette() {

@@ -109,7 +109,6 @@ export function replaceLastPathSegment(
 ): string {
   const hadTrailingSlash = path.endsWith('/');
   const segments = stripTrailingSlash(path).split('/');
-  if (segments.length === 0) return newLastSegment;
   segments[segments.length - 1] = newLastSegment;
   return segments.join('/') + (hadTrailingSlash ? '/' : '');
 }
@@ -121,7 +120,6 @@ export interface FolderPath {
   folderUrl: string;
   encodedPath: string;
   encodedFolderUrl: string;
-  equals(other: FolderPath): boolean;
 }
 
 /** Represents a path to a file in the bytebook app */
@@ -221,8 +219,5 @@ export function createFolderPath(folderPath: string): FolderPath | null {
     folderUrl: `/notes/${normalizedPath}`,
     encodedPath: `${encodedPath}/`,
     encodedFolderUrl: `/notes/${encodedPath}`,
-    equals(other: FolderPath) {
-      return this.fullPath === other.fullPath;
-    },
   };
 }

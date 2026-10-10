@@ -72,7 +72,6 @@ export function useKernelInstancesQuery() {
   const { data: instances } = useQuery({
     queryKey: queryKeys.kernelInstances(),
     staleTime: Infinity,
-    refetchOnWindowFocus: false,
     queryFn: async () => {
       const data = await requireBackendResponseData(ListKernels());
 
@@ -232,12 +231,17 @@ function resetCodeNodesForInstance(editor: LexicalEditor, instanceId: string) {
 /**
  * Updates a code block node in the editor.
  */
-function updateCodeBlock(
-  editor: LexicalEditor,
-  codeBlockId: string,
-  callback: (codeNodeToUpdate: CodeNode) => void,
-  executionId?: string
-) {
+function updateCodeBlock({
+  editor,
+  codeBlockId,
+  callback,
+  executionId,
+}: {
+  editor: LexicalEditor;
+  codeBlockId: string;
+  callback: (codeNodeToUpdate: CodeNode) => void;
+  executionId?: string;
+}) {
   editor.update(() => {
     const codeNodes = $nodesOfType(CodeNode);
     const codeNodeToUpdate = codeNodes.find(
@@ -261,9 +265,13 @@ export function useCodeBlockStatus(editor: LexicalEditor) {
     if (!isKernelStatus(data.status)) return;
     const status = data.status;
     const [codeBlockId] = data.messageId.split('|');
-    updateCodeBlock(editor, codeBlockId, (codeNode) => {
-      codeNode.setStatus(status, editor);
-      codeNode.setDuration(data.duration, editor);
+    updateCodeBlock({
+      editor,
+      codeBlockId,
+      callback: (codeNode) => {
+        codeNode.setStatus(status, editor);
+        codeNode.setDuration(data.duration, editor);
+      },
     });
   });
 }
@@ -280,14 +288,14 @@ export function useCodeBlockExecuteResult(editor: LexicalEditor) {
         executionResultContent.push(content);
       }
     }
-    updateCodeBlock(
+    updateCodeBlock({
       editor,
       codeBlockId,
-      (codeNode) => {
+      callback: (codeNode) => {
         codeNode.setExecutionResult(executionResultContent.join('\n'), editor);
       },
-      executionId
-    );
+      executionId,
+    });
   });
 }
 
@@ -297,14 +305,14 @@ export function useCodeBlockExecuteInput(editor: LexicalEditor) {
     logger.event(CODE_BLOCK_EXECUTE_INPUT);
     const data = body.data;
     const [codeBlockId, executionId] = data.messageId.split('|');
-    updateCodeBlock(
+    updateCodeBlock({
       editor,
       codeBlockId,
-      (codeNode) => {
+      callback: (codeNode) => {
         codeNode.setExecutionCount(data.executionCount, editor);
       },
-      executionId
-    );
+      executionId,
+    });
   });
 }
 
@@ -314,14 +322,14 @@ export function useCodeBlockStream(editor: LexicalEditor) {
     logger.event(CODE_BLOCK_STREAM);
     const data = body.data;
     const [codeBlockId, executionId] = data.messageId.split('|');
-    updateCodeBlock(
+    updateCodeBlock({
       editor,
       codeBlockId,
-      (codeNode) => {
-        codeNode.setStreamResult(data.text, editor);
+      callback: (codeNode) => {
+        codeNode.setExecutionResult(data.text, editor);
       },
-      executionId
-    );
+      executionId,
+    });
   });
 }
 
@@ -331,10 +339,10 @@ export function useCodeBlockIOPubError(editor: LexicalEditor) {
     logger.event(CODE_BLOCK_IOPUB_ERROR, body);
     const data = body.data;
     const [codeBlockId, executionId] = data.messageId.split('|');
-    updateCodeBlock(
+    updateCodeBlock({
       editor,
       codeBlockId,
-      (codeNode) => {
+      callback: (codeNode) => {
         const errorName =
           data.errorName && data.errorName.trim().length > 0
             ? `<div style="font-size: 0.7rem" class="text-zinc-500 dark:text-zinc-300">Error Name: ${data.errorName}</div>`
@@ -349,8 +357,8 @@ export function useCodeBlockIOPubError(editor: LexicalEditor) {
         const fullError = `${errorTraceback} ${errorName} ${errorValue}`;
         codeNode.setTracebackResult(fullError, editor);
       },
-      executionId
-    );
+      executionId,
+    });
   });
 }
 
@@ -365,14 +373,14 @@ export function useCodeBlockDisplayData(editor: LexicalEditor) {
         displayData[mimeType] = content;
       }
     }
-    updateCodeBlock(
+    updateCodeBlock({
       editor,
       codeBlockId,
-      (codeNode) => {
+      callback: (codeNode) => {
         codeNode.setDisplayResult(displayData, editor);
       },
-      executionId
-    );
+      executionId,
+    });
   });
 }
 
@@ -382,10 +390,10 @@ export function useCodeBlockInputRequest(editor: LexicalEditor) {
     logger.event(CODE_BLOCK_INPUT_REQUEST, body);
     const data = body.data;
     const [codeBlockId, executionId] = data.messageId.split('|');
-    updateCodeBlock(
+    updateCodeBlock({
       editor,
       codeBlockId,
-      (codeNode) => {
+      callback: (codeNode) => {
         codeNode.setInputPrompt(
           {
             prompt: data.prompt,
@@ -394,8 +402,8 @@ export function useCodeBlockInputRequest(editor: LexicalEditor) {
           editor
         );
       },
-      executionId
-    );
+      executionId,
+    });
   });
 }
 

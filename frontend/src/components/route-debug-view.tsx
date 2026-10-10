@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useLocation, useRoute, useSearchParams } from 'wouter';
 import { ROUTE_PATTERNS } from '@utils/routes';
+import { cn } from '@utils/string-formatting';
 
 const MAX_HISTORY = 20;
 
@@ -141,7 +142,10 @@ export function RouteDebugView() {
       dragElastic={0}
       dragConstraints={dragConstraints}
       style={{ x: dragX, y: dragY }}
-      className={`fixed bottom-2 right-2 z-[9999] ${isCollapsed ? 'w-[260px]' : 'w-[480px]'} max-h-[80vh] flex flex-col rounded-xl border border-zinc-300 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-lg font-mono text-xs overflow-hidden`}
+      className={cn(
+        'fixed bottom-2 right-2 z-[9999] max-h-[80vh] flex flex-col rounded-xl border border-zinc-300 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-lg font-mono text-xs overflow-hidden',
+        isCollapsed ? 'w-[260px]' : 'w-[480px]'
+      )}
     >
       <div
         onPointerDown={(e) => dragControls.start(e)}

@@ -31,7 +31,6 @@ export function useAllPaths() {
   return useQuery({
     queryKey: queryKeys.allPaths(),
     staleTime: Infinity,
-    refetchOnWindowFocus: false,
     queryFn: () => requireBackendResponseData(GetAllPaths()),
   });
 }

@@ -1,7 +1,11 @@
 import { useSetAtom } from 'jotai';
 import { isFileMaximizedAtom } from '@/atoms';
-import { useWailsEvent, type WailsEvent } from '@hooks/events';
-import { isEventInCurrentWindow, TOGGLE_SIDEBAR } from '@utils/events';
+import { useWailsEvent } from '@hooks/events';
+import {
+  isEventInCurrentWindow,
+  TOGGLE_SIDEBAR,
+  type WailsEvent,
+} from '@utils/events';
 import { LegacyAnimationControls } from 'motion';
 import { easingFunctions } from '@/animations';
 import { logger } from '@utils/logging';
@@ -22,7 +26,7 @@ export function useToggleSidebarEvent(
     void (async () => {
       if (!(await isEventInCurrentWindow(data))) return;
       if (!throttleSidebarToggle('sidebar')) return;
-      logger.event('sidebar:toggle');
+      logger.event(TOGGLE_SIDEBAR);
       setIsFileMaximized((prev) => {
         void animationControls.start({
           x: prev ? [-40, 0] : [50, 0],

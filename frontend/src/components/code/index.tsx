@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import type { CodeMirrorRef } from './types';
 import { EditorSelection } from '@codemirror/state';
 import { $getRoot, $isElementNode, type LexicalNode } from 'lexical';
+import { $isCodeNode } from '@components/editor/nodes/code';
 import { Loader } from '@/icons/loader';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
@@ -41,7 +42,7 @@ function findCodeBlockOrder(nodeKey: string): number {
   let foundOrder = 0;
 
   function visit(node: LexicalNode): boolean {
-    if (node.getType() === 'code') {
+    if ($isCodeNode(node)) {
       if (node.getKey() === nodeKey) {
         foundOrder = order;
         return true;

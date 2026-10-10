@@ -57,8 +57,12 @@ const allowExecute = createLeadingThrottle(250);
 /**
  * Executes the code present in the given CodeMirror editor instance.
  */
-function runCode(
-  codeMirrorInstance: CodeMirrorRef,
+function runCode({
+  codeMirrorInstance,
+  executeCode,
+  onSuccess,
+}: {
+  codeMirrorInstance: CodeMirrorRef;
   executeCode: UseMutateFunction<
     void,
     Error,
@@ -67,9 +71,9 @@ function runCode(
       newExecutionId: string;
     },
     unknown
-  >,
-  onSuccess?: () => void
-) {
+  >;
+  onSuccess?: () => void;
+}) {
   const newExecutionId = crypto.randomUUID();
   const code = codeMirrorInstance?.view?.state.doc.toString();
   if (code === null || code === undefined) return;
@@ -142,7 +146,7 @@ export function handleRunOrInterruptCode({
         onSuccess: () => {
           // Brief delay to let the heartbeat goroutine confirm the kernel is alive
           // before we send the execute_request.
-          setTimeout(() => runCode(codeMirrorInstance, executeCode), 300);
+          setTimeout(() => runCode({ codeMirrorInstance, executeCode }), 300);
         },
       }
     );
@@ -157,7 +161,7 @@ export function handleRunOrInterruptCode({
     });
   } else {
     if (!allowExecute(codeBlockId)) return false;
-    runCode(codeMirrorInstance, executeCode);
+    runCode({ codeMirrorInstance, executeCode });
   }
   return true;
 }

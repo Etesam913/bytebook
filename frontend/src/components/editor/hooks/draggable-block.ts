@@ -12,8 +12,8 @@ import {
 } from 'lexical';
 import { type RefObject, useEffect } from 'react';
 import { draggableBlockElementAtom, draggedGhostElementAtom } from '../atoms';
-import { useWailsEvent, type WailsEvent } from '@hooks/events';
-import { EDITOR_CONTENT_DROP } from '@utils/events';
+import { useWailsEvent } from '@hooks/events';
+import { EDITOR_CONTENT_DROP, type WailsEvent } from '@utils/events';
 import { createFilePath, type FilePath } from '@utils/path';
 import { throttle } from '@utils/draggable';
 import { useAddDroppedFilesToFolderMutation } from '@hooks/tree-items';

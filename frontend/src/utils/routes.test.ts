@@ -20,12 +20,6 @@ describe('ROUTE_PATTERNS', () => {
 });
 
 describe('routeUrls', () => {
-  describe('root', () => {
-    it('returns root route', () => {
-      expect(routeUrls.root()).toBe('/');
-    });
-  });
-
   describe('kernel', () => {
     it('builds kernel route with encoded name', () => {
       expect(routeUrls.kernel('python')).toBe('/kernels/python');
@@ -40,30 +34,6 @@ describe('routeUrls', () => {
 
     it('handles empty kernel name', () => {
       expect(routeUrls.kernel('')).toBe('/kernels/');
-    });
-  });
-
-  describe('folder', () => {
-    it('builds folder route with encoded name', () => {
-      expect(routeUrls.folder('Economics Notes')).toBe(
-        '/notes/Economics%20Notes'
-      );
-      expect(routeUrls.folder('Research Notes')).toBe(
-        '/notes/Research%20Notes'
-      );
-    });
-
-    it('encodes special characters in folder name', () => {
-      expect(routeUrls.folder('My Folder/Subfolder')).toBe(
-        '/notes/My%20Folder%2FSubfolder'
-      );
-      expect(routeUrls.folder('Folder & More')).toBe(
-        '/notes/Folder%20%26%20More'
-      );
-    });
-
-    it('handles empty folder name', () => {
-      expect(routeUrls.folder('')).toBe('/notes/');
     });
   });
 

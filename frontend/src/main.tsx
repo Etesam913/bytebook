@@ -39,11 +39,6 @@ const queryClient = new QueryClient({
     },
   }),
 });
-
-// Be careful with this, it makes hmr significantly slower
-// scan({
-//   enabled: true,
-// });
 ReactDOM.createRoot(rootElem).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>

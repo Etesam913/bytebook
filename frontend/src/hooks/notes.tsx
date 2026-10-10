@@ -277,10 +277,8 @@ export function useNoteWriteEvent({
 }
 
 /**
- * Custom hook to check if a note exists in a given folder
- * @param folder - The folder path to check
- * @param note - The note name to check
- * @param fileExtension - The file extension of the note
+ * Checks whether a note exists on disk.
+ * @param filePath - The note path, or null when no note is selected
  * @returns Query result indicating if the note exists
  */
 export function useNoteExists(filePath: FilePath | null) {

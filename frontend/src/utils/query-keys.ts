@@ -21,7 +21,7 @@ export const queryKeys = {
   linkedMentions: (fullPath: string) => ['linked-mentions', fullPath] as const,
 
   // Tags
-  tagsAll: () => ['get-tags'] as const,
+  tags: () => ['get-tags'] as const,
   notesTagsAll: () => ['notes-tags'] as const,
   notesTags: (paths: string[]) => ['notes-tags', paths] as const,
 
