@@ -65,7 +65,7 @@ flowchart TD
   L3 -->|ping and reply| I
   L3 --> Z1[kernel:instance:heartbeat]
 
-  X1 --> FE[frontend useCodeBlock hooks]
+  X1 --> FE[frontend useCodeBlockEvents]
   X2 --> FE
   X3 --> FE
   X4 --> FE

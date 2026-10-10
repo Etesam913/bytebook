@@ -7,7 +7,7 @@ import { MotionButton } from '@components/buttons';
 import { getDefaultButtonVariants } from '@/animations';
 import { PythonVenvDialog } from '@components/editor/python-venv-dialog';
 import { FolderOpen } from '@/icons/folder-open';
-import { usePythonVenvSubmitMutation } from '@hooks/code';
+import { usePythonVenvSubmitMutation } from '@hooks/code/kernels';
 import { FontFamilyRow } from './appearance/font-family-row';
 import { FontSizeRow } from './appearance/font-size-row';
 import { DefaultLanguageRow } from './default-language-row';

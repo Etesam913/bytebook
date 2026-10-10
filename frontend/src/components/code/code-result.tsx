@@ -4,7 +4,7 @@ import { MotionIconButton } from '@components/buttons';
 import { Duplicate2 } from '@/icons/duplicate-2';
 import { motion } from 'motion/react';
 import { cn } from '@utils/string-formatting';
-import { useSendInputReplyMutation } from '@hooks/code';
+import { useSendInputReplyMutation } from '@hooks/code/code-execution';
 import type { CodeBlockResultProps } from './types';
 
 const RUNNING_STATUS_TEXT = 'Running';

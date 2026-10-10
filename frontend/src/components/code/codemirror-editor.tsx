@@ -5,11 +5,11 @@ import CodeMirror, { type ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { EditorView, tooltips } from '@codemirror/view';
 import type { Extension } from '@codemirror/state';
 import { useDebouncedCallback } from '@hooks/debounce';
+import { useEnsureKernelMutation } from '@hooks/code/kernels';
 import {
-  useEnsureKernelMutation,
   useSendExecuteRequestMutation,
   useSendInterruptRequestMutation,
-} from '@hooks/code';
+} from '@hooks/code/code-execution';
 import { useDecodedNotesWildcardPath } from '@hooks/routes';
 import { useInspectTooltip } from '@hooks/code-codemirror';
 import { useCompletionExtension } from '@hooks/code-completion';

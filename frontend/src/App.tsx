@@ -31,7 +31,10 @@ import { EditorWrapper } from '@components/editor-wrapper';
 import { RouteDebugView } from '@components/route-debug-view';
 import { isRegularMouseClick } from '@utils/mouse';
 import { isE2ETestEnvironment } from '@utils/e2e';
-import { useKernelInstanceEvents, useKernelInstancesQuery } from '@hooks/code';
+import {
+  useKernelInstanceEvents,
+  useKernelInstancesQuery,
+} from '@hooks/code/kernels';
 import { useSavedSearchUpdates } from '@hooks/search';
 import { useAllPathsInvalidation } from '@hooks/all-paths';
 

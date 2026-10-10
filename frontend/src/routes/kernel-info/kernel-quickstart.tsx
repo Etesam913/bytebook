@@ -9,7 +9,7 @@ import { FolderOpen } from '@/icons/folder-open';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { dialogDataAtom, projectSettingsAtom } from '@/atoms';
 import { PythonVenvDialog } from '@components/editor/python-venv-dialog';
-import { usePythonVenvSubmitMutation } from '@hooks/code';
+import { usePythonVenvSubmitMutation } from '@hooks/code/kernels';
 import { RevealFolderOrFileInFinder } from '@bindings/services/noteservice';
 import { ReactNode } from 'react';
 import { Browser } from '@wailsio/runtime';

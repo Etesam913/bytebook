@@ -9,6 +9,7 @@ import {
 import { useEffect } from 'react';
 import { $createCodeNode, CodeNode, type CodePayload } from '../nodes/code';
 import { FOCUS_NODE_COMMAND } from './focus';
+import { useCodeBlockEvents } from '@hooks/code/code-block-events';
 
 export const INSERT_CODE_COMMAND: LexicalCommand<CodePayload> = createCommand(
   'INSERT_CODE_COMMAND'
@@ -16,6 +17,7 @@ export const INSERT_CODE_COMMAND: LexicalCommand<CodePayload> = createCommand(
 
 export function CodePlugin() {
   const [editor] = useLexicalComposerContext();
+  useCodeBlockEvents(editor);
 
   useEffect(() => {
     if (!editor.hasNodes([CodeNode])) {

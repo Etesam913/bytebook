@@ -14,7 +14,7 @@ import {
   useEnsureKernelMutation,
   usePythonVenvSubmitMutation,
   useShutdownKernelMutation,
-} from '@hooks/code';
+} from '@hooks/code/kernels';
 import { KernelHeartbeat } from '@components/file-sidebar/my-kernels-accordion/kernel-heartbeat';
 import {
   AppMenu,

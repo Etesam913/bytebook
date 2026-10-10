@@ -35,16 +35,6 @@ import {
 } from '../utils/toolbar';
 import { SettingsDropdown } from './settings-dropdown';
 import type { PlaceholderLineData } from '../types';
-import {
-  useCodeBlockDisplayData,
-  useCodeBlockExecuteInput,
-  useCodeBlockExecuteResult,
-  useCodeBlockInputRequest,
-  useCodeBlockIOPubError,
-  useCodeBlockStatus,
-  useCodeBlockStream,
-  useKernelCodeNodeCleanupEvents,
-} from '@hooks/code';
 import { NoteFindPanel } from './note-find-panel/index';
 import { useToggleSidebarEvent } from '@/routes/notes-sidebar/render-note/hooks';
 import { routeUrls } from '@utils/routes';
@@ -128,14 +118,6 @@ export function Toolbar({
   });
 
   useNoteWriteEvent({ filePath, editor, setFrontmatter });
-  useKernelCodeNodeCleanupEvents(editor);
-  useCodeBlockStream(editor);
-  useCodeBlockIOPubError(editor);
-  useCodeBlockDisplayData(editor);
-  useCodeBlockInputRequest(editor);
-  useCodeBlockStatus(editor);
-  useCodeBlockExecuteResult(editor);
-  useCodeBlockExecuteInput(editor);
   useToggleSidebarEvent(animationControls);
 
   const FloatingPlugin = noteContainerElement

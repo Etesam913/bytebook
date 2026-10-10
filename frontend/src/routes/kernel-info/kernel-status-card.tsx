@@ -5,7 +5,7 @@ import { PowerOff } from '@/icons/power-off';
 import { cn } from '@utils/string-formatting';
 import { KernelHeartbeat } from '@components/file-sidebar/my-kernels-accordion/kernel-heartbeat';
 import { KernelInstanceData } from '@/types';
-import { useShutdownKernelMutation } from '@hooks/code';
+import { useShutdownKernelMutation } from '@hooks/code/kernels';
 import { MotionButton } from '@components/buttons';
 import { getDefaultButtonVariants } from '@/animations';
 import { Tooltip } from '@components/tooltip';

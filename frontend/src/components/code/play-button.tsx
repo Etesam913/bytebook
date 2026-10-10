@@ -1,9 +1,9 @@
 import { Play } from '@/icons/circle-play';
+import { useEnsureKernelMutation } from '@hooks/code/kernels';
 import {
-  useEnsureKernelMutation,
   useSendExecuteRequestMutation,
   useSendInterruptRequestMutation,
-} from '@hooks/code';
+} from '@hooks/code/code-execution';
 import { handleRunOrInterruptCode } from '@utils/code';
 import type { CodeMirrorRef } from './types';
 import {
