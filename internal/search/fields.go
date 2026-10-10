@@ -14,7 +14,6 @@ const (
 	FieldJavaCodeContent       = "java_code_content"
 	FieldPythonCodeContent     = "python_code_content"
 	FieldJavascriptCodeContent = "javascript_code_content"
-	FieldHasDrawing            = "has_drawing"
 	FieldHasCode               = "has_code"
 	FieldHasGoCode             = "has_go_code"
 	FieldHasJavaCode           = "has_java_code"

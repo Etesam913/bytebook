@@ -6,7 +6,7 @@
     "check": "bun scripts/check.ts",
     "check:fix": "bun scripts/check.ts --fix",
     "check:fe": "bun scripts/check.ts --fe",
-    "check:be": "bun scripts/check.ts --be",
+    "check:be": "bun scripts/check.ts --be && test -z \"$(gofmt -l internal *.go)\"",
     "check:ci": "bun scripts/check.ts --ci",
     "test:scripts": "bun test ./scripts/check.test.ts",
     "format": "bun --cwd frontend run format",

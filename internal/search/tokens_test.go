@@ -164,8 +164,8 @@ func TestParseTokens(t *testing.T) {
 			},
 		},
 		{
-			name:     "bare dash is ignored",
-			input:    `- hello`,
+			name:  "bare dash is ignored",
+			input: `- hello`,
 			expected: []SearchToken{
 				{Text: "hello", Operator: OpAND},
 			},

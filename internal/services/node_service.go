@@ -45,9 +45,9 @@ func addFilePathsToProject(projectPath string, filePaths []string, folderPath st
 			// This is the path url that the frontend will access
 			fileServerPath := filepath.Join("notes", folderPath, newFileName)
 
-			error := util.CopyFile(file, fileInProjectPath, false)
-			if error != nil {
-				return []string{}, error
+			copyErr := util.CopyFile(file, fileInProjectPath, false)
+			if copyErr != nil {
+				return []string{}, copyErr
 			}
 			newFilePaths = append(newFilePaths, fileServerPath)
 		}
@@ -76,7 +76,7 @@ func (n *NodeService) SelectAttachmentPaths() config.BackendResponseWithData[[]s
 		CanChooseDirectories(false).
 		PromptForMultipleSelection()
 	if err != nil {
-		return config.BackendResponseWithData[[]string]{Success: false, Message: err.Error(), Data: []string{}}
+		return config.BackendResponseWithData[[]string]{Success: false, Message: userFacingError(err, "Could not open file picker"), Data: []string{}}
 	}
 
 	return config.BackendResponseWithData[[]string]{Success: true, Data: localFilePaths}
@@ -86,7 +86,7 @@ func (n *NodeService) SelectAttachmentPaths() config.BackendResponseWithData[[]s
 func (n *NodeService) AddAttachmentsFromPaths(folder string, filePaths []string) config.BackendResponseWithData[[]string] {
 	fileServerPaths, err := addFilePathsToProject(n.ProjectPath, filePaths, folder)
 	if err != nil {
-		return config.BackendResponseWithData[[]string]{Success: false, Message: err.Error(), Data: fileServerPaths}
+		return config.BackendResponseWithData[[]string]{Success: false, Message: userFacingError(err, "Could not add attachments"), Data: fileServerPaths}
 	}
 
 	return config.BackendResponseWithData[[]string]{Success: true, Message: "", Data: fileServerPaths}

@@ -17,7 +17,7 @@ type TagsService struct {
 	Index       *search.IndexHolder
 }
 
-var TAGS_SEARCH_LIMIT = 1000
+const TAGS_SEARCH_LIMIT = 1000
 
 func (t *TagsService) SetTagsOnNotes(
 	folderAndNoteNames []string,

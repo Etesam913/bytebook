@@ -19,7 +19,7 @@ type SearchService struct {
 }
 
 // Upper bound on tree-filter hits; far above any realistic vault size.
-var TREE_FILTER_MAX_RESULTS = 10_000
+const TREE_FILTER_MAX_RESULTS = 10_000
 
 func buildSearchAfterFromHit(sortValues []string, score float64, docID string) []string {
 	if len(sortValues) >= 2 && sortValues[0] == "_score" {
@@ -81,7 +81,7 @@ func (s *SearchService) FullTextSearch(searchQuery string, searchAfter []string,
 	}
 
 	// Build the boolean query and request using helpers for clarity
-	totalQuery, sortOption := search.BuildBooleanQueryFromUserInput(searchQuery, 1)
+	totalQuery, sortOption := search.BuildBooleanQueryFromUserInput(searchQuery)
 	request := search.CreateSearchRequest(totalQuery, effectivePageSize+1, sortOption, searchAfter)
 
 	res, err := func() (*bleve.SearchResult, error) {
@@ -126,7 +126,7 @@ func (s *SearchService) GetPathsFromSearchQuery(searchQuery string) config.Backe
 	// The sort option is discarded: the file tree has a fixed sort order. A
 	// query containing only a sort token degenerates to MatchAll ("show
 	// everything"), which is acceptable for tree filtering.
-	totalQuery, _ := search.BuildBooleanQueryFromUserInput(searchQuery, 1)
+	totalQuery, _ := search.BuildBooleanQueryFromUserInput(searchQuery)
 
 	// Leaner than search.CreateSearchRequest: three stored fields, no highlighting.
 	request := bleve.NewSearchRequest(totalQuery)
@@ -190,7 +190,7 @@ func (s *SearchService) GetAllSavedSearches() (config.BackendResponseWithData[[]
 	if err != nil {
 		return config.BackendResponseWithData[[]search.SavedSearch]{
 			Success: false,
-			Message: err.Error(),
+			Message: userFacingError(err, "Could not load saved searches"),
 			Data:    []search.SavedSearch{},
 		}, nil
 	}
@@ -208,7 +208,7 @@ func (s *SearchService) AddSavedSearch(name, query string) config.BackendRespons
 	if err != nil {
 		return config.BackendResponseWithoutData{
 			Success: false,
-			Message: err.Error(),
+			Message: userFacingError(err, "Could not add saved search"),
 		}
 	}
 
@@ -224,7 +224,7 @@ func (s *SearchService) RemoveSavedSearch(name string) config.BackendResponseWit
 	if err != nil {
 		return config.BackendResponseWithoutData{
 			Success: false,
-			Message: err.Error(),
+			Message: userFacingError(err, "Could not remove saved search"),
 		}
 	}
 
@@ -283,7 +283,7 @@ func (s *SearchService) RegenerateSearchIndex() config.BackendResponseWithoutDat
 	if err != nil {
 		return config.BackendResponseWithoutData{
 			Success: false,
-			Message: err.Error(),
+			Message: userFacingError(err, "Could not regenerate search index"),
 		}
 	}
 

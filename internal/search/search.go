@@ -76,12 +76,13 @@ func hasHighlightContent(fragment string) bool {
 	return strings.Contains(fragment, "<mark>") || strings.Contains(fragment, "<em>")
 }
 
+// Matches content inside <mark> or <em> tags
+var highlightTagRegex = regexp.MustCompile(`<(?:mark|em)>(.*?)</(?:mark|em)>`)
+
 // extractHighlightedText extracts the text content from the first <mark> or <em> tag in a fragment.
 // Returns the text from the first highlighted portion, or empty string if none found.
 func extractHighlightedText(fragment string) string {
-	// Regex to match content inside <mark> or <em> tags
-	re := regexp.MustCompile(`<(?:mark|em)>(.*?)</(?:mark|em)>`)
-	match := re.FindStringSubmatch(fragment)
+	match := highlightTagRegex.FindStringSubmatch(fragment)
 
 	if len(match) > 1 {
 		return match[1]
@@ -289,7 +290,7 @@ func ProcessDocumentSearchResults(searchResult *bleve.SearchResult) []SearchResu
 	return results
 }
 
-var TAGS_SEARCH_LIMIT = 1000
+const TAGS_SEARCH_LIMIT = 1000
 
 // GetTags retrieves a list of all unique tags from the search index.
 // It performs a faceted search on the "tags" field and returns the tags

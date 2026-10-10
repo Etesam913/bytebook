@@ -12,6 +12,7 @@ import (
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol"
 	"github.com/etesam913/bytebook/internal/jupyter_protocol/sockets"
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -27,15 +28,15 @@ type KernelInstance struct {
 	processHandle      *exec.Cmd
 	processWait        chan error
 	stderrBuf          stderrReader
-	sockets        *sockets.LanguageSockets
-	heartbeatState *jupyter_protocol.KernelHeartbeatState
-	mu               sync.RWMutex
-	activeExecutions map[string]struct{}
-	executionQueue   []string
-	lastActivityAt   time.Time
-	ctx    context.Context
-	cancel context.CancelFunc
-	manager *KernelManager
+	sockets            *sockets.LanguageSockets
+	heartbeatState     *jupyter_protocol.KernelHeartbeatState
+	mu                 sync.RWMutex
+	activeExecutions   map[string]struct{}
+	executionQueue     []string
+	lastActivityAt     time.Time
+	ctx                context.Context
+	cancel             context.CancelFunc
+	manager            *KernelManager
 }
 
 // stderrReader is the minimal interface kernel.go's *bytes.Buffer satisfies.
@@ -294,7 +295,7 @@ func (i *KernelInstance) shutdown(reason string, restart bool) error {
 
 	if app := application.Get(); app != nil {
 		app.Event.EmitEvent(&application.CustomEvent{
-			Name: kernelInstanceShutdownEvent,
+			Name: util.EventKernelInstanceShutdown,
 			Data: KernelShutdownEventData{
 				ID:       i.id,
 				Language: i.language,

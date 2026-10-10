@@ -375,6 +375,11 @@ func MoveToTrash(src string) (TrashRestoreInfo, error) {
 	return restoreInfo, nil
 }
 
+var (
+	whitespaceRegex   = regexp.MustCompile(`\s+`)
+	problemCharsRegex = regexp.MustCompile(`[<>:"/\\|?*\x00-\x08\x0B\x0C\x0E-\x1f\x7f]`)
+)
+
 // CleanFileNamePreserveUnicode provides a less restrictive alternative that preserves
 // more characters while still ensuring cross-platform compatibility.
 // Allows Unicode letters, digits, spaces, parentheses, brackets, and common punctuation.
@@ -383,13 +388,11 @@ func CleanFileName(name string) string {
 	name = norm.NFC.String(name)
 
 	// 2) Replace whitespace characters (including tabs, newlines) with spaces
-	whitespace := regexp.MustCompile(`\s+`)
-	name = whitespace.ReplaceAllString(name, " ")
+	name = whitespaceRegex.ReplaceAllString(name, " ")
 
 	// 3) Remove problematic filesystem characters and non-printable control chars
 	// Keep spaces (handled above), Unicode letters/digits, and common punctuation
-	problemChars := regexp.MustCompile(`[<>:"/\\|?*\x00-\x08\x0B\x0C\x0E-\x1f\x7f]`)
-	name = problemChars.ReplaceAllString(name, "")
+	name = problemCharsRegex.ReplaceAllString(name, "")
 
 	// 4) Trim leading/trailing spaces and dots
 	name = strings.Trim(name, " .")
@@ -591,7 +594,7 @@ func CopyFile(src, dst string, shouldOverride bool) error {
 func RevealInFinder(fileOrDir string) error {
 	// Check if the directory exists
 	if _, err := exec.LookPath("open"); err != nil {
-		return fmt.Errorf("failed to open directory: %v", fileOrDir)
+		return fmt.Errorf("failed to open directory %s: %w", fileOrDir, err)
 	}
 
 	// Run the open command with or without -R based on if fileOrDir is a directory
@@ -599,7 +602,7 @@ func RevealInFinder(fileOrDir string) error {
 
 	cmd := exec.Command("open", args...)
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to open directory: %v", fileOrDir)
+		return fmt.Errorf("failed to open directory %s: %w", fileOrDir, err)
 	}
 	return nil
 }

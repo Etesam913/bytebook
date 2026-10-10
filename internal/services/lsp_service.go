@@ -189,12 +189,12 @@ func (s *LSPService) NotifyBlockEdit(noteID, blockID string, blockOrder int, new
 		if errors.Is(err, lsp.ErrNotAvailable) {
 			return config.BackendResponseWithoutData{Success: true, Message: "lsp unavailable"}
 		}
-		return config.BackendResponseWithoutData{Success: false, Message: err.Error()}
+		return config.BackendResponseWithoutData{Success: false, Message: userFacingError(err, "Could not start language server")}
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), DID_CHANGE_TIMEOUT)
 	defer cancel()
 	if err := instance.DidChange(ctx, blockID, blockOrder, newSource); err != nil {
-		return config.BackendResponseWithoutData{Success: false, Message: err.Error()}
+		return config.BackendResponseWithoutData{Success: false, Message: userFacingError(err, "Could not update code block")}
 	}
 	return config.BackendResponseWithoutData{Success: true, Message: "ok"}
 }
@@ -213,7 +213,7 @@ func (s *LSPService) NotifyBlockRemoved(noteID, blockID string) config.BackendRe
 	ctx, cancel := context.WithTimeout(context.Background(), DID_CHANGE_TIMEOUT)
 	defer cancel()
 	if err := instance.RemoveBlock(ctx, blockID); err != nil {
-		return config.BackendResponseWithoutData{Success: false, Message: err.Error()}
+		return config.BackendResponseWithoutData{Success: false, Message: userFacingError(err, "Could not update code block")}
 	}
 	return config.BackendResponseWithoutData{Success: true, Message: "ok"}
 }
@@ -225,7 +225,7 @@ func (s *LSPService) NotifyNoteClosed(noteID string) config.BackendResponseWitho
 		return config.BackendResponseWithoutData{Success: true, Message: "ok"}
 	}
 	if err := s.Manager.ShutdownNote(noteID); err != nil {
-		return config.BackendResponseWithoutData{Success: false, Message: err.Error()}
+		return config.BackendResponseWithoutData{Success: false, Message: userFacingError(err, "Could not stop language server")}
 	}
 	return config.BackendResponseWithoutData{Success: true, Message: "ok"}
 }

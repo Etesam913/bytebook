@@ -21,9 +21,10 @@ import (
 	"github.com/etesam913/bytebook/internal/util"
 )
 
-var INDEX_NAME = ".index.bleve"
-var MARKDOWN_NOTE_TYPE = "note"
-var ATTACHMENT_TYPE = "attachment"
+const INDEX_NAME = ".index.bleve"
+const MARKDOWN_NOTE_TYPE = "note"
+const ATTACHMENT_TYPE = "attachment"
+
 var FilenameAnalyzer = "filename_analyzer"
 
 const DefaultBatchSize = 750
@@ -291,7 +292,6 @@ func createMarkdownNoteDocumentMapping() *mapping.DocumentMapping {
 
 	documentMapping.AddFieldMappingsAt(FieldFolder, folderLowerFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldFileName, fileNameFieldMapping)
-	// FieldFileNameLC removed - using FieldFileName for both search and display
 	documentMapping.AddFieldMappingsAt(FieldFileExtension, keywordTextFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldTextContent, textFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldTextContentNgram, textNgramFieldMapping)
@@ -339,7 +339,6 @@ func createAttachmentDocumentMapping() *mapping.DocumentMapping {
 
 	documentMapping.AddFieldMappingsAt(FieldFolder, attachmentFolderFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldFileName, attachmentFileNameFieldMapping)
-	// FieldFileNameLC removed - using FieldFileName for both search and display
 	documentMapping.AddFieldMappingsAt(FieldFileExtension, keywordTextFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldTags, keywordTextFieldMapping)
 	documentMapping.AddFieldMappingsAt(FieldCreatedDate, createdDateFieldMapping)

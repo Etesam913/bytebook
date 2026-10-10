@@ -45,11 +45,11 @@ func (n *NoteService) RenameFile(oldFolderNotePath string, newFolderNotePath str
 	notesRoot := filepath.Join(n.ProjectPath, "notes")
 	oldPath, err := util.SafeJoin(notesRoot, oldFolderNotePath)
 	if err != nil {
-		return config.BackendResponseWithData[string]{Success: false, Message: err.Error(), Data: ""}
+		return config.BackendResponseWithData[string]{Success: false, Message: userFacingError(err, "Could not rename note"), Data: ""}
 	}
 	newPath, err := util.SafeJoin(notesRoot, newFolderNotePath)
 	if err != nil {
-		return config.BackendResponseWithData[string]{Success: false, Message: err.Error(), Data: ""}
+		return config.BackendResponseWithData[string]{Success: false, Message: userFacingError(err, "Could not rename note"), Data: ""}
 	}
 
 	collides, err := util.DestinationCollides(oldPath, newPath)
@@ -81,7 +81,7 @@ func (n *NoteService) RenameFile(oldFolderNotePath string, newFolderNotePath str
 		if err := os.MkdirAll(newDir, os.ModePerm); err != nil {
 			return config.BackendResponseWithData[string]{
 				Success: false,
-				Message: err.Error(),
+				Message: userFacingError(err, "Could not rename note"),
 				Data:    "",
 			}
 		}
@@ -112,14 +112,14 @@ func (n *NoteService) RenameFile(oldFolderNotePath string, newFolderNotePath str
 func (n *NoteService) GetNoteMarkdownWithCodeResults(path string) config.BackendResponseWithData[sidecar.NoteWithCodeResults] {
 	noteFilePath, err := util.SafeJoin(n.ProjectPath, path)
 	if err != nil {
-		return config.BackendResponseWithData[sidecar.NoteWithCodeResults]{Success: false, Message: err.Error()}
+		return config.BackendResponseWithData[sidecar.NoteWithCodeResults]{Success: false, Message: userFacingError(err, "Could not read note")}
 	}
 
 	noteContent, err := os.ReadFile(noteFilePath)
 	if err != nil {
 		return config.BackendResponseWithData[sidecar.NoteWithCodeResults]{
 			Success: false,
-			Message: err.Error(),
+			Message: userFacingError(err, "Could not read note"),
 		}
 	}
 
@@ -127,7 +127,7 @@ func (n *NoteService) GetNoteMarkdownWithCodeResults(path string) config.Backend
 	if err != nil {
 		return config.BackendResponseWithData[sidecar.NoteWithCodeResults]{
 			Success: false,
-			Message: err.Error(),
+			Message: userFacingError(err, "Could not read code results"),
 		}
 	}
 
@@ -151,14 +151,14 @@ func (n *NoteService) SetNoteMarkdownWithCodeResults(
 	noteName := fmt.Sprintf("%s.md", noteTitle)
 	noteFilePath, err := util.SafeJoin(filepath.Join(n.ProjectPath, "notes"), filepath.Join(folderName, noteName))
 	if err != nil {
-		return config.BackendResponseWithData[string]{Success: false, Message: err.Error(), Data: ""}
+		return config.BackendResponseWithData[string]{Success: false, Message: userFacingError(err, "Could not save note"), Data: ""}
 	}
 
 	err = os.WriteFile(noteFilePath, []byte(markdown), 0644)
 	if err != nil {
 		return config.BackendResponseWithData[string]{
 			Success: false,
-			Message: err.Error(),
+			Message: userFacingError(err, "Could not save note"),
 			Data:    "",
 		}
 	}
@@ -168,7 +168,7 @@ func (n *NoteService) SetNoteMarkdownWithCodeResults(
 	if err := sidecar.WriteCodeResults(noteFilePath, codeResults); err != nil {
 		return config.BackendResponseWithData[string]{
 			Success: false,
-			Message: err.Error(),
+			Message: userFacingError(err, "Could not save code results"),
 			Data:    "",
 		}
 	}
@@ -186,7 +186,7 @@ func (n *NoteService) AddNoteToFolder(folderName string, noteName string) config
 	notesRoot := filepath.Join(n.ProjectPath, "notes")
 	pathToNote, err := util.SafeJoin(notesRoot, filepath.Join(folderName, fmt.Sprintf("%s.md", noteName)))
 	if err != nil {
-		return config.BackendResponseWithoutData{Success: false, Message: err.Error()}
+		return config.BackendResponseWithoutData{Success: false, Message: userFacingError(err, "Could not create note")}
 	}
 	noteFolderPath := filepath.Dir(pathToNote)
 
@@ -209,7 +209,7 @@ func (n *NoteService) AddNoteToFolder(folderName string, noteName string) config
 		log.Printf("Error writing to %s: %v", noteFolderPath, err)
 		return config.BackendResponseWithoutData{
 			Success: false,
-			Message: err.Error(),
+			Message: userFacingError(err, "Could not create note"),
 		}
 	}
 
@@ -226,7 +226,7 @@ func (n *NoteService) MoveToTrash(folderAndNotes []string) config.BackendRespons
 	if err != nil {
 		return config.BackendResponseWithData[[]util.TrashRestoreInfo]{
 			Success: false,
-			Message: err.Error(),
+			Message: userFacingError(err, "Could not move items to trash"),
 			Data:    []util.TrashRestoreInfo{},
 		}
 	}
@@ -243,7 +243,7 @@ func (n *NoteService) RestoreFromTrash(restoreItems []util.TrashRestoreInfo) con
 	if err != nil {
 		return config.BackendResponseWithoutData{
 			Success: false,
-			Message: err.Error(),
+			Message: userFacingError(err, "Could not restore items from trash"),
 		}
 	}
 
@@ -265,12 +265,13 @@ func (n *NoteService) RevealFolderOrFileInFinder(
 	if shouldPrefixWithProjectPath {
 		safePath, err := util.SafeJoin(n.ProjectPath, pathToFolderOrFile)
 		if err != nil {
-			return config.BackendResponseWithoutData{Success: false, Message: err.Error()}
+			return config.BackendResponseWithoutData{Success: false, Message: userFacingError(err, "Could not reveal item in finder")}
 		}
 		path = safePath
 	}
 	err := util.RevealInFinder(path)
 	if err != nil {
+		log.Printf("Could not reveal %s in finder: %v", path, err)
 		fileInfo, statErr := os.Stat(path)
 		if statErr != nil {
 			return config.BackendResponseWithoutData{

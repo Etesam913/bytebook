@@ -251,7 +251,7 @@ func TestBuildBooleanQueryFromUserInput(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			q, _ := BuildBooleanQueryFromUserInput(tt.input, 0)
+			q, _ := BuildBooleanQueryFromUserInput(tt.input)
 			assert.IsType(t, tt.wantType, q)
 
 			switch v := q.(type) {
@@ -452,7 +452,7 @@ func TestBuildBooleanQueryWithLang(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			q, _ := BuildBooleanQueryFromUserInput(tt.input, 0)
+			q, _ := BuildBooleanQueryFromUserInput(tt.input)
 			assert.IsType(t, tt.wantType, q)
 		})
 	}
@@ -508,7 +508,7 @@ func TestExtractSortPrefix(t *testing.T) {
 
 func TestBuildBooleanQueryWithSort(t *testing.T) {
 	t.Run("extracts sort and keeps content query", func(t *testing.T) {
-		q, sortOption := BuildBooleanQueryFromUserInput("sort:updated auth", 0)
+		q, sortOption := BuildBooleanQueryFromUserInput("sort:updated auth")
 		assert.NotNil(t, sortOption)
 		assert.Equal(t, UserSortFieldUpdated, sortOption.Field)
 		assert.Equal(t, SortDirectionDesc, sortOption.Direction)
@@ -516,7 +516,7 @@ func TestBuildBooleanQueryWithSort(t *testing.T) {
 	})
 
 	t.Run("supports sort-only query as match all", func(t *testing.T) {
-		q, sortOption := BuildBooleanQueryFromUserInput("s:created", 0)
+		q, sortOption := BuildBooleanQueryFromUserInput("s:created")
 		assert.NotNil(t, sortOption)
 		assert.Equal(t, UserSortFieldCreated, sortOption.Field)
 		assert.Equal(t, SortDirectionDesc, sortOption.Direction)

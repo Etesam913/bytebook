@@ -9,15 +9,6 @@ import (
 	"sort"
 )
 
-type FileOrFolder struct {
-	Id          string   `json:"id"`
-	Path        string   `json:"path"`
-	Name        string   `json:"name"`
-	ParentId    string   `json:"parentId"`
-	Type        string   `json:"type"`
-	ChildrenIds []string `json:"childrenIds"`
-}
-
 // GetAllPaths returns every file and folder path under notes/, relative to the
 // notes directory, sorted, with directories marked by a trailing slash. Hidden
 // files and folders (those starting with '.') are skipped entirely.

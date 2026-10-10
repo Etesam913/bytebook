@@ -24,12 +24,6 @@ import (
 // will spawn a fresh instance on the next request.
 var ErrInstanceDown = errors.New("lsp instance is down")
 
-// instanceTransport is the minimal io.ReadWriteCloser the jsonrpc2 stream
-// needs. Decoupling lets tests inject a net.Pipe in place of a real process.
-type instanceTransport interface {
-	io.ReadWriteCloser
-}
-
 // Instance owns one pyright child process for one note. All callers can issue
 // concurrent Completion/Hover/DidChange calls; the underlying jsonrpc2.Conn
 // serializes writes and demuxes responses by id.
@@ -41,7 +35,7 @@ type Instance struct {
 	// cmd is the pyright child process. Nil when the instance was constructed
 	// for a test with a synthetic transport.
 	cmd       *exec.Cmd
-	transport instanceTransport
+	transport io.ReadWriteCloser
 
 	conn jsonrpc2.Conn
 	srv  protocol.Server
@@ -106,7 +100,7 @@ func spawnInstance(parent context.Context, noteID, binPath string) (*Instance, e
 // newInstance wires up the jsonrpc2 connection on top of `transport`. It does
 // NOT send initialize — callers do that themselves (so tests can stub the
 // handshake).
-func newInstance(ctx context.Context, cancel context.CancelFunc, noteID string, transport instanceTransport) (*Instance, error) {
+func newInstance(ctx context.Context, cancel context.CancelFunc, noteID string, transport io.ReadWriteCloser) (*Instance, error) {
 	lspInstance := &Instance{
 		noteID:    noteID,
 		docURI:    syntheticDocURI(noteID),

@@ -9,16 +9,17 @@ import (
 	"github.com/blevesearch/bleve/v2/search/query"
 )
 
+var quoteNormalizer = strings.NewReplacer(
+	"’", "'", // right single quotation mark → apostrophe
+	"‘", "'", // left single quotation mark → apostrophe
+	"“", "\"", // left double quotation mark → double quote
+	"”", "\"", // right double quotation mark → double quote
+)
+
 // normalizeQuotes converts typographic quotes/apostrophes to ASCII equivalents
 // to ensure consistent tokenization and matching regardless of user input source.
 func normalizeQuotes(s string) string {
-	replacer := strings.NewReplacer(
-		"’", "'", // right single quotation mark → apostrophe
-		"‘", "'", // left single quotation mark → apostrophe
-		"“", "\"", // left double quotation mark → double quote
-		"”", "\"", // right double quotation mark → double quote
-	)
-	return replacer.Replace(s)
+	return quoteNormalizer.Replace(s)
 }
 
 // createExactQuery returns a phrase query for exact matching in the specified field.
@@ -300,7 +301,7 @@ func createLangQuery(langName string) query.Query {
 // - f:filename OR file:filename OR term
 // - #tagname AND term
 // - t:note OR type:note AND term
-func BuildBooleanQueryFromUserInput(input string, fuzziness int) (query.Query, *SearchSortOption) {
+func BuildBooleanQueryFromUserInput(input string) (query.Query, *SearchSortOption) {
 	// Normalize curly/smart quotes so parsing and matching are consistent
 	input = normalizeQuotes(input)
 	tokens := parseTokens(input)

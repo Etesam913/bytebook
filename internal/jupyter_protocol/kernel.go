@@ -138,4 +138,3 @@ func createPythonCommand(argv []string, venvPath string) (*exec.Cmd, *bytes.Buff
 
 	return cmd, &stderrBuf, nil
 }
-

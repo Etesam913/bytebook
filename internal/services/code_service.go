@@ -144,7 +144,7 @@ func (c *CodeService) EnsureKernel(noteID, language string) config.BackendRespon
 // ShutdownKernel shuts down a specific kernel instance.
 func (c *CodeService) ShutdownKernel(kernelInstanceID string, restart bool) config.BackendResponseWithoutData {
 	if err := c.Manager.Shutdown(kernelInstanceID, restart); err != nil {
-		return config.BackendResponseWithoutData{Success: false, Message: err.Error()}
+		return config.BackendResponseWithoutData{Success: false, Message: userFacingError(err, "Could not shut down kernel")}
 	}
 	return config.BackendResponseWithoutData{Success: true, Message: "Kernel shutdown requested"}
 }
@@ -165,7 +165,7 @@ func (c *CodeService) SendInterruptRequest(kernelInstanceID, codeBlockID, execut
 		return config.BackendResponseWithoutData{Success: false, Message: "Kernel is not running."}
 	}
 	if err := inst.SendInterrupt(codeBlockID, executionID); err != nil {
-		return config.BackendResponseWithoutData{Success: false, Message: err.Error()}
+		return config.BackendResponseWithoutData{Success: false, Message: userFacingError(err, "Could not interrupt execution")}
 	}
 	return config.BackendResponseWithoutData{Success: true, Message: "Interrupt sent"}
 }
@@ -180,7 +180,7 @@ func (c *CodeService) SendInputReply(kernelInstanceID, codeBlockID, executionID,
 		return config.BackendResponseWithoutData{Success: false, Message: "Kernel is not running."}
 	}
 	if err := inst.SendInputReply(codeBlockID, executionID, value); err != nil {
-		return config.BackendResponseWithoutData{Success: false, Message: err.Error()}
+		return config.BackendResponseWithoutData{Success: false, Message: userFacingError(err, "Could not send input to kernel")}
 	}
 	return config.BackendResponseWithoutData{Success: true, Message: "Input reply sent"}
 }

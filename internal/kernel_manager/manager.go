@@ -32,14 +32,6 @@ const (
 // retries launchOnce with a fresh port set.
 var portBindRaceErr = errors.New("kernel port bind race")
 
-// Event name aliases used internally by the package.
-const (
-	kernelInstanceCreatedEvent     = util.EventKernelInstanceCreated
-	kernelInstanceShutdownEvent    = util.EventKernelInstanceShutdown
-	kernelInstanceLaunchErrorEvent = util.EventKernelInstanceLaunchError
-	kernelInstanceExitedEvent      = util.EventKernelInstanceExited
-)
-
 func init() {
 	application.RegisterEvent[KernelInstanceSnapshot](util.EventKernelInstanceCreated)
 	application.RegisterEvent[KernelShutdownEventData](util.EventKernelInstanceShutdown)
@@ -67,9 +59,9 @@ type langNoteKey struct {
 type KernelManager struct {
 	projectPath string
 	allKernels  config.AllKernels
-	mu         sync.Mutex
-	instances  map[string]*KernelInstance
-	byLangNote map[langNoteKey]*KernelInstance
+	mu          sync.Mutex
+	instances   map[string]*KernelInstance
+	byLangNote  map[langNoteKey]*KernelInstance
 }
 
 // New constructs a KernelManager. The caller should also call SetupKernelsDir(projectPath)
@@ -168,7 +160,7 @@ func (m *KernelManager) GetOrCreate(ctx context.Context, language, noteID, venvP
 
 	if app := application.Get(); app != nil {
 		app.Event.EmitEvent(&application.CustomEvent{
-			Name: kernelInstanceCreatedEvent,
+			Name: util.EventKernelInstanceCreated,
 			Data: inst.Snapshot(),
 		})
 	}
@@ -358,7 +350,7 @@ func (m *KernelManager) launchOnce(_ context.Context, language, noteID, venvPath
 					msg = err.Error()
 				}
 				app.Event.EmitEvent(&application.CustomEvent{
-					Name: kernelInstanceLaunchErrorEvent,
+					Name: util.EventKernelInstanceLaunchError,
 					Data: KernelLaunchErrorEventData{
 						ID:           inst.id,
 						Language:     inst.language,
@@ -368,7 +360,7 @@ func (m *KernelManager) launchOnce(_ context.Context, language, noteID, venvPath
 				})
 			}
 			app.Event.EmitEvent(&application.CustomEvent{
-				Name: kernelInstanceExitedEvent,
+				Name: util.EventKernelInstanceExited,
 				Data: KernelExitedEventData{ID: inst.id, ExitCode: exitCode},
 			})
 		}
@@ -380,7 +372,7 @@ func (m *KernelManager) launchOnce(_ context.Context, language, noteID, venvPath
 			m.mu.Unlock()
 			if app := application.Get(); app != nil {
 				app.Event.EmitEvent(&application.CustomEvent{
-					Name: kernelInstanceShutdownEvent,
+					Name: util.EventKernelInstanceShutdown,
 					Data: KernelShutdownEventData{
 						ID:       inst.id,
 						Language: inst.language,

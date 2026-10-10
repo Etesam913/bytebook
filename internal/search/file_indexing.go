@@ -23,10 +23,9 @@ type DocumentJob struct {
 }
 
 type DocumentResult struct {
-	isError   bool
-	entryPath string
-	entryId   string
-	document  any
+	isError  bool
+	entryId  string
+	document any
 }
 
 // IndexAllFiles recursively indexes visible notes and attachments under notes/.
@@ -277,7 +276,7 @@ func startWorker(ctx context.Context, projectPath string, jobs <-chan DocumentJo
 			}
 			job = next
 		}
-		result := DocumentResult{entryPath: job.entryPath, entryId: job.entryId}
+		result := DocumentResult{entryId: job.entryId}
 		fileExtension := filepath.Ext(job.entryName)
 		if fileExtension == ".md" {
 			content, err := os.ReadFile(job.entryPath)

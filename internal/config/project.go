@@ -96,23 +96,23 @@ func CreateProjectFiles(projectPath string) (ProjectFiles, error) {
 // Returns an error if any directory creation fails.
 func CreateProjectDirectories(projectPath string) error {
 	if err := os.MkdirAll(filepath.Join(projectPath, "settings"), os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create project settings directory: %v", err)
+		return fmt.Errorf("failed to create project settings directory: %w", err)
 	}
 
 	if err := os.MkdirAll(filepath.Join(projectPath, "code"), os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create project code directory: %v", err)
+		return fmt.Errorf("failed to create project code directory: %w", err)
 	}
 
 	if err := os.MkdirAll(filepath.Join(projectPath, "code", ".kernels"), os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create per-instance kernels directory: %v", err)
+		return fmt.Errorf("failed to create per-instance kernels directory: %w", err)
 	}
 
 	if err := os.MkdirAll(filepath.Join(projectPath, "notes"), os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create project notes directory: %v", err)
+		return fmt.Errorf("failed to create project notes directory: %w", err)
 	}
 
 	if err := os.MkdirAll(filepath.Join(projectPath, "search"), os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create project search directory: %v", err)
+		return fmt.Errorf("failed to create project search directory: %w", err)
 	}
 
 	return nil

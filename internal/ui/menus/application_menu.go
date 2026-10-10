@@ -4,7 +4,6 @@ import (
 	"log"
 	"runtime"
 
-	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -14,9 +13,9 @@ type WindowCreator func(app *application.App, url string, backgroundColor applic
 
 // CreateApplicationMenus initializes the application menu with hotkeys
 func CreateApplicationMenus(backgroundColor application.RGBA, createWindow WindowCreator) {
-	app := config.GetApp()
+	app := application.Get()
 	if app == nil {
-		log.Fatalf("GetApp() Error: could not get application")
+		log.Fatalf("CreateApplicationMenus: could not get application")
 		return
 	}
 	menu := application.DefaultApplicationMenu()

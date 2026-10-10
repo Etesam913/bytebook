@@ -26,7 +26,7 @@ type HeartbeatEvent struct {
 	Status string `json:"status"`
 }
 
-var HEARTBEAT_TICKER = 1 * time.Second
+const HEARTBEAT_TICKER = 1 * time.Second
 
 func createHeartbeatSocket(p CreateParams) *heartbeatSocket {
 	socket, err := zmq4.NewSocket(zmq4.Type(zmq4.REQ))
