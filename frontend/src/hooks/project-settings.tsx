@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { useSetAtom } from 'jotai';
 import { logger } from '@utils/logging';
 import { useEffect } from 'react';
@@ -29,7 +29,6 @@ import {
   getBackendResponseData,
   requireBackendResponseData,
 } from '@utils/query';
-import { queryKeys } from '@utils/query-keys';
 import { ProjectSettingsJson } from '@bindings/config/models';
 
 const APPEARANCE_VARIABLES = [
@@ -111,29 +110,22 @@ function applyProjectSettings(data: ProjectSettingsJson) {
 /**
  * Custom hook to manage project settings.
  *
- * This hook fetches and validates project settings on component initialization,
- * opens the settings dialog on 'settings:open' event, and re-fetches settings
- * on 'settings:update' event.
+ * Loads project settings into projectSettingsAtom on mount, keeps it in sync
+ * on 'settings:update' events, and opens the settings dialog on 'settings:open'.
  */
 export function useProjectSettings() {
   const setProjectSettings = useSetAtom(projectSettingsAtom);
   const setProjectSettingsLoaded = useSetAtom(projectSettingsLoadedAtom);
   const openSettings = useOpenSettingsDialog();
 
-  const { data: settings } = useQuery({
-    queryKey: queryKeys.projectSettings(),
-    queryFn: async () => {
-      return applyProjectSettings(
-        await requireBackendResponseData(GetProjectSettings())
-      );
-    },
-  });
-
   useEffect(() => {
-    if (!settings) return;
-    setProjectSettings(settings);
-    setProjectSettingsLoaded(true);
-  }, [settings]);
+    requireBackendResponseData(GetProjectSettings())
+      .then((data) => {
+        setProjectSettings(applyProjectSettings(data));
+        setProjectSettingsLoaded(true);
+      })
+      .catch((error) => logger.error('Failed to load project settings', error));
+  }, []);
 
   // Open the settings dialog on 'settings:open' event.
   useWailsEvent(SETTINGS_OPEN, (data) => {
@@ -144,7 +136,6 @@ export function useProjectSettings() {
     })();
   });
 
-  // Re-run the mutation when a 'settings:update' event is received.
   useWailsEvent(SETTINGS_UPDATE, (body) => {
     setProjectSettings(applyProjectSettings(body.data));
     setProjectSettingsLoaded(true);

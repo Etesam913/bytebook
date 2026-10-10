@@ -331,7 +331,7 @@ export function ComponentPickerMenuPlugin({
               <ul
                 role="listbox"
                 aria-label="Insert element"
-                className="flex overflow-y-auto overflow-x-hidden text-nowrap flex-col max-h-56 gap-0.5 w-48 p-1 shadow-xl rounded-md border-[1.25px] border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-700 scroll-p-1 text-zinc-950 dark:text-zinc-100"
+                className="flex overflow-y-auto overflow-x-hidden text-nowrap flex-col max-h-56 gap-0.5 w-48 p-1 shadow-xl rounded-md border-[1.25px] border-zinc-300 bg-zinc-50/92.5 dark:border-zinc-600 dark:bg-zinc-700/92.5 scroll-p-1 text-zinc-950 dark:text-zinc-100"
               >
                 {options.map((option, i: number) => (
                   <ComponentPickerMenuItem

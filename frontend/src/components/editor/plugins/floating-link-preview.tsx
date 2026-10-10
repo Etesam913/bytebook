@@ -233,7 +233,7 @@ export function FloatingLinkPreview({
             style={floatingStyles}
             transition={{ ease: easingFunctions['ease-out-circ'] }}
             className={cn(
-              'bg-zinc-50/92.5 dark:bg-zinc-700/92.5 p-1 rounded-md shadow-lg flex items-center gap-3 z-50 border border-zinc-300 dark:border-zinc-600',
+              'bg-zinc-50/92.5 dark:bg-zinc-700/92.5 p-1 rounded-md shadow-lg flex items-center gap-1 z-50 border border-zinc-300 dark:border-zinc-600',
               isLinkPreviewOpen && 'gap-0.5'
             )}
             onSubmit={(e) => {
