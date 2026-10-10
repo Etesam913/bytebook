@@ -1,6 +1,8 @@
 package events
 
 import (
+	"errors"
+	"fmt"
 	"io/fs"
 	"log"
 	"os"
@@ -88,6 +90,32 @@ func createFolderAndDescendantsQuery(folderPath string) query.Query {
 	return folderQuery
 }
 
+// deleteFolderDocumentsFromIndex queues deletes for every document in folderPath and its
+// subfolders. Full batches are flushed as they fill; the caller flushes the remainder.
+// Flush errors don't stop the remaining deletes and are returned joined.
+func deleteFolderDocumentsFromIndex(idx bleve.Index, batch *bleve.Batch, folderPath string) error {
+	searchRequest := bleve.NewSearchRequest(createFolderAndDescendantsQuery(folderPath))
+	searchRequest.Size = search.MaxDeleteSearchResults
+	searchRequest.Fields = []string{search.FieldFolder}
+
+	searchResult, err := idx.Search(searchRequest)
+	if err != nil {
+		return fmt.Errorf("searching for documents in folder %s: %w", folderPath, err)
+	}
+
+	var flushErrs []error
+	for _, hit := range searchResult.Hits {
+		batch.Delete(hit.ID)
+		if batch.Size() >= search.DefaultBatchSize {
+			if err := idx.Batch(batch); err != nil {
+				flushErrs = append(flushErrs, fmt.Errorf("flushing delete batch for folder %s: %w", folderPath, err))
+			}
+			batch.Reset()
+		}
+	}
+	return errors.Join(flushErrs...)
+}
+
 func deleteFoldersFromIndex(params EventParams, data []util.FolderDeleteEventData) {
 	params.withBatch(func(idx bleve.Index, batch *bleve.Batch) {
 		for _, eventData := range data {
@@ -97,27 +125,8 @@ func deleteFoldersFromIndex(params EventParams, data []util.FolderDeleteEventDat
 				continue
 			}
 
-			// Delete all file documents inside the folder
-			folderQuery := createFolderAndDescendantsQuery(folderPath)
-
-			searchRequest := bleve.NewSearchRequest(folderQuery)
-			searchRequest.Size = search.MaxDeleteSearchResults
-			searchRequest.Fields = []string{search.FieldFolder}
-
-			searchResult, err := idx.Search(searchRequest)
-			if err != nil {
-				log.Printf("Error searching for documents in folder %s: %v", folderPath, err)
-				continue
-			}
-
-			for _, hit := range searchResult.Hits {
-				batch.Delete(hit.ID)
-				if batch.Size() >= search.DefaultBatchSize {
-					if err := idx.Batch(batch); err != nil {
-						log.Printf("Error flushing delete batch for folder %s: %v", folderPath, err)
-					}
-					batch.Reset()
-				}
+			if err := deleteFolderDocumentsFromIndex(idx, batch, folderPath); err != nil {
+				log.Printf("Error deleting documents for folder %s: %v", folderPath, err)
 			}
 		}
 	})
@@ -209,26 +218,8 @@ func renameFoldersInIndex(params EventParams, data []util.FolderRenameEventData)
 func deleteRenameFolderFromIndexLocked(idx bleve.Index, oldFolderPath string) {
 	batch := idx.NewBatch()
 
-	folderQuery := createFolderAndDescendantsQuery(oldFolderPath)
-
-	searchRequest := bleve.NewSearchRequest(folderQuery)
-	searchRequest.Size = search.MaxDeleteSearchResults
-	searchRequest.Fields = []string{search.FieldFolder}
-
-	searchResult, err := idx.Search(searchRequest)
-	if err != nil {
-		log.Printf("Error searching for documents in folder %s: %v", oldFolderPath, err)
-		return
-	}
-
-	for _, hit := range searchResult.Hits {
-		batch.Delete(hit.ID)
-		if batch.Size() >= search.DefaultBatchSize {
-			if err := idx.Batch(batch); err != nil {
-				log.Printf("Error flushing delete batch for folder %s: %v", oldFolderPath, err)
-			}
-			batch = idx.NewBatch()
-		}
+	if err := deleteFolderDocumentsFromIndex(idx, batch, oldFolderPath); err != nil {
+		log.Printf("Error deleting documents for folder %s: %v", oldFolderPath, err)
 	}
 
 	if batch.Size() > 0 {

@@ -1,6 +1,7 @@
 package events
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -86,28 +87,30 @@ func TestAddFoldersToIndex(t *testing.T) {
 	})
 }
 
-func TestDeleteFoldersFromIndex(t *testing.T) {
-	t.Run("should delete documents from indexed folder", func(t *testing.T) {
+func TestDeleteFolderDocumentsFromIndex(t *testing.T) {
+	t.Run("deletes the folder and its descendants but not siblings with a shared prefix", func(t *testing.T) {
 		params := createTestParams(t)
-		createMarkdownNoteInFolder(t, params.ProjectPath, "folder1", "one.md", "# one")
-		createMarkdownNoteInFolder(t, params.ProjectPath, "folder2", "two.md", "# two")
+		createMarkdownNoteInFolder(t, params.ProjectPath, "folder", "one.md", "# one")
+		createMarkdownNoteInFolder(t, params.ProjectPath, "folder/child", "two.md", "# two")
+		createMarkdownNoteInFolder(t, params.ProjectPath, "folder-other", "three.md", "# three")
 		require.NoError(t, search.IndexAllFiles(params.ProjectPath, rawIndex(params)))
 
-		deleteData := []util.FolderDeleteEventData{
-			{FolderPath: "folder1"},
+		idx := rawIndex(params)
+		batch := idx.NewBatch()
+		require.NoError(t, deleteFolderDocumentsFromIndex(idx, batch, "folder"))
+		require.NoError(t, idx.Batch(batch))
+
+		for _, gone := range []string{filepath.Join("folder", "one.md"), filepath.Join("folder", "child", "two.md")} {
+			doc, err := idx.Document(gone)
+			assert.NoError(t, err)
+			assert.Nil(t, doc, gone)
 		}
-		deleteFoldersFromIndex(params, deleteData)
-
-		doc1, err := rawIndex(params).Document(filepath.Join("folder1", "one.md"))
+		doc, err := idx.Document(filepath.Join("folder-other", "three.md"))
 		assert.NoError(t, err)
-		assert.Nil(t, doc1)
-
-		doc2, err := rawIndex(params).Document(filepath.Join("folder2", "two.md"))
-		assert.NoError(t, err)
-		assert.NotNil(t, doc2)
+		assert.NotNil(t, doc)
 	})
 
-	t.Run("should delete attachments from mixed case folders", func(t *testing.T) {
+	t.Run("matches mixed case folder paths", func(t *testing.T) {
 		params := createTestParams(t)
 		folderPath := filepath.Join(params.ProjectPath, "notes", "Foo", "Bar")
 		require.NoError(t, os.MkdirAll(folderPath, 0755))
@@ -128,6 +131,42 @@ func TestDeleteFoldersFromIndex(t *testing.T) {
 		assert.Nil(t, doc)
 	})
 
+	t.Run("flushes full batches and leaves the remainder for the caller", func(t *testing.T) {
+		params := createTestParams(t)
+		noteCount := search.DefaultBatchSize + 10
+		for i := range noteCount {
+			createMarkdownNoteInFolder(t, params.ProjectPath, "big", fmt.Sprintf("note-%d.md", i), "# note")
+		}
+		require.NoError(t, search.IndexAllFiles(params.ProjectPath, rawIndex(params)))
+		idx := rawIndex(params)
+		countBefore, err := idx.DocCount()
+		require.NoError(t, err)
+
+		batch := idx.NewBatch()
+		require.NoError(t, deleteFolderDocumentsFromIndex(idx, batch, "big"))
+
+		assert.EqualValues(t, 10, batch.Size(), "a full batch should be flushed and reset")
+		countAfterFlush, err := idx.DocCount()
+		require.NoError(t, err)
+		assert.Equal(t, countBefore-uint64(search.DefaultBatchSize), countAfterFlush)
+
+		require.NoError(t, idx.Batch(batch))
+		countAfter, err := idx.DocCount()
+		require.NoError(t, err)
+		assert.Zero(t, countAfter)
+	})
+
+	t.Run("returns an error when the search fails", func(t *testing.T) {
+		idx, err := search.OpenOrCreateIndex(t.TempDir())
+		require.NoError(t, err)
+		batch := idx.NewBatch()
+		require.NoError(t, idx.Close())
+
+		assert.Error(t, deleteFolderDocumentsFromIndex(idx, batch, "folder"))
+	})
+}
+
+func TestDeleteFoldersFromIndex(t *testing.T) {
 	t.Run("should skip invalid entries and keep other folders intact", func(t *testing.T) {
 		params := createTestParams(t)
 		createMarkdownNoteInFolder(t, params.ProjectPath, "folder1", "one.md", "# one")
