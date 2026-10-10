@@ -120,55 +120,92 @@ func TestGetInternalLinksFromBody(t *testing.T) {
 	})
 }
 
-func TestGetLastUpdatedFromFrontmatter(t *testing.T) {
-	t.Run("should extract lastUpdated from frontmatter", func(t *testing.T) {
-		markdown := "---\nlastUpdated: 2023-12-01T10:30:00Z\ntitle: Test Document\n---\n# Content"
-		result, exists := GetLastUpdatedFromFrontmatter(markdown)
-		assert.Equal(t, "2023-12-01T10:30:00Z", result)
-		assert.True(t, exists)
+func TestParseMarkdownMetadataDates(t *testing.T) {
+	t.Run("should extract lastUpdated and createdDate from frontmatter", func(t *testing.T) {
+		markdown := "---\nlastUpdated: 2023-12-01T10:30:00Z\ncreatedDate: 2023-11-01T08:00:00Z\ntitle: Test Document\n---\n# Content"
+		metadata := ParseMarkdownMetadata(markdown)
+		assert.Equal(t, "2023-12-01T10:30:00Z", metadata.LastUpdated)
+		assert.Equal(t, "2023-11-01T08:00:00Z", metadata.CreatedDate)
 	})
 
-	t.Run("should return empty string and false when no frontmatter", func(t *testing.T) {
-		markdown := "# Content without frontmatter"
-		result, exists := GetLastUpdatedFromFrontmatter(markdown)
-		assert.Equal(t, "", result)
-		assert.False(t, exists)
+	t.Run("should return empty strings when no frontmatter", func(t *testing.T) {
+		metadata := ParseMarkdownMetadata("# Content without frontmatter")
+		assert.Equal(t, "", metadata.LastUpdated)
+		assert.Equal(t, "", metadata.CreatedDate)
 	})
 
-	t.Run("should return empty string and false when no lastUpdated field", func(t *testing.T) {
-		markdown := "---\ntitle: Test Document\nauthor: Test Author\n---\n# Content"
-		result, exists := GetLastUpdatedFromFrontmatter(markdown)
-		assert.Equal(t, "", result)
-		assert.False(t, exists)
+	t.Run("should return empty strings when date fields are missing", func(t *testing.T) {
+		metadata := ParseMarkdownMetadata("---\ntitle: Test Document\nauthor: Test Author\n---\n# Content")
+		assert.Equal(t, "", metadata.LastUpdated)
+		assert.Equal(t, "", metadata.CreatedDate)
 	})
 
-	t.Run("should handle invalid YAML in frontmatter", func(t *testing.T) {
-		markdown := "---\ninvalid: yaml: content:\n---\n# Content"
-		result, exists := GetLastUpdatedFromFrontmatter(markdown)
-		assert.Equal(t, "", result)
-		assert.False(t, exists)
+	t.Run("should return empty strings for invalid YAML", func(t *testing.T) {
+		metadata := ParseMarkdownMetadata("---\ninvalid: yaml: content:\n---\n# Content")
+		assert.Equal(t, "", metadata.LastUpdated)
+		assert.Equal(t, "", metadata.CreatedDate)
 	})
 
-	t.Run("should handle non-string lastUpdated field", func(t *testing.T) {
-		markdown := "---\nlastUpdated: 1234567890\ntitle: Test\n---\n# Content"
-		result, exists := GetLastUpdatedFromFrontmatter(markdown)
-		assert.Equal(t, "", result)
-		assert.False(t, exists)
+	t.Run("should ignore non-string lastUpdated values", func(t *testing.T) {
+		metadata := ParseMarkdownMetadata("---\nlastUpdated: 1234567890\ntitle: Test\n---\n# Content")
+		assert.Equal(t, "", metadata.LastUpdated)
 	})
 
-	t.Run("should handle empty string lastUpdated field", func(t *testing.T) {
-		markdown := "---\nlastUpdated: \"\"\ntitle: Test\n---\n# Content"
-		result, exists := GetLastUpdatedFromFrontmatter(markdown)
-		assert.Equal(t, "", result)
-		assert.True(t, exists)
+	t.Run("should return no tags without frontmatter", func(t *testing.T) {
+		metadata := ParseMarkdownMetadata("# Content")
+		assert.NotNil(t, metadata.Tags)
+		assert.Empty(t, metadata.Tags)
+	})
+}
+
+func TestParseCodeBlocks(t *testing.T) {
+	t.Run("should group code contents by language", func(t *testing.T) {
+		markdown := "# Title\n```go\nfmt.Println(\"hello\")\n```\nMore text\n```python\nprint(\"world\")\n```"
+		blocks := ParseCodeBlocks(markdown)
+		assert.Equal(t, []string{"fmt.Println(\"hello\")", "print(\"world\")"}, blocks.All)
+		assert.Equal(t, []string{"fmt.Println(\"hello\")"}, blocks.Go)
+		assert.Equal(t, []string{"print(\"world\")"}, blocks.Python)
+		assert.Empty(t, blocks.Java)
+		assert.Empty(t, blocks.JavaScript)
+		assert.True(t, blocks.HasLanguage)
+		assert.True(t, blocks.HasGo)
+		assert.True(t, blocks.HasPython)
+		assert.False(t, blocks.HasJava)
+		assert.False(t, blocks.HasJavaScript)
 	})
 
-	t.Run("should handle lastUpdated field with other fields present", func(t *testing.T) {
-		markdown := "---\nlastUpdated: 2023-12-01T10:30:00Z\ntitle: Test\n---\n# Content"
-		lastUpdatedResult, lastUpdatedExists := GetLastUpdatedFromFrontmatter(markdown)
+	t.Run("empty code block still counts as present", func(t *testing.T) {
+		blocks := ParseCodeBlocks("```go\n\n```\n```python\nprint(\"hello\")\n```")
+		assert.Equal(t, []string{"print(\"hello\")"}, blocks.All)
+		assert.Empty(t, blocks.Go)
+		assert.True(t, blocks.HasGo)
+		assert.True(t, blocks.HasLanguage)
+	})
 
-		assert.Equal(t, "2023-12-01T10:30:00Z", lastUpdatedResult)
-		assert.True(t, lastUpdatedExists)
+	t.Run("plain code block has content but no language", func(t *testing.T) {
+		blocks := ParseCodeBlocks("```\nplain code block\n```")
+		assert.Equal(t, []string{"plain code block"}, blocks.All)
+		assert.False(t, blocks.HasLanguage)
+	})
+
+	t.Run("should match language aliases and suffixes", func(t *testing.T) {
+		blocks := ParseCodeBlocks("```golang\npackage main\n```\n```java-17\nclass A {}\n```\n```js\nconsole.log(1)\n```")
+		assert.Equal(t, []string{"package main"}, blocks.Go)
+		assert.Equal(t, []string{"class A {}"}, blocks.Java)
+		assert.Equal(t, []string{"console.log(1)"}, blocks.JavaScript)
+	})
+
+	t.Run("should not treat javascript as java", func(t *testing.T) {
+		blocks := ParseCodeBlocks("```javascript\nconsole.log(\"hello\")\n```")
+		assert.True(t, blocks.HasJavaScript)
+		assert.False(t, blocks.HasJava)
+		assert.Empty(t, blocks.Java)
+	})
+
+	t.Run("should return empty result when there are no code blocks", func(t *testing.T) {
+		blocks := ParseCodeBlocks("# Title\nJust plain text")
+		assert.Empty(t, blocks.All)
+		assert.False(t, blocks.HasLanguage)
 	})
 }
 
@@ -207,209 +244,6 @@ func TestGetTextContent(t *testing.T) {
 		markdown := "This has <strong>bold</strong> and <em>italic</em> text"
 		result := GetTextContent(markdown)
 		assert.Equal(t, "This has bold and italic text", result)
-	})
-}
-
-func TestGetCodeContent(t *testing.T) {
-	t.Run("should extract code from single block", func(t *testing.T) {
-		markdown := "# Title\n```go\nfmt.Println(\"hello\")\n```\nMore text"
-		result := GetCodeContent(markdown)
-		assert.Len(t, result, 1)
-		assert.Equal(t, "fmt.Println(\"hello\")", result[0])
-	})
-
-	t.Run("should extract code from multiple blocks", func(t *testing.T) {
-		markdown := "```go\nfmt.Println(\"hello\")\n```\n\n```python\nprint(\"world\")\n```"
-		result := GetCodeContent(markdown)
-		assert.Len(t, result, 2)
-		assert.Contains(t, result, "fmt.Println(\"hello\")")
-		assert.Contains(t, result, "print(\"world\")")
-	})
-
-	t.Run("should return empty slice when no code blocks", func(t *testing.T) {
-		markdown := "# Title\nJust plain text content"
-		result := GetCodeContent(markdown)
-		assert.Len(t, result, 0)
-	})
-
-	t.Run("should handle empty code blocks", func(t *testing.T) {
-		markdown := "```go\n\n```\n```python\nprint(\"hello\")\n```"
-		result := GetCodeContent(markdown)
-		assert.Len(t, result, 1)
-		assert.Equal(t, "print(\"hello\")", result[0])
-	})
-}
-
-func TestGetGoCodeContent(t *testing.T) {
-	t.Run("should extract Go code blocks", func(t *testing.T) {
-		markdown := "```go\npackage main\nfmt.Println(\"hello\")\n```\n```python\nprint(\"world\")\n```"
-		result := GetGoCodeContent(markdown)
-		assert.Len(t, result, 1)
-		assert.Equal(t, "package main\nfmt.Println(\"hello\")", result[0])
-	})
-
-	t.Run("should return empty when no Go code", func(t *testing.T) {
-		markdown := "```python\nprint(\"hello\")\n```\n```javascript\nconsole.log(\"world\")\n```"
-		result := GetGoCodeContent(markdown)
-		assert.Len(t, result, 0)
-	})
-
-	t.Run("should extract multiple Go code blocks", func(t *testing.T) {
-		markdown := "```go\nfunc main() {}\n```\nSome text\n```go\nfunc test() {}\n```"
-		result := GetGoCodeContent(markdown)
-		assert.Len(t, result, 2)
-		assert.Contains(t, result, "func main() {}")
-		assert.Contains(t, result, "func test() {}")
-	})
-}
-
-func TestGetJavaCodeContent(t *testing.T) {
-	t.Run("should extract Java code blocks", func(t *testing.T) {
-		markdown := "```java\npublic class Test {}\n```\n```python\nprint(\"world\")\n```"
-		result := GetJavaCodeContent(markdown)
-		assert.Len(t, result, 1)
-		assert.Equal(t, "public class Test {}", result[0])
-	})
-
-	t.Run("should return empty when no Java code", func(t *testing.T) {
-		markdown := "```python\nprint(\"hello\")\n```\n```go\nfmt.Println(\"world\")\n```"
-		result := GetJavaCodeContent(markdown)
-		assert.Len(t, result, 0)
-	})
-	t.Run("should not extract JavaScript code blocks as Java", func(t *testing.T) {
-		markdown := "```javascript\nconsole.log(\"hello\")\n```"
-		result := GetJavaCodeContent(markdown)
-		assert.Len(t, result, 0)
-	})
-}
-
-func TestGetPythonCodeContent(t *testing.T) {
-	t.Run("should extract Python code blocks", func(t *testing.T) {
-		markdown := "```python\nprint(\"hello world\")\nimport os\n```\n```go\nfmt.Println(\"go\")\n```"
-		result := GetPythonCodeContent(markdown)
-		assert.Len(t, result, 1)
-		assert.Equal(t, "print(\"hello world\")\nimport os", result[0])
-	})
-
-	t.Run("should return empty when no Python code", func(t *testing.T) {
-		markdown := "```java\nSystem.out.println(\"hello\")\n```\n```go\nfmt.Println(\"world\")\n```"
-		result := GetPythonCodeContent(markdown)
-		assert.Len(t, result, 0)
-	})
-}
-
-func TestGetJavaScriptCodeContent(t *testing.T) {
-	t.Run("should extract JavaScript code blocks", func(t *testing.T) {
-		markdown := "```javascript\nconsole.log(\"hello\")\nconst x = 1\n```\n```python\nprint(\"world\")\n```"
-		result := GetJavaScriptCodeContent(markdown)
-		assert.Len(t, result, 1)
-		assert.Equal(t, "console.log(\"hello\")\nconst x = 1", result[0])
-	})
-
-	t.Run("should extract js code blocks", func(t *testing.T) {
-		markdown := "```js\nconsole.log(\"hello\")\n```\n```python\nprint(\"world\")\n```"
-		result := GetJavaScriptCodeContent(markdown)
-		assert.Len(t, result, 1)
-		assert.Equal(t, "console.log(\"hello\")", result[0])
-	})
-
-	t.Run("should return empty when no JavaScript code", func(t *testing.T) {
-		markdown := "```java\nSystem.out.println(\"hello\")\n```\n```python\nprint(\"world\")\n```"
-		result := GetJavaScriptCodeContent(markdown)
-		assert.Len(t, result, 0)
-	})
-}
-
-func TestHasCode(t *testing.T) {
-	t.Run("should return true when language-specific code blocks exist", func(t *testing.T) {
-		markdown := "```go\nfmt.Println(\"hello\")\n```"
-		result := HasCode(markdown)
-		assert.True(t, result)
-	})
-
-	t.Run("should return false when only plain code blocks exist", func(t *testing.T) {
-		markdown := "```\nplain code block\n```"
-		result := HasCode(markdown)
-		assert.False(t, result)
-	})
-
-	t.Run("should return false when no code blocks", func(t *testing.T) {
-		markdown := "# Title\nJust plain text"
-		result := HasCode(markdown)
-		assert.False(t, result)
-	})
-
-	t.Run("should return true for multiple different languages", func(t *testing.T) {
-		markdown := "```python\nprint(\"hello\")\n```\n```\nplain\n```\n```go\nfmt.Println(\"world\")\n```"
-		result := HasCode(markdown)
-		assert.True(t, result)
-	})
-}
-
-func TestHasGoCode(t *testing.T) {
-	t.Run("should return true when Go code exists", func(t *testing.T) {
-		markdown := "```go\npackage main\n```\n```python\nprint(\"hello\")\n```"
-		result := HasGoCode(markdown)
-		assert.True(t, result)
-	})
-
-	t.Run("should return false when no Go code", func(t *testing.T) {
-		markdown := "```python\nprint(\"hello\")\n```\n```javascript\nconsole.log(\"world\")\n```"
-		result := HasGoCode(markdown)
-		assert.False(t, result)
-	})
-
-	t.Run("should return false for empty markdown", func(t *testing.T) {
-		result := HasGoCode("")
-		assert.False(t, result)
-	})
-}
-
-func TestHasJavaCode(t *testing.T) {
-	t.Run("should return true when Java code exists", func(t *testing.T) {
-		markdown := "```java\npublic class Test {}\n```\n```python\nprint(\"hello\")\n```"
-		result := HasJavaCode(markdown)
-		assert.True(t, result)
-	})
-
-	t.Run("should return false when no Java code", func(t *testing.T) {
-		markdown := "```python\nprint(\"hello\")\n```\n```go\nfmt.Println(\"world\")\n```"
-		result := HasJavaCode(markdown)
-		assert.False(t, result)
-	})
-}
-
-func TestHasPythonCode(t *testing.T) {
-	t.Run("should return true when Python code exists", func(t *testing.T) {
-		markdown := "```python\nprint(\"hello world\")\n```\n```go\nfmt.Println(\"go\")\n```"
-		result := HasPythonCode(markdown)
-		assert.True(t, result)
-	})
-
-	t.Run("should return false when no Python code", func(t *testing.T) {
-		markdown := "```java\nSystem.out.println(\"hello\")\n```\n```go\nfmt.Println(\"world\")\n```"
-		result := HasPythonCode(markdown)
-		assert.False(t, result)
-	})
-}
-
-func TestHasJavaScriptCode(t *testing.T) {
-	t.Run("should return true when JavaScript code exists", func(t *testing.T) {
-		markdown := "```javascript\nconsole.log(\"hello\")\n```\n```python\nprint(\"world\")\n```"
-		result := HasJavaScriptCode(markdown)
-		assert.True(t, result)
-	})
-
-	t.Run("should return true when js code exists", func(t *testing.T) {
-		markdown := "```js\nconsole.log(\"hello\")\n```\n```python\nprint(\"world\")\n```"
-		result := HasJavaScriptCode(markdown)
-		assert.True(t, result)
-	})
-
-	t.Run("should return false when no JavaScript code", func(t *testing.T) {
-		markdown := "```java\nSystem.out.println(\"hello\")\n```\n```python\nprint(\"world\")\n```"
-		result := HasJavaScriptCode(markdown)
-		assert.False(t, result)
 	})
 }
 

@@ -24,13 +24,8 @@ var (
 	HTML_TAG_REGEX    = regexp.MustCompile(`<[^>]*>`)
 	HEADER_REGEX      = regexp.MustCompile(`(?m)^#+\s*`)
 
-	// Language-specific code block patterns
-	// Support optional attributes after the language (CommonMark info string), e.g. ```python id="..."
-	CODE_BLOCK_WITH_LANG_REGEX  = regexp.MustCompile("(?s)```(?:([a-zA-Z0-9_+-]+)[^\n]*)?\n(.*?)```")
-	GO_CODE_BLOCK_REGEX         = regexp.MustCompile("(?s)```go[^\n]*\n(.*?)```")
-	JAVA_CODE_BLOCK_REGEX       = regexp.MustCompile("(?s)```java\\b[^\n]*\n(.*?)```")
-	PYTHON_CODE_BLOCK_REGEX     = regexp.MustCompile("(?s)```python[^\n]*\n(.*?)```")
-	JAVASCRIPT_CODE_BLOCK_REGEX = regexp.MustCompile("(?s)```(?:javascript|js)[^\n]*\n(.*?)```")
+	// Captures the language tag (group 1) and body (group 2); the tag may include attributes, e.g. ```python id="..."
+	CODE_BLOCK_WITH_LANG_REGEX = regexp.MustCompile("(?s)```(?:([a-zA-Z0-9_+-]+)[^\n]*)?\n(.*?)```")
 )
 
 // Content Filtering Functions
@@ -46,12 +41,7 @@ func excludeMediaTags(markdown string) string {
 
 // excludeCodeBlocks removes all code blocks (``` or ~~~ delimited) from markdown.
 func excludeCodeBlocks(markdown string) string {
-	// Find and replace all code blocks with empty string
-	codeBlocks := CODE_BLOCK_REGEX.FindAllString(markdown, -1)
-	for _, block := range codeBlocks {
-		markdown = strings.Replace(markdown, block, "", 1)
-	}
-	return strings.TrimSpace(markdown)
+	return strings.TrimSpace(CODE_BLOCK_REGEX.ReplaceAllString(markdown, ""))
 }
 
 // excludeFrontmatter removes YAML frontmatter (content between ---) from markdown.
@@ -88,58 +78,21 @@ func parseFrontmatter(markdown string) (map[string]interface{}, bool) {
 	return frontmatter, true
 }
 
-// GetLastUpdatedFromFrontmatter extracts the lastUpdated field from YAML frontmatter.
-// Returns the lastUpdated string and a boolean indicating whether the field was found and is a valid string or time.Time.
-func GetLastUpdatedFromFrontmatter(markdown string) (string, bool) {
-	frontmatter, ok := parseFrontmatter(markdown)
-	if !ok {
-		return "", false
+// frontmatterTime returns a frontmatter date field as a string.
+// YAML converts ISO 8601 values to time.Time, which is formatted as RFC3339.
+func frontmatterTime(frontmatter map[string]interface{}, key string) (string, bool) {
+	switch value := frontmatter[key].(type) {
+	case string:
+		return value, true
+	case time.Time:
+		return value.Format(time.RFC3339), true
 	}
-
-	if lastUpdated, exists := frontmatter["lastUpdated"]; exists {
-		// Handle string type
-		if lastUpdatedStr, ok := lastUpdated.(string); ok {
-			return lastUpdatedStr, true
-		}
-		// Handle time.Time type (YAML parser converts ISO 8601 dates automatically)
-		if lastUpdatedTime, ok := lastUpdated.(time.Time); ok {
-			return lastUpdatedTime.Format(time.RFC3339), true
-		}
-	}
-
 	return "", false
 }
 
-// GetCreatedDateFromFrontmatter extracts the createdDate field from YAML frontmatter.
-// Returns the createdDate string and a boolean indicating whether the field was found and is a valid string or time.Time.
-func GetCreatedDateFromFrontmatter(markdown string) (string, bool) {
-	frontmatter, ok := parseFrontmatter(markdown)
-	if !ok {
-		return "", false
-	}
-
-	if createdDate, exists := frontmatter["createdDate"]; exists {
-		// Handle string type
-		if createdDateStr, ok := createdDate.(string); ok {
-			return createdDateStr, true
-		}
-		// Handle time.Time type (YAML parser converts ISO 8601 dates automatically)
-		if createdDateTime, ok := createdDate.(time.Time); ok {
-			return createdDateTime.Format(time.RFC3339), true
-		}
-	}
-
-	return "", false
-}
-
-// GetTagsFromFrontmatter extracts the tags field from YAML frontmatter.
+// tagsFromFrontmatter extracts the tags field from parsed frontmatter.
 // Returns the tags slice and a boolean indicating whether the tags field was found and is a valid slice.
-func GetTagsFromFrontmatter(markdown string) ([]string, bool) {
-	frontmatter, ok := parseFrontmatter(markdown)
-	if !ok {
-		return []string{}, false
-	}
-
+func tagsFromFrontmatter(frontmatter map[string]interface{}) ([]string, bool) {
 	if tags, exists := frontmatter["tags"]; exists {
 		// Handle slice type ([]interface{})
 		if tagsSlice, ok := tags.([]interface{}); ok {
@@ -158,6 +111,12 @@ func GetTagsFromFrontmatter(markdown string) ([]string, bool) {
 	}
 
 	return []string{}, false
+}
+
+// GetTagsFromFrontmatter extracts the tags field from YAML frontmatter in markdown.
+func GetTagsFromFrontmatter(markdown string) ([]string, bool) {
+	frontmatter, _ := parseFrontmatter(markdown)
+	return tagsFromFrontmatter(frontmatter)
 }
 
 // updateFrontmatterWithTags updates the frontmatter in markdown with the provided tags.
@@ -214,51 +173,53 @@ func GetTextContent(markdown string) string {
 
 // Code Content Functions
 
-// getCodeContentWithLangRegex is a helper function that extracts code content from language-aware regex.
-func getCodeContentWithLangRegex(markdown string, regex *regexp.Regexp, contentIndex int) []string {
-	var codeContents []string
+// CodeBlocks summarizes the fenced code blocks in a note, grouped by language.
+type CodeBlocks struct {
+	// Contents of non-empty blocks
+	All, Go, Java, Python, JavaScript []string
 
-	matches := regex.FindAllStringSubmatch(markdown, -1)
-	for _, match := range matches {
-		if len(match) > contentIndex {
-			codeContent := strings.TrimSpace(match[contentIndex])
-			if codeContent != "" {
-				codeContents = append(codeContents, codeContent)
-			}
+	// Presence flags. Empty blocks still count, so these can be true when the content slices are empty.
+	HasLanguage, HasGo, HasJava, HasPython, HasJavaScript bool
+}
+
+// isJavaLang reports whether a fence tag is java. Like the old `java\b` regex, it also accepts tags such as java-17.
+func isJavaLang(lang string) bool {
+	rest, found := strings.CutPrefix(lang, "java")
+	return found && (rest == "" || rest[0] == '-' || rest[0] == '+')
+}
+
+// ParseCodeBlocks scans the code blocks in markdown once and groups them by language.
+func ParseCodeBlocks(markdown string) CodeBlocks {
+	var blocks CodeBlocks
+	for _, match := range CODE_BLOCK_WITH_LANG_REGEX.FindAllStringSubmatch(markdown, -1) {
+		lang, content := match[1], strings.TrimSpace(match[2])
+		blocks.HasLanguage = blocks.HasLanguage || lang != ""
+
+		var group *[]string
+		switch {
+		case strings.HasPrefix(lang, "go"):
+			blocks.HasGo = true
+			group = &blocks.Go
+		case isJavaLang(lang):
+			blocks.HasJava = true
+			group = &blocks.Java
+		case strings.HasPrefix(lang, "python"):
+			blocks.HasPython = true
+			group = &blocks.Python
+		case strings.HasPrefix(lang, "javascript"), strings.HasPrefix(lang, "js"):
+			blocks.HasJavaScript = true
+			group = &blocks.JavaScript
+		}
+
+		if content == "" {
+			continue
+		}
+		blocks.All = append(blocks.All, content)
+		if group != nil {
+			*group = append(*group, content)
 		}
 	}
-
-	return codeContents
-}
-
-// GetCodeContent extracts all code block contents regardless of language.
-// Returns a slice of strings containing the code from each block.
-func GetCodeContent(markdown string) []string {
-	return getCodeContentWithLangRegex(markdown, CODE_BLOCK_WITH_LANG_REGEX, 2)
-}
-
-// GetGoCodeContent extracts all Go code block contents.
-// Returns a slice of strings containing the Go code from each block.
-func GetGoCodeContent(markdown string) []string {
-	return getCodeContentWithLangRegex(markdown, GO_CODE_BLOCK_REGEX, 1)
-}
-
-// GetJavaCodeContent extracts all Java code block contents.
-// Returns a slice of strings containing the Java code from each block.
-func GetJavaCodeContent(markdown string) []string {
-	return getCodeContentWithLangRegex(markdown, JAVA_CODE_BLOCK_REGEX, 1)
-}
-
-// GetPythonCodeContent extracts all Python code block contents.
-// Returns a slice of strings containing the Python code from each block.
-func GetPythonCodeContent(markdown string) []string {
-	return getCodeContentWithLangRegex(markdown, PYTHON_CODE_BLOCK_REGEX, 1)
-}
-
-// GetJavaScriptCodeContent extracts all JavaScript code block contents.
-// Returns a slice of strings containing the JavaScript code from each block.
-func GetJavaScriptCodeContent(markdown string) []string {
-	return getCodeContentWithLangRegex(markdown, JAVASCRIPT_CODE_BLOCK_REGEX, 1)
+	return blocks
 }
 
 // GetInternalLinksFromBody extracts all internal link targets from markdown content.
@@ -386,44 +347,27 @@ func DeleteTagsFromNote(projectPath string, folderAndNoteName string, tagsToDele
 	return finalTags, nil
 }
 
-// Boolean Check Functions
+// Search Metadata
 
-// hasCodeByRegex is a helper function that checks if code blocks exist using a regex pattern.
-func hasCodeByRegex(markdown string, regex *regexp.Regexp) bool {
-	return regex.MatchString(markdown)
+// MarkdownMetadata is the frontmatter and code data the search index stores for a note.
+type MarkdownMetadata struct {
+	LastUpdated string
+	CreatedDate string
+	Tags        []string
+	Code        CodeBlocks
 }
 
-// HasCode returns true if the markdown contains any code blocks with language identifiers.
-func HasCode(markdown string) bool {
-	matches := CODE_BLOCK_WITH_LANG_REGEX.FindAllStringSubmatch(markdown, -1)
-	for _, match := range matches {
-		if len(match) >= 2 {
-			// Check if there's a language identifier (not empty)
-			lang := strings.TrimSpace(match[1])
-			if lang != "" {
-				return true
-			}
-		}
+// ParseMarkdownMetadata parses the frontmatter and code blocks of markdown in one pass each.
+func ParseMarkdownMetadata(markdown string) MarkdownMetadata {
+	frontmatter, _ := parseFrontmatter(markdown)
+	lastUpdated, _ := frontmatterTime(frontmatter, "lastUpdated")
+	createdDate, _ := frontmatterTime(frontmatter, "createdDate")
+	tags, _ := tagsFromFrontmatter(frontmatter)
+
+	return MarkdownMetadata{
+		LastUpdated: lastUpdated,
+		CreatedDate: createdDate,
+		Tags:        tags,
+		Code:        ParseCodeBlocks(markdown),
 	}
-	return false
-}
-
-// HasGoCode returns true if the markdown contains Go code blocks.
-func HasGoCode(markdown string) bool {
-	return hasCodeByRegex(markdown, GO_CODE_BLOCK_REGEX)
-}
-
-// HasJavaCode returns true if the markdown contains Java code blocks.
-func HasJavaCode(markdown string) bool {
-	return hasCodeByRegex(markdown, JAVA_CODE_BLOCK_REGEX)
-}
-
-// HasPythonCode returns true if the markdown contains Python code blocks.
-func HasPythonCode(markdown string) bool {
-	return hasCodeByRegex(markdown, PYTHON_CODE_BLOCK_REGEX)
-}
-
-// HasJavaScriptCode returns true if the markdown contains JavaScript code blocks.
-func HasJavaScriptCode(markdown string) bool {
-	return hasCodeByRegex(markdown, JAVASCRIPT_CODE_BLOCK_REGEX)
 }

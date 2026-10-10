@@ -92,11 +92,10 @@ type DocumentIndexInfo struct {
 // It extracts all relevant information using the markdown processing functions and populates
 // the document structure for search indexing.
 func CreateMarkdownNoteBleveDocument(markdown, folder, fileName string) MarkdownNoteBleveDocument {
-	lastUpdated, _ := notes.GetLastUpdatedFromFrontmatter(markdown)
-	createdDate, _ := notes.GetCreatedDateFromFrontmatter(markdown)
-	tags, _ := notes.GetTagsFromFrontmatter(markdown)
+	metadata := notes.ParseMarkdownMetadata(markdown)
 	links := notes.GetInternalLinksFromBody(markdown)
 	textContent := notes.GetTextContent(markdown)
+	code := metadata.Code
 	return MarkdownNoteBleveDocument{
 		Type:                  MARKDOWN_NOTE_TYPE,
 		Folder:                folder,
@@ -105,20 +104,20 @@ func CreateMarkdownNoteBleveDocument(markdown, folder, fileName string) Markdown
 		FileExtension:         ".md",
 		TextContent:           textContent,
 		TextContentNgram:      textContent,
-		CodeContent:           notes.GetCodeContent(markdown),
-		GoCodeContent:         notes.GetGoCodeContent(markdown),
-		JavaCodeContent:       notes.GetJavaCodeContent(markdown),
-		PythonCodeContent:     notes.GetPythonCodeContent(markdown),
-		JavascriptCodeContent: notes.GetJavaScriptCodeContent(markdown),
-		HasCode:               notes.HasCode(markdown),
-		HasGoCode:             notes.HasGoCode(markdown),
-		HasJavaCode:           notes.HasJavaCode(markdown),
-		HasPythonCode:         notes.HasPythonCode(markdown),
-		HasJavascriptCode:     notes.HasJavaScriptCode(markdown),
-		Tags:                  tags,
+		CodeContent:           code.All,
+		GoCodeContent:         code.Go,
+		JavaCodeContent:       code.Java,
+		PythonCodeContent:     code.Python,
+		JavascriptCodeContent: code.JavaScript,
+		HasCode:               code.HasLanguage,
+		HasGoCode:             code.HasGo,
+		HasJavaCode:           code.HasJava,
+		HasPythonCode:         code.HasPython,
+		HasJavascriptCode:     code.HasJavaScript,
+		Tags:                  metadata.Tags,
 		Links:                 links,
-		LastUpdated:           lastUpdated,
-		CreatedDate:           createdDate,
+		LastUpdated:           metadata.LastUpdated,
+		CreatedDate:           metadata.CreatedDate,
 		Size:                  int64(len([]byte(markdown))),
 	}
 }
