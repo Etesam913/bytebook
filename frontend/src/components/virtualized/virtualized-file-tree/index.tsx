@@ -48,6 +48,7 @@ import { TreeHeader } from './tree-header';
 import { TreeSearchInput } from './tree-search-input';
 import { TreeNameTooltip } from './tree-name-tooltip';
 import { Loader } from '@/icons/loader';
+import { FOLDER_TYPE } from '@utils/tree-item-types';
 
 // Later path updates sync directly into the model, so prepare only once.
 function usePreparedTreeInput(paths: readonly string[]) {
@@ -117,6 +118,7 @@ function PierreFileTreeInner({
     parentFolderPath: string;
     unsubscribe: () => void;
   } | null>(null);
+  const pendingCreatePathsRef = useRef(new Set<string>());
 
   // ── Tree model ───────────────────────────────────────────────────────
   const dragSession = usePierreTreeDragSession();
@@ -163,6 +165,7 @@ function PierreFileTreeInner({
           // A committed placeholder is moved, not removed, so the removal
           // listener would never fire — release it here.
           pending.unsubscribe();
+          pendingCreatePathsRef.current.delete(pending.placeholderPath);
           pendingCreateRef.current = null;
           // Pierre selects the committed placeholder before it exists on disk.
           // Let the create mutation populate the path cache and navigate on success.
@@ -170,14 +173,18 @@ function PierreFileTreeInner({
             ? (createFolderPath(event.destinationPath)?.fullPath ?? null)
             : event.destinationPath;
           // Pierre moves the placeholder after this callback returns.
-          queueMicrotask(() =>
-            applyTreeCreate({
+          queueMicrotask(() => {
+            void applyTreeCreate({
               model,
               event,
               parentFolderPath: pending.parentFolderPath,
               addTreeItem,
-            })
-          );
+              pendingPaths: pendingCreatePathsRef.current,
+              onCanonicalPath: (path) => {
+                lastNavigatedRef.current = path;
+              },
+            });
+          });
           return;
         }
         // Pierre applies the rename to its model right after this callback,
@@ -198,7 +205,10 @@ function PierreFileTreeInner({
       onError: (error) => {
         // Remove failed create placeholders from the model.
         const pending = pendingCreateRef.current;
-        if (pending) pending.unsubscribe();
+        if (pending) {
+          pending.unsubscribe();
+          pendingCreatePathsRef.current.delete(pending.placeholderPath);
+        }
         if (pending && model.getItem(pending.placeholderPath)) {
           model.remove(
             pending.placeholderPath,
@@ -227,7 +237,12 @@ function PierreFileTreeInner({
     routeTargetPath,
   });
 
-  useSyncAllPaths({ model, preparedInput, isMovePending });
+  useSyncAllPaths({
+    model,
+    preparedInput,
+    isMovePending,
+    getPendingCreatePaths: () => [...pendingCreatePathsRef.current],
+  });
   usePierreTreeEvents(model);
   usePierreRouteFocus(model, isFilterMode);
   usePierreFileTreeDrop(model);
@@ -260,7 +275,12 @@ function PierreFileTreeInner({
     });
     // Clear pending state when creation is canceled.
     const unsubscribe = model.onMutation('remove', (event) => {
-      if (event.path !== placeholderPath) return;
+      if (
+        event.path !== placeholderPath &&
+        !(event.path.endsWith('/') && placeholderPath.startsWith(event.path))
+      )
+        return;
+      pendingCreatePathsRef.current.delete(placeholderPath);
       if (pendingCreateRef.current?.placeholderPath === placeholderPath) {
         pendingCreateRef.current = null;
       }
@@ -273,18 +293,34 @@ function PierreFileTreeInner({
       parentFolderPath: folderPath,
       unsubscribe,
     };
+    pendingCreatePathsRef.current.add(placeholderPath);
     model.add(placeholderPath);
     if (!model.startRenaming(placeholderPath, { removeIfCanceled: true })) {
       unsubscribe();
       pendingCreateRef.current = null;
+      pendingCreatePathsRef.current.delete(placeholderPath);
       model.remove(
         placeholderPath,
         placeholderPath.endsWith('/') ? { recursive: true } : undefined
       );
       return;
     }
+    // Typing can begin before the deferred seed-name reset. Never erase input
+    // the user has already supplied while the new row is appearing.
+    const host = getTreeHost(model);
+    let hasTyped = false;
+    const onInput = () => {
+      hasTyped = true;
+    };
+    host?.addEventListener('input', onInput, { capture: true, once: true });
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
+        host?.removeEventListener('input', onInput, true);
+        if (
+          hasTyped ||
+          pendingCreateRef.current?.placeholderPath !== placeholderPath
+        )
+          return;
         const input = getRenameInput(model);
         if (!input) return;
         // Start empty because unchanged seed names do not trigger onRename.
@@ -340,8 +376,16 @@ function PierreFileTreeInner({
       onKeyDown={handleKeyDown}
       {...dragHandlers}
     >
-      {/* Keep the header outside shadow DOM so its input retains key events. */}
-      <TreeHeader>
+      <TreeHeader
+        onCreateFolder={() => {
+          onSearchChange('');
+          // Let the canonical tree become visible before inserting a draft when
+          // creation starts from filtered results.
+          requestAnimationFrame(() =>
+            handleStartCreate({ folderPath: '', itemType: FOLDER_TYPE })
+          );
+        }}
+      >
         <TreeSearchInput value={searchValue} onChange={onSearchChange} />
       </TreeHeader>
       <TreeFilterSummary

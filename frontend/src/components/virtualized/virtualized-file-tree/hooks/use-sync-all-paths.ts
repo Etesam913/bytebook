@@ -14,10 +14,12 @@ export function useSyncAllPaths({
   model,
   preparedInput,
   isMovePending,
+  getPendingCreatePaths,
 }: {
   model: PierreFileTree;
   preparedInput: FileTreePreparedInput;
   isMovePending: boolean;
+  getPendingCreatePaths: () => readonly string[];
 }): void {
   const { data: allPaths, dataUpdatedAt, isFetching } = useAllPaths();
   // Remember the last completed sync so StrictMode effect replays during sidebar
@@ -51,7 +53,22 @@ export function useSyncAllPaths({
       previous.dataUpdatedAt === dataUpdatedAt
     )
       return;
-    reconcileTreePaths(model, allPaths);
+    // A watcher refetch must not discard a draft being typed or awaiting its
+    // create response. The create flow owns removal on cancellation/failure.
+    const pendingPaths = getPendingCreatePaths().filter(
+      (path) => model.getItem(path) !== null && !allPaths.includes(path)
+    );
+    reconcileTreePaths(
+      model,
+      pendingPaths.length ? [...allPaths, ...pendingPaths] : allPaths
+    );
     lastSyncedRef.current = { model, paths: allPaths, dataUpdatedAt };
-  }, [model, allPaths, dataUpdatedAt, isFetching, isMovePending]);
+  }, [
+    model,
+    allPaths,
+    dataUpdatedAt,
+    isFetching,
+    isMovePending,
+    getPendingCreatePaths,
+  ]);
 }

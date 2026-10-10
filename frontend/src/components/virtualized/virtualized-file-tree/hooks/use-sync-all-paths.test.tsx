@@ -22,7 +22,12 @@ function TreeSync({
   model: FileTree;
   isMovePending: boolean;
 }) {
-  useSyncAllPaths({ model, preparedInput, isMovePending });
+  useSyncAllPaths({
+    model,
+    preparedInput,
+    isMovePending,
+    getPendingCreatePaths: () => [],
+  });
   return <section>Files</section>;
 }
 

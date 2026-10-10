@@ -961,8 +961,10 @@ test.describe('File Sidebar', () => {
     // Click the Create Folder button in the file tree
     await fileTree.getByText('Create Folder').click();
 
-    // An inline input should appear with placeholder "New folder"
-    const input = fileTree.locator('input[placeholder="New folder"]');
+    const input = fileTree.getByRole('textbox', {
+      name: 'Rename Untitled',
+      exact: true,
+    });
     await expect(input).toBeVisible();
 
     await input.fill(NEW_FOLDER_NAME);

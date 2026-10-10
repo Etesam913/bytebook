@@ -5,7 +5,7 @@ import type {
 import { toast } from 'sonner';
 import type { AddTreeItemVariables } from '@hooks/tree-items';
 import { DEFAULT_SONNER_OPTIONS } from '@utils/general';
-import { splitPathSegments } from '@utils/path';
+import { createFolderPath, splitPathSegments } from '@utils/path';
 import { QueryError } from '@utils/query';
 import { FILE_TYPE, FOLDER_TYPE } from '@utils/tree-item-types';
 
@@ -52,49 +52,75 @@ export function getPlaceholderPath({
  * event then finds the path already in the model and skips it, so nothing is
  * double-added.
  */
-export function applyTreeCreate({
+export async function applyTreeCreate({
   model,
   event,
   parentFolderPath,
   addTreeItem,
+  pendingPaths,
+  onCanonicalPath,
 }: {
   model: PierreFileTree;
   event: FileTreeRenameEvent;
   parentFolderPath: string;
   addTreeItem: (variables: AddTreeItemVariables) => Promise<unknown>;
+  pendingPaths: Set<string>;
+  onCanonicalPath: (path: string) => void;
 }) {
   const { destinationPath, isFolder } = event;
   const typedName = splitPathSegments(destinationPath).pop() ?? '';
   // AddNoteToFolder appends `.md` itself, so a typed extension is stripped.
   const newName = isFolder ? typedName : typedName.replace(/\.md$/i, '');
+  // Pierre's rename event omits the folder marker, but reconciliation must
+  // retain a directory path, never introduce a same-named file alongside it.
+  let placeholderPath = isFolder
+    ? (createFolderPath(destinationPath)?.fullPath ?? destinationPath)
+    : destinationPath;
+  const realPath = isFolder
+    ? placeholderPath
+    : `${parentFolderPath}${newName}.md`;
+  pendingPaths.add(placeholderPath);
 
   const removePlaceholder = () => {
-    if (model.getItem(destinationPath)) {
-      model.remove(destinationPath, isFolder ? { recursive: true } : undefined);
+    if (model.getItem(placeholderPath)) {
+      model.remove(placeholderPath, isFolder ? { recursive: true } : undefined);
     }
   };
 
-  void addTreeItem({
-    parentFolderPath,
-    addType: isFolder ? FOLDER_TYPE : FILE_TYPE,
-    newName,
-  })
-    .then(() => {
-      // A committed folder path already matches the watcher's event path.
-      if (isFolder) return;
-      // Disk gets `<name>.md`; align the model with the on-disk path.
-      const realPath = `${parentFolderPath}${newName}.md`;
-      if (model.getItem(realPath)) {
-        removePlaceholder(); // the watcher event landed first
-      } else if (model.getItem(destinationPath)) {
-        model.move(destinationPath, realPath);
-      }
-    })
-    .catch((error: unknown) => {
-      removePlaceholder();
-      // QueryErrors already toast via the global MutationCache handler.
-      if (error instanceof Error && !(error instanceof QueryError)) {
-        toast.error(error.message, DEFAULT_SONNER_OPTIONS);
-      }
+  try {
+    // Normalize before the RPC: a watcher can announce the on-disk .md path
+    // before the response arrives. Both must identify this same visible row.
+    if (
+      placeholderPath !== realPath &&
+      !model.getItem(realPath) &&
+      model.getItem(placeholderPath)
+    ) {
+      onCanonicalPath(realPath);
+      model.move(placeholderPath, realPath);
+      pendingPaths.delete(placeholderPath);
+      placeholderPath = realPath;
+      pendingPaths.add(placeholderPath);
+    }
+    await addTreeItem({
+      parentFolderPath,
+      addType: isFolder ? FOLDER_TYPE : FILE_TYPE,
+      newName,
     });
+    if (placeholderPath !== realPath) {
+      if (model.getItem(realPath)) {
+        removePlaceholder();
+      } else if (model.getItem(placeholderPath)) {
+        onCanonicalPath(realPath);
+        model.move(placeholderPath, realPath);
+      }
+    }
+  } catch (error: unknown) {
+    removePlaceholder();
+    // QueryErrors already toast via the global MutationCache handler.
+    if (error instanceof Error && !(error instanceof QueryError)) {
+      toast.error(error.message, DEFAULT_SONNER_OPTIONS);
+    }
+  } finally {
+    pendingPaths.delete(placeholderPath);
+  }
 }
