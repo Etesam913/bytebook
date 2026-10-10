@@ -4,6 +4,13 @@ import {
   type Languages,
   type ProjectSettings,
 } from '@/types';
+import type { ProjectSettingsJson } from '@bindings/config/models';
+import { normalizeSidebarOrder } from './sidebar-panels';
+import { parseRGB } from './string-formatting';
+
+export const DEFAULT_ACCENT_COLOR = 'rgb(96, 165, 250)';
+export const DEFAULT_UI_FONT_FAMILY = 'ui-sans-serif';
+export const DEFAULT_CODE_BLOCK_FONT_FAMILY = 'monospace';
 
 type ValidatedProjectSettings = {
   theme: 'light' | 'dark' | 'system';
@@ -118,4 +125,65 @@ export function validateCodeBlockDefaultLanguage(language: unknown): Languages {
   }
 
   return DEFAULT_CODE_BLOCK_LANGUAGE;
+}
+
+// Pure: converts the raw backend payload into the typed settings the app uses. No DOM writes.
+export function normalizeProjectSettings(
+  data: ProjectSettingsJson
+): ProjectSettings {
+  const { pinnedNotes, appearance, code } = data;
+  const {
+    theme,
+    noteWidth,
+    accentColor,
+    editorFontSize,
+    editorLineHeight,
+    showTableOfContentsByDefault,
+    uiFontFamily,
+    sidebarOrder,
+    sidebarVisibility,
+  } = appearance;
+
+  const {
+    codeBlockFontFamily,
+    codeBlockFontSize,
+    codeBlockLineWrapping,
+    codeBlockShowLineNumbers,
+    codeBlockDefaultLanguage,
+  } = code;
+
+  const validated = validateProjectSettings({ theme, noteWidth });
+
+  return {
+    ...data,
+    pinnedNotes: new Set(pinnedNotes),
+    appearance: {
+      ...appearance,
+      accentColor: parseRGB(accentColor) ? accentColor : DEFAULT_ACCENT_COLOR,
+      editorFontSize: validateEditorFontSize(editorFontSize),
+      editorLineHeight: validateEditorLineHeight(editorLineHeight),
+      showTableOfContentsByDefault: showTableOfContentsByDefault ?? false,
+      uiFontFamily: uiFontFamily ?? DEFAULT_UI_FONT_FAMILY,
+      theme: validated.theme,
+      noteWidth: validated.noteWidth,
+      sidebarOrder: normalizeSidebarOrder(sidebarOrder),
+      sidebarVisibility: {
+        hidePinned: sidebarVisibility?.hidePinned ?? false,
+        hideRecent: sidebarVisibility?.hideRecent ?? false,
+        hideKernels: sidebarVisibility?.hideKernels ?? false,
+        hideTags: sidebarVisibility?.hideTags ?? false,
+        hideSavedSearches: sidebarVisibility?.hideSavedSearches ?? false,
+      },
+    },
+    code: {
+      ...code,
+      codeBlockFontFamily: codeBlockFontFamily ?? '',
+      codeBlockFontSize: validateCodeBlockFontSize(codeBlockFontSize),
+      codeBlockLineWrapping: codeBlockLineWrapping ?? false,
+      codeBlockShowLineNumbers: codeBlockShowLineNumbers ?? false,
+      codeBlockDefaultLanguage: validateCodeBlockDefaultLanguage(
+        codeBlockDefaultLanguage
+      ),
+    },
+  };
 }

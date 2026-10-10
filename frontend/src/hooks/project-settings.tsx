@@ -1,4 +1,3 @@
-import { normalizeSidebarOrder } from '@utils/sidebar-panels';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useSetAtom } from 'jotai';
 import { logger } from '@utils/logging';
@@ -12,11 +11,13 @@ import { useOpenSettingsDialog } from '@hooks/dialogs';
 import { useWailsEvent } from '@hooks/events';
 import type { ProjectSettings } from '@/types';
 import {
-  validateCodeBlockDefaultLanguage,
+  DEFAULT_ACCENT_COLOR,
+  DEFAULT_CODE_BLOCK_FONT_FAMILY,
+  DEFAULT_UI_FONT_FAMILY,
+  normalizeProjectSettings,
   validateCodeBlockFontSize,
   validateEditorFontSize,
   validateEditorLineHeight,
-  validateProjectSettings,
 } from '@utils/project-settings';
 import {
   isEventInCurrentWindow,
@@ -31,132 +32,82 @@ import {
 import { queryKeys } from '@utils/query-keys';
 import { ProjectSettingsJson } from '@bindings/config/models';
 
-const DEFAULT_ACCENT_COLOR = 'rgb(96, 165, 250)';
-const DEFAULT_UI_FONT_FAMILY = 'ui-sans-serif';
-const DEFAULT_CODE_BLOCK_FONT_FAMILY = 'monospace';
+const APPEARANCE_VARIABLES = [
+  '--accent-color-values',
+  '--editor-font-size-base',
+  '--editor-line-height',
+  '--code-block-font-size-base',
+  '--app-font-family',
+  '--code-block-font-family',
+] as const;
 
-function updateAccentColorVariable(accentColor: string) {
-  let rgbValues = parseRGB(accentColor);
-  if (!rgbValues) {
-    rgbValues = parseRGB(DEFAULT_ACCENT_COLOR);
+function fontFamilyOrDefault(fontFamily: string, defaultFontFamily: string) {
+  return fontFamily.trim().length > 0 ? fontFamily : defaultFontFamily;
+}
+
+// The only place appearance settings are written to CSS variables.
+function applyAppearanceVariables({
+  appearance,
+  code,
+}: Pick<ProjectSettings, 'appearance' | 'code'>) {
+  const style = document.documentElement.style;
+  const accent =
+    parseRGB(appearance.accentColor) ?? parseRGB(DEFAULT_ACCENT_COLOR);
+  if (accent) {
+    style.setProperty(
+      '--accent-color-values',
+      `${accent.r},${accent.g},${accent.b}`
+    );
   }
-  if (!rgbValues) return;
-
-  document.documentElement.style.setProperty(
-    '--accent-color-values',
-    `${rgbValues.r},${rgbValues.g},${rgbValues.b}`
-  );
-}
-
-function updateEditorFontSizeVariable(fontSize: unknown) {
-  const validatedFontSize = validateEditorFontSize(fontSize);
-  document.documentElement.style.setProperty(
+  style.setProperty(
     '--editor-font-size-base',
-    `${validatedFontSize}px`
+    `${validateEditorFontSize(appearance.editorFontSize)}px`
   );
-}
-
-function updateEditorLineHeightVariable(lineHeight: unknown) {
-  const validatedLineHeight = validateEditorLineHeight(lineHeight);
-  document.documentElement.style.setProperty(
+  style.setProperty(
     '--editor-line-height',
-    String(validatedLineHeight)
+    String(validateEditorLineHeight(appearance.editorLineHeight))
   );
-}
-
-function updateCodeBlockFontSizeVariable(fontSize: unknown) {
-  const validatedFontSize = validateCodeBlockFontSize(fontSize);
-  document.documentElement.style.setProperty(
+  style.setProperty(
     '--code-block-font-size-base',
-    `${validatedFontSize}px`
+    `${validateCodeBlockFontSize(code.codeBlockFontSize)}px`
   );
-}
-
-function updateFontFamilyVariable(
-  variableName: string,
-  fontFamily: unknown,
-  defaultFontFamily: string
-) {
-  document.documentElement.style.setProperty(
-    variableName,
-    typeof fontFamily === 'string' && fontFamily.trim().length > 0
-      ? fontFamily
-      : defaultFontFamily
-  );
-}
-/**
- * Validates project settings from the server.
- *
- * @returns  The validated project settings.
- * @throws  If the fetch operation fails or returns invalid data.
- */
-function validateProjectSettingsWrapper(data: ProjectSettingsJson) {
-  const { theme, noteWidth } = validateProjectSettings({
-    theme: data.appearance.theme,
-    noteWidth: data.appearance.noteWidth,
-  });
-  const editorFontSize = validateEditorFontSize(data.appearance.editorFontSize);
-  const editorLineHeight = validateEditorLineHeight(
-    data.appearance.editorLineHeight
-  );
-  const codeBlockFontSize = validateCodeBlockFontSize(
-    data.code.codeBlockFontSize
-  );
-  const codeBlockDefaultLanguage = validateCodeBlockDefaultLanguage(
-    data.code.codeBlockDefaultLanguage
-  );
-  const accentColor = parseRGB(data.appearance.accentColor)
-    ? data.appearance.accentColor
-    : DEFAULT_ACCENT_COLOR;
-
-  updateAccentColorVariable(accentColor);
-  updateEditorFontSizeVariable(editorFontSize);
-  updateEditorLineHeightVariable(editorLineHeight);
-  updateCodeBlockFontSizeVariable(codeBlockFontSize);
-  updateFontFamilyVariable(
+  style.setProperty(
     '--app-font-family',
-    data.appearance.uiFontFamily,
-    DEFAULT_UI_FONT_FAMILY
+    fontFamilyOrDefault(appearance.uiFontFamily, DEFAULT_UI_FONT_FAMILY)
   );
-  updateFontFamilyVariable(
+  style.setProperty(
     '--code-block-font-family',
-    data.code.codeBlockFontFamily,
-    DEFAULT_CODE_BLOCK_FONT_FAMILY
+    fontFamilyOrDefault(
+      code.codeBlockFontFamily,
+      DEFAULT_CODE_BLOCK_FONT_FAMILY
+    )
   );
-
-  return {
-    ...data,
-    pinnedNotes: new Set(data.pinnedNotes),
-    appearance: {
-      ...data.appearance,
-      accentColor,
-      editorFontSize,
-      editorLineHeight,
-      showTableOfContentsByDefault:
-        data.appearance.showTableOfContentsByDefault ?? false,
-      uiFontFamily: data.appearance.uiFontFamily ?? DEFAULT_UI_FONT_FAMILY,
-      theme,
-      noteWidth,
-      sidebarOrder: normalizeSidebarOrder(data.appearance.sidebarOrder),
-      sidebarVisibility: {
-        hidePinned: data.appearance.sidebarVisibility?.hidePinned ?? false,
-        hideRecent: data.appearance.sidebarVisibility?.hideRecent ?? false,
-        hideKernels: data.appearance.sidebarVisibility?.hideKernels ?? false,
-        hideTags: data.appearance.sidebarVisibility?.hideTags ?? false,
-        hideSavedSearches:
-          data.appearance.sidebarVisibility?.hideSavedSearches ?? false,
-      },
-    },
-    code: {
-      ...data.code,
-      codeBlockFontFamily: data.code.codeBlockFontFamily ?? '',
-      codeBlockFontSize,
-      codeBlockLineWrapping: data.code.codeBlockLineWrapping ?? false,
-      codeBlockShowLineNumbers: data.code.codeBlockShowLineNumbers ?? false,
-      codeBlockDefaultLanguage,
-    },
-  };
 }
+
+// Snapshots inline values so a failed update can restore them; an empty string removes the property.
+function captureAppearanceVariables() {
+  const style = document.documentElement.style;
+  return APPEARANCE_VARIABLES.map(
+    (name) => [name, style.getPropertyValue(name)] as const
+  );
+}
+
+function restoreAppearanceVariables(
+  snapshot: ReturnType<typeof captureAppearanceVariables>
+) {
+  const style = document.documentElement.style;
+  for (const [name, value] of snapshot) {
+    style.setProperty(name, value);
+  }
+}
+
+// Normalizes backend data and applies its appearance to the document.
+function applyProjectSettings(data: ProjectSettingsJson) {
+  const settings = normalizeProjectSettings(data);
+  applyAppearanceVariables(settings);
+  return settings;
+}
+
 /**
  * Custom hook to manage project settings.
  *
@@ -172,7 +123,7 @@ export function useProjectSettings() {
   const { data: settings } = useQuery({
     queryKey: queryKeys.projectSettings(),
     queryFn: async () => {
-      return validateProjectSettingsWrapper(
+      return applyProjectSettings(
         await requireBackendResponseData(GetProjectSettings())
       );
     },
@@ -195,7 +146,7 @@ export function useProjectSettings() {
 
   // Re-run the mutation when a 'settings:update' event is received.
   useWailsEvent(SETTINGS_UPDATE, (body) => {
-    setProjectSettings(validateProjectSettingsWrapper(body.data));
+    setProjectSettings(applyProjectSettings(body.data));
     setProjectSettingsLoaded(true);
   });
 }
@@ -203,34 +154,21 @@ export function useProjectSettings() {
 /**
  * Custom hook to create a mutation for updating project settings.
  *
- * This hook uses react-query's useMutation to handle the update operation.
- * It takes new project settings, sends them to the backend, and handles
- * success and error responses.
+ * Appearance variables are applied optimistically and restored if the backend
+ * update fails. On success, the backend's 'settings:update' event re-applies
+ * the authoritative values.
  *
  * @returns  Te mutation object from useMutation.
  */
 export function useUpdateProjectSettingsMutation() {
   return useMutation({
     onMutate: ({ newProjectSettings }) => {
-      updateEditorFontSizeVariable(
-        newProjectSettings.appearance.editorFontSize
-      );
-      updateEditorLineHeightVariable(
-        newProjectSettings.appearance.editorLineHeight
-      );
-      updateCodeBlockFontSizeVariable(
-        newProjectSettings.code.codeBlockFontSize
-      );
-      updateFontFamilyVariable(
-        '--app-font-family',
-        newProjectSettings.appearance.uiFontFamily,
-        DEFAULT_UI_FONT_FAMILY
-      );
-      updateFontFamilyVariable(
-        '--code-block-font-family',
-        newProjectSettings.code.codeBlockFontFamily,
-        DEFAULT_CODE_BLOCK_FONT_FAMILY
-      );
+      const previousVariables = captureAppearanceVariables();
+      applyAppearanceVariables(newProjectSettings);
+      return { previousVariables };
+    },
+    onError: (_error, _variables, context) => {
+      if (context) restoreAppearanceVariables(context.previousVariables);
     },
     mutationFn: async ({
       newProjectSettings,
