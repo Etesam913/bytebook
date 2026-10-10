@@ -5,29 +5,25 @@ import {
   DisclosurePanel,
   Heading,
 } from 'react-aria-components/Disclosure';
-import { useSetAtom } from 'jotai';
 import { motion } from 'motion/react';
-import { dialogDataAtom } from '@/atoms';
 import { ChevronDown } from '@/icons/chevron-down';
 import { Loader } from '@/icons/loader';
 import { TagPlus } from '@/icons/tag-plus';
 import {
   useDeleteTagFromNoteMutation,
-  useEditTagsFormMutation,
   useTagsForNotesQuery,
 } from '@hooks/tags';
-import { EditTagDialogChildren } from '@/routes/notes-sidebar/edit-tag-dialog-children';
+import { useOpenEditTagsDialog } from '@hooks/dialogs';
 import { FilePath } from '@utils/path';
 import { cn } from '@utils/string-formatting';
 import { TagChips } from '../bottom-bar/tag';
 
 export function Tags({ filePath }: { filePath: FilePath }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const setDialogData = useSetAtom(dialogDataAtom);
   const { data: tagsMap, isLoading } = useTagsForNotesQuery([
     filePath.fullPath,
   ]);
-  const { mutateAsync: editTags } = useEditTagsFormMutation();
+  const openEditTagsDialog = useOpenEditTagsDialog();
   const { mutate: deleteTagFromNote } = useDeleteTagFromNoteMutation(
     filePath.fullPath
   );
@@ -66,33 +62,7 @@ export function Tags({ filePath }: { filePath: FilePath }) {
           <div className="flex flex-wrap items-center gap-1.5 pb-1.5 pl-5 pr-3">
             <Button
               className="flex whitespace-nowrap items-center gap-1.5 bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600 hover:bg-zinc-150 dark:hover:bg-zinc-600 outline-none focus-visible:ring-2 focus-visible:ring-(--accent-color)"
-              onPress={() => {
-                const filePaths = [filePath.fullPath];
-                setDialogData({
-                  isOpen: true,
-                  isPending: false,
-                  title: 'Edit Tags',
-                  dialogClassName: 'w-[min(30rem,90vw)]',
-                  children: (errorText) => (
-                    <EditTagDialogChildren
-                      filePaths={filePaths}
-                      errorText={errorText}
-                    />
-                  ),
-                  onSubmit: async (formData, setErrorText) => {
-                    try {
-                      return await editTags({
-                        formData,
-                        setErrorText,
-                        filePaths,
-                      });
-                    } catch {
-                      // onError fills in the dialog's error text; keep it open.
-                      return false;
-                    }
-                  },
-                });
-              }}
+              onPress={() => openEditTagsDialog([filePath.fullPath])}
             >
               <TagPlus height="0.9375rem" width="0.9375rem" /> Edit Tags
             </Button>

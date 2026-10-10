@@ -1,8 +1,7 @@
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtomValue } from 'jotai';
 import type { Key } from 'react-aria-components';
 import { Button } from 'react-aria-components/Button';
 import {
-  dialogDataAtom,
   isFullscreenAtom,
   isFileMaximizedAtom,
   projectSettingsAtom,
@@ -17,11 +16,10 @@ import {
 import { Tooltip } from '@components/tooltip';
 import {
   useMoveToTrashMutation,
+  usePinPathMutation,
   useRevealInFinderMutation,
 } from '@hooks/notes';
-import { useEditTagsFormMutation } from '@hooks/tags';
-import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
-import { EditTagDialogChildren } from '@/routes/notes-sidebar/edit-tag-dialog-children';
+import { useOpenEditTagsDialog } from '@hooks/dialogs';
 import { Finder } from '@/icons/finder';
 import { HorizontalDots } from '@/icons/horizontal-dots';
 import { PinTack2 } from '@/icons/pin-tack-2';
@@ -43,14 +41,13 @@ export function NonMarkdownToolbar({
   const isFullscreen = useAtomValue(isFullscreenAtom);
   const isFileMaximized = useAtomValue(isFileMaximizedAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const setDialogData = useSetAtom(dialogDataAtom);
 
   const isPinned = projectSettings.pinnedNotes.has(filePath.fullPath);
 
-  const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
+  const { mutate: pinPath } = usePinPathMutation();
   const { mutate: moveToTrash } = useMoveToTrashMutation();
   const { mutate: revealInFinder } = useRevealInFinderMutation();
-  const { mutateAsync: editTags } = useEditTagsFormMutation();
+  const openEditTagsDialog = useOpenEditTagsDialog();
   useToggleSidebarEvent(animationControls);
 
   const items = [
@@ -96,17 +93,9 @@ export function NonMarkdownToolbar({
     switch (key) {
       case 'pin-note':
       case 'unpin-note': {
-        const newPinnedNotes = new Set(projectSettings.pinnedNotes);
-        if (key === 'pin-note') {
-          newPinnedNotes.add(filePath.fullPath);
-        } else {
-          newPinnedNotes.delete(filePath.fullPath);
-        }
-        updateProjectSettings({
-          newProjectSettings: {
-            ...projectSettings,
-            pinnedNotes: newPinnedNotes,
-          },
+        pinPath({
+          paths: [filePath.fullPath],
+          shouldPin: key === 'pin-note',
         });
         break;
       }
@@ -115,31 +104,7 @@ export function NonMarkdownToolbar({
         break;
       }
       case 'edit-tags': {
-        const filePaths = [filePath.fullPath];
-        setDialogData({
-          isOpen: true,
-          isPending: false,
-          title: 'Edit Tags',
-          dialogClassName: 'w-[min(30rem,90vw)]',
-          children: (errorText) => (
-            <EditTagDialogChildren
-              filePaths={filePaths}
-              errorText={errorText}
-            />
-          ),
-          onSubmit: async (formData, setErrorText) => {
-            try {
-              return await editTags({
-                formData,
-                setErrorText,
-                filePaths,
-              });
-            } catch {
-              // onError fills in the dialog's error text; keep it open.
-              return false;
-            }
-          },
-        });
+        openEditTagsDialog([filePath.fullPath]);
         break;
       }
       case 'move-to-trash': {

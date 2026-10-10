@@ -1,14 +1,12 @@
 import type { ReactNode } from 'react';
-import { useSetAtom } from 'jotai/react';
 import { navigate } from 'wouter/use-browser-location';
-import { dialogDataAtom } from '@/atoms';
 import {
   useMoveToTrashMutation,
   useOpenInNewWindowMutation,
   usePinPathMutation,
   useRevealInFinderMutation,
 } from '@hooks/notes';
-import { useEditTagsFormMutation } from '@hooks/tags';
+import { useOpenEditTagsDialog } from '@hooks/dialogs';
 import { ShareRight } from '@/icons/share-right';
 import { Finder } from '@/icons/finder';
 import { FolderOpen } from '@/icons/folder-open';
@@ -17,7 +15,6 @@ import { PinTackSlash } from '@/icons/pin-tack-slash';
 import { TagPlus } from '@/icons/tag-plus';
 import { Trash } from '@/icons/trash';
 import { FilePen } from '@/icons/file-pen';
-import { EditTagDialogChildren } from '@/routes/notes-sidebar/edit-tag-dialog-children';
 import type { DropdownItem } from '@/types';
 import type { FilePath, FolderPath } from '@utils/path';
 
@@ -50,8 +47,7 @@ export function useContextMenuItems() {
   const { mutate: revealInFinder } = useRevealInFinderMutation();
   const { mutate: pinPath } = usePinPathMutation();
   const { mutate: moveToTrash } = useMoveToTrashMutation();
-  const { mutateAsync: editTags } = useEditTagsFormMutation();
-  const setDialogData = useSetAtom(dialogDataAtom);
+  const openEditTagsDialog = useOpenEditTagsDialog();
 
   return {
     openInNewWindow: ({ path }: { path: FileOrFolderPath }): DropdownItem => ({
@@ -143,32 +139,7 @@ export function useContextMenuItems() {
           Edit Tags
         </MenuItemLabel>
       ),
-      onChange: () => {
-        setDialogData({
-          isOpen: true,
-          isPending: false,
-          title: 'Edit Tags',
-          dialogClassName: 'w-[min(30rem,90vw)]',
-          children: (errorText) => (
-            <EditTagDialogChildren
-              filePaths={filePaths}
-              errorText={errorText}
-            />
-          ),
-          onSubmit: async (formData, setErrorText) => {
-            try {
-              return await editTags({
-                formData,
-                setErrorText,
-                filePaths,
-              });
-            } catch {
-              // onError fills in the dialog's error text; keep it open.
-              return false;
-            }
-          },
-        });
-      },
+      onChange: () => openEditTagsDialog(filePaths),
     }),
   };
 }

@@ -6,6 +6,8 @@ import { MotionButton } from '@components/buttons';
 import { DialogErrorText } from '@components/dialog';
 import { AppNumberField, AppTextField } from '@components/input';
 import { useSaveSearchMutation } from './search';
+import { useEditTagsFormMutation } from './tags';
+import { EditTagDialogChildren } from '@/routes/notes-sidebar/edit-tag-dialog-children';
 import { BookBookmark } from '@/icons/book-bookmark';
 import { Table } from '@/icons/table';
 import type { LexicalEditor, RangeSelection } from 'lexical';
@@ -212,4 +214,33 @@ export function useOpenSettingsDialog() {
       children: () => <SettingsDialog />,
       onSubmit: () => Promise.resolve(true),
     });
+}
+
+/**
+ * Returns a function that opens the "Edit Tags" dialog for the given note paths.
+ * Takes the paths per call so context-menu factories can reuse it.
+ */
+export function useOpenEditTagsDialog() {
+  const setDialogData = useSetAtom(dialogDataAtom);
+  const { mutateAsync: editTags } = useEditTagsFormMutation();
+
+  return (filePaths: string[]) => {
+    setDialogData({
+      isOpen: true,
+      isPending: false,
+      title: 'Edit Tags',
+      dialogClassName: 'w-[min(30rem,90vw)]',
+      children: (errorText) => (
+        <EditTagDialogChildren filePaths={filePaths} errorText={errorText} />
+      ),
+      onSubmit: async (formData, setErrorText) => {
+        try {
+          return await editTags({ formData, setErrorText, filePaths });
+        } catch {
+          // onError fills in the dialog's error text; keep it open.
+          return false;
+        }
+      },
+    });
+  };
 }
