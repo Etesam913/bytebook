@@ -8,17 +8,6 @@ export const DEFAULT_SONNER_OPTIONS = {
 
 export const MAX_SIDEBAR_WIDTH = 500;
 
-// Delays invoking a function until after the specified wait period has elapsed since the last call.
-// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-export const debounce = (fn: Function, ms = 300) => {
-  let timeoutId: ReturnType<typeof setTimeout>;
-  return function (this: unknown, ...args: unknown[]) {
-    clearTimeout(timeoutId);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    timeoutId = setTimeout(() => fn.apply(this, args), ms);
-  };
-};
-
 /**
  * Creates a leading-edge throttle gate keyed by string. Returns a function
  * that yields true if the caller should proceed (and records the timestamp),

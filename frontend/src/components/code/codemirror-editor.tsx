@@ -4,7 +4,7 @@ import { isDarkModeOnAtom, projectSettingsAtom } from '@/atoms';
 import CodeMirror, { type ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { EditorView, tooltips } from '@codemirror/view';
 import type { Extension } from '@codemirror/state';
-import { debounce } from '@utils/general';
+import { useDebouncedCallback } from '@hooks/debounce';
 import {
   useEnsureKernelMutation,
   useSendExecuteRequestMutation,
@@ -120,7 +120,11 @@ export function CodeMirrorEditor({
     executionId,
   });
 
-  const debouncedSetCode = debounce(setCode, 300);
+  const debouncedSetCode = useDebouncedCallback(setCode, 300);
+  // Keep the last keystrokes if the block unmounts mid-debounce (e.g. navigation)
+  useEffect(() => {
+    return () => debouncedSetCode.flush();
+  }, [debouncedSetCode]);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const [, setSelected, clearSelection] = useLexicalNodeSelection(nodeKey);
   const isInNodeSelection = useNodeInNodeSelection(lexicalEditor, nodeKey);

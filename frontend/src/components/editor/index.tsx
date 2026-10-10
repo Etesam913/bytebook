@@ -10,9 +10,9 @@ import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { TabIndentationPlugin } from '@lexical/react/LexicalTabIndentationPlugin';
 import { TablePlugin } from '@lexical/react/LexicalTablePlugin';
-import { useQueryClient } from '@tanstack/react-query';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useRef, useState, type SetStateAction } from 'react';
+import { useDebouncedCallback } from '@hooks/debounce';
 import {
   draggableBlockElementAtom,
   draggedGhostElementAtom,
@@ -27,6 +27,7 @@ import { cn } from '@utils/string-formatting';
 import { BottomBar } from './bottom-bar';
 import { editorConfig } from './editor-config';
 import { NoteTitle } from './note-title';
+import { AutosaveFlush } from './plugins/autosave-flush';
 import { CodePlugin } from './plugins/code';
 import { ComponentPickerMenuPlugin } from './plugins/component-picker';
 import { HorizontalRulePlugin } from '@lexical/react/LexicalHorizontalRulePlugin';
@@ -46,7 +47,7 @@ import { SavePlugin } from './plugins/save.tsx';
 import { TableOfContentsPlugin } from './plugins/table-of-contents.tsx';
 import { Toolbar } from './toolbar';
 import { CUSTOM_TRANSFORMERS } from './transformers';
-import { debouncedNoteHandleChange } from './utils/note-commands.ts';
+import { noteHandleChange } from './utils/note-commands.ts';
 import { useAutoScrollDuringDrag } from '@hooks/draggable';
 import { useCodeCleanup } from './hooks/code';
 import { useLspNoteLifecycle } from '@hooks/lsp';
@@ -73,8 +74,8 @@ export function NotesEditor({
   animationControls: LegacyAnimationControls;
 }) {
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const queryClient = useQueryClient();
   const setEditor = useSetAtom(editorAtom);
+  const autosave = useDebouncedCallback(noteHandleChange, 150);
 
   const noteContainerRef = useRef<HTMLDivElement | null>(null);
   const [editorAnchorElem, setEditorAnchorElem] = useState<HTMLElement | null>(
@@ -214,10 +215,9 @@ export function NotesEditor({
               />
               <OnChangePlugin
                 ignoreSelectionChange
-                onChange={(_, editor, tag) =>
-                  debouncedNoteHandleChange(editor, tag, queryClient)
-                }
+                onChange={(_, editor, tags) => autosave(editor, tags)}
               />
+              <AutosaveFlush key={filePath.fullPath} autosave={autosave} />
               <CustomMarkdownShortcutPlugin
                 transformers={CUSTOM_TRANSFORMERS}
               />

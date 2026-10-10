@@ -15,7 +15,6 @@ import {
   type NodeSelection,
 } from 'lexical';
 import { isDecoratorNodeSelected } from '@utils/commands';
-import { debounce } from '@utils/general';
 import {
   createFilePath,
   createFolderPath,
@@ -28,8 +27,6 @@ import { $createLinkNode } from '@lexical/link';
 import { INSERT_FILES_COMMAND } from '../plugins/file';
 import { SAVE_MARKDOWN_CONTENT } from '../plugins/save';
 import { caretPositionFromPointInEditor } from './drag';
-
-export const debouncedNoteHandleChange = debounce(noteHandleChange, 150);
 
 /**
  * Sets a collapsed Lexical range selection at the DOM caret under the pointer.
@@ -66,7 +63,7 @@ export function setSelectionFromPointerInNoteEditor(
  * @param tags - A set of tags indicating the context of the change, such as
  * "note:write-from-external" or "note:initial-load"
  */
-function noteHandleChange(editor: LexicalEditor, tags: Set<string>) {
+export function noteHandleChange(editor: LexicalEditor, tags: Set<string>) {
   /*
     If the note was changed from another window, don't update it again
     If a new note is loaded for the first time, we don't need this func to run
