@@ -1,6 +1,8 @@
 package search
 
 import (
+	"context"
+	"fmt"
 	"io/fs"
 	"log"
 	"os"
@@ -10,6 +12,7 @@ import (
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/etesam913/bytebook/internal/util"
+	"golang.org/x/sync/errgroup"
 )
 
 type DocumentJob struct {
@@ -26,53 +29,17 @@ type DocumentResult struct {
 	document  any
 }
 
-// IndexFiles scans the "notes" directory within the given projectPath for folders containing Markdown files (.md).
-// It dispatches indexing jobs for each Markdown file using a pool of worker goroutines.
-// Results are collected and basic information about each indexed document is printed to stdout.
-// Returns an error if any directory or file access fails.
+// IndexAllFiles recursively indexes visible notes and attachments under notes/.
+// Returns an error if discovery or indexing fails.
 func IndexAllFiles(projectPath string, bleveIndex bleve.Index) error {
-	notesPath := filepath.Join(projectPath, "notes")
-	folders, err := os.ReadDir(notesPath)
-
-	jobs := make(chan DocumentJob, util.MAX_JOBS)
-	var workerWaitGroup sync.WaitGroup
-
-	results := make(chan DocumentResult, util.MAX_JOBS)
-
-	if err != nil {
-		return err
-	}
-
-	for w := 0; w < util.WORKER_COUNT; w++ {
-		workerWaitGroup.Add(1)
-		go startWorker(projectPath, jobs, results, &workerWaitGroup)
-	}
-
-	go func() {
-		defer close(jobs)
-		if err := populateJobs(folders, notesPath, jobs); err != nil {
-			log.Printf("Error populating jobs (some files may not be indexed): %v", err)
+	return indexFiles(projectPath, bleveIndex, util.WORKER_COUNT, func(ctx context.Context, jobs chan<- DocumentJob) error {
+		notesPath := filepath.Join(projectPath, "notes")
+		folders, err := os.ReadDir(notesPath)
+		if err != nil {
+			return err
 		}
-	}()
-
-	go func() {
-		workerWaitGroup.Wait()
-		close(results)
-	}()
-
-	bleveBatch, err := addResultsToIndex(bleveIndex, bleveIndex.NewBatch(), results)
-	if err != nil {
-		log.Printf("Error when adding results to index: %v", err)
-		return err
-	}
-
-	// Flush any remaining documents in the batch
-	if err := bleveIndex.Batch(bleveBatch); err != nil {
-		log.Printf("Error flushing final batch: %v", err)
-		return err
-	}
-
-	return nil
+		return populateJobs(ctx, folders, notesPath, jobs)
+	})
 }
 
 // IndexDiscoveredFiles indexes already-discovered files using bounded worker concurrency.
@@ -80,22 +47,11 @@ func IndexDiscoveredFiles(projectPath string, filePaths []string, bleveIndex ble
 	if len(filePaths) == 0 {
 		return nil
 	}
-	if workerCount <= 0 {
-		workerCount = 1
-	}
-
-	jobs := make(chan DocumentJob, util.MAX_JOBS)
-	results := make(chan DocumentResult, util.MAX_JOBS)
-	var workerWaitGroup sync.WaitGroup
-
-	for w := 0; w < workerCount; w++ {
-		workerWaitGroup.Add(1)
-		go startWorker(projectPath, jobs, results, &workerWaitGroup)
-	}
-
-	go func() {
-		defer close(jobs)
+	return indexFiles(projectPath, bleveIndex, workerCount, func(ctx context.Context, jobs chan<- DocumentJob) error {
 		for _, filePath := range filePaths {
+			if err := ctx.Err(); err != nil {
+				return err
+			}
 			if shouldSkipIndexedPath(projectPath, filePath) {
 				continue
 			}
@@ -104,32 +60,90 @@ func IndexDiscoveredFiles(projectPath string, filePaths []string, bleveIndex ble
 				log.Printf("Error building indexing job for %s: %v", filePath, err)
 				continue
 			}
-			jobs <- job
+			if err := enqueueDocumentJob(ctx, jobs, job); err != nil {
+				return err
+			}
 		}
-	}()
-
-	go func() {
-		workerWaitGroup.Wait()
-		close(results)
-	}()
-
-	bleveBatch, err := addResultsToIndex(bleveIndex, bleveIndex.NewBatch(), results)
-	if err != nil {
-		log.Printf("Error when adding discovered results to index: %v", err)
-		return err
-	}
-
-	if err := bleveIndex.Batch(bleveBatch); err != nil {
-		log.Printf("Error flushing final batch: %v", err)
-		return err
-	}
-
-	return nil
+		return nil
+	})
 }
 
-func addResultsToIndex(bleveIndex bleve.Index, bleveBatch *bleve.Batch, results chan DocumentResult) (*bleve.Batch, error) {
+// indexFiles owns the bounded pipeline. A discovery or batch error cancels
+// channel operations, and every goroutine exits before the caller gets the error.
+func indexFiles(projectPath string, bleveIndex bleve.Index, workerCount int, discover func(context.Context, chan<- DocumentJob) error) error {
+	if workerCount <= 0 {
+		workerCount = 1
+	}
+	group, ctx := errgroup.WithContext(context.Background())
+	jobs := make(chan DocumentJob, util.MAX_JOBS)
+	results := make(chan DocumentResult, util.MAX_JOBS)
+	var workers sync.WaitGroup
+
+	group.Go(func() error {
+		defer close(jobs)
+		if err := discover(ctx, jobs); err != nil {
+			return fmt.Errorf("discover indexing jobs: %w", err)
+		}
+		return nil
+	})
+
+	workers.Add(workerCount)
+	for w := 0; w < workerCount; w++ {
+		group.Go(func() error {
+			defer workers.Done()
+			startWorker(ctx, projectPath, jobs, results)
+			return nil
+		})
+	}
+	group.Go(func() error {
+		workers.Wait()
+		close(results)
+		return nil
+	})
+	group.Go(func() error {
+		batch, err := addResultsToIndex(ctx, bleveIndex, bleveIndex.NewBatch(), results)
+		if err != nil {
+			return err
+		}
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		if batch.Size() > 0 {
+			if err := bleveIndex.Batch(batch); err != nil {
+				return fmt.Errorf("flush final indexing batch: %w", err)
+			}
+		}
+		return nil
+	})
+	return group.Wait()
+}
+
+func enqueueDocumentJob(ctx context.Context, jobs chan<- DocumentJob, job DocumentJob) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case jobs <- job:
+		return nil
+	}
+}
+
+func addResultsToIndex(ctx context.Context, bleveIndex bleve.Index, bleveBatch *bleve.Batch, results <-chan DocumentResult) (*bleve.Batch, error) {
 	indexCount := 0
-	for docResult := range results {
+	for {
+		var docResult DocumentResult
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case result, ok := <-results:
+			if !ok {
+				log.Printf("Indexed %d documents", indexCount)
+				return bleveBatch, nil
+			}
+			docResult = result
+		}
 		if docResult.isError {
 			continue
 		}
@@ -144,33 +158,28 @@ func addResultsToIndex(bleveIndex bleve.Index, bleveBatch *bleve.Batch, results 
 			continue
 		}
 
-		switch doc := docResult.document.(type) {
-		case MarkdownNoteBleveDocument:
-			bleveBatch.Index(docResult.entryId, doc)
-		case AttachmentBleveDocument:
-			bleveBatch.Index(docResult.entryId, doc)
+		if err := bleveBatch.Index(docResult.entryId, docResult.document); err != nil {
+			return nil, fmt.Errorf("add document %s to indexing batch: %w", docResult.entryId, err)
 		}
 
 		indexCount += 1
 
 		if bleveBatch.Size() >= DefaultBatchSize {
 			if err := bleveIndex.Batch(bleveBatch); err != nil {
-				log.Printf("Error flushing batch: %v", err)
-				return nil, err
+				return nil, fmt.Errorf("flush indexing batch: %w", err)
 			}
 			bleveBatch = bleveIndex.NewBatch()
 		}
 	}
-
-	log.Printf("Indexed %d documents", indexCount)
-
-	return bleveBatch, nil
 }
 
 // populateJobs creates DocumentJob tasks for files found recursively inside each
 // top-level folder under notesPath.
-func populateJobs(folders []os.DirEntry, notesPath string, jobs chan<- DocumentJob) error {
+func populateJobs(ctx context.Context, folders []os.DirEntry, notesPath string, jobs chan<- DocumentJob) error {
 	for _, folder := range folders {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		// Skip hidden top-level entries, files and folders alike.
 		if strings.HasPrefix(folder.Name(), ".") {
 			continue
@@ -179,11 +188,13 @@ func populateJobs(folders []os.DirEntry, notesPath string, jobs chan<- DocumentJ
 		// Files sitting at the notes root index with an empty folder, so they
 		// stay reachable from tree filtering like any nested note.
 		if !folder.IsDir() {
-			jobs <- DocumentJob{
+			if err := enqueueDocumentJob(ctx, jobs, DocumentJob{
 				entryPath: filepath.Join(notesPath, folder.Name()),
 				entryId:   folder.Name(),
 				folder:    "",
 				entryName: folder.Name(),
+			}); err != nil {
+				return err
 			}
 			continue
 		}
@@ -192,6 +203,9 @@ func populateJobs(folders []os.DirEntry, notesPath string, jobs chan<- DocumentJ
 		rootFolderPath := filepath.Join(notesPath, rootFolderName)
 
 		if err := filepath.WalkDir(rootFolderPath, func(path string, d fs.DirEntry, err error) error {
+			if ctxErr := ctx.Err(); ctxErr != nil {
+				return ctxErr
+			}
 			if err != nil {
 				return err
 			}
@@ -216,13 +230,12 @@ func populateJobs(folders []os.DirEntry, notesPath string, jobs chan<- DocumentJ
 			folderPath, fileName := filepath.Split(fileId)
 			folderPath = strings.TrimSuffix(folderPath, string(filepath.Separator))
 
-			jobs <- DocumentJob{
+			return enqueueDocumentJob(ctx, jobs, DocumentJob{
 				entryPath: path,
 				entryId:   fileId,
 				folder:    folderPath,
 				entryName: fileName,
-			}
-			return nil
+			})
 		}); err != nil {
 			return err
 		}
@@ -248,41 +261,38 @@ func shouldSkipIndexedPath(projectPath, filePath string) bool {
 	return false
 }
 
-// startWorker processes jobs from the jobs channel, reads the file contents,
-// creates a MarkdownNoteBleveDocument for each markdown file, and sends the result
-// to the results channel. It signals completion on the provided WaitGroup
-// when all jobs have been processed.
-func startWorker(projectPath string, jobs <-chan DocumentJob, results chan<- DocumentResult, workerWaitGroup *sync.WaitGroup) {
-	defer workerWaitGroup.Done()
-	for job := range jobs {
+// startWorker processes files until discovery ends or the pipeline is cancelled.
+func startWorker(ctx context.Context, projectPath string, jobs <-chan DocumentJob, results chan<- DocumentResult) {
+	for {
+		if ctx.Err() != nil {
+			return
+		}
+		var job DocumentJob
+		select {
+		case <-ctx.Done():
+			return
+		case next, ok := <-jobs:
+			if !ok {
+				return
+			}
+			job = next
+		}
+		result := DocumentResult{entryPath: job.entryPath, entryId: job.entryId}
 		fileExtension := filepath.Ext(job.entryName)
-
-		// Is a markdown note
 		if fileExtension == ".md" {
 			content, err := os.ReadFile(job.entryPath)
 			if err != nil {
-				results <- DocumentResult{
-					isError:   true,
-					entryPath: job.entryPath,
-					entryId:   job.entryId,
-					document:  nil,
-				}
-				continue
-			}
-			markdown := string(content)
-			results <- DocumentResult{
-				isError:   false,
-				entryPath: job.entryPath,
-				entryId:   job.entryId,
-				document:  CreateMarkdownNoteBleveDocument(markdown, job.folder, job.entryName),
+				result.isError = true
+			} else {
+				result.document = CreateMarkdownNoteBleveDocument(string(content), job.folder, job.entryName)
 			}
 		} else {
-			results <- DocumentResult{
-				isError:   false,
-				entryPath: job.entryPath,
-				entryId:   job.entryId,
-				document:  createAttachmentBleveDocument(projectPath, job.folder, job.entryName, fileExtension),
-			}
+			result.document = createAttachmentBleveDocument(projectPath, job.folder, job.entryName, fileExtension)
+		}
+		select {
+		case <-ctx.Done():
+			return
+		case results <- result:
 		}
 	}
 }

@@ -1,6 +1,9 @@
 package search
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
@@ -50,7 +53,7 @@ func collectPopulateJobs(t *testing.T, notesDir string) []DocumentJob {
 
 	go func() {
 		defer close(jobs)
-		done <- populateJobs(folders, notesDir, jobs)
+		done <- populateJobs(context.Background(), folders, notesDir, jobs)
 	}()
 
 	var receivedJobs []DocumentJob
@@ -68,7 +71,10 @@ func runWorkerJobs(projectPath string, jobsToRun []DocumentJob) []DocumentResult
 	var wg sync.WaitGroup
 
 	wg.Add(1)
-	go startWorker(projectPath, jobs, results, &wg)
+	go func() {
+		defer wg.Done()
+		startWorker(context.Background(), projectPath, jobs, results)
+	}()
 
 	for _, job := range jobsToRun {
 		jobs <- job
@@ -315,4 +321,116 @@ func TestIndexDiscoveredFilesSkipsHiddenSidecars(t *testing.T) {
 	sidecarDoc, err := index.Document(filepath.Join("folder", ".note.md.json"))
 	require.NoError(t, err)
 	assert.Nil(t, sidecarDoc)
+}
+
+// failingBatchIndex keeps real document construction and lookups while failing
+// the persistence boundary that must stop the entire pipeline.
+type testBatchIndex interface {
+	bleve.Index
+}
+
+type failingBatchIndex struct {
+	testBatchIndex
+	err error
+}
+
+func (index *failingBatchIndex) Batch(_ *bleve.Batch) error {
+	return index.err
+}
+
+func TestIndexDiscoveredFilesPipeline(t *testing.T) {
+	t.Run("indexes full and final batches with a nonpositive worker count", func(t *testing.T) {
+		projectDir, notesDir := setupTempNotesDir(t)
+		index := createTempIndex(t, projectDir)
+		defer index.Close()
+		paths := make([]string, 0, DefaultBatchSize+1)
+		for i := 0; i <= DefaultBatchSize; i++ {
+			path := filepath.Join(notesDir, fmt.Sprintf("attachment-%d.png", i))
+			require.NoError(t, os.WriteFile(path, []byte("attachment"), 0644))
+			paths = append(paths, path)
+		}
+
+		err := IndexDiscoveredFiles(projectDir, paths, index, 0)
+
+		require.NoError(t, err)
+		count, err := index.DocCount()
+		require.NoError(t, err)
+		assert.Equal(t, uint64(len(paths)), count)
+	})
+
+	t.Run("keeps existing documents and skips missing markdown", func(t *testing.T) {
+		projectDir, notesDir := setupTempNotesDir(t)
+		index := createTempIndex(t, projectDir)
+		defer index.Close()
+		path := filepath.Join(notesDir, "note.md")
+		require.NoError(t, os.WriteFile(path, []byte("New content"), 0644))
+		original := CreateMarkdownNoteBleveDocument("Original content", "", "note.md")
+		require.NoError(t, index.Index("note.md", original))
+
+		err := IndexDiscoveredFiles(projectDir, []string{path, filepath.Join(notesDir, "missing.md")}, index, 2)
+
+		require.NoError(t, err)
+		result, err := index.Search(bleve.NewSearchRequest(bleve.NewMatchQuery("Original")))
+		require.NoError(t, err)
+		assert.Equal(t, uint64(1), result.Total)
+		count, err := index.DocCount()
+		require.NoError(t, err)
+		assert.Equal(t, uint64(1), count)
+	})
+
+	t.Run("returns final batch errors", func(t *testing.T) {
+		projectDir, notesDir := setupTempNotesDir(t)
+		index := createTempIndex(t, projectDir)
+		defer index.Close()
+		path := filepath.Join(notesDir, "note.md")
+		require.NoError(t, os.WriteFile(path, []byte("Note"), 0644))
+		batchErr := errors.New("batch failed")
+		failingIndex := &failingBatchIndex{testBatchIndex: index, err: batchErr}
+
+		err := IndexDiscoveredFiles(projectDir, []string{path}, failingIndex, 1)
+
+		assert.ErrorIs(t, err, batchErr)
+	})
+}
+
+func TestIndexingPipelineFailure(t *testing.T) {
+	t.Run("cancels and joins discovery after an intermediate batch fails", func(t *testing.T) {
+		projectDir, notesDir := setupTempNotesDir(t)
+		index := createTempIndex(t, projectDir)
+		defer index.Close()
+		batchErr := errors.New("batch failed")
+		failingIndex := &failingBatchIndex{testBatchIndex: index, err: batchErr}
+		discoveryStopped := make(chan struct{})
+		discover := func(ctx context.Context, jobs chan<- DocumentJob) error {
+			defer close(discoveryStopped)
+			for i := 0; ; i++ {
+				name := fmt.Sprintf("attachment-%d.png", i)
+				job := DocumentJob{entryPath: filepath.Join(notesDir, name), entryId: name, entryName: name}
+				if err := enqueueDocumentJob(ctx, jobs, job); err != nil {
+					return err
+				}
+			}
+		}
+
+		err := indexFiles(projectDir, failingIndex, 2, discover)
+
+		assert.ErrorIs(t, err, batchErr)
+		select {
+		case <-discoveryStopped:
+		default:
+			t.Fatal("indexing returned before discovery stopped")
+		}
+	})
+
+	t.Run("returns discovery errors", func(t *testing.T) {
+		projectDir, _ := setupTempNotesDir(t)
+		index := createTempIndex(t, projectDir)
+		defer index.Close()
+		discoveryErr := errors.New("directory disappeared")
+		discover := func(context.Context, chan<- DocumentJob) error { return discoveryErr }
+
+		err := indexFiles(projectDir, index, 2, discover)
+
+		assert.ErrorIs(t, err, discoveryErr)
+	})
 }
