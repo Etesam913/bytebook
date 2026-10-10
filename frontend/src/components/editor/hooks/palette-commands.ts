@@ -1,35 +1,31 @@
-import { createFilePath } from '@utils/path';
 import { useEffect } from 'react';
 import { useSetAtom } from 'jotai';
+import type { FilePath } from '@utils/path';
 import type { Frontmatter } from '@/types';
 import { activeNoteCommandsAtom } from '../atoms';
 import { useNoteActions } from './note-actions';
 
 export function useNotePaletteCommands({
-  folder,
-  note,
+  filePath,
   frontmatter,
   isReady,
   openFind,
 }: {
-  folder: string;
-  note: string;
+  filePath: FilePath;
   frontmatter: Frontmatter;
   isReady: boolean;
   openFind: () => void;
 }) {
   const setCommands = useSetAtom(activeNoteCommandsAtom);
   const { isPinned, isTocVisible, handleAction } = useNoteActions({
-    folder,
-    note,
+    filePath,
     frontmatter,
   });
 
   useEffect(() => {
-    const path = createFilePath(`${folder}/${note}.md`);
-    if (!isReady || !path) return;
+    if (!isReady) return;
     setCommands({
-      path: path.fullPath,
+      path: filePath.fullPath,
       isPinned,
       isTocVisible,
       run: (command) => {
@@ -58,8 +54,7 @@ export function useNotePaletteCommands({
     });
     return () => setCommands(null);
   }, [
-    folder,
-    note,
+    filePath,
     isReady,
     isPinned,
     isTocVisible,

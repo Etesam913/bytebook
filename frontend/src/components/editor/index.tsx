@@ -130,8 +130,7 @@ export function NotesEditor({
           overflowContainerRef={overflowContainerRef}
           noteContainerRef={noteContainerRef}
           animationControls={animationControls}
-          folder={folder}
-          note={note}
+          filePath={filePath}
           floatingData={floatingData}
           setFloatingData={setFloatingData}
           frontmatter={frontmatter}

@@ -17,6 +17,7 @@ import { useAttachmentsMutation } from '@hooks/attachments';
 import { useNoteWriteEvent } from '@hooks/notes';
 import { useCreateTableDialog } from '@hooks/dialogs';
 import type { EditorBlockTypes, FloatingDataType, Frontmatter } from '@/types';
+import type { FilePath } from '@utils/path';
 import { cn } from '@utils/string-formatting';
 import { MaximizeNoteButton } from '@components/buttons/maximize-note';
 import { ToolbarButtons } from '@components/buttons/toolbar';
@@ -50,8 +51,7 @@ import { routeUrls } from '@utils/routes';
 import { navigate } from 'wouter/use-browser-location';
 
 export function Toolbar({
-  folder,
-  note,
+  filePath,
   floatingData,
   setFloatingData,
   noteContainerRef,
@@ -61,8 +61,7 @@ export function Toolbar({
   setFrontmatter,
   setPlaceholderLineData,
 }: {
-  folder: string;
-  note: string;
+  filePath: FilePath;
   floatingData: FloatingDataType;
   setFloatingData: Dispatch<SetStateAction<FloatingDataType>>;
   animationControls: LegacyAnimationControls;
@@ -88,7 +87,7 @@ export function Toolbar({
 
   const isNodeSelection = $isNodeSelection(noteSelection);
   const { insertAttachmentsMutation } = useAttachmentsMutation({
-    folder,
+    folder: filePath.folder,
     editor,
   });
 
@@ -99,16 +98,14 @@ export function Toolbar({
 
   const { getNoteMarkdownQuery } = useNoteMarkdown({
     editor,
-    folder,
-    note,
+    filePath,
     overflowContainerRef,
     setCurrentSelectionFormat,
     setFrontmatter,
   });
 
   useNotePaletteCommands({
-    folder,
-    note,
+    filePath,
     frontmatter,
     isReady: getNoteMarkdownQuery.isSuccess && !getNoteMarkdownQuery.isFetching,
     openFind: () => {
@@ -130,7 +127,7 @@ export function Toolbar({
     setPlaceholderLineData,
   });
 
-  useNoteWriteEvent({ folder, note, editor, setFrontmatter });
+  useNoteWriteEvent({ filePath, editor, setFrontmatter });
   useKernelCodeNodeCleanupEvents(editor);
   useCodeBlockStream(editor);
   useCodeBlockIOPubError(editor);
@@ -182,7 +179,7 @@ export function Toolbar({
       >
         {/* Keyed per note so a stale term and match list never carry over */}
         <NoteFindPanel
-          key={`${folder}/${note}`}
+          key={filePath.fullPath}
           isSearchOpen={isSearchOpen}
           setIsSearchOpen={setIsSearchOpen}
         />
@@ -219,11 +216,7 @@ export function Toolbar({
           setCurrentSelectionFormat={setCurrentSelectionFormat}
           shouldShowUndoRedo
         />
-        <SettingsDropdown
-          folder={folder}
-          note={note}
-          frontmatter={frontmatter}
-        />
+        <SettingsDropdown filePath={filePath} frontmatter={frontmatter} />
       </nav>
     </>
   );

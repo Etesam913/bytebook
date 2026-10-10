@@ -9,25 +9,21 @@ import {
   useRevealInFinderMutation,
 } from '@hooks/notes';
 import { useOpenEditTagsDialog } from '@hooks/dialogs';
-import { createFilePath } from '@utils/path';
+import type { FilePath } from '@utils/path';
 import { isTableOfContentsVisible } from '@utils/project-settings';
 import type { Frontmatter } from '@/types';
 import { SAVE_MARKDOWN_CONTENT } from '../plugins/save';
 
 // Keep note menu and palette actions on the same persistence and dialog paths.
 export function useNoteActions({
-  folder,
-  note,
+  filePath,
   frontmatter,
 }: {
-  folder: string;
-  note: string;
+  filePath: FilePath;
   frontmatter: Frontmatter;
 }) {
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const filePath = createFilePath(`${folder}/${note}.md`);
-  const isPinned =
-    !!filePath && projectSettings.pinnedNotes.has(filePath.fullPath);
+  const isPinned = projectSettings.pinnedNotes.has(filePath.fullPath);
   const [editor] = useLexicalComposerContext();
 
   const { mutate: pinPath } = usePinPathMutation();
@@ -42,7 +38,6 @@ export function useNoteActions({
   });
 
   function handleAction(key: Key) {
-    if (!filePath) return;
     switch (key) {
       case 'pin-note':
       case 'unpin-note': {

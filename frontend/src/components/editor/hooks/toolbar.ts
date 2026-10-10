@@ -57,21 +57,19 @@ import { $convertFromMarkdownString } from '@lexical/markdown';
 import type { PlaceholderLineData } from '../types';
 import { updatePlaceholderLineData } from '../utils/placeholder-line';
 import { applyCodeResultsSidecar } from '../utils/code-results';
-import { createFilePath } from '@utils/path';
+import type { FilePath } from '@utils/path';
 import { queryKeys } from '@utils/query-keys';
 
 /** Gets note markdown from local system on mount */
 export function useNoteMarkdown({
   editor,
-  folder,
-  note,
+  filePath,
   overflowContainerRef,
   setCurrentSelectionFormat,
   setFrontmatter,
 }: {
   editor: LexicalEditor;
-  folder: string;
-  note: string;
+  filePath: FilePath;
   overflowContainerRef: RefObject<HTMLDivElement | null>;
   setCurrentSelectionFormat: Dispatch<SetStateAction<TextFormatType[]>>;
   setFrontmatter: Dispatch<SetStateAction<Frontmatter>>;
@@ -79,16 +77,10 @@ export function useNoteMarkdown({
   const setPreviousMarkdown = useSetAtom(previousMarkdownAtom);
 
   const getNoteMarkdownQuery = useQuery({
-    queryKey: queryKeys.noteMarkdown(`${folder}/${note}.md`),
+    queryKey: queryKeys.noteMarkdown(filePath.fullPath),
     queryFn: async () => {
       // Reset previous markdown when loading a new note
       setPreviousMarkdown('');
-      const filePath = createFilePath(
-        `${decodeURIComponent(folder)}/${decodeURIComponent(note)}.md`
-      );
-      if (!filePath) {
-        throw new QueryError(`Invalid note path for ${folder}/${note}`);
-      }
       const res = await GetNoteMarkdownWithCodeResults(
         `notes/${filePath.fullPath}`
       );

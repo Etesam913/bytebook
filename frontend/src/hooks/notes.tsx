@@ -211,31 +211,27 @@ export function useRenameFileMutation() {
  * Hook to handle the "file:write" event from the file watcher.
  * Updates the note content in the editor when the note is changed from another window or from the file system.
  *
- * @param folder - The current folder name.
- * @param note - The current note name (without extension).
+ * @param filePath - The note currently open in the editor.
  * @param editor - The LexicalEditor instance to update the editor state.
  * @param setFrontmatter - A function to update the frontmatter state.
  */
 export function useNoteWriteEvent({
-  folder,
-  note,
+  filePath,
   editor,
   setFrontmatter,
 }: {
-  folder: string;
-  note: string;
+  filePath: FilePath;
   editor: LexicalEditor;
   setFrontmatter: Dispatch<SetStateAction<Frontmatter>>;
 }) {
   const store = useStore();
 
   useWailsEvent(FILE_WRITE, (event) => {
-    for (const { filePath, markdown } of event.data) {
-      const path = createFilePath(filePath);
+    for (const { filePath: eventPath, markdown } of event.data) {
+      const path = createFilePath(eventPath);
       if (
         !path ||
-        path.folder !== folder ||
-        path.noteWithoutExtension !== note ||
+        path.fullPath !== filePath.fullPath ||
         path.extension !== 'md' ||
         typeof markdown !== 'string'
       ) {
@@ -265,13 +261,9 @@ export function useNoteWriteEvent({
 
   useWailsEvent(CODE_RESULTS_UPDATE, (e) => {
     const data = e.data;
-    const filePath = createFilePath(data.filePath);
+    const eventPath = createFilePath(data.filePath);
 
-    if (
-      !filePath ||
-      filePath.folder !== folder ||
-      filePath.noteWithoutExtension !== note
-    ) {
+    if (!eventPath || eventPath.fullPath !== filePath.fullPath) {
       return;
     }
 

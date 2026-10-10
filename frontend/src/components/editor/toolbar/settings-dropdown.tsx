@@ -17,21 +17,19 @@ import {
 } from '@components/menu';
 import type { Frontmatter } from '@/types';
 import { Tooltip } from '@components/tooltip';
+import type { FilePath } from '@utils/path';
 import { cn } from '@utils/string-formatting';
 
 export function SettingsDropdown({
-  folder,
-  note,
+  filePath,
   frontmatter,
 }: {
-  folder: string;
-  note: string;
+  filePath: FilePath;
   frontmatter: Frontmatter;
 }) {
   const isFullscreen = useAtomValue(isFullscreenAtom);
   const { isPinned, isTocVisible, handleAction } = useNoteActions({
-    folder,
-    note,
+    filePath,
     frontmatter,
   });
   const items = [
