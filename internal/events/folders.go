@@ -84,11 +84,8 @@ func deleteFolderDocumentsFromIndex(idx bleve.Index, batch *bleve.Batch, folderP
 	var flushErrs []error
 	for _, hit := range searchResult.Hits {
 		batch.Delete(hit.ID)
-		if batch.Size() >= search.DefaultBatchSize {
-			if err := idx.Batch(batch); err != nil {
-				flushErrs = append(flushErrs, fmt.Errorf("flushing delete batch for folder %s: %w", folderPath, err))
-			}
-			batch.Reset()
+		if err := flushBatchIfFull(idx, batch); err != nil {
+			flushErrs = append(flushErrs, fmt.Errorf("flushing delete batch for folder %s: %w", folderPath, err))
 		}
 	}
 	return errors.Join(flushErrs...)

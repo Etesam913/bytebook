@@ -58,7 +58,6 @@ func handleFileRenameEvent(params EventParams, data []util.FileRenameEventData) 
 // It deletes the old entry and adds the new entry.
 func renameFilesInIndex(params EventParams, data []util.FileRenameEventData) {
 	params.withBatch(func(idx bleve.Index, batch *bleve.Batch) {
-		// TODO: Add flush logic in the loop
 		for _, note := range data {
 			oldFolder, oldNoteName := util.SplitFolderAndFile(note.OldFilePath)
 			newFolder, newNoteName := util.SplitFolderAndFile(note.NewFilePath)
@@ -76,6 +75,10 @@ func renameFilesInIndex(params EventParams, data []util.FileRenameEventData) {
 
 			if _, err := search.AddFileToBatch(batch, idx, params.ProjectPath, newFolder, newNoteName, true); err != nil {
 				log.Println("Error adding renamed file to batch", err)
+			}
+
+			if err := flushBatchIfFull(idx, batch); err != nil {
+				log.Println("Error flushing rename batch", err)
 			}
 		}
 	})
@@ -95,7 +98,6 @@ func handleFileDeleteEvent(params EventParams, data []util.FileDeleteEventData) 
 // deleteNotesFromIndex removes notes from the search index in a batch operation.
 func deleteNotesFromIndex(params EventParams, data []util.FileDeleteEventData) {
 	params.withBatch(func(_ bleve.Index, batch *bleve.Batch) {
-		// TODO: Add flush logic in the loop
 		for _, note := range data {
 			folder, noteName := util.SplitFolderAndFile(note.FilePath)
 			batch.Delete(filepath.Join(folder, noteName))
@@ -108,8 +110,7 @@ func deleteNotesFromIndex(params EventParams, data []util.FileDeleteEventData) {
 
 // updateNotesInIndex updates the search index with the new content of written files.
 func updateNotesInIndex(params EventParams, data []util.FileWriteEventData) {
-	params.withBatch(func(idx bleve.Index, attachmentBatch *bleve.Batch) {
-		// TODO: Add flush logic in the loop
+	params.withBatch(func(idx bleve.Index, batch *bleve.Batch) {
 		for _, note := range data {
 			folder, noteName := util.SplitFolderAndFile(note.FilePath)
 
@@ -118,35 +119,36 @@ func updateNotesInIndex(params EventParams, data []util.FileWriteEventData) {
 			if filepath.Ext(noteName) != ".md" {
 				// Attachments are indexed by file metadata only — never read
 				// their contents into the markdown pipeline.
-				_, err := search.AddFileToBatch(attachmentBatch, idx, params.ProjectPath, folder, noteName, true)
-				if err != nil {
+				if _, err := search.AddFileToBatch(batch, idx, params.ProjectPath, folder, noteName, true); err != nil {
 					log.Printf("Error adding attachment to batch %s: %v", notePath, err)
 				}
-				continue
-			}
-
-			// The file watcher already read the note when it emitted the event, so
-			// prefer the markdown from the payload and only fall back to disk.
-			markdown := note.Markdown
-			if markdown == "" {
-				noteFilePath := filepath.Join(params.ProjectPath, "notes", notePath)
-				content, err := os.ReadFile(noteFilePath)
-				if err != nil {
-					log.Printf("Error reading note file %s: %v", noteFilePath, err)
-					continue
+			} else {
+				// The file watcher already read the note when it emitted the event, so
+				// prefer the markdown from the payload and only fall back to disk.
+				markdown := note.Markdown
+				if markdown == "" {
+					noteFilePath := filepath.Join(params.ProjectPath, "notes", notePath)
+					content, err := os.ReadFile(noteFilePath)
+					if err != nil {
+						log.Printf("Error reading note file %s: %v", noteFilePath, err)
+						continue
+					}
+					markdown = string(content)
 				}
-				markdown = string(content)
+
+				bleveMarkdownDocument := search.CreateMarkdownNoteBleveDocument(
+					markdown,
+					folder,
+					noteName,
+				)
+
+				if err := batch.Index(notePath, bleveMarkdownDocument); err != nil {
+					log.Printf("Error indexing note %s: %v", notePath, err)
+				}
 			}
 
-			bleveMarkdownDocument := search.CreateMarkdownNoteBleveDocument(
-				markdown,
-				folder,
-				noteName,
-			)
-
-			err := idx.Index(notePath, bleveMarkdownDocument)
-			if err != nil {
-				log.Printf("Error indexing note %s: %v", notePath, err)
+			if err := flushBatchIfFull(idx, batch); err != nil {
+				log.Printf("Error flushing write batch: %v", err)
 			}
 		}
 	})

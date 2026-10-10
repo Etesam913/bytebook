@@ -1,6 +1,7 @@
 package events
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -162,6 +163,28 @@ func TestUpdateNotesInIndex(t *testing.T) {
 		assert.Equal(t, search.ATTACHMENT_TYPE, fields["type"])
 		assert.NotContains(t, fields, "text_content")
 	})
+}
+
+func TestNoteWriteAndDeleteFlushFullBatches(t *testing.T) {
+	params := createTestParams(t)
+	noteCount := search.DefaultBatchSize + 10
+	writes := make([]util.FileWriteEventData, 0, noteCount)
+	deletes := make([]util.FileDeleteEventData, 0, noteCount)
+	for i := range noteCount {
+		filePath := fmt.Sprintf("folder/note-%d.md", i)
+		writes = append(writes, util.FileWriteEventData{FilePath: filePath, Markdown: "# note"})
+		deletes = append(deletes, util.FileDeleteEventData{FilePath: filePath})
+	}
+
+	updateNotesInIndex(params, writes)
+	count, err := rawIndex(params).DocCount()
+	require.NoError(t, err)
+	assert.EqualValues(t, noteCount, count)
+
+	deleteNotesFromIndex(params, deletes)
+	count, err = rawIndex(params).DocCount()
+	require.NoError(t, err)
+	assert.Zero(t, count)
 }
 
 func TestWatcherDeletePreservesSidecarForPutBack(t *testing.T) {

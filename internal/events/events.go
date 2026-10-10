@@ -62,3 +62,14 @@ func (params EventParams) withBatch(fn func(idx bleve.Index, batch *bleve.Batch)
 		log.Println("Error indexing batch", err)
 	}
 }
+
+// flushBatchIfFull commits and resets batch once it reaches search.DefaultBatchSize,
+// so a large burst of events doesn't accumulate in memory.
+func flushBatchIfFull(idx bleve.Index, batch *bleve.Batch) error {
+	if batch.Size() < search.DefaultBatchSize {
+		return nil
+	}
+	err := idx.Batch(batch)
+	batch.Reset()
+	return err
+}
