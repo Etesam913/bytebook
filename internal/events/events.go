@@ -11,9 +11,10 @@ import (
 )
 
 type EventParams struct {
-	App               *application.App
-	ProjectPath       string
-	Index             *search.IndexHolder
+	App         *application.App
+	ProjectPath string
+	Index       *search.IndexHolder
+	// Required: folder-create events are always handed to the import coordinator.
 	ImportCoordinator *ingest.BulkImportCoordinator
 }
 

@@ -5,11 +5,15 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/blevesearch/bleve/v2"
+	"github.com/etesam913/bytebook/internal/ingest"
+	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/etesam913/bytebook/internal/notes/sidecar"
 	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/util"
+	"github.com/fsnotify/fsnotify"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -25,13 +29,26 @@ func createTestIndex(t *testing.T) bleve.Index {
 	return index
 }
 
-// createTestParams creates an EventParams struct with a test index
+// createTestParams creates an EventParams struct with a test index and a running
+// import coordinator, matching the production wiring in main.go
 func createTestParams(t *testing.T) EventParams {
 	index := createTestIndex(t)
+	projectPath := t.TempDir()
+	holder := search.NewIndexHolder(index)
+
+	watcher, err := fsnotify.NewWatcher()
+	require.NoError(t, err)
+	t.Cleanup(func() { watcher.Close() })
+
+	registry := notes.NewDirectoryWatchRegistry()
+	coordinator := ingest.NewBulkImportCoordinator(projectPath, holder, watcher, registry)
+	t.Cleanup(coordinator.Shutdown)
+
 	return EventParams{
-		App:         nil, // Not needed for these tests
-		ProjectPath: t.TempDir(),
-		Index:       search.NewIndexHolder(index),
+		App:               nil, // Not needed for these tests
+		ProjectPath:       projectPath,
+		Index:             holder,
+		ImportCoordinator: coordinator,
 	}
 }
 
@@ -50,40 +67,41 @@ func createMarkdownNoteInFolder(t *testing.T, projectPath, folderPath, fileName,
 	require.NoError(t, os.WriteFile(filepath.Join(fullFolderPath, fileName), []byte(content), 0644))
 }
 
-func TestAddFoldersToIndex(t *testing.T) {
-	t.Run("should index files from created folders", func(t *testing.T) {
+func TestHandleFolderCreateEvent(t *testing.T) {
+	t.Run("should index files from created folders in the background", func(t *testing.T) {
 		params := createTestParams(t)
 		createMarkdownNoteInFolder(t, params.ProjectPath, "folder1", "one.md", "# one")
 		createMarkdownNoteInFolder(t, params.ProjectPath, "folder2", "two.md", "# two")
 
-		data := []util.FolderCreateEventData{
+		handleFolderCreateEvent(params, []util.FolderCreateEventData{
 			{FolderPath: "folder1"},
 			{FolderPath: "folder2"},
-		}
+		})
 
-		addFoldersToIndex(params, data)
-
-		doc, err := rawIndex(params).Document(filepath.Join("folder1", "one.md"))
-		assert.NoError(t, err)
-		assert.NotNil(t, doc)
-
-		doc, err = rawIndex(params).Document(filepath.Join("folder2", "two.md"))
-		assert.NoError(t, err)
-		assert.NotNil(t, doc)
+		require.Eventually(t, func() bool {
+			doc, err := rawIndex(params).Document(filepath.Join("folder1", "one.md"))
+			return err == nil && doc != nil
+		}, 5*time.Second, 20*time.Millisecond)
+		require.Eventually(t, func() bool {
+			doc, err := rawIndex(params).Document(filepath.Join("folder2", "two.md"))
+			return err == nil && doc != nil
+		}, 5*time.Second, 20*time.Millisecond)
 	})
 
 	t.Run("should skip invalid entries", func(t *testing.T) {
 		params := createTestParams(t)
 		createMarkdownNoteInFolder(t, params.ProjectPath, "f.1", "note.md", "# note")
-		data := []util.FolderCreateEventData{
+
+		handleFolderCreateEvent(params, []util.FolderCreateEventData{
 			{FolderPath: "f.1"},
 			{},
 			{FolderPath: ""},
-		}
-		addFoldersToIndex(params, data)
+		})
 
-		doc, _ := rawIndex(params).Document(filepath.Join("f.1", "note.md"))
-		assert.NotNil(t, doc)
+		require.Eventually(t, func() bool {
+			doc, err := rawIndex(params).Document(filepath.Join("f.1", "note.md"))
+			return err == nil && doc != nil
+		}, 5*time.Second, 20*time.Millisecond)
 	})
 }
 

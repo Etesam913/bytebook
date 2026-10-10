@@ -41,35 +41,13 @@ func handleFolderDeleteEvent(params EventParams, data []util.FolderDeleteEventDa
 }
 
 func handleFolderCreateEvent(params EventParams, data []util.FolderCreateEventData) {
-	if params.ImportCoordinator != nil {
-		for _, folder := range data {
-			if folder.FolderPath == "" {
-				log.Println("Folder create event data missing folderPath")
-				continue
-			}
-			params.ImportCoordinator.EnqueueFolderImport(folder.FolderPath)
+	for _, folder := range data {
+		if folder.FolderPath == "" {
+			log.Println("Folder create event data missing folderPath")
+			continue
 		}
-		return
+		params.ImportCoordinator.EnqueueFolderImport(folder.FolderPath)
 	}
-
-	addFoldersToIndex(params, data)
-}
-
-func addFoldersToIndex(params EventParams, data []util.FolderCreateEventData) {
-	params.withBatch(func(idx bleve.Index, batch *bleve.Batch) {
-		for _, folder := range data {
-			folderPath := folder.FolderPath
-			if folderPath == "" {
-				log.Println("Folder create event data missing folderPath")
-				continue
-			}
-
-			pathOnDisk := filepath.Join(params.ProjectPath, "notes", folderPath)
-			if err := search.IndexFilesInFolderWithBatch(params.ProjectPath, pathOnDisk, folderPath, idx, batch); err != nil {
-				log.Printf("Error indexing files for folder %s: %v", folderPath, err)
-			}
-		}
-	})
 }
 
 // createFolderAndDescendantsQuery builds a query that matches documents in the
