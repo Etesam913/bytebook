@@ -22,7 +22,7 @@ func TestFormatStringListForErrorMessage(t *testing.T) {
 		capacity := 2
 
 		result := FormatStringListForErrorMessage(stringList, capacity)
-		expected := "error1, error2etc..."
+		expected := "error1, error2, etc..."
 
 		assert.Equal(t, expected, result)
 	})
@@ -62,7 +62,7 @@ func TestFormatStringListForErrorMessage(t *testing.T) {
 		capacity := 3
 
 		result := FormatStringListForErrorMessage(stringList, capacity)
-		expected := "error1, error2, error3etc..."
+		expected := "error1, error2, error3, etc..."
 
 		assert.Equal(t, expected, result)
 	})
@@ -72,7 +72,7 @@ func TestFormatStringListForErrorMessage(t *testing.T) {
 		capacity := -1
 
 		result := FormatStringListForErrorMessage(stringList, capacity)
-		expected := "error1etc..."
+		expected := "error1, etc..."
 
 		assert.Equal(t, expected, result)
 	})
@@ -82,7 +82,7 @@ func TestFormatStringListForErrorMessage(t *testing.T) {
 		capacity := 0
 
 		result := FormatStringListForErrorMessage(stringList, capacity)
-		expected := "error1etc..."
+		expected := "error1, etc..."
 
 		assert.Equal(t, expected, result)
 	})

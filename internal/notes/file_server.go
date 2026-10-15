@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/etesam913/bytebook/internal/util"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -25,28 +26,8 @@ func LocalFileMiddleware(projectPath string) application.Middleware {
 			// Check if this is a file request (starts with /notes/)
 			path := r.URL.Path
 			if relativePath, found := strings.CutPrefix(path, "/notes/"); found {
-				fullPath := filepath.Join(projectPath, "notes", relativePath)
-				// Clean the path to prevent directory traversal
-				fullPath = filepath.Clean(fullPath)
-
-				// Ensure the resolved path is still within the project notes directory
-				projectNotesPath := filepath.Join(projectPath, "notes")
-				projectNotesPathAbs, err := filepath.Abs(projectNotesPath)
+				fullPath, err := util.SafeJoin(filepath.Join(projectPath, "notes"), relativePath)
 				if err != nil {
-					log.Printf("Error resolving project notes path: %v", err)
-					next.ServeHTTP(w, r)
-					return
-				}
-
-				fullPathAbs, err := filepath.Abs(fullPath)
-				if err != nil {
-					log.Printf("Error resolving file path: %v", err)
-					next.ServeHTTP(w, r)
-					return
-				}
-
-				// Security check: ensure the file is within the notes directory
-				if !strings.HasPrefix(fullPathAbs, projectNotesPathAbs) {
 					http.Error(w, "Forbidden", http.StatusForbidden)
 					return
 				}

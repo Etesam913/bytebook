@@ -25,7 +25,7 @@ func FormatStringListForErrorMessage(stringList []string, capacity int) string {
 
 	joinedString := strings.Join(stringList[:itemsToInclude], ", ")
 	if isLargerThanCapacity {
-		joinedString += "etc..."
+		joinedString += ", etc..."
 	}
 	return joinedString
 }

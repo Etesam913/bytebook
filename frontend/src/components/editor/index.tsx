@@ -176,7 +176,7 @@ export function NotesEditor({
               />
               <HorizontalRulePlugin />
               <TableOfContentsPlugin
-                key={frontmatterNotePath}
+                key={`table-of-contents:${frontmatterNotePath}`}
                 isVisible={isTableOfContentsVisible({
                   frontmatter,
                   projectSettings,
@@ -214,7 +214,10 @@ export function NotesEditor({
                 ignoreSelectionChange
                 onChange={(_, editor, tags) => autosave(editor, tags)}
               />
-              <AutosaveFlush key={filePath.fullPath} autosave={autosave} />
+              <AutosaveFlush
+                key={`autosave:${filePath.fullPath}`}
+                autosave={autosave}
+              />
               <MarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
               <ListPlugin />
               <LinkPlugin />
