@@ -2,7 +2,7 @@ name: "Setup Wails"
 description: "Install Linux dependencies, set up Go and Wails v3, fix the local replace directive, and optionally generate bindings"
 inputs:
   generate-bindings:
-    description: "Generate Wails bindings for ./internal/..."
+    description: "Generate Wails bindings and frontend event names"
     required: false
     default: "false"
   wails-version:
@@ -54,3 +54,4 @@ runs:
         fi
         export PATH="$wails_bin_dir:$PATH"
         wails3 generate bindings ./internal/...
+        go run ./scripts/generate-events

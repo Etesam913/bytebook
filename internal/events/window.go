@@ -7,7 +7,7 @@ import (
 )
 
 // ListenToWindowEvents registers window-level event listeners that emit app events.
-func ListenToWindowEvents(app *application.App, window application.Window) {
+func ListenToWindowEvents(window application.Window) {
 	window.OnWindowEvent(wailsEvents.Common.WindowFilesDropped, func(event *application.WindowEvent) {
 		files := event.Context().DroppedFiles()
 		if len(files) == 0 {
@@ -32,9 +32,7 @@ func ListenToWindowEvents(app *application.App, window application.Window) {
 			eventName = util.EventFolderContentDrop
 		}
 
-		app.Event.EmitEvent(&application.CustomEvent{
-			Name: eventName,
-			Data: dropPayload,
-		})
+		// Sender is set to this window so other windows ignore the drop.
+		window.EmitEvent(eventName, dropPayload)
 	})
 }

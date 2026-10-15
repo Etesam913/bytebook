@@ -118,7 +118,6 @@ func main() {
 			importCoordinator.EnqueueInitialScan()
 		})
 	})
-	events.ListenToWindowEvents(app, window)
 
 	if err := app.Run(); err != nil {
 		log.Fatal(err)

@@ -4,6 +4,7 @@ import (
 	"log"
 	"math/rand"
 
+	bytebookEvents "github.com/etesam913/bytebook/internal/events"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
@@ -49,6 +50,9 @@ func CreateWindow(app *application.App, url string, backgroundColor application.
 			Data: false,
 		})
 	})
+
+	// Every window needs this, not just the first, or native file drops are silently ignored.
+	bytebookEvents.ListenToWindowEvents(window)
 
 	return window.Show()
 }

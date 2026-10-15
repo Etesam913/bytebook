@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import type { FileTree as PierreFileTree } from '@pierre/trees';
-import { useWailsEvent } from '@hooks/events';
+import { useCurrentWindowWailsEvent } from '@hooks/events';
 import { useAddDroppedFilesToFolderMutation } from '@hooks/tree-items';
 import { installWailsDragHandlers } from '@utils/wails-drag';
 import {
@@ -54,12 +54,12 @@ export function usePierreFileTreeDrop(model: PierreFileTree | null) {
     };
   }, [model]);
 
-  useWailsEvent(EDITOR_CONTENT_DROP, () => {
+  useCurrentWindowWailsEvent(EDITOR_CONTENT_DROP, () => {
     clearDropTargetHighlight(model);
     setTimeout(() => clearDropTargetHighlight(model), 50);
   });
 
-  useWailsEvent(FILE_TREE_CONTENT_DROP, (event) => {
+  useCurrentWindowWailsEvent(FILE_TREE_CONTENT_DROP, (event) => {
     clearDropTargetHighlight(model);
     setTimeout(() => clearDropTargetHighlight(model), 50);
 

@@ -9,7 +9,7 @@ import { useAtomValue } from 'jotai';
 import { draggedGhostElementAtom } from '@/atoms';
 import { FILE_TREE_GHOST_ID } from '@components/editor/utils/drag/context';
 import { useMoveTreeItemsMutation } from '@components/virtualized/virtualized-file-tree/hooks/tree-item-mutations';
-import { useWailsEvent } from '@hooks/events';
+import { useCurrentWindowWailsEvent } from '@hooks/events';
 import { useAddDroppedFilesToFolderMutation } from '@hooks/tree-items';
 import { installWailsDragHandlers } from '@utils/wails-drag';
 import { FOLDER_CONTENT_DROP } from '@bindings/util/event-names';
@@ -69,7 +69,7 @@ export function useFolderRendererDrop({
     };
   }, [containerRef]);
 
-  useWailsEvent(FOLDER_CONTENT_DROP, (event) => {
+  useCurrentWindowWailsEvent(FOLDER_CONTENT_DROP, (event) => {
     isNativeDragActive.current = false;
     setIsDropActive(false);
     const droppedFiles = event.data.droppedFiles;

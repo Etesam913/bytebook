@@ -12,7 +12,7 @@ import {
 } from 'lexical';
 import { type RefObject, useEffect } from 'react';
 import { draggableBlockElementAtom, draggedGhostElementAtom } from '../atoms';
-import { useWailsEvent } from '@hooks/events';
+import { useCurrentWindowWailsEvent } from '@hooks/events';
 import { EDITOR_CONTENT_DROP } from '@bindings/util/event-names';
 import type { Events } from '@wailsio/runtime';
 import { createFilePath, type FilePath } from '@utils/path';
@@ -147,7 +147,7 @@ function useInsertFilesOnEditorDrop({
     });
   }
 
-  useWailsEvent(EDITOR_CONTENT_DROP, onEditorContentDrop);
+  useCurrentWindowWailsEvent(EDITOR_CONTENT_DROP, onEditorContentDrop);
 }
 
 // ---------------------------------------------------------------------------
