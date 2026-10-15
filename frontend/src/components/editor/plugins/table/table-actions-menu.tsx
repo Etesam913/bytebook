@@ -22,6 +22,7 @@ import {
 } from '@lexical/table';
 import { mergeRegister } from '@lexical/utils';
 import {
+  $getNodeByKey,
   $getSelection,
   $isRangeSelection,
   COMMAND_PRIORITY_CRITICAL,
@@ -72,9 +73,12 @@ function TableCellActionMenuContainer({
     if (!tableCellNode) return;
     const updateCounts = () => {
       editor.getEditorState().read(() => {
-        const tableNode = $getTableNodeFromLexicalNodeOrThrow(
-          tableCellNode.getLatest()
-        );
+        const cell = $getNodeByKey(tableCellNode.getKey());
+        if (!$isTableCellNode(cell) || !cell.isAttached()) {
+          setTableMenuCellNode(null);
+          return;
+        }
+        const tableNode = $getTableNodeFromLexicalNodeOrThrow(cell);
         setRowCount(tableNode.getChildrenSize());
         setColumnCount(tableNode.getColumnCount());
       });

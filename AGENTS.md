@@ -21,7 +21,7 @@ Important: the repo uses a **local fork of Wails v3**. `go.mod` includes a `repl
 ```bash
 bun check       # Run all frontend & backend checks + tests concurrently
 bun check:fix   # Auto-fix formatting & lint issues then run checks
-bun check:fe    # Frontend checks only (Prettier, ESLint, TSGO, Knip, Bun test)
+bun check:fe    # Frontend checks (Prettier, ESLint, TSGO, Knip, Bun test, Playwright E2E)
 bun check:be    # Backend checks only (Go deadcode, Go vet, Go tests)
 ```
 
@@ -160,6 +160,17 @@ flowchart LR
 - Do not prioritize backwards compatibility — this is not a released product.
 - Keep event names in `internal/util/events.go` as the source of truth.
 - If you change backend services, ensure generated bindings stay in sync (Wails binding generation).
+
+## E2E test scope
+
+- Reserve Playwright E2E tests for **major user workflows**: author and reopen a note, search and open a result, organize files and folders, tag notes, import and open attachments, restore settings, or work across windows.
+- A test should complete a meaningful task and verify its result across the relevant UI/data boundaries. Opening a menu, checking a control, or asserting one RPC call is not a complete workflow.
+- Before adding an E2E test, find the existing workflow that owns the behavior. Extend it only when the assertion is part of that task; otherwise use a focused unit test when useful, or manual verification for a small visual change.
+- **Do not add dedicated E2E specs for small features or individual bug fixes.** Examples: tooltips, drag-preview styling, exact spacing or geometry, focus-only behavior, individual settings fields, menu availability, formatting variants, and niche watcher/event regressions.
+- Keep one representative success path per workflow and add recovery coverage only for a consequential failure. Do not multiply browser tests across themes, file types, entry points, syntax variants, or equivalent controls without a distinct workflow-level reason.
+- Keep workflows cohesive. Do not concatenate unrelated checks into a long test just to reduce the test count, or move every removed E2E assertion into another test layer automatically.
+- The browser harness mocks Wails. Verify submitted save payloads and feed those payloads back through mocked reads when testing reopening; do not claim this proves Go/disk persistence or native-window creation.
+- These scope rules take precedence over a generic recommendation to add a regression E2E for every UI bug. Detailed conventions are in `.agents/rules/frontend-testing.md`.
 
 ## Rules (`.agents/rules/`)
 

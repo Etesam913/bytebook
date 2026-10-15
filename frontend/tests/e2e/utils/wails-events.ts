@@ -15,6 +15,20 @@ export async function setupWailsEvents(context: BrowserContext): Promise<void> {
   if (setupContexts.has(context)) return;
   setupContexts.add(context);
 
+  // Native events are scoped to their sender window. Vite has no runtime to
+  // answer Window.Name(), so use the same window identity as emitWailsEvent.
+  await context.route('**/wails/runtime', async (route) => {
+    const body = route.request().postDataJSON() as {
+      object: number;
+      method: number;
+    };
+    if (body.object === 6 && body.method === 18) {
+      await route.fulfill({ json: 'test' });
+    } else {
+      await route.fallback();
+    }
+  });
+
   await context.addInitScript(() => {
     const globalWindow = window as typeof window & {
       __BYTEBOOK_WAILS_EVENT_LISTENERS__?: Map<

@@ -2,8 +2,8 @@
 trigger: glob
 globs: frontend/src/**/*.test.ts, frontend/src/**/*.test.tsx, frontend/tests/**/*.ts
 paths:
-  - 'frontend/src/**/*.test.{ts,tsx}'
-  - 'frontend/tests/**/*.ts'
+  - "frontend/src/**/*.test.{ts,tsx}"
+  - "frontend/tests/**/*.ts"
 ---
 
 # Frontend testing
@@ -21,16 +21,16 @@ Use **Arrange–Act–Assert (AAA)** as the default shape of every test:
 Keep the phases in that order and separate phases with blank lines. Do not write explicit `// Arrange`, `// Act`, or `// Assert` comments — keep the structure implicit through clean line spacing. Do not interleave assertions with setup or hide the primary action inside a helper named like setup.
 
 ```ts
-import { describe, expect, it } from 'bun:test';
-import { replaceLastPathSegment } from './path';
+import { describe, expect, it } from "bun:test";
+import { replaceLastPathSegment } from "./path";
 
-describe('replaceLastPathSegment', () => {
-  it('preserves the trailing slash when renaming a folder', () => {
-    const originalPath = 'notes/old/';
+describe("replaceLastPathSegment", () => {
+  it("preserves the trailing slash when renaming a folder", () => {
+    const originalPath = "notes/old/";
 
-    const result = replaceLastPathSegment(originalPath, 'new');
+    const result = replaceLastPathSegment(originalPath, "new");
 
-    expect(result).toBe('notes/new/');
+    expect(result).toBe("notes/new/");
   });
 });
 ```
@@ -40,14 +40,16 @@ An assertion needed to prove the arrangement is valid may appear before the act�
 ## Choose the narrowest useful test
 
 - Use a **unit test** for pure functions, parsing, paths, transformations, geometry, validation, and small DOM/event utilities. Unit tests use `bun:test`.
-- Use an **E2E test** when behavior depends on rendered React UI, routing, focus, keyboard or pointer interaction, Lexical, React Query, Wails bindings, or Wails events. E2E tests use Playwright with the mocked Wails runtime.
-- Prefer several fast unit tests for a decision-heavy helper plus one E2E test for the critical user flow. Do not repeat every edge case at both levels.
-- When fixing a bug, first add the smallest test that reproduces it. Verify that it fails for the original bug and passes after the fix.
+- Use an **E2E test only for a major user workflow** that needs rendered UI and crosses relevant application boundaries. Needing a browser, Lexical, focus, React Query, or Wails events is not by itself a reason to add an E2E test.
+- Before adding browser coverage, find the existing workflow that owns the behavior. Extend it when the behavior belongs to that task; create a new workflow only for a distinct major user task.
+- Do not add standalone E2E tests for tooltips, drag previews, layout geometry, focus-only interactions, individual settings fields, menu availability, formatting variants, or niche event regressions. Use unit coverage when valuable or manual visual verification; not every small change needs a new automated test.
+- Prefer focused unit tests for decision-heavy helpers and one representative E2E for the critical user flow. Do not repeat every edge case or entry point in the browser.
+- When fixing a bug, choose coverage proportionate to its scope. If a regression test is warranted, verify it fails before the fix and passes afterward. A bug fix does not automatically justify a new E2E test.
 - Test through the public surface. Avoid assertions against private variables, hook implementation details, Tailwind classes, React component structure, or exact render counts.
 
 ## What to cover
 
-For each behavior, cover the smallest representative set that establishes the contract:
+For unit tests, cover the smallest representative set that establishes the contract:
 
 - the normal case;
 - meaningful boundaries such as empty input, the first or last item, and minimum or maximum values;
@@ -58,15 +60,15 @@ For each behavior, cover the smallest representative set that establishes the co
 Do not mechanically test every permutation. Use table-driven cases with `it.each` when several inputs exercise the same rule, and separate tests when failures should communicate distinct behaviors.
 
 ```ts
-import { describe, expect, it } from 'bun:test';
-import { safeDecodeURIComponent } from './path';
+import { describe, expect, it } from "bun:test";
+import { safeDecodeURIComponent } from "./path";
 
-describe('safeDecodeURIComponent', () => {
+describe("safeDecodeURIComponent", () => {
   it.each([
-    { input: 'hello%20world', expected: 'hello world' },
-    { input: 'plain text', expected: 'plain text' },
-    { input: '50%', expected: '50%' },
-  ])('returns $expected for $input', ({ input, expected }) => {
+    { input: "hello%20world", expected: "hello world" },
+    { input: "plain text", expected: "plain text" },
+    { input: "50%", expected: "50%" },
+  ])("returns $expected for $input", ({ input, expected }) => {
     const result = safeDecodeURIComponent(input);
 
     expect(result).toBe(expected);
@@ -94,22 +96,22 @@ describe('safeDecodeURIComponent', () => {
 - Prefer real DOM events and observable effects over calling private event helpers directly.
 
 ```ts
-import '../test/setup';
-import { afterEach, describe, expect, it, spyOn } from 'bun:test';
-import { disableBackspaceNavigation } from './routing';
+import "../test/setup";
+import { afterEach, describe, expect, it, spyOn } from "bun:test";
+import { disableBackspaceNavigation } from "./routing";
 
-describe('disableBackspaceNavigation', () => {
+describe("disableBackspaceNavigation", () => {
   afterEach(() => {
     document.body.replaceChildren();
   });
 
-  it('lets an input handle backspace normally', () => {
+  it("lets an input handle backspace normally", () => {
     disableBackspaceNavigation();
-    const input = document.createElement('input');
+    const input = document.createElement("input");
     document.body.append(input);
     input.focus();
-    const event = new KeyboardEvent('keydown', { key: 'Backspace' });
-    const preventDefault = spyOn(event, 'preventDefault');
+    const event = new KeyboardEvent("keydown", { key: "Backspace" });
+    const preventDefault = spyOn(event, "preventDefault");
 
     document.dispatchEvent(event);
 
@@ -128,31 +130,31 @@ describe('disableBackspaceNavigation', () => {
 - Assert meaningful arguments and effects. Avoid overspecifying incidental call order unless order is part of the contract.
 
 ```ts
-import '../../../test/setup';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import "../../../test/setup";
+import { beforeEach, describe, expect, it, mock } from "bun:test";
 
 const openUrl = mock<(url: string) => Promise<void>>(() => Promise.resolve());
 
-void mock.module('@wailsio/runtime', () => ({
+void mock.module("@wailsio/runtime", () => ({
   Browser: { OpenURL: openUrl },
   // Include all other runtime namespaces required by transitive imports.
 }));
 
-const { handleATagClick } = await import('./link');
+const { handleATagClick } = await import("./link");
 
-describe('handleATagClick', () => {
+describe("handleATagClick", () => {
   beforeEach(() => {
     openUrl.mockReset();
     openUrl.mockImplementation(() => Promise.resolve());
   });
 
-  it('opens an HTTPS link through the Wails browser API', () => {
-    const anchor = document.createElement('a');
-    anchor.href = 'https://example.com/docs';
+  it("opens an HTTPS link through the Wails browser API", () => {
+    const anchor = document.createElement("a");
+    anchor.href = "https://example.com/docs";
 
     handleATagClick(anchor);
 
-    expect(openUrl).toHaveBeenCalledWith('https://example.com/docs');
+    expect(openUrl).toHaveBeenCalledWith("https://example.com/docs");
   });
 });
 ```
@@ -170,19 +172,32 @@ describe('handleATagClick', () => {
 
 E2E specs live under `frontend/tests/e2e/specs/`. Group them by feature, using nested directories for larger areas such as the editor (`frontend/tests/e2e/specs/editor/`). The suite runs Chromium against Vite (`http://localhost:5173`) and replaces Wails RPC (`/wails/runtime` HTTP interceptor) and events in the browser context; it does not require the desktop shell or a live Go backend.
 
+### Workflow boundaries
+
+- Name tests after completed user tasks: author and reopen a note, search and open a result, organize files, tag notes, import and open attachments, restore settings, or work across windows.
+- Follow the task through to its meaningful result. Menu visibility, a single field update, an RPC call, or an isolated DOM transformation is not enough on its own.
+- Keep one representative success path per workflow. Add a separate recovery path only for a consequential failure such as a failed search, move, or import.
+- Avoid matrices of themes, file types, menu entry points, settings fields, and equivalent formatting syntax. They do not become distinct workflows merely because they need browser interaction.
+- Keep each test cohesive; do not join unrelated small-feature checks into a larger test to satisfy the scope rule.
+- For save/reopen flows, use the actual submitted payload as the next mocked read response, as `reopenSavedNote` does. This verifies frontend save/load integration, not Go/disk persistence. A manually created browser page models a Wails window; it does not verify native-window creation.
+
 ### AAA in browser flows
 
 Keep setup and mock registration in the Arrange phase, perform one cohesive user action in Act, then verify visible state and important backend interactions in Assert. A multi-step workflow may contain smaller AAA cycles, but each step should finish asserting its outcome before the next step begins.
 
 ```ts
-test('opens a folder from the sidebar', async ({ page }) => {
-  await page.goto('/');
-  const sidebar = page.getByTestId('file-sidebar');
+test("finds a note in a folder and reads its content", async ({ page }) => {
+  await page.goto("/");
+  const sidebar = page.getByTestId("file-sidebar");
 
   // @pierre/trees renders row labels as truncation fragments, so locate the row by accessible treeitem role
-  await sidebar.getByRole('treeitem', { name: 'Economics Notes' }).click();
+  await sidebar.getByRole("treeitem", { name: "Economics Notes" }).click();
 
   await expect(page).toHaveURL(/\/notes\/Economics%20Notes$/);
+  await sidebar.getByRole("treeitem", { name: "Inflation.md" }).click();
+  await expect(page.locator("#content-editable-editor")).toContainText(
+    "Inflation",
+  );
 });
 ```
 
@@ -195,46 +210,7 @@ test('opens a folder from the sidebar', async ({ page }) => {
 - `updateMockBindingResponse(page, binding, response)` changes a response after the page loads, such as after a mutation or user action.
 - Use `getMockBindingCalls(page, binding)` to assert RPC arguments. Since UI effects may be debounced or asynchronous, read calls inside `expect.poll(...)`.
 
-```ts
-import { expect, test } from '@playwright/test';
-import { getMockBindingCalls, mockBinding } from '../utils/mock-binding';
-import { MOCK_PROJECT_SETTINGS_RESPONSE } from '../utils/mock-responses';
-import { SERVICE_FILES } from '../utils/service-files';
-
-const updateSettings = {
-  file: SERVICE_FILES.SETTINGS_SERVICE,
-  method: 'UpdateProjectSettings',
-};
-
-test.beforeEach(async ({ context }) => {
-  await mockBinding(
-    context,
-    { file: SERVICE_FILES.SETTINGS_SERVICE, method: 'GetProjectSettings' },
-    MOCK_PROJECT_SETTINGS_RESPONSE
-  );
-  await mockBinding(context, updateSettings, {
-    success: true,
-    message: '',
-    data: MOCK_PROJECT_SETTINGS_RESPONSE.data,
-  });
-});
-
-test('saves the editor line height', async ({ page }) => {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Settings' }).click();
-  const input = page.getByRole('spinbutton', { name: 'Editor line height' });
-
-  await input.fill('2.4');
-  await input.blur();
-
-  await expect
-    .poll(async () => {
-      const calls = await getMockBindingCalls(page, updateSettings);
-      return calls.at(-1)?.[0];
-    })
-    .toMatchObject({ appearance: { editorLineHeight: 2.4 } });
-});
-```
+For a complete example, see `frontend/tests/e2e/specs/settings-dialog.spec.ts`: it changes settings, edits a note, and reopens both through the mocked read boundary. Do not create separate browser tests for each settings field.
 
 ### Wails events
 
@@ -243,21 +219,7 @@ test('saves the editor line height', async ({ page }) => {
 - Use exact event names from `internal/util/events.go`; it remains the source of truth.
 - When a mutation normally causes a backend event, model both halves explicitly: update the relevant binding response during Arrange, perform the user action, emit the event as part of Act, then assert the refreshed UI.
 
-```ts
-test.beforeEach(async ({ context }) => {
-  await setupWailsEvents(context);
-  // Register startup bindings here.
-});
-
-test('refreshes tags after the index changes', async ({ page }) => {
-  await page.goto('/notes/example.md');
-  await updateMockBindingResponse(page, getTagsBinding, updatedTagsResponse);
-
-  await emitWailsEvent(page, 'tags:index_update', {});
-
-  await expect(page.getByRole('option', { name: 'development' })).toBeVisible();
-});
-```
+See the move, rename, and import workflows in `frontend/tests/e2e/specs/folder-sidebar.spec.ts` for complete examples. Do not add a standalone E2E solely to verify that an event refreshes one component.
 
 ### Locators and interaction patterns
 
@@ -299,7 +261,7 @@ bunx playwright test -c tests/e2e/playwright.config.ts --debug
 # All E2E tests (regenerates bindings and runs against Vite)
 bun run test:e2e:ci
 
-# Formatting, lint, types, dependency checks, and unit tests (repo root)
+# Formatting, lint, types, dependency checks, unit tests, and E2E tests (repo root)
 bun check:fe
 ```
 

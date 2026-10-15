@@ -85,6 +85,13 @@ const allTasks: CheckTask[] = [
     cmd: ["bun", "run", "test:unit"],
     cwd: "frontend",
   },
+  {
+    id: "fe:e2e",
+    name: "E2E Tests (Playwright)",
+    category: "frontend",
+    cmd: ["bun", "run", "test:e2e"],
+    cwd: "frontend",
+  },
   // Backend
   {
     id: "be:deadcode",

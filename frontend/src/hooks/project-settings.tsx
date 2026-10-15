@@ -120,7 +120,9 @@ export function useProjectSettings() {
         setProjectSettings(applyProjectSettings(data));
         setProjectSettingsLoaded(true);
       })
-      .catch((error) => logger.error('Failed to load project settings', error));
+      .catch((error) =>
+        console.error('Failed to load project settings', error)
+      );
   }, []);
 
   // Open the settings dialog on 'settings:open' event.

@@ -61,7 +61,7 @@ export function ComponentPickerMenuItem({
       className={cn(
         'flex items-center gap-2 text-left rounded-md px-1.75 py-0.5 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-650',
         isSelected &&
-        'bg-(--accent-color) text-white hover:bg-(--accent-color) dark:hover:bg-(--accent-color)'
+          'bg-(--accent-color) text-white hover:bg-(--accent-color) dark:hover:bg-(--accent-color)'
       )}
       ref={setOptionRef}
       role="option"
@@ -76,13 +76,13 @@ export function ComponentPickerMenuItem({
 
 export type FilePickerMenuItemData =
   | {
-    kind: 'file';
-    filePath: FilePath;
-  }
+      kind: 'file';
+      filePath: FilePath;
+    }
   | {
-    kind: 'folder';
-    folder: string;
-  };
+      kind: 'folder';
+      folder: string;
+    };
 
 export function FilePickerMenuItem({
   index,
@@ -122,7 +122,7 @@ export function FilePickerMenuItem({
       className={cn(
         'rounded-md px-2 py-1 hover:bg-zinc-100 dark:hover:bg-zinc-650',
         isSelected &&
-        'bg-zinc-150 dark:bg-zinc-600 hover:bg-zinc-150 dark:hover:bg-zinc-600'
+          'bg-zinc-150 dark:bg-zinc-600 hover:bg-zinc-150 dark:hover:bg-zinc-600'
       )}
       ref={setOptionRef}
       role="option"

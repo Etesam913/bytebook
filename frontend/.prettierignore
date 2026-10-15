@@ -4,3 +4,5 @@ bindings
 src/assets
 pnpm-lock.yaml
 bundle-analysis.html
+test-results
+playwright-report

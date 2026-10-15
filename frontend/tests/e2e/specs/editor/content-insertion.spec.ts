@@ -1,21 +1,17 @@
-import { test, expect, type Page, type Locator } from '@playwright/test';
-import { getEditor, mockNote, NOTE_URL } from '../../utils/editor';
+import { test, expect, type Page } from '@playwright/test';
 import {
-  getMockBindingCalls,
-  mockBinding,
-  updateMockBindingResponse,
-} from '../../utils/mock-binding';
+  getEditor,
+  mockNote,
+  NOTE_URL,
+  reopenSavedNote,
+  SAVE_NOTE_BINDING,
+} from '../../utils/editor';
+import { mockBinding } from '../../utils/mock-binding';
 import {
   MOCK_PROJECT_SETTINGS_RESPONSE,
   MOCK_ALL_PATHS_RESPONSE,
-  MOCK_FULL_TEXT_SEARCH_RESPONSE,
-  MOCK_EMPTY_SEARCH_RESPONSE,
 } from '../../utils/mock-responses';
 import { SERVICE_FILES } from '../../utils/service-files';
-
-// NOTE_URL points at Supply and Demand.md, which is one of the
-// MOCK_FULL_TEXT_SEARCH_RESPONSE results — the @-picker excludes the current
-// note, so search assertions use the other two results.
 
 async function openTableDialog(page: Page) {
   await page.goto(NOTE_URL);
@@ -25,492 +21,76 @@ async function openTableDialog(page: Page) {
   return page.getByRole('dialog');
 }
 
-async function expectAddButtonAlignment(
-  cell: Locator,
-  button: Locator,
-  axis: 'row' | 'column'
-) {
-  await expect
-    .poll(async () => {
-      const cellBox = await cell.boundingBox();
-      const buttonBox = await button.boundingBox();
-      if (!cellBox || !buttonBox) return Infinity;
-      const centerOffset =
-        axis === 'column'
-          ? buttonBox.x + buttonBox.width / 2 - cellBox.x - cellBox.width / 2
-          : buttonBox.y + buttonBox.height / 2 - cellBox.y - cellBox.height / 2;
-      const edgeOffset =
-        axis === 'column'
-          ? buttonBox.y + buttonBox.height - cellBox.y - 9
-          : buttonBox.x + buttonBox.width - cellBox.x - 9;
-      return Math.max(Math.abs(centerOffset), Math.abs(edgeOffset));
-    })
-    .toBeLessThan(2);
-}
+test.beforeEach(async ({ context }) => {
+  await mockBinding(
+    context,
+    { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetAllPaths' },
+    MOCK_ALL_PATHS_RESPONSE
+  );
+  await mockBinding(
+    context,
+    { file: SERVICE_FILES.SETTINGS_SERVICE, method: 'GetProjectSettings' },
+    MOCK_PROJECT_SETTINGS_RESPONSE
+  );
+  // Start with an empty document for the table authoring workflow.
+  await mockNote(context, '');
+  await mockBinding(context, SAVE_NOTE_BINDING, { success: true, message: '' });
+});
 
-test.describe('Editor content insertion', () => {
-  test.beforeEach(async ({ context }) => {
-    await mockBinding(
-      context,
-      { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetAllPaths' },
-      MOCK_ALL_PATHS_RESPONSE
-    );
-    await mockBinding(
-      context,
-      { file: SERVICE_FILES.SETTINGS_SERVICE, method: 'GetProjectSettings' },
-      MOCK_PROJECT_SETTINGS_RESPONSE
-    );
-    // An empty paragraph lets typeahead and Markdown shortcuts trigger immediately.
-    await mockNote(context, '');
+test('authors a table, reopens its saved content, and removes it', async ({
+  page,
+}) => {
+  const dialog = await openTableDialog(page);
+  await dialog.getByRole('button', { name: 'Create Table' }).click();
+  await expect(dialog).not.toBeVisible();
+  const editor = getEditor(page);
+  const rows = editor.locator('table tr');
+  const firstCell = rows.first().locator('td, th').first();
+  await firstCell.click();
+  await page.keyboard.type('Keep this cell');
+  const cellActions = page.getByRole('button', {
+    name: 'Table cell actions',
   });
 
-  test.describe('Slash command menu', () => {
-    test('opens menu on "/" and shows core options', async ({ page }) => {
-      await page.goto(NOTE_URL);
-
-      const editor = getEditor(page);
-      await expect(editor).toBeVisible();
-
-      await editor.click();
-      await page.keyboard.type('/');
-
-      const options = page.locator('li[role="option"]');
-      await expect(options.first()).toBeVisible();
-
-      for (const label of ['Heading 1', 'Quote', 'Table', 'Line Break']) {
-        await expect(options.filter({ hasText: label }).first()).toBeVisible();
-      }
-    });
-
-    test('filters options by typed query', async ({ page }) => {
-      await page.goto(NOTE_URL);
-
-      const editor = getEditor(page);
-      await expect(editor).toBeVisible();
-
-      await editor.click();
-      await page.keyboard.type('/quote');
-
-      const options = page.locator('li[role="option"]');
-      await expect(options.filter({ hasText: 'Quote' })).toHaveCount(1);
-      await expect(options.filter({ hasText: 'Heading 1' })).toHaveCount(0);
-    });
-
-    test('inserts a heading when Heading 1 option is clicked', async ({
-      page,
-    }) => {
-      await page.goto(NOTE_URL);
-
-      const editor = getEditor(page);
-      await expect(editor).toBeVisible();
-
-      await editor.click();
-      await page.keyboard.type('/heading 1');
-      await page
-        .locator('li[role="option"]', { hasText: 'Heading 1' })
-        .first()
-        .click();
-      await page.keyboard.type('My heading');
-
-      await expect(editor.locator('h1')).toContainText('My heading');
-    });
-
-    test('converts Heading 6 from the slash menu through the toolbar', async ({
-      page,
-    }) => {
-      await page.goto(NOTE_URL);
-      const editor = getEditor(page);
-      await editor.click();
-      await page.keyboard.type('/h6');
-      await page
-        .getByRole('option', { name: 'Heading 6', exact: true })
-        .click();
-      await page.keyboard.type('Small heading');
-      await expect(editor.locator('h6')).toHaveText('Small heading');
-
-      await page.getByRole('button', { name: 'Select block type' }).click();
-      await page.getByRole('option', { name: 'Header 2', exact: true }).click();
-
-      await expect(editor.locator('h2')).toHaveText('Small heading');
-      await expect(editor.locator('h6')).toHaveCount(0);
-    });
-
-    test('inserts a horizontal rule when Line Break is selected', async ({
-      page,
-    }) => {
-      await page.goto(NOTE_URL);
-
-      const editor = getEditor(page);
-      await expect(editor).toBeVisible();
-
-      await editor.click();
-      await page.keyboard.type('/line');
-      await page
-        .locator('li[role="option"]', { hasText: 'Line Break' })
-        .first()
-        .click();
-
-      await expect(editor.locator('hr')).toHaveCount(1);
-    });
-
-    test('inserts via keyboard (Enter on highlighted option)', async ({
-      page,
-    }) => {
-      await page.goto(NOTE_URL);
-
-      const editor = getEditor(page);
-      await expect(editor).toBeVisible();
-
-      await editor.click();
-      await page.keyboard.type('/quote');
-
-      // Wait for the menu to render the (single) Quote option before pressing Enter
-      await expect(
-        page.locator('li[role="option"]', { hasText: 'Quote' }).first()
-      ).toBeVisible();
-
-      await page.keyboard.press('Enter');
-      await page.keyboard.type('Quoted text');
-
-      await expect(editor.locator('blockquote')).toContainText('Quoted text');
-    });
-  });
-
-  test.describe('@ file picker', () => {
-    test.beforeEach(async ({ context }) => {
-      await mockBinding(
-        context,
-        { file: SERVICE_FILES.SEARCH_SERVICE, method: 'FullTextSearch' },
-        MOCK_FULL_TEXT_SEARCH_RESPONSE
-      );
-    });
-
-    test('shows search results when typing a query after "@"', async ({
-      page,
-    }) => {
-      await page.goto(NOTE_URL);
-
-      const editor = getEditor(page);
-      await expect(editor).toBeVisible();
-
-      await editor.click();
-      await page.keyboard.type('@inflation');
-
-      // Note: NOTE_URL points to Supply and Demand.md, which the picker
-      // excludes from results — assert against the other two mocked results.
-      const options = page.locator('li[role="option"]');
-      await expect(
-        options.filter({ hasText: 'Inflation.md' }).first()
-      ).toBeVisible();
-      await expect(
-        options.filter({ hasText: 'Quantum Physics.md' }).first()
-      ).toBeVisible();
-    });
-
-    test('preserves query syntax and backend ordering', async ({ page }) => {
-      await page.goto(NOTE_URL);
-      await getEditor(page).click();
-
-      await page.keyboard.type('@#work AND f:redis');
-
-      await expect
-        .poll(async () =>
-          (
-            await getMockBindingCalls(page, {
-              file: SERVICE_FILES.SEARCH_SERVICE,
-              method: 'FullTextSearch',
-            })
-          ).at(-1)
-        )
-        .toEqual(['#work AND f:redis', [], 15]);
-      const options = page.getByRole('option');
-      await expect(options).toHaveCount(2);
-      await expect(options.nth(0)).toContainText('Inflation.md');
-      await expect(options.nth(1)).toContainText('Quantum Physics.md');
-    });
-
-    test('shows search failure and retries without inserting a result', async ({
-      page,
-      context,
-    }) => {
-      const binding = {
-        file: SERVICE_FILES.SEARCH_SERVICE,
-        method: 'FullTextSearch',
-      };
-      await mockBinding(context, binding, {
-        success: false,
-        message: 'Could not search notes. Please try again.',
-      });
-      await page.goto(NOTE_URL);
-      await getEditor(page).click();
-
-      await page.keyboard.type('@r');
-
-      await expect(page.getByRole('alert')).toContainText(
-        'Could not search notes.'
-      );
-      await expect(page.getByText('No results found...')).toHaveCount(0);
-      await updateMockBindingResponse(
-        page,
-        binding,
-        MOCK_FULL_TEXT_SEARCH_RESPONSE
-      );
-      await page
-        .getByRole('alert')
-        .getByRole('button', { name: 'Retry' })
-        .click();
-      await expect(page.getByRole('option').first()).toContainText(
-        'Inflation.md'
-      );
-      await expect(getEditor(page).locator('a')).toHaveCount(0);
-    });
-
-    test('inserts a link node when a result is clicked', async ({ page }) => {
-      await page.goto(NOTE_URL);
-
-      const editor = getEditor(page);
-      await expect(editor).toBeVisible();
-
-      await editor.click();
-      await page.keyboard.type('@inflation');
-      await page
-        .locator('li[role="option"]', { hasText: 'Inflation.md' })
-        .first()
-        .click();
-
-      await expect(editor.locator('a')).toContainText('Inflation.md');
-    });
-
-    test('shows empty state when search returns no results', async ({
-      page,
-      context,
-    }) => {
-      await mockBinding(
-        context,
-        { file: SERVICE_FILES.SEARCH_SERVICE, method: 'FullTextSearch' },
-        MOCK_EMPTY_SEARCH_RESPONSE
-      );
-
-      await page.goto(NOTE_URL);
-
-      const editor = getEditor(page);
-      await expect(editor).toBeVisible();
-
-      await editor.click();
-      await page.keyboard.type('@nothingmatches');
-
-      await expect(page.getByText('No results found...')).toBeVisible();
-    });
-  });
-
-  test.describe('Markdown shortcuts', () => {
-    const shortcutTests: Array<{
-      label: string;
-      input: string;
-      selector: string;
-      expectedText: string;
-    }> = [
-      {
-        label: 'converts "# " shortcut to Heading 1',
-        input: '# Header text',
-        selector: 'h1',
-        expectedText: 'Header text',
-      },
-      {
-        label: 'converts "## " shortcut to Heading 2',
-        input: '## Subheader',
-        selector: 'h2',
-        expectedText: 'Subheader',
-      },
-      {
-        label: 'converts "> " shortcut to blockquote',
-        input: '> Quoted',
-        selector: 'blockquote',
-        expectedText: 'Quoted',
-      },
-      {
-        label: 'converts "- " shortcut to unordered list',
-        input: '- List item',
-        selector: 'ul li',
-        expectedText: 'List item',
-      },
-      {
-        label: 'converts "1. " shortcut to ordered list',
-        input: '1. First item',
-        selector: 'ol li',
-        expectedText: 'First item',
-      },
-      {
-        label: 'converts "**text** " shortcut to bold',
-        input: '**bold** ',
-        selector: 'strong',
-        expectedText: 'bold',
-      },
-      {
-        label: 'converts "*text* " shortcut to italic',
-        input: '*italic* ',
-        selector: 'em',
-        expectedText: 'italic',
-      },
-      {
-        label: 'converts "~~text~~ " shortcut to strikethrough',
-        input: '~~strike~~ ',
-        selector: 'span.text-strikethrough',
-        expectedText: 'strike',
-      },
-    ];
-
-    for (const { label, input, selector, expectedText } of shortcutTests) {
-      test(label, async ({ page }) => {
-        await page.goto(NOTE_URL);
-
-        const editor = getEditor(page);
-        await expect(editor).toBeVisible();
-
-        await editor.click();
-        await page.keyboard.type(input);
-
-        await expect(editor.locator(selector)).toContainText(expectedText);
-      });
-    }
-  });
-
-  test.describe('Create Table dialog', () => {
-    test('opens with default 3×3 dimensions when Table option is selected', async ({
-      page,
-    }) => {
-      const dialog = await openTableDialog(page);
-
-      await expect(dialog).toBeVisible();
-      await expect(dialog).toContainText('Create Table');
-      await expect(dialog.getByLabel('Rows', { exact: true })).toHaveValue('3');
-      await expect(dialog.getByLabel('Columns', { exact: true })).toHaveValue(
-        '3'
-      );
-    });
-
-    test('inserts a table when valid dimensions are submitted', async ({
-      page,
-    }) => {
-      const dialog = await openTableDialog(page);
-      const editor = getEditor(page);
-
-      await dialog.getByLabel('Rows', { exact: true }).fill('2');
-      await dialog.getByLabel('Columns', { exact: true }).fill('2');
-      await dialog.getByRole('button', { name: 'Create Table' }).click();
-
-      await expect(dialog).not.toBeVisible();
-      await expect(editor.locator('table')).toBeVisible();
-      const rows = editor.locator('table tr');
-      await expect(rows).toHaveCount(2);
-      await expect(rows.nth(0).locator('td, th')).toHaveCount(2);
-      await expect(rows.nth(1).locator('td, th')).toHaveCount(2);
-    });
-
-    test('aligns add buttons with the hovered column and row', async ({
-      page,
-    }) => {
-      const dialog = await openTableDialog(page);
-      const editor = getEditor(page);
-      await dialog.getByRole('button', { name: 'Create Table' }).click();
-      await expect(dialog).not.toBeVisible();
-      const rows = editor.locator('table tr');
-      const topCell = rows.first().locator('td, th').nth(2);
-      const leftCell = rows.nth(2).locator('td, th').first();
-      const addColumn = page.getByRole('button', {
-        name: 'Add column',
-        exact: true,
-      });
-      const addRow = page.getByRole('button', { name: 'Add row', exact: true });
-
-      await topCell.hover();
-
-      await expect(addColumn).toBeVisible();
-
-      await expectAddButtonAlignment(topCell, addColumn, 'column');
-      await addColumn.click();
-      await expect(rows.first().locator('td, th')).toHaveCount(4);
-
-      await leftCell.hover();
-
-      await expect(addRow).toBeVisible();
-      await expectAddButtonAlignment(leftCell, addRow, 'row');
-      await addRow.click();
-      await expect(rows).toHaveCount(4);
-    });
-
-    test('inserts and deletes table dimensions from the cell menu', async ({
-      page,
-    }) => {
-      const dialog = await openTableDialog(page);
-      await dialog.getByRole('button', { name: 'Create Table' }).click();
-      await expect(dialog).not.toBeVisible();
-      const editor = getEditor(page);
-      const rows = editor.locator('table tr');
-      const firstCell = rows.first().locator('td, th').first();
-      await firstCell.click();
-      await page.keyboard.type('Keep this cell');
-      const cellActions = page.getByRole('button', {
-        name: 'Table cell actions',
-      });
-
-      await cellActions.click();
-      await page.getByRole('menuitem', { name: 'Insert row below' }).click();
-
-      await expect(rows).toHaveCount(4);
-      await expect(firstCell).toHaveText('Keep this cell');
-
-      await firstCell.click();
-      await cellActions.click();
-      await page.getByRole('menuitem', { name: 'Insert column right' }).click();
-
-      await expect(rows.first().locator('td, th')).toHaveCount(4);
-      await expect(firstCell).toHaveText('Keep this cell');
-
-      await rows.nth(1).locator('td, th').nth(1).click();
-      await cellActions.click();
-      await page.getByRole('menuitem', { name: 'Delete column' }).click();
-
-      await expect(rows.first().locator('td, th')).toHaveCount(3);
-      await expect(firstCell).toHaveText('Keep this cell');
-
-      await rows.nth(1).locator('td, th').first().click();
-      await cellActions.click();
-      await page
-        .getByRole('menuitem', { name: 'Delete row', exact: true })
-        .click();
-
-      await expect(rows).toHaveCount(3);
-      await expect(firstCell).toHaveText('Keep this cell');
-
-      await firstCell.click();
-      await cellActions.click();
-      await page.getByRole('menuitem', { name: 'Delete table' }).click();
-
-      await expect(editor.locator('table')).toHaveCount(0);
-    });
-
-    test('shows an error when rows is left blank', async ({ page }) => {
-      const dialog = await openTableDialog(page);
-
-      // Empty value sidesteps the input's min/max HTML5 check and lets the
-      // server-action validator return its own error.
-      await dialog.getByLabel('Rows', { exact: true }).fill('');
-      await dialog.getByRole('button', { name: 'Create Table' }).click();
-
-      await expect(
-        page.getByText('Please enter a valid number of rows (1-100)')
-      ).toBeVisible();
-      await expect(dialog).toBeVisible();
-    });
-
-    test('closes via the Close button', async ({ page }) => {
-      const dialog = await openTableDialog(page);
-
-      await expect(dialog).toBeVisible();
-
-      await dialog.getByRole('button', { name: 'Close dialog' }).click();
-      await expect(dialog).not.toBeVisible();
-    });
-  });
+  await cellActions.click();
+  await page.getByRole('menuitem', { name: 'Insert row below' }).click();
+
+  await expect(rows).toHaveCount(4);
+  await expect(firstCell).toHaveText('Keep this cell');
+
+  await firstCell.click();
+  await cellActions.click();
+  await page.getByRole('menuitem', { name: 'Insert column right' }).click();
+
+  await expect(rows.first().locator('td, th')).toHaveCount(4);
+  await expect(firstCell).toHaveText('Keep this cell');
+
+  await rows.nth(1).locator('td, th').nth(1).click();
+  await cellActions.click();
+  await page.getByRole('menuitem', { name: 'Delete column' }).click();
+
+  await expect(rows.first().locator('td, th')).toHaveCount(3);
+  await expect(firstCell).toHaveText('Keep this cell');
+
+  await rows.nth(1).locator('td, th').first().click();
+  await cellActions.click();
+  await page.getByRole('menuitem', { name: 'Delete row', exact: true }).click();
+
+  await expect(rows).toHaveCount(3);
+  await expect(firstCell).toHaveText('Keep this cell');
+
+  await firstCell.locator('p').fill('Saved table content');
+  await reopenSavedNote(page, 'Saved table content');
+  await expect(rows).toHaveCount(3);
+  await expect(firstCell).toHaveText('Saved table content');
+  await firstCell.click();
+  await cellActions.click();
+  await page.getByRole('menuitem', { name: 'Delete table' }).click();
+
+  await expect(editor.locator('table')).toHaveCount(0);
+  await editor.fill('The table has been removed');
+  const markdown = await reopenSavedNote(page, 'The table has been removed');
+  expect(markdown).not.toContain('Saved table content');
+  await expect(editor.locator('table')).toHaveCount(0);
+  await expect(editor).toHaveText('The table has been removed');
 });

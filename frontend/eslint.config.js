@@ -15,6 +15,8 @@ export default defineConfig([
     'build/',
     'src/assets/',
     'tests/',
+    'test-results/',
+    'playwright-report/',
     'vite.config.ts',
   ]),
   {

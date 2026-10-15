@@ -217,6 +217,7 @@ export function NotesEditor({
               <AutosaveFlush
                 key={`autosave:${filePath.fullPath}`}
                 autosave={autosave}
+                filePath={filePath}
               />
               <MarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
               <ListPlugin />
