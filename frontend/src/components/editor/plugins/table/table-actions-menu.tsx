@@ -6,36 +6,24 @@
  *
  */
 
-import type { ElementNode } from 'lexical';
 import type { JSX } from 'react';
 
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useLexicalEditable } from '@lexical/react/useLexicalEditable';
 import {
-  $deleteTableColumnAtSelection,
-  $deleteTableRowAtSelection,
-  $getNodeTriplet,
   $getTableCellNodeFromLexicalNode,
   $getTableNodeFromLexicalNodeOrThrow,
-  $insertTableColumnAtSelection,
-  $insertTableRowAtSelection,
   $isTableCellNode,
   $isTableSelection,
-  $mergeCells,
-  $unmergeCell,
   getTableElement,
   getTableObserverFromTableElement,
   TableCellNode,
   TableObserver,
-  TableSelection,
 } from '@lexical/table';
 import { mergeRegister } from '@lexical/utils';
 import {
   $getSelection,
-  $isElementNode,
   $isRangeSelection,
-  $isTextNode,
-  $setSelection,
   COMMAND_PRIORITY_CRITICAL,
   getDOMSelection,
   SELECTION_CHANGE_COMMAND,
@@ -59,45 +47,7 @@ import {
   AppMenuTrigger,
 } from '@components/menu';
 import { MAX_TABLE_COLUMNS, MAX_TABLE_ROWS } from '../../utils/table';
-
-function computeSelectionCount(selection: TableSelection): {
-  columns: number;
-  rows: number;
-} {
-  const selectionShape = selection.getShape();
-  return {
-    columns: selectionShape.toX - selectionShape.fromX + 1,
-    rows: selectionShape.toY - selectionShape.fromY + 1,
-  };
-}
-
-function $canUnmerge(): boolean {
-  const selection = $getSelection();
-  if (
-    ($isRangeSelection(selection) && !selection.isCollapsed()) ||
-    ($isTableSelection(selection) && !selection.anchor.is(selection.focus)) ||
-    (!$isRangeSelection(selection) && !$isTableSelection(selection))
-  ) {
-    return false;
-  }
-  // $getNodeTriplet throws when the selection is outside a table (e.g. on remount).
-  if (!$getTableCellNodeFromLexicalNode(selection.anchor.getNode())) {
-    return false;
-  }
-  const [cell] = $getNodeTriplet(selection.anchor);
-  return cell.__colSpan > 1 || cell.__rowSpan > 1;
-}
-
-function $selectLastDescendant(node: ElementNode): void {
-  const lastDescendant = node.getLastDescendant();
-  if ($isTextNode(lastDescendant)) {
-    lastDescendant.select();
-  } else if ($isElementNode(lastDescendant)) {
-    lastDescendant.selectEnd();
-  } else if (lastDescendant !== null) {
-    lastDescendant.selectNext();
-  }
-}
+import { $canUnmerge, $tableActions } from '../../utils/table-actions';
 
 function TableCellActionMenuContainer({
   anchorElem,
@@ -154,11 +104,8 @@ function TableCellActionMenuContainer({
       editor.getEditorState().read(() => {
         const selection = $getSelection();
         if ($isTableSelection(selection)) {
-          const currentSelectionCounts = computeSelectionCount(selection);
-          setCanMergeCells(
-            currentSelectionCounts.columns > 1 ||
-              currentSelectionCounts.rows > 1
-          );
+          const { fromX, toX, fromY, toY } = selection.getShape();
+          setCanMergeCells(toX > fromX || toY > fromY);
         }
         setCanUnmergeCell($canUnmerge());
       });
@@ -453,44 +400,9 @@ function TableCellActionMenuContainer({
   ].filter((item): item is { id: string; label: JSX.Element } => Boolean(item));
 
   function handleAction(key: Key) {
-    switch (key) {
-      case 'insert-row-above':
-        editor.update(() => {
-          $insertTableRowAtSelection(false);
-        });
-        break;
-      case 'insert-row-below':
-        editor.update(() => {
-          $insertTableRowAtSelection(true);
-        });
-        break;
-      case 'insert-column-left':
-        editor.update(() => {
-          $insertTableColumnAtSelection(false);
-        });
-        break;
-      case 'insert-column-right':
-        editor.update(() => {
-          $insertTableColumnAtSelection(true);
-        });
-        break;
-      case 'delete-column':
-        editor.update(() => {
-          $deleteTableColumnAtSelection();
-        });
-        break;
-      case 'delete-row':
-        editor.update(() => {
-          $deleteTableRowAtSelection();
-        });
-        break;
-      case 'delete-table':
-        editor.update(() => {
-          const tableNode = $getTableNodeFromLexicalNodeOrThrow(tableCellNode!);
-          tableNode.remove();
-          $setSelection(null);
-        });
-        break;
+    const action = $tableActions[key];
+    if (action && tableCellNode) {
+      editor.update(() => action(tableCellNode));
     }
     setIsMenuOpen(false);
   }
@@ -512,35 +424,12 @@ function TableCellActionMenuContainer({
           <AppMenuPopover className="w-56">
             <AppMenu onAction={handleAction}>
               {canMergeCells && (
-                <AppMenuItem
-                  id="merge-cells"
-                  onAction={() => {
-                    editor.update(() => {
-                      const selection = $getSelection();
-                      if (!$isTableSelection(selection)) return;
-                      const nodes = selection.getNodes();
-                      const tableCells = nodes.filter($isTableCellNode);
-                      const targetCell = $mergeCells(tableCells);
-                      if (targetCell) {
-                        $selectLastDescendant(targetCell);
-                      }
-                    });
-                    setIsMenuOpen(false);
-                  }}
-                >
+                <AppMenuItem id="merge-cells">
                   <span className="text">Merge cells</span>
                 </AppMenuItem>
               )}
               {canUnmergeCell && (
-                <AppMenuItem
-                  id="unmerge-cells"
-                  onAction={() => {
-                    editor.update(() => {
-                      $unmergeCell();
-                    });
-                    setIsMenuOpen(false);
-                  }}
-                >
+                <AppMenuItem id="unmerge-cells">
                   <span className="text">Unmerge cells</span>
                 </AppMenuItem>
               )}

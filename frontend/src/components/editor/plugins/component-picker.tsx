@@ -3,7 +3,7 @@ import {
   LexicalTypeaheadMenuPlugin,
   useBasicTypeaheadTriggerMatch,
 } from '@lexical/react/LexicalTypeaheadMenuPlugin';
-import { $createHeadingNode, $createQuoteNode } from '@lexical/rich-text';
+import { $createQuoteNode } from '@lexical/rich-text';
 import { $setBlocksType } from '@lexical/selection';
 import type { UseMutationResult } from '@tanstack/react-query';
 import {
@@ -21,12 +21,6 @@ import { projectSettingsAtom } from '@/atoms';
 import { useAttachmentsMutation } from '@hooks/attachments';
 import { useCreateTableDialog } from '@hooks/dialogs';
 import { GolangLogo } from '@/icons/golang-logo';
-import { Heading1 } from '@/icons/heading-1';
-import { Heading2 } from '@/icons/heading-2';
-import { Heading3 } from '@/icons/heading-3';
-import { Heading4 } from '@/icons/heading-4';
-import { Heading5 } from '@/icons/heading-5';
-import { Heading6 } from '@/icons/heading-6';
 import { JavaLogo } from '@/icons/java-logo';
 import { PythonLogo } from '@/icons/python-logo';
 import { Text } from '@/icons/text';
@@ -34,7 +28,12 @@ import {
   ComponentPickerMenuItem,
   DropdownPickerOption,
 } from '@components/dropdown/dropdown-picker';
-import { attachmentCommandData, listCommandData } from '../utils/toolbar';
+import {
+  attachmentCommandData,
+  changeSelectedBlocksType,
+  listCommandData,
+} from '../utils/toolbar';
+import { headingOptions } from '../utils/heading-options';
 import { INSERT_CODE_COMMAND } from './code';
 import { LANGUAGES, Languages } from '@/types';
 import { getDefaultCodeForLanguage } from '@utils/code';
@@ -123,26 +122,16 @@ function getBaseOptions({
           }
         }),
     }),
-    ...(
-      [
-        [1, <Heading1 key={'h1'} />],
-        [2, <Heading2 key={'h2'} />],
-        [3, <Heading3 key={'h3'} />],
-        [4, <Heading4 key={'h4'} />],
-        [5, <Heading5 key={'h5'} />],
-        [6, <Heading6 key={'h6'} />],
-      ] as const
-    ).map(
-      ([n, icon]) =>
-        new DropdownPickerOption(`Heading ${n}`, {
-          icon,
-          keywords: ['heading', 'header', `h${n}`],
+    ...headingOptions.map(
+      ({ tag, Icon }) =>
+        new DropdownPickerOption(`Heading ${tag.slice(1)}`, {
+          icon: <Icon />,
+          keywords: ['heading', 'header', tag],
           onSelect: () =>
-            editor.update(() => {
-              const selection = $getSelection();
-              if ($isRangeSelection(selection)) {
-                $setBlocksType(selection, () => $createHeadingNode(`h${n}`));
-              }
+            changeSelectedBlocksType({
+              editor,
+              newBlockType: tag,
+              insertAttachmentsMutation,
             }),
         })
     ),

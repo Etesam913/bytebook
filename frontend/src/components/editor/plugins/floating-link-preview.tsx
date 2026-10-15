@@ -36,6 +36,7 @@ import { $getNearestNodeOfType } from '@lexical/utils';
 import { AppTextField } from '@components/input';
 import { $setSelection } from 'lexical';
 import { useFocusWithin } from 'react-aria';
+import { getFloatingPosition } from '../utils/toolbar';
 
 // Styles the persistent selection to match Bytebook's native text selection.
 function stylePersistentSelection(nodes: readonly HTMLElement[]) {
@@ -142,16 +143,14 @@ export function FloatingLinkPreview({
         // Ignore anchors without an active Lexical link node.
         if (!link || ($isAutoLinkNode(link) && link.getIsUnlinked())) return;
         const bounds = anchor.getBoundingClientRect();
-        const container = noteContainerRef.current;
-        const containerBounds = container?.getBoundingClientRect();
         setFloatingData({
           isOpen: true,
           type: 'link-preview',
-          top:
-            bounds.bottom -
-            (containerBounds?.top ?? 0) +
-            (container?.scrollTop ?? 0),
-          left: bounds.left - (containerBounds?.left ?? 0) + bounds.width / 2,
+          ...getFloatingPosition({
+            bounds,
+            container: noteContainerRef.current,
+            edge: 'bottom',
+          }),
           previousUrl: link.getURL(),
           linkNodeKey: link.getKey(),
           previousSelection: null,

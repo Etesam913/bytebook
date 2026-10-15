@@ -6,7 +6,10 @@ import {
   NOTE_URL,
 } from '../../utils/editor';
 import { mockBinding } from '../../utils/mock-binding';
-import { MOCK_PROJECT_SETTINGS_RESPONSE } from '../../utils/mock-responses';
+import {
+  MOCK_ALL_PATHS_RESPONSE,
+  MOCK_PROJECT_SETTINGS_RESPONSE,
+} from '../../utils/mock-responses';
 import { SERVICE_FILES } from '../../utils/service-files';
 
 const INITIAL_MARKDOWN =
@@ -29,6 +32,11 @@ async function appendAutomaticLink(page: Page) {
 }
 
 test.beforeEach(async ({ context }) => {
+  await mockBinding(
+    context,
+    { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetAllPaths' },
+    MOCK_ALL_PATHS_RESPONSE
+  );
   await mockBinding(
     context,
     { file: SERVICE_FILES.SETTINGS_SERVICE, method: 'GetProjectSettings' },

@@ -15,11 +15,7 @@ import {
 } from '@floating-ui/react';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useLexicalEditable } from '@lexical/react/useLexicalEditable';
-import {
-  $insertTableColumnAtSelection,
-  $insertTableRowAtSelection,
-  $isTableCellNode,
-} from '@lexical/table';
+import { $isTableCellNode } from '@lexical/table';
 import { $getNearestNodeFromDOMNode, isHTMLElement } from 'lexical';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -30,6 +26,7 @@ import { motion } from 'motion/react';
 import { TableRowNewBottom2 } from '@/icons/table-row-new-bottom-2';
 import { Tooltip } from '@components/tooltip';
 import { MAX_TABLE_COLUMNS, MAX_TABLE_ROWS } from '../../utils/table';
+import { $tableActions } from '../../utils/table-actions';
 
 const INDICATOR_SIZE_PX = 18;
 const SIDE_INDICATOR_SIZE_PX = 18;
@@ -345,33 +342,16 @@ function TableHoverActions({
     return null;
   }
 
-  const handleAddColumn = () => {
-    const targetCell = hoveredTopCellRef.current;
-    if (!targetCell) {
-      return;
-    }
+  function handleAdd(targetCell: HTMLTableCellElement | null, action: string) {
+    if (!targetCell) return;
     editor.update(() => {
-      const maybeCellNode = $getNearestNodeFromDOMNode(targetCell);
-      if ($isTableCellNode(maybeCellNode)) {
-        maybeCellNode.selectEnd();
-        $insertTableColumnAtSelection();
+      const cell = $getNearestNodeFromDOMNode(targetCell);
+      if ($isTableCellNode(cell)) {
+        cell.selectEnd();
+        $tableActions[action]?.(cell);
       }
     });
-  };
-
-  const handleAddRow = () => {
-    const targetCell = hoveredLeftCellRef.current;
-    if (!targetCell) {
-      return;
-    }
-    editor.update(() => {
-      const maybeCellNode = $getNearestNodeFromDOMNode(targetCell);
-      if ($isTableCellNode(maybeCellNode)) {
-        maybeCellNode.selectEnd();
-        $insertTableRowAtSelection();
-      }
-    });
-  };
+  }
 
   return (
     <>
@@ -400,7 +380,9 @@ function TableHoverActions({
             className="z-10 text-zinc-600 bg-zinc-50 dark:bg-zinc-750 dark:border-zinc-600 dark:text-zinc-300 border-zinc-200 border"
             aria-label="Add column"
             type="button"
-            onPress={handleAddColumn}
+            onPress={() =>
+              handleAdd(hoveredTopCellRef.current, 'insert-column-right')
+            }
             {...getDefaultButtonVariants()}
           >
             <TableColNewRight2
@@ -436,7 +418,9 @@ function TableHoverActions({
             className="z-10 text-zinc-600 bg-zinc-50 dark:bg-zinc-750 dark:border-zinc-600 dark:text-zinc-300 border-zinc-200 border"
             aria-label="Add row"
             type="button"
-            onPress={handleAddRow}
+            onPress={() =>
+              handleAdd(hoveredLeftCellRef.current, 'insert-row-below')
+            }
             {...getDefaultButtonVariants()}
           >
             <TableRowNewBottom2

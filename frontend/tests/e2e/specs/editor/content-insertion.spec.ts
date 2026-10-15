@@ -115,6 +115,26 @@ test.describe('Editor content insertion', () => {
       await expect(editor.locator('h1')).toContainText('My heading');
     });
 
+    test('converts Heading 6 from the slash menu through the toolbar', async ({
+      page,
+    }) => {
+      await page.goto(NOTE_URL);
+      const editor = getEditor(page);
+      await editor.click();
+      await page.keyboard.type('/h6');
+      await page
+        .getByRole('option', { name: 'Heading 6', exact: true })
+        .click();
+      await page.keyboard.type('Small heading');
+      await expect(editor.locator('h6')).toHaveText('Small heading');
+
+      await page.getByRole('button', { name: 'Select block type' }).click();
+      await page.getByRole('option', { name: 'Header 2', exact: true }).click();
+
+      await expect(editor.locator('h2')).toHaveText('Small heading');
+      await expect(editor.locator('h6')).toHaveCount(0);
+    });
+
     test('inserts a horizontal rule when Line Break is selected', async ({
       page,
     }) => {
@@ -417,6 +437,57 @@ test.describe('Editor content insertion', () => {
       await expectAddButtonAlignment(leftCell, addRow, 'row');
       await addRow.click();
       await expect(rows).toHaveCount(4);
+    });
+
+    test('inserts and deletes table dimensions from the cell menu', async ({
+      page,
+    }) => {
+      const dialog = await openTableDialog(page);
+      await dialog.getByRole('button', { name: 'Create Table' }).click();
+      await expect(dialog).not.toBeVisible();
+      const editor = getEditor(page);
+      const rows = editor.locator('table tr');
+      const firstCell = rows.first().locator('td, th').first();
+      await firstCell.click();
+      await page.keyboard.type('Keep this cell');
+      const cellActions = page.getByRole('button', {
+        name: 'Table cell actions',
+      });
+
+      await cellActions.click();
+      await page.getByRole('menuitem', { name: 'Insert row below' }).click();
+
+      await expect(rows).toHaveCount(4);
+      await expect(firstCell).toHaveText('Keep this cell');
+
+      await firstCell.click();
+      await cellActions.click();
+      await page.getByRole('menuitem', { name: 'Insert column right' }).click();
+
+      await expect(rows.first().locator('td, th')).toHaveCount(4);
+      await expect(firstCell).toHaveText('Keep this cell');
+
+      await rows.nth(1).locator('td, th').nth(1).click();
+      await cellActions.click();
+      await page.getByRole('menuitem', { name: 'Delete column' }).click();
+
+      await expect(rows.first().locator('td, th')).toHaveCount(3);
+      await expect(firstCell).toHaveText('Keep this cell');
+
+      await rows.nth(1).locator('td, th').first().click();
+      await cellActions.click();
+      await page
+        .getByRole('menuitem', { name: 'Delete row', exact: true })
+        .click();
+
+      await expect(rows).toHaveCount(3);
+      await expect(firstCell).toHaveText('Keep this cell');
+
+      await firstCell.click();
+      await cellActions.click();
+      await page.getByRole('menuitem', { name: 'Delete table' }).click();
+
+      await expect(editor.locator('table')).toHaveCount(0);
     });
 
     test('shows an error when rows is left blank', async ({ page }) => {

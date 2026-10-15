@@ -28,12 +28,6 @@ import {
 } from 'lexical';
 import type { Dispatch, ReactNode, RefObject, SetStateAction } from 'react';
 import { AddAttachments } from '@bindings/services/nodeservice';
-import { Heading1 } from '@/icons/heading-1';
-import { Heading2 } from '@/icons/heading-2';
-import { Heading3 } from '@/icons/heading-3';
-import { Heading4 } from '@/icons/heading-4';
-import { Heading5 } from '@/icons/heading-5';
-import { Heading6 } from '@/icons/heading-6';
 import { ListCheckbox } from '@/icons/list-checkbox';
 import { OrderedList } from '@/icons/ordered-list';
 import { Paperclip } from '@/icons/paperclip-2';
@@ -47,6 +41,25 @@ import type { FilePayload } from '../nodes/file';
 import { INSERT_FILES_COMMAND } from '../plugins/file';
 import { getBackendResponseData } from '@utils/query';
 import { QuoteIcon } from '@/icons/quote';
+import { headingOptions } from './heading-options';
+
+// Convert viewport bounds to the note container's scrolled coordinate space.
+export function getFloatingPosition({
+  bounds,
+  container,
+  edge,
+}: {
+  bounds: DOMRect;
+  container: HTMLElement | null;
+  edge: 'top' | 'bottom';
+}) {
+  const containerBounds = container?.getBoundingClientRect();
+  return {
+    top:
+      bounds[edge] - (containerBounds?.top ?? 0) + (container?.scrollTop ?? 0),
+    left: bounds.left - (containerBounds?.left ?? 0) + bounds.width / 2,
+  };
+}
 
 // Capture the current selection and position for both the toolbar action and Cmd+K.
 export function $openLinkEditor({
@@ -84,17 +97,14 @@ export function $openLinkEditor({
       ?.getBoundingClientRect();
   }
   if (!bounds) return false;
-  const container = noteContainerRef.current;
-  const containerBounds = container?.getBoundingClientRect();
-
   setFloatingData({
     isOpen: true,
     type: 'link',
-    top:
-      (link ? bounds.bottom : bounds.top) -
-      (containerBounds?.top ?? 0) +
-      (container?.scrollTop ?? 0),
-    left: bounds.left - (containerBounds?.left ?? 0) + bounds.width / 2,
+    ...getFloatingPosition({
+      bounds,
+      container: noteContainerRef.current,
+      edge: link ? 'bottom' : 'top',
+    }),
     previousUrl: link?.getURL(),
     linkNodeKey: link?.getKey(),
     previousSelection: selection.clone(),
@@ -199,22 +209,12 @@ export function changeSelectedBlocksType({
           $setBlocksType(selection, () => $createParagraphNode());
           break;
         case 'h1':
-          $setBlocksType(selection, () => $createHeadingNode('h1'));
-          break;
         case 'h2':
-          $setBlocksType(selection, () => $createHeadingNode('h2'));
-          break;
         case 'h3':
-          $setBlocksType(selection, () => $createHeadingNode('h3'));
-          break;
         case 'h4':
-          $setBlocksType(selection, () => $createHeadingNode('h4'));
-          break;
         case 'h5':
-          $setBlocksType(selection, () => $createHeadingNode('h5'));
-          break;
         case 'h6':
-          $setBlocksType(selection, () => $createHeadingNode('h6'));
+          $setBlocksType(selection, () => $createHeadingNode(newBlockType));
           break;
         case 'quote':
           $setBlocksType(selection, () => $createQuoteNode());
@@ -306,20 +306,13 @@ export function updateToolbar({
       const nativeSelection = window.getSelection()?.getRangeAt(0);
       const domRect = nativeSelection?.getBoundingClientRect();
       if (domRect) {
-        const { top: topOfSelectionToWindow, left } = domRect;
-        const noteContainerBounds =
-          noteContainerRef.current?.getBoundingClientRect();
-        const topOfScrollContainerToWindow = noteContainerBounds?.top ?? 0;
-        const scrollYOfScrollContainer =
-          noteContainerRef.current?.scrollTop ?? 0;
-
         setFloatingData({
           isOpen: true,
-          top:
-            topOfSelectionToWindow -
-            topOfScrollContainerToWindow +
-            scrollYOfScrollContainer,
-          left: left - (noteContainerBounds?.left ?? 0) + domRect.width / 2,
+          ...getFloatingPosition({
+            bounds: domRect,
+            container: noteContainerRef.current,
+            edge: 'top',
+          }),
           type: 'text-format',
           previousSelection: null,
         });
@@ -328,17 +321,15 @@ export function updateToolbar({
       const link = $getNearestNodeOfType(selection.anchor.getNode(), LinkNode);
       const element = link && editor.getElementByKey(link.getKey());
       const bounds = element?.getBoundingClientRect();
-      const container = noteContainerRef.current;
       if (link && bounds && !($isAutoLinkNode(link) && link.getIsUnlinked())) {
-        const containerBounds = container?.getBoundingClientRect();
         setFloatingData({
           isOpen: true,
           type: 'link-preview',
-          top:
-            bounds.bottom -
-            (containerBounds?.top ?? 0) +
-            (container?.scrollTop ?? 0),
-          left: bounds.left - (containerBounds?.left ?? 0) + bounds.width / 2,
+          ...getFloatingPosition({
+            bounds,
+            container: noteContainerRef.current,
+            edge: 'bottom',
+          }),
           previousUrl: link.getURL(),
           linkNodeKey: link.getKey(),
           previousSelection: null,
@@ -435,60 +426,15 @@ function BlockTypeDropdownItemLabel({
 
 /** Used in dropdown for block types */
 export const blockTypesDropdownItems: DropdownItem[] = [
-  {
+  ...headingOptions.map(({ tag, Icon }) => ({
     label: (
       <BlockTypeDropdownItemLabel
-        icon={<Heading1 height="1.125rem" width="1.125rem" />}
-        text="Header 1"
+        icon={<Icon height="1.125rem" width="1.125rem" />}
+        text={`Header ${tag.slice(1)}`}
       />
     ),
-    value: 'h1',
-  },
-  {
-    label: (
-      <BlockTypeDropdownItemLabel
-        icon={<Heading2 height="1.125rem" width="1.125rem" />}
-        text="Header 2"
-      />
-    ),
-    value: 'h2',
-  },
-  {
-    label: (
-      <BlockTypeDropdownItemLabel
-        icon={<Heading3 height="1.125rem" width="1.125rem" />}
-        text="Header 3"
-      />
-    ),
-    value: 'h3',
-  },
-  {
-    label: (
-      <BlockTypeDropdownItemLabel
-        icon={<Heading4 height="1.125rem" width="1.125rem" />}
-        text="Header 4"
-      />
-    ),
-    value: 'h4',
-  },
-  {
-    label: (
-      <BlockTypeDropdownItemLabel
-        icon={<Heading5 height="1.125rem" width="1.125rem" />}
-        text="Header 5"
-      />
-    ),
-    value: 'h5',
-  },
-  {
-    label: (
-      <BlockTypeDropdownItemLabel
-        icon={<Heading6 height="1.125rem" width="1.125rem" />}
-        text="Header 6"
-      />
-    ),
-    value: 'h6',
-  },
+    value: tag,
+  })),
   {
     label: (
       <BlockTypeDropdownItemLabel
