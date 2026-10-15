@@ -24,7 +24,7 @@ import type { DropdownItem } from '@/types';
 import { Blog } from '@/icons/blog';
 import { FolderPen } from '@/icons/folder-pen';
 import { PaperclipPlus } from '@/icons/paperclip-plus';
-import type { TreeItemType } from './create';
+import type { TreeItemType } from '../model/create';
 import { FILE_TYPE, FOLDER_TYPE } from '@utils/tree-item-types';
 
 type StartCreateHandler = (args: {

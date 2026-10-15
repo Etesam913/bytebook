@@ -44,6 +44,72 @@ export function getPlaceholderPath({
   }
 }
 
+function removeItemIfPresent({
+  model,
+  path,
+  isFolder,
+}: {
+  model: PierreFileTree;
+  path: string;
+  isFolder: boolean;
+}) {
+  if (model.getItem(path)) {
+    model.remove(path, isFolder ? { recursive: true } : undefined);
+  }
+}
+
+// Moves the placeholder onto its `.md` path before the RPC, so a watcher event
+// announcing that path and the RPC response both resolve to the same row.
+function canonicalizePlaceholder({
+  model,
+  placeholderPath,
+  realPath,
+  pendingPaths,
+  onCanonicalPath,
+}: {
+  model: PierreFileTree;
+  placeholderPath: string;
+  realPath: string;
+  pendingPaths: Set<string>;
+  onCanonicalPath: (path: string) => void;
+}): string {
+  if (
+    placeholderPath === realPath ||
+    model.getItem(realPath) ||
+    !model.getItem(placeholderPath)
+  ) {
+    return placeholderPath;
+  }
+  onCanonicalPath(realPath);
+  model.move(placeholderPath, realPath);
+  pendingPaths.delete(placeholderPath);
+  pendingPaths.add(realPath);
+  return realPath;
+}
+
+// Runs after the RPC: if the watcher already added the real row, drop the
+// placeholder; otherwise move the placeholder into place.
+function settlePlaceholder({
+  model,
+  placeholderPath,
+  realPath,
+  isFolder,
+  onCanonicalPath,
+}: {
+  model: PierreFileTree;
+  placeholderPath: string;
+  realPath: string;
+  isFolder: boolean;
+  onCanonicalPath: (path: string) => void;
+}) {
+  if (model.getItem(realPath)) {
+    removeItemIfPresent({ model, path: placeholderPath, isFolder });
+  } else if (model.getItem(placeholderPath)) {
+    onCanonicalPath(realPath);
+    model.move(placeholderPath, realPath);
+  }
+}
+
 /**
  * Persists a committed inline-create placeholder as a real folder or note.
  * Runs after pierre's own commit-move, so the model already holds
@@ -81,41 +147,30 @@ export async function applyTreeCreate({
     : `${parentFolderPath}${newName}.md`;
   pendingPaths.add(placeholderPath);
 
-  const removePlaceholder = () => {
-    if (model.getItem(placeholderPath)) {
-      model.remove(placeholderPath, isFolder ? { recursive: true } : undefined);
-    }
-  };
-
   try {
-    // Normalize before the RPC: a watcher can announce the on-disk .md path
-    // before the response arrives. Both must identify this same visible row.
-    if (
-      placeholderPath !== realPath &&
-      !model.getItem(realPath) &&
-      model.getItem(placeholderPath)
-    ) {
-      onCanonicalPath(realPath);
-      model.move(placeholderPath, realPath);
-      pendingPaths.delete(placeholderPath);
-      placeholderPath = realPath;
-      pendingPaths.add(placeholderPath);
-    }
+    placeholderPath = canonicalizePlaceholder({
+      model,
+      placeholderPath,
+      realPath,
+      pendingPaths,
+      onCanonicalPath,
+    });
     await addTreeItem({
       parentFolderPath,
       addType: isFolder ? FOLDER_TYPE : FILE_TYPE,
       newName,
     });
     if (placeholderPath !== realPath) {
-      if (model.getItem(realPath)) {
-        removePlaceholder();
-      } else if (model.getItem(placeholderPath)) {
-        onCanonicalPath(realPath);
-        model.move(placeholderPath, realPath);
-      }
+      settlePlaceholder({
+        model,
+        placeholderPath,
+        realPath,
+        isFolder,
+        onCanonicalPath,
+      });
     }
   } catch (error: unknown) {
-    removePlaceholder();
+    removeItemIfPresent({ model, path: placeholderPath, isFolder });
     // QueryErrors already toast via the global MutationCache handler.
     if (error instanceof Error && !(error instanceof QueryError)) {
       toast.error(error.message, DEFAULT_SONNER_OPTIONS);

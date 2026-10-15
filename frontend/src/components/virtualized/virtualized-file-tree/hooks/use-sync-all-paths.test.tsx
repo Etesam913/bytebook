@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, StrictMode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { queryKeys } from '@utils/query-keys';
-import * as reconcile from '../reconcile';
+import * as reconcile from '../model/reconcile';
 import { useSyncAllPaths } from './use-sync-all-paths';
 
 (

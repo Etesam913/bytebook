@@ -1,6 +1,6 @@
 import { prepareFileTreeInput } from '@pierre/trees';
 import { FileTree, useFileTree } from '@pierre/trees/react';
-import { FILE_TREE_ICONS } from './icons';
+import { FILE_TREE_ICONS } from './components/icons';
 import { useEffect, useRef, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { isDarkModeOnAtom } from '@/atoms';
@@ -23,8 +23,8 @@ import {
   applyTreeCreate,
   getPlaceholderPath,
   type TreeItemType,
-} from './create';
-import { FilteredFileTree } from './filtered-file-tree';
+} from './model/create';
+import { FilteredFileTree } from './components/filtered-file-tree';
 import { usePierreRouteFocus } from './hooks/use-pierre-route-focus';
 import { usePierreTreeEvents } from './hooks/use-pierre-tree-events';
 import { usePierreFileTreeDrop } from './hooks/use-pierre-file-tree-drop';
@@ -36,17 +36,21 @@ import {
 import { usePierreRouteTargetPath } from './hooks/use-route-target-path';
 import { useSyncAllPaths } from './hooks/use-sync-all-paths';
 import { useTreeFilter } from './hooks/use-tree-filter';
-import { getRenameInput, getTreeHost, navigateToTreePath } from './model-utils';
-import { applyTreeRename } from './rename';
+import {
+  getRenameInput,
+  getTreeHost,
+  navigateToTreePath,
+} from './model/model-utils';
+import { applyTreeRename } from './model/rename';
 import { FILE_TREE_HOST_STYLE, FILE_TREE_UNSAFE_CSS } from './styles';
 import {
   TreeBackgroundContextMenu,
   TreeContextMenu,
-} from './tree-context-menu';
-import { TreeFilterSummary } from './tree-filter-summary';
-import { TreeHeader } from './tree-header';
-import { TreeSearchInput } from './tree-search-input';
-import { TreeNameTooltip } from './tree-name-tooltip';
+} from './components/tree-context-menu';
+import { TreeFilterSummary } from './components/tree-filter-summary';
+import { TreeHeader } from './components/tree-header';
+import { TreeSearchInput } from './components/tree-search-input';
+import { TreeNameTooltip } from './components/tree-name-tooltip';
 import { Loader } from '@/icons/loader';
 import { FOLDER_TYPE } from '@utils/tree-item-types';
 

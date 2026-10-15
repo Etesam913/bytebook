@@ -3,7 +3,7 @@ import type {
   FileTreeRenameEvent,
 } from '@pierre/trees';
 import { createFilePath, splitPathSegments } from '@utils/path';
-import type { RenameTreeItemPayload } from './hooks/tree-item-mutations';
+import type { RenameTreeItemPayload } from '../hooks/tree-item-mutations';
 
 /**
  * Persists a @pierre/trees inline rename to disk. The typed name is taken

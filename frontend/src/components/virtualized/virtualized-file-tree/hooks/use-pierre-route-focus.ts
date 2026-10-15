@@ -4,7 +4,7 @@ import {
   getRenameInput,
   revealTreePath,
   scrollTreePathIntoView,
-} from '../model-utils';
+} from '../model/model-utils';
 import { usePierreRouteTargetPath } from './use-route-target-path';
 
 // Keeps the @pierre/trees highlighted row in sync with the current `/notes/*`

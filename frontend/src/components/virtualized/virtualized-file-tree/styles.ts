@@ -56,6 +56,7 @@ export const FILE_TREE_UNSAFE_CSS = `
 
   [data-item-rename-input] {
     caret-color: white !important;
+    padding-inline-start: 0 !important;
   }
 
   [data-type='item'],

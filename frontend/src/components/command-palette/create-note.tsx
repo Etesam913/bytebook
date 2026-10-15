@@ -6,7 +6,7 @@ import { MotionIconButton, MotionButton } from '@components/buttons';
 import { getDefaultButtonVariants } from '@/animations';
 import { useAllPaths } from '@hooks/all-paths';
 import { useRecentItemFromRoute } from '@hooks/routes';
-import { getPlaceholderPath } from '@components/virtualized/virtualized-file-tree/create';
+import { getPlaceholderPath } from '@components/virtualized/virtualized-file-tree/model/create';
 import { splitPathSegments, stripTrailingSlash } from '@utils/path';
 import { FILE_TYPE } from '@utils/tree-item-types';
 import { CircleArrowLeft } from '@/icons/circle-arrow-left';

@@ -11,7 +11,7 @@ import {
   clearDropTargetHighlight,
   resolveDropTargetFolder,
   updateDropTargetHighlight,
-} from '../model-utils';
+} from '../model/model-utils';
 
 /**
  * Subscribes to external OS file drop events over the file tree, resolves

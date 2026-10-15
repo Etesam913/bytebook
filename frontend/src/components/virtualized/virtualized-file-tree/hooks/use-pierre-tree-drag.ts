@@ -13,9 +13,9 @@ import {
   createFileTreeDragGhost,
   getRootDropKind,
   restoreSelectionAfterDrag,
-} from '../drag';
-import { getTreeHost } from '../model-utils';
-import { reconcileTreePaths } from '../reconcile';
+} from '../model/drag';
+import { getTreeHost } from '../model/model-utils';
+import { reconcileTreePaths } from '../model/reconcile';
 import { useMoveTreeItemsMutation } from './tree-item-mutations';
 
 type TreeDragSession = {

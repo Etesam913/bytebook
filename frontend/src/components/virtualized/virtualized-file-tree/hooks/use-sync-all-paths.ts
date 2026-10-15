@@ -6,8 +6,8 @@ import { useEffect, useRef } from 'react';
 import {
   applySortedTreePathMutation,
   initializeSortedTreePaths,
-} from '../model-utils';
-import { reconcileTreePaths } from '../reconcile';
+} from '../model/model-utils';
+import { reconcileTreePaths } from '../model/reconcile';
 import { useAllPaths } from '@hooks/all-paths';
 
 export function useSyncAllPaths({

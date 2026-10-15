@@ -3,9 +3,9 @@ import { FileTree, useFileTree } from '@pierre/trees/react';
 import { FILE_TREE_ICONS } from './icons';
 import { addAncestorDirectoryPaths } from '@utils/search';
 import { Loader } from '@/icons/loader';
-import { navigateToTreePath } from './model-utils';
-import { FILE_TREE_UNSAFE_CSS } from './styles';
-import { usePierreRowHeight } from './hooks/use-pierre-row-height';
+import { navigateToTreePath } from '../model/model-utils';
+import { FILE_TREE_UNSAFE_CSS } from '../styles';
+import { usePierreRowHeight } from '../hooks/use-pierre-row-height';
 import { TreeNameTooltip } from './tree-name-tooltip';
 
 function TreeMessage({ children }: { children: React.ReactNode }) {
