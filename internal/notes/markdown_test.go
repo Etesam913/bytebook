@@ -316,6 +316,19 @@ func TestUpdateFrontmatterWithTags(t *testing.T) {
 		assert.NotContains(t, result, "- old-tag")
 	})
 
+	t.Run("should preserve dollar signs when replacing frontmatter", func(t *testing.T) {
+		markdown := "---\ntags:\n  - old-tag\ntitle: $HOME\n---\n# Content"
+		tags := []string{"$HOME", "${tag}", "$1", "$$"}
+
+		result := updateFrontmatterWithTags(markdown, tags)
+
+		actualTags, exists := GetTagsFromFrontmatter(result)
+		assert.True(t, exists)
+		assert.Equal(t, tags, actualTags)
+		assert.Contains(t, result, "title: $HOME")
+		assert.Contains(t, result, "# Content")
+	})
+
 	t.Run("should handle empty tags", func(t *testing.T) {
 		// Remove tags field when empty tags provided
 		markdown := "---\ntags:\n  - old-tag\ntitle: Test\n---\n# Content"

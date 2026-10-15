@@ -1,7 +1,9 @@
 package search
 
 import (
+	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/etesam913/bytebook/internal/util"
@@ -30,8 +32,10 @@ func GetAllSavedSearches(projectPath string) ([]SavedSearch, error) {
 	var savedSearches SavedSearches
 	err := util.ReadJsonFromPath(path, &savedSearches)
 	if err != nil {
-		// If file doesn't exist or is empty, return empty slice
-		return []SavedSearch{}, nil
+		if errors.Is(err, os.ErrNotExist) {
+			return []SavedSearch{}, nil
+		}
+		return nil, fmt.Errorf("failed to read saved searches: %w", err)
 	}
 
 	return savedSearches.Searches, nil
@@ -42,15 +46,13 @@ func AddSavedSearch(projectPath, name, query string) error {
 	path := getSavedSearchesPath(projectPath)
 
 	// Read existing searches
-	var savedSearches SavedSearches
-	err := util.ReadJsonFromPath(path, &savedSearches)
+	searches, err := GetAllSavedSearches(projectPath)
 	if err != nil {
-		// If file doesn't exist, start with empty searches
-		savedSearches = SavedSearches{Searches: []SavedSearch{}}
+		return err
 	}
 
 	// Check if search with this name already exists
-	for _, search := range savedSearches.Searches {
+	for _, search := range searches {
 		if search.Name == name {
 			return fmt.Errorf("saved search with name '%s' already exists", name)
 		}
@@ -58,7 +60,7 @@ func AddSavedSearch(projectPath, name, query string) error {
 
 	// Add new search
 	newSearch := SavedSearch{Name: name, Query: query}
-	savedSearches.Searches = append(savedSearches.Searches, newSearch)
+	savedSearches := SavedSearches{Searches: append(searches, newSearch)}
 
 	// Write back to file
 	return util.WriteJsonToPath(path, savedSearches)

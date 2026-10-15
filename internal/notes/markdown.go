@@ -143,7 +143,7 @@ func updateFrontmatterWithTags(markdown string, tags []string) string {
 
 	if hasFrontmatter {
 		// Replace existing frontmatter
-		return FRONTMATTER_REGEX.ReplaceAllString(markdown, "---\n"+yamlContent+"\n---\n")
+		return FRONTMATTER_REGEX.ReplaceAllLiteralString(markdown, "---\n"+yamlContent+"\n---\n")
 	} else {
 		// Add new frontmatter at the beginning
 		if len(tags) > 0 {

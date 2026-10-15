@@ -22,6 +22,26 @@ func setupTempSearchDir(t *testing.T) (projectDir, searchDir, savedSearchesPath 
 func TestGetAllSavedSearches(t *testing.T) {
 	projectDir, _, savedSearchesPath := setupTempSearchDir(t)
 
+	t.Run("should return an error for invalid JSON", func(t *testing.T) {
+		projectDir, _, savedSearchesPath := setupTempSearchDir(t)
+		require.NoError(t, os.WriteFile(savedSearchesPath, []byte(`{"searches":[`), 0644))
+
+		searches, err := GetAllSavedSearches(projectDir)
+
+		assert.Error(t, err)
+		assert.Nil(t, searches)
+	})
+
+	t.Run("should return an error when the file cannot be read", func(t *testing.T) {
+		projectDir, _, savedSearchesPath := setupTempSearchDir(t)
+		require.NoError(t, os.Mkdir(savedSearchesPath, 0755))
+
+		searches, err := GetAllSavedSearches(projectDir)
+
+		assert.Error(t, err)
+		assert.Nil(t, searches)
+	})
+
 	t.Run("should return empty slice when file doesn't exist", func(t *testing.T) {
 		searches, err := GetAllSavedSearches(projectDir)
 		assert.NoError(t, err)
@@ -54,6 +74,42 @@ func TestGetAllSavedSearches(t *testing.T) {
 }
 
 func TestAddSavedSearch(t *testing.T) {
+	t.Run("should create a missing saved searches file", func(t *testing.T) {
+		projectDir, _, _ := setupTempSearchDir(t)
+
+		err := AddSavedSearch(projectDir, "new search", "new query")
+
+		require.NoError(t, err)
+		searches, err := GetAllSavedSearches(projectDir)
+		require.NoError(t, err)
+		assert.Equal(t, []SavedSearch{{Name: "new search", Query: "new query"}}, searches)
+	})
+
+	t.Run("should preserve invalid JSON without adding a search", func(t *testing.T) {
+		projectDir, _, savedSearchesPath := setupTempSearchDir(t)
+		original := []byte(`{"searches":[{"name":"existing search","query":"existing query"}]`)
+		require.NoError(t, os.WriteFile(savedSearchesPath, original, 0644))
+
+		err := AddSavedSearch(projectDir, "new search", "new query")
+
+		assert.Error(t, err)
+		contents, readErr := os.ReadFile(savedSearchesPath)
+		require.NoError(t, readErr)
+		assert.Equal(t, original, contents)
+	})
+
+	t.Run("should reject an empty file without overwriting it", func(t *testing.T) {
+		projectDir, _, savedSearchesPath := setupTempSearchDir(t)
+		require.NoError(t, os.WriteFile(savedSearchesPath, nil, 0644))
+
+		err := AddSavedSearch(projectDir, "new search", "new query")
+
+		assert.Error(t, err)
+		contents, readErr := os.ReadFile(savedSearchesPath)
+		require.NoError(t, readErr)
+		assert.Empty(t, contents)
+	})
+
 	t.Run("should add search to empty file", func(t *testing.T) {
 		projectDir, _, savedSearchesPath := setupTempSearchDir(t)
 
