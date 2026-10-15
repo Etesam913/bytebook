@@ -7,11 +7,11 @@ export function VirtualizedListAccordion<T>({
   loadingElement,
   isError,
   errorElement,
-  onTotalListHeightChanged,
   data,
   emptyElement,
   ...props
 }: VirtualizedListProps<T> & {
+  emptyElement?: ReactNode;
   isLoading?: boolean;
   loadingElement?: ReactNode;
   isError?: boolean;
@@ -31,7 +31,6 @@ export function VirtualizedListAccordion<T>({
           <VirtualizedList
             {...props}
             data={data}
-            onTotalListHeightChanged={onTotalListHeightChanged}
             scrollContainerRef={scrollContainerRef}
           />
         </div>

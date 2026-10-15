@@ -30,7 +30,7 @@ import { AutosaveFlush } from './plugins/autosave-flush';
 import { CodePlugin } from './plugins/code';
 import { ComponentPickerMenuPlugin } from './plugins/component-picker';
 import { HorizontalRulePlugin } from '@lexical/react/LexicalHorizontalRulePlugin';
-import { CustomMarkdownShortcutPlugin } from './plugins/custom-markdown-shortcut';
+import { MarkdownShortcutPlugin } from '@lexical/react/LexicalMarkdownShortcutPlugin';
 import { DraggableBlockPlugin } from './plugins/draggable-block';
 import { EmptyLinePlaceholderPlugin } from './plugins/empty-line-placeholder';
 import { FilesPlugin } from './plugins/file';
@@ -215,9 +215,7 @@ export function NotesEditor({
                 onChange={(_, editor, tags) => autosave(editor, tags)}
               />
               <AutosaveFlush key={filePath.fullPath} autosave={autosave} />
-              <CustomMarkdownShortcutPlugin
-                transformers={CUSTOM_TRANSFORMERS}
-              />
+              <MarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
               <ListPlugin />
               <LinkPlugin />
               <CheckListPlugin />

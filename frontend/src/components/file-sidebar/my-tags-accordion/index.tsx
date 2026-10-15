@@ -85,7 +85,6 @@ export function MyTagsAccordion({
             <Loader width="1.25rem" height="1.25rem" className="mx-auto my-3" />
           </motion.div>
         }
-        layoutId="tags-sidebar"
         emptyElement={
           <li className="text-left list-none text-zinc-500 dark:text-zinc-300 text-xs">
             Type #tagName in a note to create a tag

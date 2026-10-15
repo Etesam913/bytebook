@@ -83,7 +83,6 @@ export function PinnedAccordion({
     >
       <VirtualizedListAccordion<FileOrFolderPath>
         contentType="pinned-note"
-        layoutId="pinned-notes"
         data={pinnedItems}
         dataItemToKey={(pinnedItem) => pinnedItem.fullPath}
         selectionOptions={{

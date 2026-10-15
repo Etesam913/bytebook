@@ -94,7 +94,6 @@ export function MySavedSearchesAccordion({
             <Loader width="1.25rem" height="1.25rem" className="mx-auto my-3" />
           </motion.div>
         }
-        layoutId="saved-searches-sidebar"
         emptyElement={
           <li className="text-left list-none text-zinc-500 dark:text-zinc-300 text-xs">
             No saved searches yet

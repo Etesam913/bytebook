@@ -1,5 +1,5 @@
 import { useSetAtom } from 'jotai';
-import { type CSSProperties, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { sidebarSelectionAtom } from '@/atoms';
 import { createSelectionKey, keepSelectionWithPrefix } from '@utils/selection';
 import { SidebarContentType } from '@/types';
@@ -10,7 +10,6 @@ export function VirtualizedListItem<T>({
   allData,
   index,
   selectionOptions,
-  getContextMenuStyle,
   contentType,
   children,
 }: {
@@ -18,8 +17,6 @@ export function VirtualizedListItem<T>({
   allData: T[];
   index: number;
   selectionOptions: SelectionOptions<T>;
-  getContextMenuStyle?: (dataItem: T) => CSSProperties;
-  layoutId: string;
   contentType: SidebarContentType;
   children: ReactNode;
 }) {
@@ -97,7 +94,6 @@ export function VirtualizedListItem<T>({
 
   return (
     <div
-      style={getContextMenuStyle?.(dataItem)}
       className={'relative flex items-center rounded-md'}
       onClick={(e) => {
         if (disableSelection) return;

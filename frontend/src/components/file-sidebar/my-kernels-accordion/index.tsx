@@ -95,12 +95,10 @@ export function MyKernelsAccordion({
       }}
     >
       <VirtualizedListAccordion<Languages>
-        layoutId="kernels-sidebar"
         emptyElement={null}
         contentType="kernel"
         dataItemToKey={(kernelName) => kernelName}
         selectionOptions={{ disableSelection: true }}
-        isItemActive={(kernelName) => kernelName === kernelNameFromUrl}
         renderItem={({ dataItem: kernelName }) => {
           if (!isValidKernelLanguage(kernelName)) {
             return <></>;

@@ -2,6 +2,7 @@ import type { ElementTransformer } from '@lexical/markdown';
 import {
   $convertFromMarkdownString,
   $convertToMarkdownString,
+  isTableRowDivider,
 } from '@lexical/markdown';
 import {
   $createTableCellNode,
@@ -20,7 +21,6 @@ import { CUSTOM_TRANSFORMERS } from './index';
 
 // Very primitive table setup
 const TABLE_ROW_REG_EXP = /^(?:\|)(.+)(?:\|)\s?$/;
-const TABLE_ROW_DIVIDER_REG_EXP = /^(\| ?:?-*:? ?)+\|\s?$/;
 
 function getTableColumnsSize(table: TableNode) {
   const row = table.getFirstChild();
@@ -111,7 +111,7 @@ export const TABLE: ElementTransformer = {
   replace: (parentNode, _children, match) => {
     void _children;
     // Header row
-    if (TABLE_ROW_DIVIDER_REG_EXP.test(match[0])) {
+    if (isTableRowDivider(match[0])) {
       const table = parentNode.getPreviousSibling();
       if (!table || !$isTableNode(table)) {
         return;

@@ -1,12 +1,9 @@
 import { useAtom } from 'jotai/react';
 import {
-  type CSSProperties,
   type HTMLAttributes,
   type RefObject,
   type ReactNode,
-  useImperativeHandle,
   useRef,
-  useState,
 } from 'react';
 import { Components, Virtuoso } from 'react-virtuoso';
 import { sidebarSelectionAtom } from '@/atoms';
@@ -15,7 +12,7 @@ import { cn } from '@utils/string-formatting';
 import type { SetSelectionUpdater } from '@utils/selection';
 import { VirtualizedListItem } from './virtualized-list-item';
 import { SidebarContentType } from '@/types';
-import { usePreventBoundaryOverscrollFlicker, useSmartScroll } from './hooks';
+import { usePreventBoundaryOverscrollFlicker } from './hooks';
 import { isRegularMouseClick } from '@utils/mouse';
 
 export type SelectionOptions<T> =
@@ -24,10 +21,6 @@ export type SelectionOptions<T> =
       disableSelection?: false;
       dataItemToSelectionRangeEntry: (item: T) => string;
     };
-
-export type VirtualizedListHandle = {
-  scrollToIndexIfHidden: (index: number) => void;
-};
 
 function createListComponent() {
   function ListComponent({
@@ -47,61 +40,20 @@ export type VirtualizedListProps<T> = {
   data: T[] | null;
   dataItemToKey: (item: T) => string;
   selectionOptions: SelectionOptions<T>;
-  getContextMenuStyle?: (dataItem: T) => CSSProperties;
-  renderItem: (data: {
-    dataItem: T;
-    i: number;
-    selectionRange: Set<string>;
-    setSelectionRange: SetSelectionUpdater;
-  }) => ReactNode;
-  emptyElement?: ReactNode;
-  layoutId: string;
+  renderItem: (data: { dataItem: T; i: number }) => ReactNode;
   contentType: SidebarContentType;
-  isItemActive?: (item: T, index: number) => boolean;
-  maxHeight?: string;
-  className?: string;
-  onTotalListHeightChanged?: (height: number) => void;
-  /** Callback when bottom of list is reached (for pagination) */
-  endReached?: () => void;
-  /** Callback when top of list is reached (for reverse pagination) */
-  startReached?: () => void;
-  /** Initial item index to scroll to */
-  initialTopMostItemIndex?: number;
-  /**
-   * Used for prepending items. Set to the number of items before the first rendered item.
-   * When prepending, decrease this value by the number of prepended items.
-   */
-  firstItemIndex?: number;
   scrollContainerRef?: RefObject<HTMLElement | null>;
-  ref?: RefObject<VirtualizedListHandle | null>;
 };
 
 export function VirtualizedList<T>({
   data,
   dataItemToKey,
   selectionOptions,
-  getContextMenuStyle,
   renderItem,
-  emptyElement,
-  layoutId,
   contentType,
-  maxHeight,
-  className,
-  onTotalListHeightChanged,
-  endReached,
-  startReached,
-  initialTopMostItemIndex,
-  firstItemIndex,
   scrollContainerRef,
-  ref,
 }: VirtualizedListProps<T>) {
-  // Start with null to indicate height hasn't been measured yet
-  const [listHeight, setListHeight] = useState<number | null>(null);
   const internalListRef = useRef<HTMLElement | null>(null);
-  /*
-	  If the activeNoteItem is set, then the note was navigated via a note link or the searchbar
-		We need to change the scroll position to the sidebar so that the active note is visible
-	*/
   const [sidebarSelection, setSidebarSelection] = useAtom(sidebarSelectionAtom);
   const selectionRange = sidebarSelection.selections;
   const setSelectionRange: SetSelectionUpdater = (updater) => {
@@ -110,11 +62,6 @@ export function VirtualizedList<T>({
       selections: updater(prev.selections),
     }));
   };
-  const { virtuosoRef, onRangeChanged, scrollToIndexIfHidden } =
-    useSmartScroll(internalListRef);
-  useImperativeHandle(ref, () => ({ scrollToIndexIfHidden }), [
-    scrollToIndexIfHidden,
-  ]);
   usePreventBoundaryOverscrollFlicker({ scrollElementRef: internalListRef });
 
   useInteractOutside({
@@ -150,15 +97,12 @@ export function VirtualizedList<T>({
 
   const components: Components<T, HTMLDivElement> = {
     List: ListComponent,
-    EmptyPlaceholder: emptyElement ? () => <>{emptyElement}</> : undefined,
   };
 
   const renderSidebarItem = (index: number, dataItem: T) => {
     const node = renderItem({
       dataItem,
       i: index,
-      selectionRange,
-      setSelectionRange,
     });
 
     return (
@@ -168,8 +112,6 @@ export function VirtualizedList<T>({
         allData={items}
         index={index}
         selectionOptions={selectionOptions}
-        getContextMenuStyle={getContextMenuStyle}
-        layoutId={layoutId}
         contentType={contentType}
       >
         {node}
@@ -179,22 +121,8 @@ export function VirtualizedList<T>({
 
   return (
     <Virtuoso
-      ref={virtuosoRef}
-      rangeChanged={onRangeChanged}
       data={items}
-      className={className}
-      style={{
-        // When no maxHeight (flex mode), use height:0 + flexGrow:1 to fill parent.
-        // Otherwise use maxHeight until first measurement to prevent 0-height flicker.
-        ...(maxHeight
-          ? {
-              height:
-                listHeight === null
-                  ? maxHeight
-                  : `min(${maxHeight}, ${listHeight}px)`,
-            }
-          : { height: 0, flexGrow: 1 }),
-      }}
+      style={{ height: 0, flexGrow: 1 }}
       scrollerRef={(node) => {
         const element = node instanceof HTMLElement ? node : null;
         internalListRef.current = element;
@@ -203,17 +131,9 @@ export function VirtualizedList<T>({
         }
       }}
       components={components}
-      totalListHeightChanged={(height) => {
-        setListHeight(height);
-        onTotalListHeightChanged?.(height);
-      }}
       totalCount={items.length}
       computeItemKey={(_, dataItem) => dataItemToKey(dataItem)}
       itemContent={(index, dataItem) => renderSidebarItem(index, dataItem)}
-      endReached={endReached}
-      startReached={startReached}
-      initialTopMostItemIndex={initialTopMostItemIndex ?? 0}
-      firstItemIndex={firstItemIndex ?? 0}
     />
   );
 }
