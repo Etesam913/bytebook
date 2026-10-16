@@ -25,6 +25,8 @@ var (
 	imageRegex = regexp.MustCompile(`!\[([^\]]*)\]\(([^)]+)\)`)
 	// Matches markdown links: [text](url)
 	linkRegex = regexp.MustCompile(`\[([^\]]+)\]\(([^)]+)\)`)
+	// Matches either a markdown image or link, capturing the leading "!" if present
+	linkOrImageRegex = regexp.MustCompile(`(!?)\[([^\]]*)\]\(([^)]+)\)`)
 )
 
 func handleFolderDeleteEvent(params EventParams, data []util.FolderDeleteEventData) {
@@ -268,46 +270,26 @@ func updateMarkdownFilesForFolderRename(projectPath, oldFolderPath, newFolderPat
 	}
 }
 
-// updateFolderNameInMarkdown updates folder names in internal markdown links and images
-// This is a simplified version to avoid import cycles with the notes package
-// Returns the updated markdown and a boolean indicating if any changes were made
+// updateFolderNameInMarkdown rewrites internal link and image URLs under oldFolderPath
+// to point at newFolderPath. Only URLs starting with the encoded /notes/<old>/ prefix
+// are changed. Returns the updated markdown and whether any changes were made.
 func updateFolderNameInMarkdown(markdown, oldFolderPath, newFolderPath string) (string, bool) {
+	oldPrefix := noteLinkPath(oldFolderPath) + "/"
+	newPrefix := noteLinkPath(newFolderPath) + "/"
 	updated := false
 
-	// Replace folder names in image/video URLs
-	markdown = imageRegex.ReplaceAllStringFunc(markdown, func(match string) string {
-		submatches := imageRegex.FindStringSubmatch(match)
-		if len(submatches) < 3 {
+	// Single pass so the [alt](url) inside ![alt](url) is not rewritten twice
+	markdown = linkOrImageRegex.ReplaceAllStringFunc(markdown, func(match string) string {
+		submatches := linkOrImageRegex.FindStringSubmatch(match)
+		bang, text, url := submatches[1], submatches[2], strings.TrimSpace(submatches[3])
+		if bang == "" && text == "" {
 			return match
 		}
-		altText := submatches[1]
-		url := strings.TrimSpace(submatches[2])
-
-		// Check if this is an internal URL that contains the old folder path
-		if strings.Contains(url, oldFolderPath+"/") {
-			updated = true
-			newURL := strings.ReplaceAll(url, oldFolderPath+"/", newFolderPath+"/")
-			return "![" + altText + "](" + newURL + ")"
-		}
-		return match
-	})
-
-	// Replace folder names in link URLs
-	markdown = linkRegex.ReplaceAllStringFunc(markdown, func(match string) string {
-		submatches := linkRegex.FindStringSubmatch(match)
-		if len(submatches) < 3 {
+		if !strings.HasPrefix(url, oldPrefix) {
 			return match
 		}
-		linkText := submatches[1]
-		url := strings.TrimSpace(submatches[2])
-
-		// Check if this is an internal URL that contains the old folder path
-		if strings.Contains(url, oldFolderPath+"/") {
-			updated = true
-			newURL := strings.ReplaceAll(url, oldFolderPath+"/", newFolderPath+"/")
-			return "[" + linkText + "](" + newURL + ")"
-		}
-		return match
+		updated = true
+		return bang + "[" + text + "](" + newPrefix + url[len(oldPrefix):] + ")"
 	})
 
 	return markdown, updated
