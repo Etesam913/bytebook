@@ -39,8 +39,29 @@ const mapToTableCells = (textContent: string): Array<TableCellNode> | null => {
   if (!match || !match[1]) {
     return null;
   }
-  return match[1].split('|').map((text) => createTableCell(text.trim()));
+  return splitTableRow(match[1]).map((text) => createTableCell(text.trim()));
 };
+
+// Splits on unescaped pipes; GFM `\|` is a literal pipe inside a cell, even in code spans
+function splitTableRow(rowContent: string): string[] {
+  const cells: string[] = [];
+  let current = '';
+  for (let i = 0; i < rowContent.length; i++) {
+    const char = rowContent[i];
+    if (char === '\\' && i + 1 < rowContent.length) {
+      const next = rowContent[i + 1];
+      current += next === '|' ? '|' : char + next;
+      i++;
+    } else if (char === '|') {
+      cells.push(current);
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  cells.push(current);
+  return cells;
+}
 
 export const TABLE: ElementTransformer = {
   dependencies: [TableNode, TableRowNode, TableCellNode],
@@ -64,10 +85,9 @@ export const TABLE: ElementTransformer = {
       for (const cell of row.getChildren()) {
         if ($isTableCellNode(cell)) {
           rowOutput.push(
-            $convertToMarkdownString(CUSTOM_TRANSFORMERS, cell, true).replace(
-              /\n/g,
-              '\\n'
-            )
+            $convertToMarkdownString(CUSTOM_TRANSFORMERS, cell, true)
+              .replace(/\n/g, '\\n')
+              .replace(/\|/g, '\\|')
           );
           if (cell.__headerState === TableCellHeaderStates.ROW) {
             isHeaderRow = true;
