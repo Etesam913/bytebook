@@ -6,6 +6,7 @@ import { $convertFromMarkdownString } from '@lexical/markdown';
 import './index';
 import { FILE_TRANSFORMER } from './file';
 import { $isFileNode, FileNode } from '../nodes/file';
+import { roundTripMarkdown } from './test-utils';
 
 type ImportedChild =
   | { type: 'file'; alt: string; src: string; width: number; height?: number }
@@ -102,5 +103,20 @@ describe('FILE_TRANSFORMER import', () => {
         height: undefined,
       },
     ]);
+  });
+});
+
+describe('FILE_TRANSFORMER round trip', () => {
+  it('does not accumulate trailing spaces on load/save', () => {
+    const markdown = 'before ![cat?width=200](/x.png) after';
+
+    expect(roundTripMarkdown(markdown)).toBe(markdown);
+    expect(roundTripMarkdown(roundTripMarkdown(markdown))).toBe(markdown);
+  });
+
+  it('round-trips an image on its own line', () => {
+    const markdown = '![cat?width=200](/x.png)';
+
+    expect(roundTripMarkdown(markdown)).toBe(markdown);
   });
 });
