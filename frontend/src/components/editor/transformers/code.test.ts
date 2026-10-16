@@ -102,6 +102,13 @@ describe('CODE_TRANSFORMER round trip', () => {
     expect(roundTrip(roundTrip(markdown))).toBe(markdown);
   });
 
+  it('does not add backslashes to escaped quotes in the id', () => {
+    const markdown = `\`\`\`python id="a\\"b\\'c"\nprint(1)\n\`\`\``;
+
+    expect(roundTrip(markdown)).toBe(markdown);
+    expect(roundTrip(roundTrip(markdown))).toBe(markdown);
+  });
+
   it('preserves intentional leading and trailing blank lines', () => {
     const markdown = '```python id="abc"\n\nprint(1)\n\n```';
 

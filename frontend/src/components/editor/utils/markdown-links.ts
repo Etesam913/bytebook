@@ -20,6 +20,11 @@ export function escapeQuotes(str: string): string {
   return str.replace(/"/g, '\\"').replace(/'/g, "\\'");
 }
 
+/** Reverses {@link escapeQuotes}. */
+export function unescapeQuotes(str: string): string {
+  return str.replace(/\\(["'])/g, '$1');
+}
+
 /**
  * Encodes a URL for use in a Markdown link, handling special characters.
  * @param url The URL to encode

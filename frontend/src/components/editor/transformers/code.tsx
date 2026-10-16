@@ -3,7 +3,10 @@ import { type LexicalNode } from 'lexical';
 import { LANGUAGES, Languages, allLanguagesSet } from '@/types';
 import { getDefaultCodeForLanguage } from '@utils/code';
 import { $createCodeNode, $isCodeNode, CodeNode } from '../nodes/code';
-import { escapeQuotes } from '@components/editor/utils/markdown-links';
+import {
+  escapeQuotes,
+  unescapeQuotes,
+} from '@components/editor/utils/markdown-links';
 
 const CODE_START_REGEX = /^```(\w{1,10})?(?:\s+(.+))?\s*$/;
 const CODE_END_REGEX = /```\s?$/;
@@ -58,7 +61,7 @@ function parseOutCodeBlockId(propertiesString: string) {
       ) {
         j += 1;
       }
-      codeBlockId = propertiesString.slice(indexToQuote + 1, j);
+      codeBlockId = unescapeQuotes(propertiesString.slice(indexToQuote + 1, j));
       i = j;
     }
   }
