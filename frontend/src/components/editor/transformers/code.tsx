@@ -108,14 +108,18 @@ export function extractCodeContent(
     }
   }
 
-  // Treat multi-line code blocks as if they always have an end match
+  // Lexical includes the remainder of the opening fence line as the first entry
+  // and the text before the closing fence as the last; drop them when empty.
   const processedLines = [...linesInBetween];
 
-  if (processedLines[0].trim().length !== 0) {
-    // The first line already has content => Remove the first space of the line if it exists
-    processedLines[0] = processedLines[0].startsWith(' ')
-      ? processedLines[0].slice(1)
-      : processedLines[0];
+  if (processedLines[0].trim().length === 0) {
+    processedLines.shift();
+  } else if (processedLines[0].startsWith(' ')) {
+    processedLines[0] = processedLines[0].slice(1);
+  }
+
+  if (endMatch && processedLines.at(-1)?.trim().length === 0) {
+    processedLines.pop();
   }
 
   return processedLines.join('\n');
