@@ -24,6 +24,11 @@ function updateSrc(nodeSrc: string) {
   return nodeSrc.replace(srcRegex, `/notes/${currentFolder}/`);
 }
 
+function parseDimension(value: string | null) {
+  const parsed = Number(value);
+  return value && Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+}
+
 export const FILE_TRANSFORMER: TextMatchTransformer = {
   dependencies: [FileNode],
   export: (node) => {
@@ -45,24 +50,17 @@ export const FILE_TRANSFORMER: TextMatchTransformer = {
   importRegExp: /!(?:\[((?:[^\]\\]|\\.)*)\])(?:\(((?:[^()\\]|\\.)+)\))/,
   regExp: /!(?:\[((?:[^\]\\]|\\.)*)\])(?:\(((?:[^()\\]|\\.)+)\))$/,
   replace: (textNode, match) => {
-    const alt = match.at(1);
+    const alt = match.at(1) ?? '';
     const filePathOrSrc = match.at(2);
-    if (!alt || !filePathOrSrc) {
-      textNode.replace(textNode);
+    if (!filePathOrSrc) {
       return;
     }
 
     const widthQueryValue = getQueryParamValue(alt, 'width');
     const heightQueryValue = getQueryParamValue(alt, 'height');
 
-    const width = widthQueryValue ? Number(widthQueryValue) : undefined;
-
-    if (width === undefined) {
-      textNode.replace(textNode);
-      return;
-    }
-
-    const height = heightQueryValue ? Number(heightQueryValue) : undefined;
+    const width = parseDimension(widthQueryValue);
+    const height = parseDimension(heightQueryValue);
 
     // Remove query params from alt text to get the actual alt text
     let cleanAlt = removeQueryParam(alt, 'width');
@@ -75,10 +73,11 @@ export const FILE_TRANSFORMER: TextMatchTransformer = {
     // Also ensure it's a string (not undefined or null)
     const finalAlt = (cleanAlt || '').toString();
 
+    // Plain markdown images have no width; FileNode falls back to its default size
     const nodeToCreate = $createFileNode({
       alt: unescapeFileContentFromMarkdown(finalAlt),
       src: unescapeFileContentFromMarkdown(filePathOrSrc),
-      dimensions: { width, height },
+      dimensions: width === undefined ? undefined : { width, height },
     });
     textNode.replace(nodeToCreate);
   },
