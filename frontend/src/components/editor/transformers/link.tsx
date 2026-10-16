@@ -35,17 +35,19 @@ function encodeInternalPath(path: string): string {
     .join('/');
 }
 
+// Malformed percent-encoding (e.g. a literal `%`) is kept as-is instead of throwing
+function safeDecodeURIComponent(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 function decodeInternalPath(path: string): string {
   return path
     .split('/')
-    .map((seg) => {
-      if (!seg) return seg;
-      try {
-        return decodeURIComponent(seg);
-      } catch {
-        return seg;
-      }
-    })
+    .map((seg) => (seg ? safeDecodeURIComponent(seg) : seg))
     .join('/');
 }
 
@@ -97,7 +99,7 @@ export const LINK: TextMatchTransformer = {
     if (filePathOrSrc.startsWith('/notes/')) {
       url = `${WAILS_URL}${decodeInternalPath(filePathOrSrc)}`;
     } else {
-      url = unescapeUnderscore(decodeURIComponent(filePathOrSrc));
+      url = unescapeUnderscore(safeDecodeURIComponent(filePathOrSrc));
     }
 
     const linkNode = $createLinkNode(url);
