@@ -133,12 +133,22 @@ func (t *TagsService) DeleteTags(tagsToDelete []string) config.BackendResponseWi
 	searchRequest := bleve.NewSearchRequest(disjunctionQuery)
 	searchRequest.Size = TAGS_SEARCH_LIMIT
 	searchRequest.Fields = []string{search.FieldFolder, search.FieldFileName}
+	searchRequest.SortBy([]string{"_id"})
 
-	var searchResult *bleve.SearchResult
+	searchResult := &bleve.SearchResult{}
 	err := t.Index.Read(func(idx bleve.Index) error {
-		var err error
-		searchResult, err = idx.Search(searchRequest)
-		return err
+		// Collect every page before changing tags or emitting indexing events.
+		for {
+			page, err := idx.Search(searchRequest)
+			if err != nil {
+				return err
+			}
+			searchResult.Hits = append(searchResult.Hits, page.Hits...)
+			if len(page.Hits) < searchRequest.Size {
+				return nil
+			}
+			searchRequest.SetSearchAfter(page.Hits[len(page.Hits)-1].Sort)
+		}
 	})
 	if err != nil {
 		return config.BackendResponseWithoutData{

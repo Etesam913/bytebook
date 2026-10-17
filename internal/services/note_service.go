@@ -299,6 +299,10 @@ func (n *NoteService) RevealFolderOrFileInFinder(
 // DoesNoteExist checks if a note exists at the given path relative to the project's notes directory.
 // Returns true if the note exists, false otherwise.
 func (n *NoteService) DoesNoteExist(path string) bool {
+	if path == "" {
+		return false
+	}
+
 	fullPath, err := util.SafeJoin(filepath.Join(n.ProjectPath, "notes"), path)
 	if err != nil {
 		return false
