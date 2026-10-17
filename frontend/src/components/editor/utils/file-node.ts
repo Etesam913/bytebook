@@ -42,13 +42,6 @@ export async function getFileElementTypeFromExtensionAndHead(fileName: string) {
   return fileType;
 }
 
-function extractYouTubeVideoID(url: string): string | null {
-  const regex =
-    /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-  const match = url.match(regex);
-  return match ? match[1] : null;
-}
-
 /**
  * Determines the type of file based on its extension. This function does not make a HEAD request to the file.
  *
@@ -70,10 +63,6 @@ function getFileElementTypeFromExtension(fileName: string): FileType {
 
   if (shouldCreateVideo) {
     return 'video';
-  }
-  const shouldCreateYouTube = extractYouTubeVideoID(fileName) !== null;
-  if (shouldCreateYouTube) {
-    return 'youtube';
   }
   const shouldCreatePdf = fileName.endsWith('.pdf');
 

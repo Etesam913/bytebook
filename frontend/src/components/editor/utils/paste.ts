@@ -19,7 +19,7 @@ import { allLanguagesSet, type Languages } from '@/types';
 const MARKDOWN_SYNTAX_REGEX =
   /(\*\*|__|~~|`|\[[^\]]*\]\([^)]+\))|(^\s{0,3}(#{1,6}\s|>\s|[-*+]\s|\d+\.\s|---\s*$|```))/m;
 
-function hasMarkdownSyntax(text: string): boolean {
+export function hasMarkdownSyntax(text: string): boolean {
   return MARKDOWN_SYNTAX_REGEX.test(text);
 }
 
@@ -31,7 +31,7 @@ function hasMarkdownSyntax(text: string): boolean {
 const RICH_HTML_TAG_REGEX =
   /<(?:strong|b|em|i|u|code|h[1-6]|ul|ol|li|blockquote|a\b|img|table|pre|del|s|mark|hr)\b/i;
 
-function hasRichHtml(html: string): boolean {
+export function hasRichHtml(html: string): boolean {
   return RICH_HTML_TAG_REGEX.test(html);
 }
 
@@ -43,7 +43,7 @@ function hasRichHtml(html: string): boolean {
 // race and crash with a `tags` undefined error from the language extension.
 const CODE_FENCE_REGEX = /^```(\w{1,10})/gm;
 
-function extractCodeLanguages(text: string): Languages[] {
+export function extractCodeLanguages(text: string): Languages[] {
   const langs = new Set<Languages>();
   for (const match of text.matchAll(CODE_FENCE_REGEX)) {
     const raw = match[1];

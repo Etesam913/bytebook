@@ -17,7 +17,7 @@ import type { JSX } from 'react/jsx-runtime';
 import type { FileDimensions } from './types';
 import { File } from '@components/file';
 
-export type FileType = 'image' | 'video' | 'pdf' | 'youtube' | 'unknown';
+export type FileType = 'image' | 'video' | 'pdf' | 'unknown';
 const DEFAULT_DIMENSIONS = { width: 312 };
 
 export interface FilePayload {
