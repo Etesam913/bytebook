@@ -1,16 +1,10 @@
 import { useRef, useState } from 'react';
-import { useStore } from 'jotai';
 import { Autocomplete } from 'react-aria-components/Autocomplete';
 import { Collection } from 'react-aria-components/Collection';
 import { Header } from 'react-aria-components/Header';
 import { Menu, MenuItem, MenuSection } from 'react-aria-components/Menu';
 import { Text } from 'react-aria-components/Text';
 import type { PaletteItem } from '@/types';
-import {
-  focusTreeFilterInputAtom,
-  isFileMaximizedAtom,
-  treeFilterQueryAtom,
-} from '@/atoms';
 import { Tooltip } from '@components/tooltip';
 import {
   SEARCH_HELP_SECTIONS,
@@ -42,7 +36,6 @@ export function PaletteBody({
     mode === 'files'
       ? files
       : [...commands.items, ...commands.noteItems, ...commands.savedItems];
-  const store = useStore();
 
   return (
     <div
@@ -185,32 +178,15 @@ export function PaletteBody({
           Saved searches are unavailable.
         </p>
       )}
-      {mode === 'files' && (search.isError || search.data?.hasMore) && (
+      {mode === 'files' && search.isError && (
         <div className="flex items-center justify-between gap-2 border-t border-zinc-200 px-3 py-1 text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-          {search.isError && (
-            <MotionButton
-              className="px-1.5 py-0.5 text-xs"
-              onPress={() => void search.refetch()}
-              isDisabled={search.isSearching}
-            >
-              Retry
-            </MotionButton>
-          )}
-          {search.data?.hasMore && (
-            <MotionButton
-              isDisabled={search.isSearching}
-              className="px-1.5 py-0.5 text-xs"
-              onPress={() =>
-                closeAndRun(() => {
-                  store.set(treeFilterQueryAtom, query);
-                  store.set(isFileMaximizedAtom, false);
-                  store.set(focusTreeFilterInputAtom);
-                })
-              }
-            >
-              Search all results
-            </MotionButton>
-          )}
+          <MotionButton
+            className="px-1.5 py-0.5 text-xs"
+            onPress={() => void search.refetch()}
+            isDisabled={search.isSearching}
+          >
+            Retry
+          </MotionButton>
         </div>
       )}
     </div>
