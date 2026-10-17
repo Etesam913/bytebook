@@ -139,6 +139,7 @@ export function NotesEditor({
         />
         <div
           ref={overflowContainerRef}
+          id="note-editor-pane"
           className="flex-1 min-h-0 overflow-y-auto flex flex-col @container"
         >
           <div

@@ -1,26 +1,62 @@
 import type { MotionValue } from 'motion/react';
-import { useSetAtom } from 'jotai';
-import { useRef, useState } from 'react';
+import { useAtomValue } from 'jotai';
+import { useEffect, useRef, useState } from 'react';
 import { useMove } from 'react-aria';
-import { draggedGhostElementAtom } from '@components/editor/atoms';
+import { noteContainerRefAtom } from '@components/editor/atoms';
 import { MAX_SIDEBAR_WIDTH } from '@utils/general';
 import { cn } from '@utils/string-formatting';
 
 const MIN_SIDEBAR_WIDTH = 265;
 const KEYBOARD_STEP = 16;
 
-export function Spacer({ width }: { width: MotionValue<number> }) {
-  const setDraggedGhostElement = useSetAtom(draggedGhostElementAtom);
+function useSidebarResizePreview() {
+  const noteContainerRef = useAtomValue(noteContainerRefAtom);
   const [isDragged, setIsDragged] = useState(false);
-  const handleRef = useRef<HTMLDivElement>(null);
+
+  const cleanupRef = useRef<(() => void) | null>(null);
+
+  function finishResize() {
+    cleanupRef.current?.();
+    cleanupRef.current = null;
+    setIsDragged(false);
+  }
+
+  function startResize() {
+    cleanupRef.current?.();
+    const content =
+      noteContainerRef?.current?.closest<HTMLElement>('#note-editor-pane');
+    // Capture the border box before the first sidebar update, including scrollbars.
+    content?.style.setProperty(
+      '--sidebar-resize-content-width',
+      `${content.getBoundingClientRect().width}px`
+    );
+    document.body.classList.add('bb-force-grabbing');
+    if (content) document.body.classList.add('bb-sidebar-resizing');
+    setIsDragged(true);
+    window.addEventListener('blur', finishResize);
+
+    cleanupRef.current = () => {
+      window.removeEventListener('blur', finishResize);
+      document.body.classList.remove(
+        'bb-force-grabbing',
+        'bb-sidebar-resizing'
+      );
+      content?.style.removeProperty('--sidebar-resize-content-width');
+    };
+  }
+
+  useEffect(() => () => cleanupRef.current?.(), []);
+
+  return { isDragged, startResize, finishResize };
+}
+
+export function Spacer({ width }: { width: MotionValue<number> }) {
+  const { isDragged, startResize, finishResize } = useSidebarResizePreview();
 
   const { moveProps } = useMove({
     onMoveStart: (e) => {
       if (e.pointerType === 'keyboard') return;
-      setIsDragged(true);
-      setDraggedGhostElement(handleRef.current);
-      document.body.classList.add('bb-force-grabbing');
-      document.body.style.cursor = 'grabbing';
+      startResize();
     },
     onMove: (e) => {
       const delta =
@@ -34,18 +70,12 @@ export function Spacer({ width }: { width: MotionValue<number> }) {
         )
       );
     },
-    onMoveEnd: () => {
-      setIsDragged(false);
-      setDraggedGhostElement(null);
-      document.body.classList.remove('bb-force-grabbing');
-      document.body.style.cursor = '';
-    },
+    onMoveEnd: finishResize,
   });
 
   return (
     <div
       {...moveProps}
-      ref={handleRef}
       role="separator"
       aria-orientation="vertical"
       aria-label="Resize sidebar"
@@ -53,7 +83,7 @@ export function Spacer({ width }: { width: MotionValue<number> }) {
       aria-valuemax={MAX_SIDEBAR_WIDTH}
       tabIndex={0}
       className={cn(
-        'w-[0.375rem] border-l outline-none focus-visible:border-l-(--accent-color)! focus-visible:border-l-2',
+        'w-1.5 shrink-0 border-l outline-none focus-visible:border-l-(--accent-color)! focus-visible:border-l-2',
         isDragged
           ? 'border-(--accent-color) border-l-3 pointer-events-none'
           : 'border-l-zinc-200 dark:border-l-zinc-700 hover:border-l-(--accent-color)! hover:border-l-2 hover:cursor-grab'

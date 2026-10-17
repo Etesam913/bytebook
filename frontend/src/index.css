@@ -14,6 +14,19 @@
   }
 }
 
+/* Reflow Markdown notes once the sidebar drag ends. */
+.bb-sidebar-resizing #note-editor-pane {
+  pointer-events: none;
+  opacity: 0.5;
+  width: var(--sidebar-resize-content-width);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  #note-editor-pane {
+    transition: opacity 140ms ease-out;
+  }
+}
+
 @theme {
   --color-zinc-150: rgb(236 236 236);
   --color-zinc-650: rgb(73 73 83);
@@ -29,6 +42,7 @@
       opacity: 1;
       transform: scale(1.05);
     }
+
     50% {
       opacity: 0.7;
       transform: scale(0.9);
@@ -43,6 +57,7 @@
     from {
       opacity: 0;
     }
+
     to {
       opacity: 1;
     }
@@ -53,6 +68,7 @@
       opacity: 0;
       transform: scale(0.9);
     }
+
     to {
       opacity: 1;
       transform: scale(1);
@@ -165,6 +181,7 @@ textarea,
       var(--editor-font-size) * 1.625 * var(--editor-line-height)
     );
   }
+
   h2,
   h2.dragging {
     font-size: calc(var(--editor-font-size) * 1.5);
@@ -172,6 +189,7 @@ textarea,
       var(--editor-font-size) * 1.4375 * var(--editor-line-height)
     );
   }
+
   h3,
   h3.dragging {
     font-size: calc(var(--editor-font-size) * 1.25);
@@ -179,6 +197,7 @@ textarea,
       var(--editor-font-size) * 1.25 * var(--editor-line-height)
     );
   }
+
   h4,
   h4.dragging {
     font-size: calc(var(--editor-font-size) * 1.125);
@@ -186,11 +205,13 @@ textarea,
       var(--editor-font-size) * 1.125 * var(--editor-line-height)
     );
   }
+
   h5,
   h5.dragging {
     font-size: var(--editor-font-size);
     line-height: calc(var(--editor-font-size) * var(--editor-line-height));
   }
+
   h6,
   h6.dragging {
     font-size: calc(var(--editor-font-size) * 0.875);
@@ -290,14 +311,17 @@ textarea,
   .PlaygroundEditorTheme__listItemUnchecked {
     @apply relative mx-2 pl-7 pr-3 list-none outline-none block min-h-6;
   }
+
   .PlaygroundEditorTheme__listItemChecked > *,
   .PlaygroundEditorTheme__listItemUnchecked > * {
-    @apply ml-0.25;
+    @apply ml-px;
   }
+
   .PlaygroundEditorTheme__listItemUnchecked:before,
   .PlaygroundEditorTheme__listItemChecked:before {
     @apply content-['\200B'] w-5 h-5 top-1/2 left-0 cursor-pointer block bg-cover absolute -translate-y-1/2;
   }
+
   .PlaygroundEditorTheme__listItemChecked {
     @apply line-through decoration-(--accent-color);
 
@@ -305,16 +329,20 @@ textarea,
       text-decoration-thickness: 0.125rem;
     }
   }
+
   .PlaygroundEditorTheme__listItemUnchecked:focus:before,
   .PlaygroundEditorTheme__listItemChecked:focus:before {
     @apply shadow-none;
   }
+
   .PlaygroundEditorTheme__listItemUnchecked:before {
-    @apply border-[0.0625rem] border-solid rounded-full border-zinc-200 dark:border-zinc-700;
+    @apply border border-solid rounded-full border-zinc-200 dark:border-zinc-700;
   }
+
   .PlaygroundEditorTheme__listItemChecked:before {
-    @apply rounded-full bg-(--accent-color) bg-no-repeat border-[0.0625rem] border-solid border-(--accent-color);
+    @apply rounded-full bg-(--accent-color) bg-no-repeat border border-solid border-(--accent-color);
   }
+
   .PlaygroundEditorTheme__listItemChecked:after {
     @apply content-[''] cursor-pointer border-white border-solid absolute block top-1/2 left-2.5 w-1 h-2 -translate-x-1/2 -translate-y-1/2 rotate-45 border-t-0 border-l-0 border-r-[0.15rem] border-b-[0.15rem];
   }
@@ -338,7 +366,7 @@ textarea,
   }
 
   .PlaygroundEditorTheme__tableCell {
-    @apply border border-zinc-300 dark:border-zinc-500 w-[100px] min-w-[100px] align-top text-start px-2 py-1.5 relative outline-none;
+    @apply border border-zinc-300 dark:border-zinc-500 w-25 min-w-25 align-top text-start px-2 py-1.5 relative outline-none;
   }
 
   .PlaygroundEditorTheme__tableCellSortedIndicator {
@@ -453,7 +481,7 @@ textarea,
 
 .cm-background-collapsed .cm-editor,
 .cm-background-collapsed .cm-scroller {
-  @apply max-h-[500px];
+  @apply max-h-125;
 }
 
 .cm-background-collapsed .cm-scroller {
@@ -516,9 +544,11 @@ textarea,
 .cm-focused {
   @apply outline-none!;
 }
+
 .cm-cursorLayer {
   @apply animate-none!;
 }
+
 .cm-gutters {
   @apply border-0!;
 }
@@ -544,6 +574,7 @@ textarea,
 .cm-tooltip-autocomplete > ul > li[aria-selected='true'] {
   @apply bg-(--accent-color)!;
 }
+
 /* The signature that shows to the right of the completion label */
 .cm-completionDetail {
   @apply text-[0.6rem] text-zinc-400;
@@ -571,8 +602,9 @@ div[data-is-fullscreen='true'] .cm-scroller {
 
 /* Makes sure that the tabs are not overlapping with the icons in the code block */
 .sp-tabs {
-  @apply pr-[106px];
+  @apply pr-26.5;
 }
+
 .sp-tab-button {
   @apply font-mono;
   font-family: var(--code-block-font-family);
@@ -596,7 +628,7 @@ div[data-is-fullscreen='true'] .cm-scroller {
  */
 
 .editor-scroller {
-  @apply min-h-[150px] border-0 flex relative outline-0 z-0 overflow-auto resize-y;
+  @apply min-h-37.5 border-0 flex relative outline-0 z-0 overflow-auto resize-y;
 }
 
 .editor {
@@ -612,10 +644,12 @@ div[data-is-fullscreen='true'] .cm-scroller {
   content: '•';
   @apply text-[1.2em] align-top mr-2;
 }
+
 @keyframes table-controls {
   0% {
     opacity: 0;
   }
+
   100% {
     opacity: 1;
   }
@@ -625,18 +659,23 @@ div[data-is-fullscreen='true'] .cm-scroller {
   @apply bg-white bg-center bg-no-repeat bg-size-[12px_12px] border border-[#d0d0d0] rounded-[2px] shadow-[0_1px_3px_rgba(0,0,0,0.12)] box-border h-[18px] w-[18px] pointer-events-auto ease-in z-10 cursor-pointer;
   background-image: var(--icon-plus);
 }
+
 .floating-add-indicator:hover {
   @apply bg-[#f3f3f3];
 }
+
 .table-cell-action-button-container {
   @apply absolute z-3 top-0 left-0 will-change-transform;
 }
+
 .table-cell-action-button-container.table-cell-action-button-container--active {
   @apply pointer-events-auto opacity-100;
 }
+
 .table-cell-action-button-container.table-cell-action-button-container--inactive {
   @apply pointer-events-none opacity-0;
 }
+
 .table-cell-action-button {
   @apply flex justify-center items-center border-0 absolute top-1 right-1 rounded-full text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 aria-expanded:bg-zinc-100 dark:aria-expanded:bg-zinc-700;
 }

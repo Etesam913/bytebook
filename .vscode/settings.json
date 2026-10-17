@@ -1,5 +1,8 @@
 {
   "css.lint.unknownAtRules": "ignore",
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
   // "typescript.experimental.useTsgo": true,
   "typescript.preferences.includePackageJsonAutoImports": "on",
   "typescript.suggest.autoImports": true,
