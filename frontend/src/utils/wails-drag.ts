@@ -6,8 +6,7 @@
  * globals that the native runtime invokes directly.
  *
  * This module lets multiple features (the file tree, the editor) observe
- * those globals without stomping each other by chaining wrappers around
- * the existing handlers.
+ * those globals through a shared set of subscribers.
  */
 
 type WailsDragGlobals = {
@@ -24,6 +23,11 @@ type WailsDragHandlers = {
   onPlatformFileDrop?: (filenames: string[], x: number, y: number) => void;
 };
 
+const registrations = new WeakMap<
+  WailsDragGlobals,
+  { handlers: Set<WailsDragHandlers>; restore: () => void }
+>();
+
 function getWailsGlobals(): WailsDragGlobals | undefined {
   return (window as unknown as { _wails?: WailsDragGlobals })._wails;
 }
@@ -36,7 +40,7 @@ function getWailsGlobals(): WailsDragGlobals | undefined {
  * commits the native drop — on macOS the runtime's private
  * `cleanupNativeDrag` bypasses `handleDragLeave`.
  *
- * Returns a cleanup function that restores the prior handlers, or `null`
+ * Returns a cleanup function that removes this subscriber, or `null`
  * when `window._wails` isn't available (e.g. outside the Wails runtime).
  */
 export function installWailsDragHandlers(
@@ -45,41 +49,57 @@ export function installWailsDragHandlers(
   const globals = getWailsGlobals();
   if (!globals) return null;
 
+  let registration = registrations.get(globals);
+  if (!registration) {
+    registration = createRegistration(globals);
+    registrations.set(globals, registration);
+  }
+
+  // Each installation owns its subscription, even if callers reuse an object.
+  const subscriber = { ...handlers };
+  registration.handlers.add(subscriber);
+
+  return () => {
+    if (!registration.handlers.delete(subscriber)) return;
+    if (registration.handlers.size === 0) {
+      registration.restore();
+      registrations.delete(globals);
+    }
+  };
+}
+
+function createRegistration(globals: WailsDragGlobals) {
+  const handlers = new Set<WailsDragHandlers>();
   const originalEnter = globals.handleDragEnter;
   const originalOver = globals.handleDragOver;
   const originalLeave = globals.handleDragLeave;
   const originalDrop = globals.handlePlatformFileDrop;
 
-  if (handlers.onDragEnter) {
-    globals.handleDragEnter = () => {
-      originalEnter?.();
-      handlers.onDragEnter?.();
-    };
-  }
-  if (handlers.onDragOver) {
-    globals.handleDragOver = (x, y) => {
-      originalOver?.(x, y);
-      handlers.onDragOver?.(x, y);
-    };
-  }
-  if (handlers.onDragLeave) {
-    globals.handleDragLeave = () => {
-      originalLeave?.();
-      handlers.onDragLeave?.();
-    };
-  }
-  if (handlers.onPlatformFileDrop) {
-    globals.handlePlatformFileDrop = (filenames, x, y) => {
-      handlers.onPlatformFileDrop?.(filenames, x, y);
-      originalDrop?.(filenames, x, y);
-    };
-  }
+  globals.handleDragEnter = () => {
+    originalEnter?.();
+    for (const subscriber of handlers) subscriber.onDragEnter?.();
+  };
+  globals.handleDragOver = (x, y) => {
+    originalOver?.(x, y);
+    for (const subscriber of handlers) subscriber.onDragOver?.(x, y);
+  };
+  globals.handleDragLeave = () => {
+    originalLeave?.();
+    for (const subscriber of handlers) subscriber.onDragLeave?.();
+  };
+  globals.handlePlatformFileDrop = (filenames, x, y) => {
+    for (const subscriber of handlers)
+      subscriber.onPlatformFileDrop?.(filenames, x, y);
+    originalDrop?.(filenames, x, y);
+  };
 
-  return () => {
-    if (handlers.onDragEnter) globals.handleDragEnter = originalEnter;
-    if (handlers.onDragOver) globals.handleDragOver = originalOver;
-    if (handlers.onDragLeave) globals.handleDragLeave = originalLeave;
-    if (handlers.onPlatformFileDrop)
+  return {
+    handlers,
+    restore: () => {
+      globals.handleDragEnter = originalEnter;
+      globals.handleDragOver = originalOver;
+      globals.handleDragLeave = originalLeave;
       globals.handlePlatformFileDrop = originalDrop;
+    },
   };
 }
