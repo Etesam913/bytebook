@@ -26,15 +26,39 @@ tasks:
       - bun install
 
   build:frontend:
-    summary: Build the frontend project
-    dir: frontend
-    sources:
-      - "**/*"
-    generates:
-      - dist/*
+    summary: Prepare frontend assets for the application build
     deps:
       - task: install:frontend:deps
       - task: generate:bindings
+    cmds:
+      - task: '{{if eq .DEV "true"}}prepare:frontend:dev{{else}}build:frontend:production{{end}}'
+
+  prepare:frontend:dev:
+    summary: Ensure go:embed has an asset while Vite serves the frontend
+    dir: frontend
+    status:
+      - test -f dist/index.html
+    cmds:
+      - mkdir -p dist
+      - 'printf "%s\n" "<!doctype html><title>Bytebook</title>" > dist/index.html'
+
+  build:frontend:production:
+    summary: Build the frontend project
+    dir: frontend
+    sources:
+      - "src/**/*"
+      - "public/**/*"
+      - "bindings/**/*"
+      - "patches/**/*"
+      - index.html
+      - package.json
+      - bun.lock
+      - tsconfig.json
+      - vite.config.ts
+      - ".env"
+      - ".env.*"
+    generates:
+      - dist/*
     cmds:
       - bun run build:prod
 

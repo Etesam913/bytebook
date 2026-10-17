@@ -10,7 +10,7 @@ info:
   productIdentifier: "com.bytebook.bytebook"
   description: "A beautiful fast note-taking app for developers"
   copyright: "(c) 2025, Bytebook"
-  comments: "Some Product Comments"
+  comments: "A beautiful fast note-taking app for developers"
   version: "v0.0.1"
 
 # Dev mode configuration
@@ -38,7 +38,7 @@ dev_mode:
       type: background
     - cmd: go mod tidy
       type: blocking
-    - cmd: wails3 task build
+    - cmd: wails3 task build DEV=true
       type: blocking
     - cmd: wails3 task run
       type: primary

@@ -53,9 +53,6 @@ tasks:
         vars:
           PRODUCTION: "true"
     cmds:
-      # ADDED: Compress the binary before bundling.
-      # The '|| echo' ensures the build doesn't crash if you don't have UPX installed.
-      - upx --best --lzma {{.BIN_DIR}}/{{.APP_NAME}} || echo "UPX not found or failed, skipping compression"
       - task: create:app:bundle
 
   package:universal:

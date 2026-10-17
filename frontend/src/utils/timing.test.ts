@@ -1,6 +1,15 @@
 import '@/test/setup';
-import { describe, it, expect } from 'bun:test';
+import { afterEach, beforeEach, describe, it, expect, jest } from 'bun:test';
 import { createDebounced, throttle } from './timing';
+
+beforeEach(() => {
+  jest.useFakeTimers({ now: 0 });
+});
+
+afterEach(() => {
+  jest.clearAllTimers();
+  jest.useRealTimers();
+});
 
 describe('throttle', () => {
   it('fires the first call synchronously and immediately', () => {
@@ -19,22 +28,22 @@ describe('throttle', () => {
     expect(calls).toBe(1);
   });
 
-  it('schedules a trailing call after the wait elapses', async () => {
+  it('schedules a trailing call after the wait elapses', () => {
     let calls = 0;
     const throttled = throttle(() => calls++, 40);
     throttled(); // immediate
     throttled(); // queued
-    await Bun.sleep(120);
+    jest.advanceTimersByTime(40);
     expect(calls).toBe(2);
   });
 
-  it('uses the latest args for the trailing call', async () => {
+  it('uses the latest args for the trailing call', () => {
     const received: number[] = [];
     const throttled = throttle((n: number) => received.push(n), 40);
     throttled(1); // fires immediately with 1
     throttled(2); // queued
     throttled(3); // overwrites the queued args
-    await Bun.sleep(120);
+    jest.advanceTimersByTime(40);
     expect(received).toEqual([1, 3]);
   });
 
@@ -45,47 +54,47 @@ describe('throttle', () => {
 });
 
 describe('createDebounced', () => {
-  it('calls the fn once for a burst of calls', async () => {
+  it('calls the fn once for a burst of calls', () => {
     let calls = 0;
     const debounced = createDebounced(() => calls++, 30);
     debounced();
     debounced();
     debounced();
-    await Bun.sleep(80);
+    jest.advanceTimersByTime(30);
     expect(calls).toBe(1);
   });
 
-  it('does not invoke the fn before the wait elapses', async () => {
+  it('does not invoke the fn before the wait elapses', () => {
     let calls = 0;
     const debounced = createDebounced(() => calls++, 60);
     debounced();
-    await Bun.sleep(20);
+    jest.advanceTimersByTime(59);
     expect(calls).toBe(0);
-    await Bun.sleep(80);
+    jest.advanceTimersByTime(1);
     expect(calls).toBe(1);
   });
 
-  it('passes the latest args to the fn', async () => {
+  it('passes the latest args to the fn', () => {
     const received: number[] = [];
     const debounced = createDebounced((n: number) => received.push(n), 30);
     debounced(1);
     debounced(2);
     debounced(3);
-    await Bun.sleep(80);
+    jest.advanceTimersByTime(30);
     expect(received).toEqual([3]);
   });
 
-  it('fires again after a quiet period', async () => {
+  it('fires again after a quiet period', () => {
     let calls = 0;
     const debounced = createDebounced(() => calls++, 30);
     debounced();
-    await Bun.sleep(80);
+    jest.advanceTimersByTime(30);
     debounced();
-    await Bun.sleep(80);
+    jest.advanceTimersByTime(30);
     expect(calls).toBe(2);
   });
 
-  it('flush runs the pending call immediately and only once', async () => {
+  it('flush runs the pending call immediately and only once', () => {
     const received: number[] = [];
     const debounced = createDebounced((n: number) => received.push(n), 500);
     debounced(1);
@@ -93,7 +102,7 @@ describe('createDebounced', () => {
     debounced.flush();
     expect(received).toEqual([2]);
     debounced.flush();
-    await Bun.sleep(550);
+    jest.advanceTimersByTime(500);
     expect(received).toEqual([2]);
   });
 
@@ -104,16 +113,16 @@ describe('createDebounced', () => {
     expect(calls).toBe(0);
   });
 
-  it('cancel drops the pending call', async () => {
+  it('cancel drops the pending call', () => {
     let calls = 0;
     const debounced = createDebounced(() => calls++, 30);
     debounced();
     debounced.cancel();
-    await Bun.sleep(80);
+    jest.advanceTimersByTime(30);
     expect(calls).toBe(0);
   });
 
-  it('setFn redirects pending and future calls to the new fn', async () => {
+  it('setFn redirects pending and future calls to the new fn', () => {
     const received: string[] = [];
     const debounced = createDebounced(
       (s: string) => received.push(`a:${s}`),
@@ -121,7 +130,7 @@ describe('createDebounced', () => {
     );
     debounced('x');
     debounced.setFn((s: string) => received.push(`b:${s}`));
-    await Bun.sleep(80);
+    jest.advanceTimersByTime(30);
     expect(received).toEqual(['b:x']);
   });
 });
