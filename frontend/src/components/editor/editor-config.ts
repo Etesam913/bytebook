@@ -49,6 +49,8 @@ const theme: EditorThemeClasses = {
     listitemUnchecked: 'PlaygroundEditorTheme__listItemUnchecked',
   },
   text: {
+    // Inline code renders as <code> rather than <mark>, even when highlighted.
+    highlight: 'text-highlight',
     bold: 'text-bold',
     italic: 'text-italic',
     underline: 'text-underline',

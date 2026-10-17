@@ -1,5 +1,6 @@
 import {
   $getNodeByKey,
+  $createRangeSelection,
   $getSelection,
   $isTextNode,
   $setSelection,
@@ -52,8 +53,11 @@ export function useFindPanelSearch({
     editor.update(() => {
       const match = matchData[currentMatchIndex];
       const node = match ? $getNodeByKey(match.nodeKey) : null;
-      if (node && $isTextNode(node)) {
-        node.select(match.start, match.end + 1);
+      const endNode = match ? $getNodeByKey(match.endNodeKey) : null;
+      if (match && $isTextNode(node) && $isTextNode(endNode)) {
+        const selection = $createRangeSelection();
+        selection.setTextNodeRange(node, match.start, endNode, match.end + 1);
+        $setSelection(selection);
       } else if (previousSelectionRef.current) {
         $setSelection(previousSelectionRef.current);
       }

@@ -1,5 +1,11 @@
 import { $dfs } from '@lexical/utils';
-import { $getRoot, $isTextNode, LexicalEditor } from 'lexical';
+import {
+  $getRoot,
+  $isElementNode,
+  $isTextNode,
+  LexicalEditor,
+  TextNode,
+} from 'lexical';
 import { MatchData, clearHighlight, highlightMatch } from './highlight';
 import { type RefObject } from 'react';
 
@@ -18,36 +24,52 @@ export function performSearch(
   if (!searchTerm.trim()) {
     return matches;
   }
-  const normalizedSearchTerm = searchTerm
-    .toLowerCase()
-    .trim()
-    .replaceAll('"', '”');
+  const normalizedSearchTerm = searchTerm.toLowerCase().trim();
 
   editor.read(() => {
-    const nodes = $dfs($getRoot());
-    // Storing the matches for searchTerm in each text node
-    nodes.forEach(({ node }) => {
-      if (!$isTextNode(node)) return;
+    let textNodes: TextNode[] = [];
 
-      const nodeText = node.getTextContent().toLowerCase();
-      let startIndex = 0;
+    const searchTextRun = () => {
+      let offset = 0;
+      const spans = textNodes.map((node) => {
+        const text = node.getTextContent().toLowerCase();
+        const span = { node, text, offset };
+        offset += text.length;
+        return span;
+      });
+      const text = spans.map((span) => span.text).join('');
+      let startIndex = text.indexOf(normalizedSearchTerm);
 
-      // Use indexOf in a loop to find all occurrences
-      while (
-        (startIndex = nodeText.indexOf(normalizedSearchTerm, startIndex)) !== -1
-      ) {
+      while (startIndex !== -1) {
         const endIndex = startIndex + normalizedSearchTerm.length - 1;
+        const first = spans.find(
+          (span) => startIndex < span.offset + span.text.length
+        )!;
+        const last = spans.find(
+          (span) => endIndex < span.offset + span.text.length
+        )!;
         matches.push({
-          start: startIndex,
-          end: endIndex,
-          nodeKey: node.getKey(),
-          format: node.getFormat(),
+          start: startIndex - first.offset,
+          end: endIndex - last.offset,
+          nodeKey: first.node.getKey(),
+          endNodeKey: last.node.getKey(),
+          format: first.node.getFormat(),
         });
-
-        // Move the starting point for the next search
-        startIndex++;
+        startIndex = text.indexOf(normalizedSearchTerm, startIndex + 1);
       }
-    });
+      textNodes = [];
+    };
+
+    // Inline formatting and links share a text run; blocks and non-text leaves
+    // (such as line breaks or code editors) interrupt it.
+    for (const { node } of $dfs($getRoot())) {
+      if ($isTextNode(node)) {
+        textNodes.push(node);
+      } else if (!$isElementNode(node) || !node.isInline()) {
+        searchTextRun();
+      }
+    }
+    searchTextRun();
   });
 
   return matches;

@@ -127,7 +127,8 @@ html:has(.dark) {
   @apply outline-2 outline-(--accent-color) border-(--accent-color) shadow-none;
 }
 
-mark {
+mark,
+.text-highlight {
   @apply bg-(--accent-color-highlight) text-zinc-900 dark:text-zinc-100;
 }
 

@@ -1,26 +1,25 @@
 import { $dfs } from '@lexical/utils';
 import {
   $addUpdateTag,
+  $createRangeSelection,
   $getNodeByKey,
   $getRoot,
-  $isElementNode,
   $isTextNode,
   IS_HIGHLIGHT,
   LexicalEditor,
-  LexicalNode,
-  TextNode,
 } from 'lexical';
 
 export type MatchData = {
   start: number;
+  // Inclusive offset in endNodeKey, which may differ from nodeKey.
   end: number;
   nodeKey: string;
+  endNodeKey: string;
   format: number;
 };
 
 /**
  * Clears all highlights in the editor by removing the highlight format from all text nodes.
- * This is used as a fallback when the specific node reference is stale or null.
  * @param editor - The Lexical editor instance
  */
 function clearAllHighlights(editor: LexicalEditor): void {
@@ -32,6 +31,7 @@ function clearAllHighlights(editor: LexicalEditor): void {
       const nodes = $dfs($getRoot());
       nodes.forEach(({ node }) => {
         if ($isTextNode(node) && node.hasFormat('highlight')) {
+          // Remove only highlight, preserving bold, italic, and other formats.
           node.toggleFormat('highlight');
         }
       });
@@ -52,96 +52,18 @@ export function clearHighlight(
   editor: LexicalEditor,
   highlightedNodeKeyRef: React.MutableRefObject<string | null>
 ): void {
-  // If no specific node is tracked, clear all highlights as a fallback
-  if (!highlightedNodeKeyRef.current) {
-    clearAllHighlights(editor);
-    return;
-  }
-
-  let highlightCleared = false;
-
-  editor.update(
-    () => {
-      // Prevents the editor from being selected and stealing focus from the find input
-      $addUpdateTag('skip-dom-selection');
-
-      const node = $getNodeByKey(highlightedNodeKeyRef.current!);
-      if (node && $isTextNode(node) && node.hasFormat('highlight')) {
-        const parent = node.getParent();
-        if (parent && $isElementNode(parent)) {
-          const indexOfHighlightedNode = parent.getChildren().indexOf(node);
-
-          // Restore the original format instead of just toggling highlight
-          node.toggleFormat('highlight');
-          highlightCleared = true;
-
-          // Merge with adjacent text nodes since we split them during highlighting
-          // Merge can only happen if the two nodes have the same format
-          const canMergeWith = (
-            sibling: LexicalNode | null,
-            targetNode: TextNode
-          ): sibling is TextNode => {
-            // Only merge if both are text nodes and have the same format
-            return !!(
-              sibling &&
-              $isTextNode(sibling) &&
-              sibling.getFormat() === targetNode.getFormat()
-            );
-          };
-
-          const prevSibling = parent.getChildAtIndex(
-            indexOfHighlightedNode - 1
-          );
-
-          if (canMergeWith(prevSibling, node)) {
-            // Merge with previous sibling while preserving format
-            const mergedText =
-              prevSibling.getTextContent() + node.getTextContent();
-            prevSibling.setTextContent(mergedText);
-            node.remove();
-
-            // Check if we can also merge with next sibling
-            const nextSibling = parent.getChildAtIndex(indexOfHighlightedNode);
-            if (canMergeWith(nextSibling, prevSibling)) {
-              const finalText =
-                prevSibling.getTextContent() + nextSibling.getTextContent();
-              prevSibling.setTextContent(finalText);
-              nextSibling.remove();
-            }
-          } else {
-            // Check if we can merge with next sibling only
-            const nextSibling = parent.getChildAtIndex(
-              indexOfHighlightedNode + 1
-            );
-            if (canMergeWith(nextSibling, node)) {
-              const mergedText =
-                node.getTextContent() + nextSibling.getTextContent();
-              const preservedFormat = node.getFormat();
-              node.setTextContent(mergedText);
-              node.setFormat(preservedFormat);
-              nextSibling.remove();
-            }
-          }
-        }
-      }
-    },
-    // The tag makes sure that the clearing of the highlight is not included in the history
-    { tag: 'history-merge' }
-  );
-
-  // If the specific node clearing failed, clear all highlights as a fallback
-  if (!highlightCleared) {
-    clearAllHighlights(editor);
-  }
+  // A match can span several nodes. Lexical normalizes the adjacent text
+  // pieces after their highlight formats are removed.
+  clearAllHighlights(editor);
 
   highlightedNodeKeyRef.current = null;
 }
 
 /**
- * Highlights a specific search match by splitting the text node and applying highlight formatting.
+ * Highlights a search match across text nodes, splitting only its boundaries.
  * @param editor - The Lexical editor instance
  * @param match - The match data to highlight
- * @returns The key of the highlighted node or null if highlighting failed
+ * @returns The key of the first highlighted node or null if highlighting failed
  */
 export function highlightMatch(
   editor: LexicalEditor,
@@ -153,22 +75,18 @@ export function highlightMatch(
     // Prevents the editor from being selected and stealing focus from the find input
     $addUpdateTag('skip-dom-selection');
 
-    const node = $getNodeByKey(match.nodeKey);
-    if (!node || !$isTextNode(node)) return;
+    const startNode = $getNodeByKey(match.nodeKey);
+    const endNode = $getNodeByKey(match.endNodeKey);
+    if (!$isTextNode(startNode) || !$isTextNode(endNode)) return;
 
-    // Splits text node by match into text before match, match text, and text after match
-    const newNodes =
-      match.start === 0
-        ? node.splitText(match.end + 1)
-        : node.splitText(match.start, match.end + 1);
-
-    const targetNode = match.start === 0 ? newNodes[0] : newNodes[1];
-
-    // Add highlight format to the target node
-    const currentFormatWithHighlight = targetNode.getFormat() | IS_HIGHLIGHT;
-
-    targetNode.setFormat(currentFormatWithHighlight);
-    targetNodeKey = targetNode.getKey();
+    const selection = $createRangeSelection();
+    selection.setTextNodeRange(startNode, match.start, endNode, match.end + 1);
+    for (const node of selection.extract()) {
+      if (!$isTextNode(node)) continue;
+      // Keep each node's formatting when a match crosses bold/italic boundaries.
+      node.setFormat(node.getFormat() | IS_HIGHLIGHT);
+      targetNodeKey ??= node.getKey();
+    }
   });
 
   if (targetNodeKey) {
