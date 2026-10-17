@@ -23,8 +23,27 @@ import { CUSTOM_TRANSFORMERS } from './index';
 const TABLE_ROW_REG_EXP = /^(?:\|)(.+)(?:\|)\s?$/;
 
 function getTableColumnsSize(table: TableNode) {
-  const row = table.getFirstChild();
-  return $isTableRowNode(row) ? row.getChildrenSize() : 0;
+  return table
+    .getChildren()
+    .reduce(
+      (max, row) =>
+        $isTableRowNode(row) ? Math.max(max, row.getChildrenSize()) : max,
+      0
+    );
+}
+
+// Pads short rows with empty cells, matching the row's header state
+function padTableRows(table: TableNode, columns: number) {
+  for (const row of table.getChildren()) {
+    if (!$isTableRowNode(row)) continue;
+    const firstCell = row.getFirstChild();
+    const isHeaderRow = $isTableCellNode(firstCell) && firstCell.hasHeader();
+    for (let i = row.getChildrenSize(); i < columns; i++) {
+      const cell = createTableCell('');
+      if (isHeaderRow) cell.toggleHeaderStyle(TableCellHeaderStates.ROW);
+      row.append(cell);
+    }
+  }
 }
 
 const createTableCell = (textContent: string): TableCellNode => {
@@ -205,18 +224,20 @@ export const TABLE: ElementTransformer = {
       }
     }
 
+    // Consecutive row lines belong to one table; ragged rows are padded like GFM
     const previousSibling = parentNode.getPreviousSibling();
-    if (
-      $isTableNode(previousSibling) &&
-      getTableColumnsSize(previousSibling) === maxCells
-    ) {
+    if ($isTableNode(previousSibling)) {
       previousSibling.append(...table.getChildren());
+      padTableRows(
+        previousSibling,
+        Math.max(getTableColumnsSize(previousSibling), maxCells)
+      );
       parentNode.remove();
+      previousSibling.selectEnd();
     } else {
       parentNode.replace(table);
+      table.selectEnd();
     }
-
-    table.selectEnd();
   },
   type: 'element',
 };

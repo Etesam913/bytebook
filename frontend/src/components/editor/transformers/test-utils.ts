@@ -1,4 +1,4 @@
-import { createEditor } from 'lexical';
+import { createEditor, type LexicalEditor } from 'lexical';
 import {
   $convertFromMarkdownString,
   $convertToMarkdownString,
@@ -7,8 +7,8 @@ import {
 import { CUSTOM_TRANSFORMERS } from './index';
 import { editorConfig } from '../editor-config';
 
-/** Imports markdown into a headless editor with the app's nodes and exports it back. */
-export function roundTripMarkdown(markdown: string) {
+/** Creates a headless editor with the app's nodes and imports markdown into it. */
+export function importMarkdown(markdown: string): LexicalEditor {
   const editor = createEditor({
     nodes: editorConfig.nodes,
     onError: (error) => {
@@ -26,8 +26,13 @@ export function roundTripMarkdown(markdown: string) {
     },
     { discrete: true }
   );
+  return editor;
+}
+
+/** Imports markdown into a headless editor with the app's nodes and exports it back. */
+export function roundTripMarkdown(markdown: string) {
   let output = '';
-  editor.read(() => {
+  importMarkdown(markdown).read(() => {
     output = $convertToMarkdownString(CUSTOM_TRANSFORMERS, undefined, true);
   });
   return output;
