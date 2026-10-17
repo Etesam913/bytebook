@@ -45,7 +45,30 @@ export function PaletteBody({
   const store = useStore();
 
   return (
-    <div ref={helpRoot}>
+    <div
+      ref={helpRoot}
+      onKeyDownCapture={(event) => {
+        if (
+          !event.metaKey ||
+          event.nativeEvent.isComposing ||
+          (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')
+        )
+          return;
+
+        // Map Cmd+Up/Down to Home/End so Autocomplete moves the highlight to
+        // the first/last result and scrolls it into view. Stop the original
+        // arrow event to prevent an additional one-row move.
+        event.preventDefault();
+        event.stopPropagation();
+        event.target.dispatchEvent(
+          new KeyboardEvent('keydown', {
+            key: event.key === 'ArrowUp' ? 'Home' : 'End',
+            bubbles: true,
+            cancelable: true,
+          })
+        );
+      }}
+    >
       <Autocomplete inputValue={query} onInputChange={setQuery}>
         <AppSearchField
           autoFocus
@@ -85,6 +108,7 @@ export function PaletteBody({
         />
         <Menu
           autoFocus="first"
+          shouldFocusWrap={false}
           aria-label="Search results"
           aria-busy={search.isSearching}
           className="max-h-[50vh] overflow-y-auto px-2 pb-2 outline-none"
