@@ -48,14 +48,14 @@ func TestGetAllSavedSearches(t *testing.T) {
 		assert.Empty(t, searches)
 	})
 
-	t.Run("should return empty slice when file exists but is empty", func(t *testing.T) {
-		// Create empty file
-		err := os.WriteFile(savedSearchesPath, []byte("{}"), 0644)
-		require.NoError(t, err)
+	t.Run("should return a non-nil empty slice for an empty JSON object", func(t *testing.T) {
+		projectDir, _, savedSearchesPath := setupTempSearchDir(t)
+		require.NoError(t, os.WriteFile(savedSearchesPath, []byte("{}"), 0644))
 
 		searches, err := GetAllSavedSearches(projectDir)
+
 		assert.NoError(t, err)
-		assert.Empty(t, searches)
+		assert.Equal(t, []SavedSearch{}, searches)
 	})
 
 	t.Run("should return saved searches from valid JSON file", func(t *testing.T) {

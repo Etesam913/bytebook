@@ -41,3 +41,31 @@ func TestLocalFileMiddleware(t *testing.T) {
 		assert.Equal(t, "<svg", rec.Body.String())
 	})
 }
+
+func TestGetContentType(t *testing.T) {
+	expectedTypes := map[string]string{
+		"file.jpg":     "image/jpeg",
+		"file.jpeg":    "image/jpeg",
+		"file.png":     "image/png",
+		"file.gif":     "image/gif",
+		"file.webp":    "image/webp",
+		"file.svg":     "image/svg+xml",
+		"file.mp4":     "video/mp4",
+		"file.webm":    "video/webm",
+		"file.ogg":     "video/ogg",
+		"file.OGG":     "video/ogg",
+		"file.mov":     "video/quicktime",
+		"file.avi":     "video/x-msvideo",
+		"file.pdf":     "application/pdf",
+		"file.unknown": "application/octet-stream",
+		"README":       "application/octet-stream",
+	}
+
+	for path, expected := range expectedTypes {
+		t.Run(path, func(t *testing.T) {
+			contentType := getContentType(path)
+
+			assert.Equal(t, expected, contentType)
+		})
+	}
+}

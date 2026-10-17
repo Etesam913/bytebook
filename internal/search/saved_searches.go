@@ -38,6 +38,9 @@ func GetAllSavedSearches(projectPath string) ([]SavedSearch, error) {
 		return nil, fmt.Errorf("failed to read saved searches: %w", err)
 	}
 
+	if savedSearches.Searches == nil {
+		return []SavedSearch{}, nil
+	}
 	return savedSearches.Searches, nil
 }
 
