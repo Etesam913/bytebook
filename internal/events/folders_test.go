@@ -209,6 +209,34 @@ func TestDeleteFoldersFromIndex(t *testing.T) {
 	})
 }
 
+func TestUpdateMarkdownFilesForFolderRename(t *testing.T) {
+	t.Run("rewrites links and images in notes at every depth", func(t *testing.T) {
+		projectPath := t.TempDir()
+		original := "[note](/notes/old/sub/note.md)\n![image](/notes/old/image.png)"
+		expected := "[note](/notes/new/sub/note.md)\n![image](/notes/new/image.png)"
+		for _, folder := range []string{"old", "old/sub", "old/sub/deep"} {
+			createMarkdownNoteInFolder(t, projectPath, folder, "note.md", original)
+		}
+		createMarkdownNoteInFolder(t, projectPath, "old/sub", "attachment.txt", original)
+		createMarkdownNoteInFolder(t, projectPath, "old/.hidden", "note.md", original)
+		createMarkdownNoteInFolder(t, projectPath, "sibling", "note.md", original)
+		require.NoError(t, os.Rename(filepath.Join(projectPath, "notes", "old"), filepath.Join(projectPath, "notes", "new")))
+
+		updateMarkdownFilesForFolderRename(projectPath, "old", "new")
+
+		for _, folder := range []string{"new", "new/sub", "new/sub/deep"} {
+			content, err := os.ReadFile(filepath.Join(projectPath, "notes", folder, "note.md"))
+			require.NoError(t, err)
+			assert.Equal(t, expected, string(content), folder)
+		}
+		for _, path := range []string{"new/sub/attachment.txt", "new/.hidden/note.md", "sibling/note.md"} {
+			content, err := os.ReadFile(filepath.Join(projectPath, "notes", path))
+			require.NoError(t, err)
+			assert.Equal(t, original, string(content), path)
+		}
+	})
+}
+
 func TestUpdateFolderNameInMarkdown(t *testing.T) {
 	tests := []struct {
 		name          string

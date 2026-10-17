@@ -206,39 +206,28 @@ func deleteRenameFolderFromIndexLocked(idx bleve.Index, oldFolderPath string) {
 	}
 }
 
-// updateMarkdownFilesForFolderRename processes a folder rename event by updating all markdown files within the folder
-// and their associated tags. It updates internal markdown URLs to reflect the new folder name and updates
-// any references to the folder in the tags system. The function takes the old and new folder names as input.
+// updateMarkdownFilesForFolderRename rewrites internal markdown URLs in notes within
+// the renamed folder and its descendants, skipping hidden directories like indexing does.
 func updateMarkdownFilesForFolderRename(projectPath, oldFolderPath, newFolderPath string) {
 	workerGroup := new(errgroup.Group)
 	workerGroup.SetLimit(util.WORKER_COUNT)
 
 	newFolderPathOnDisk := filepath.Join(projectPath, "notes", newFolderPath)
 
-	// When the note folder is renamed, all notes need path updates
-	files, err := os.ReadDir(newFolderPathOnDisk)
-
-	if err != nil {
-		log.Printf("Error reading directory %s: %v", newFolderPathOnDisk, err)
-		return
-	}
-
-	for _, file := range files {
-		if file.IsDir() {
-			continue
+	err := filepath.WalkDir(newFolderPathOnDisk, func(pathToFile string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			log.Printf("Error walking path %s: %v", pathToFile, err)
+			return nil
 		}
-
-		indexOfDot := strings.LastIndex(file.Name(), ".")
-		if indexOfDot == -1 {
-			continue
+		if entry.IsDir() {
+			if strings.HasPrefix(entry.Name(), ".") {
+				return filepath.SkipDir
+			}
+			return nil
 		}
-
-		extension := file.Name()[indexOfDot+1:]
-		if extension != "md" {
-			continue
+		if filepath.Ext(entry.Name()) != ".md" {
+			return nil
 		}
-
-		pathToFile := filepath.Join(newFolderPathOnDisk, file.Name())
 
 		workerGroup.Go(func() error {
 			noteContent, err := os.ReadFile(pathToFile)
@@ -263,6 +252,10 @@ func updateMarkdownFilesForFolderRename(projectPath, oldFolderPath, newFolderPat
 
 			return nil
 		})
+		return nil
+	})
+	if err != nil {
+		log.Printf("Error walking directory %s: %v", newFolderPathOnDisk, err)
 	}
 
 	if err := workerGroup.Wait(); err != nil {
