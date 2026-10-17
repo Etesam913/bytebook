@@ -354,7 +354,7 @@ func discoverImportSubtree(rootPath string) ([]string, []string, error) {
 }
 
 // normalizeNotesRelativeDirectoryPath validates and cleans a path relative to the
-// notes root. It rejects absolute paths, parent traversal, and hidden roots.
+// notes root. It rejects absolute paths, parent traversal, and hidden directory segments.
 func normalizeNotesRelativeDirectoryPath(path string) (string, bool) {
 	if path == "" || path == "." {
 		return "", true
@@ -367,8 +367,10 @@ func normalizeNotesRelativeDirectoryPath(path string) (string, bool) {
 	if cleanedPath == ".." || strings.HasPrefix(cleanedPath, ".."+string(filepath.Separator)) || filepath.IsAbs(cleanedPath) {
 		return "", false
 	}
-	if strings.HasPrefix(filepath.Base(cleanedPath), ".") {
-		return "", false
+	for _, segment := range strings.Split(cleanedPath, string(filepath.Separator)) {
+		if strings.HasPrefix(segment, ".") {
+			return "", false
+		}
 	}
 
 	return cleanedPath, true

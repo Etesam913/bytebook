@@ -130,6 +130,10 @@ test('creates a nested folder and opens it from the tree', async ({
   await sidebar
     .getByRole('treeitem', { name: 'Research Notes', exact: true })
     .click();
+  // Visiting another folder can virtualize the new row out of the tree.
+  await sidebar
+    .getByRole('treeitem', { name: 'Research Notes', exact: true })
+    .press('Home');
   await sidebar
     .getByRole('treeitem', { name: 'My Todos', exact: true })
     .press('Enter');

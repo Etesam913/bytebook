@@ -17,7 +17,8 @@ export default defineConfig({
     // The e2e suite mocks Wails RPC in the browser, so it only needs Vite plus
     // pre-generated bindings. Starting `wails3 dev` races background Vite boot
     // against a second binding generation pass on fresh CI runners.
-    command: `bun run dev:internal -- --port ${port} --strictPort`,
+    // Bundle the app to reduce module requests across parallel browser pages.
+    command: `bun run dev:internal -- --experimentalBundle --port ${port} --strictPort`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
   },

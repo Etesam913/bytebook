@@ -53,17 +53,19 @@ test('authors a formatted note with a linked note and reopens its saved content'
     .getByRole('button', { name: 'Bold (⌘B)', exact: true })
     .click();
   await expect(editor.locator('strong')).toContainText('Implementation notes');
-  await page.keyboard.press('ArrowRight');
-  await page.keyboard.press('Enter');
+  await editor.press('ArrowRight');
+  await editor.press('Enter');
   await page.keyboard.type('@inflation');
   await page.getByRole('option').filter({ hasText: 'Inflation.md' }).click();
   await expect(
     editor.getByRole('link', { name: 'Inflation.md' })
   ).toBeVisible();
+  await expect(editor.locator('strong')).toContainText('Implementation notes');
 
   const markdown = await reopenSavedNote(page, 'Inflation.md');
 
   expect(markdown).toContain('# Project plan');
+  expect(markdown).toContain('**Implementation notes**');
   await expect(
     editor.getByRole('heading', { name: 'Project plan', level: 1 })
   ).toBeVisible();

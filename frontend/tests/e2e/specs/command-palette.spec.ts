@@ -81,6 +81,7 @@ test('finds a note with Quick Open and opens its content', async ({ page }) => {
 
 test('recovers from a failed search and opens a result', async ({ page }) => {
   await page.goto('/');
+  await expect(page.getByTestId('file-sidebar')).toBeVisible();
   await updateMockBindingResponse(page, searchBinding, {
     success: false,
     message: 'Search failed',

@@ -1,5 +1,8 @@
-import { describe, expect, it } from 'bun:test';
+import '../../../../test/setup';
+import { afterEach, describe, expect, it, spyOn } from 'bun:test';
+import { FileTree } from '@pierre/trees';
 import {
+  restoreSelectionAfterDrag,
   buildFileTreeDragPayload,
   getRootDropKind,
   getTreeItemName,
@@ -71,5 +74,58 @@ describe('getRootDropKind', () => {
 
   it('ignores elements outside the tree', () => {
     expect(getRootDropKind([document.body])).toBeNull();
+  });
+});
+
+describe('restoreSelectionAfterDrag', () => {
+  const models: FileTree[] = [];
+  afterEach(() => {
+    for (const model of models) model.cleanUp();
+    models.length = 0;
+  });
+
+  it.each(['route.md', 'folder/'])(
+    'restores selection to %s without changing focus or scrolling',
+    (target) => {
+      const model = new FileTree({
+        paths: ['route.md', 'folder/', 'dragged.md'],
+      });
+      models.push(model);
+      model.getItem('dragged.md')!.select();
+      model.focusPath('dragged.md');
+      const scroll = spyOn(model, 'scrollToPath');
+
+      restoreSelectionAfterDrag(model, target);
+
+      expect(model.getSelectedPaths()).toEqual([target]);
+      expect(model.getFocusedPath()).toBe('dragged.md');
+      expect(scroll).not.toHaveBeenCalled();
+      scroll.mockRestore();
+    }
+  );
+
+  it.each([null, 'missing.md'])(
+    'clears selection when the route target is %s',
+    (target) => {
+      const model = new FileTree({ paths: ['one.md', 'two.md'] });
+      models.push(model);
+      model.getItem('one.md')!.select();
+      model.getItem('two.md')!.select();
+
+      restoreSelectionAfterDrag(model, target);
+
+      expect(model.getSelectedPaths()).toEqual([]);
+    }
+  );
+
+  it('preserves a selected route target while deselecting dragged items', () => {
+    const model = new FileTree({ paths: ['route.md', 'dragged.md'] });
+    models.push(model);
+    model.getItem('route.md')!.select();
+    model.getItem('dragged.md')!.select();
+
+    restoreSelectionAfterDrag(model, 'route.md');
+
+    expect(model.getSelectedPaths()).toEqual(['route.md']);
   });
 });

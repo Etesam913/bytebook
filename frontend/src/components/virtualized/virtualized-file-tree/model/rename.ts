@@ -43,7 +43,11 @@ export function applyTreeRename({
 
   // Files carry no trailing slash in pierre paths.
   const filePath = createFilePath(sourcePath);
-  if (!filePath) return;
+  if (!filePath) {
+    // Pierre moves the item after onRename returns, so wait before reverting.
+    queueMicrotask(revert);
+    return;
+  }
   void renameTreeItem({
     itemType: 'file',
     filePath,
