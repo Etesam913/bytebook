@@ -2,6 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/webpro/knip/main/website/static/knip.schema.json",
   "entry": ["src/index.css", "bunfig.toml", "public/theme-init.js"],
   "ignoreFiles": [
+    "src/components/editor/transformers/test-utils.ts",
     "tests/e2e/utils/editor.ts",
     "tests/e2e/utils/mock-binding.ts",
     "tests/e2e/utils/mock-responses.ts",

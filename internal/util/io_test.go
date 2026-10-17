@@ -15,6 +15,74 @@ type TestWriteJson struct {
 	Notes []string `json:"notes"`
 }
 
+func TestDedupeDescendantPaths(t *testing.T) {
+	t.Run("Removes duplicates and descendants without changing the input", func(t *testing.T) {
+		paths := []string{"a/b/c.md", "other.md", "a", "a/b", "a"}
+		original := append([]string(nil), paths...)
+
+		result := DedupeDescendantPaths(paths)
+
+		assert.Equal(t, []string{"a", "other.md"}, result)
+		assert.Equal(t, original, paths)
+	})
+
+	t.Run("Removes a descendant when its parent has a trailing slash", func(t *testing.T) {
+		result := DedupeDescendantPaths([]string{"a/", "a/b"})
+
+		assert.Equal(t, []string{"a/"}, result)
+	})
+
+	t.Run("Removes a descendant listed before its trailing slash parent", func(t *testing.T) {
+		result := DedupeDescendantPaths([]string{"a/b", "a/"})
+
+		assert.Equal(t, []string{"a/"}, result)
+	})
+
+	t.Run("Deduplicates the same parent with and without a trailing slash", func(t *testing.T) {
+		result := DedupeDescendantPaths([]string{"a/", "a", "a/b"})
+
+		assert.Equal(t, []string{"a"}, result)
+	})
+
+	t.Run("Keeps paths that only share a name prefix", func(t *testing.T) {
+		result := DedupeDescendantPaths([]string{"ab/note.md", "a/"})
+
+		assert.Equal(t, []string{"a/", "ab/note.md"}, result)
+	})
+
+	t.Run("Returns no paths for empty input", func(t *testing.T) {
+		assert.Empty(t, DedupeDescendantPaths(nil))
+	})
+}
+
+func TestValidatePathInsideNotes(t *testing.T) {
+	projectPath := t.TempDir()
+	notesPath := filepath.Join(projectPath, "notes")
+
+	t.Run("Accepts the notes directory and its descendants", func(t *testing.T) {
+		assert.NoError(t, validatePathInsideNotes(notesPath, notesPath))
+		assert.NoError(t, validatePathInsideNotes(notesPath, filepath.Join(notesPath, "folder", "note.md")))
+	})
+
+	t.Run("Rejects a sibling directory with the same name prefix", func(t *testing.T) {
+		err := validatePathInsideNotes(notesPath, filepath.Join(projectPath, "notes2"))
+
+		assert.Error(t, err)
+	})
+
+	t.Run("Rejects a file inside a sibling directory with the same name prefix", func(t *testing.T) {
+		err := validatePathInsideNotes(notesPath, filepath.Join(projectPath, "notes2", "note.md"))
+
+		assert.Error(t, err)
+	})
+
+	t.Run("Rejects the parent directory", func(t *testing.T) {
+		err := validatePathInsideNotes(notesPath, projectPath)
+
+		assert.Error(t, err)
+	})
+}
+
 func TestSafeJoin(t *testing.T) {
 	base := filepath.Join("/tmp", "project", "notes")
 

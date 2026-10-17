@@ -245,8 +245,8 @@ func ExactPathExists(path string) bool {
 func DedupeDescendantPaths(paths []string) []string {
 	sortedPaths := append([]string(nil), paths...)
 	slices.SortFunc(sortedPaths, func(a, b string) int {
-		aDepth := strings.Count(a, "/")
-		bDepth := strings.Count(b, "/")
+		aDepth := strings.Count(strings.TrimSuffix(a, "/"), "/")
+		bDepth := strings.Count(strings.TrimSuffix(b, "/"), "/")
 		if aDepth != bDepth {
 			return aDepth - bDepth
 		}
@@ -255,9 +255,11 @@ func DedupeDescendantPaths(paths []string) []string {
 
 	normalized := make([]string, 0, len(sortedPaths))
 	for _, path := range sortedPaths {
+		candidatePath := strings.TrimSuffix(path, "/")
 		shouldSkip := false
 		for _, keptPath := range normalized {
-			if path == keptPath || strings.HasPrefix(path, keptPath+"/") {
+			parentPath := strings.TrimSuffix(keptPath, "/")
+			if candidatePath == parentPath || strings.HasPrefix(candidatePath, parentPath+"/") {
 				shouldSkip = true
 				break
 			}
