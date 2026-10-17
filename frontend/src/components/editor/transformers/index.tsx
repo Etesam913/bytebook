@@ -20,6 +20,7 @@ import { FILE_TRANSFORMER } from './file';
 import { LINK } from './link';
 import { TABLE } from './table';
 import { HR } from './horizontal-rule';
+import { INLINE_CODE_EXPORT } from './inline-code';
 
 // Export all transformers
 export const CUSTOM_TRANSFORMERS = [
@@ -36,6 +37,7 @@ export const CUSTOM_TRANSFORMERS = [
   ITALIC_STAR,
   ITALIC_UNDERSCORE,
   STRIKETHROUGH,
+  INLINE_CODE_EXPORT,
   FILE_TRANSFORMER,
   LINK,
   CODE_TRANSFORMER,
