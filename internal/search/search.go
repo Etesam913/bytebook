@@ -43,8 +43,8 @@ type HighlightResult struct {
 	HighlightedTerm string `json:"highlightedTerm"`
 }
 
-// MarkdownNoteFields contains extracted fields from a markdown note search hit
-type MarkdownNoteFields struct {
+// NoteFields contains extracted fields from a note search hit
+type NoteFields struct {
 	Tags        []string
 	LastUpdated string
 	Created     string
@@ -111,8 +111,8 @@ func extractTags(hit *blevesearch.DocumentMatch) []string {
 	return tags
 }
 
-// extractMarkdownNoteFields extracts markdown note-specific fields (tags, lastUpdated, created, codeContent) from a search hit
-func extractMarkdownNoteFields(hit *blevesearch.DocumentMatch) MarkdownNoteFields {
+// extractNoteFields extracts note-specific fields (tags, lastUpdated, created, codeContent) from a search hit
+func extractNoteFields(hit *blevesearch.DocumentMatch) NoteFields {
 	tags := extractTags(hit)
 
 	// last_updated is stored as a datetime; retrieve as string if present
@@ -154,7 +154,7 @@ func extractMarkdownNoteFields(hit *blevesearch.DocumentMatch) MarkdownNoteField
 		}
 	}
 
-	return MarkdownNoteFields{
+	return NoteFields{
 		Tags:        tags,
 		LastUpdated: lastUpdated,
 		Created:     created,
@@ -190,8 +190,8 @@ func extractHighlights(hit *blevesearch.DocumentMatch) []HighlightResult {
 	return highlights
 }
 
-// processMarkdownNoteResult processes a markdown note search hit
-func processMarkdownNoteResult(hit *blevesearch.DocumentMatch) *SearchResult {
+// processNoteResult processes a note search hit
+func processNoteResult(hit *blevesearch.DocumentMatch) *SearchResult {
 	folder, folderOk := hit.Fields[FieldFolder].(string)
 	if !folderOk {
 		return nil
@@ -202,11 +202,11 @@ func processMarkdownNoteResult(hit *blevesearch.DocumentMatch) *SearchResult {
 		return nil
 	}
 
-	fields := extractMarkdownNoteFields(hit)
+	fields := extractNoteFields(hit)
 	highlights := extractHighlights(hit)
 
 	return &SearchResult{
-		Type:        MARKDOWN_NOTE_TYPE,
+		Type:        NOTE_TYPE,
 		Title:       fileName,
 		Folder:      folder,
 		Name:        fileName,
@@ -262,7 +262,7 @@ func ProcessDocumentSearchResults(searchResult *bleve.SearchResult) []SearchResu
 	results := []SearchResult{}
 
 	for _, hit := range searchResult.Hits {
-		// Extract document type (markdown note or attachment)
+		// Extract document type (note or attachment)
 		docType := ""
 		if typeField, ok := hit.Fields[FieldType]; ok {
 			if typeStr, ok := typeField.(string); ok {
@@ -273,8 +273,14 @@ func ProcessDocumentSearchResults(searchResult *bleve.SearchResult) []SearchResu
 		var result *SearchResult
 
 		switch docType {
-		case MARKDOWN_NOTE_TYPE:
-			result = processMarkdownNoteResult(hit)
+		case NOTE_TYPE:
+			result = processNoteResult(hit)
+		case FOLDER_TYPE:
+			folder, folderOK := hit.Fields[FieldFolder].(string)
+			name, nameOK := hit.Fields[FieldFileName].(string)
+			if folderOK && nameOK {
+				result = &SearchResult{Type: FOLDER_TYPE, Title: name, Folder: folder, Name: name, Highlights: []HighlightResult{}}
+			}
 		case ATTACHMENT_TYPE:
 			result = processAttachmentResult(hit)
 		default:

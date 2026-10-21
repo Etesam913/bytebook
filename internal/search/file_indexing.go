@@ -20,6 +20,7 @@ type DocumentJob struct {
 	entryId   string
 	folder    string
 	entryName string
+	isFolder  bool
 }
 
 type DocumentResult struct {
@@ -28,7 +29,7 @@ type DocumentResult struct {
 	document any
 }
 
-// IndexAllFiles recursively indexes visible notes and attachments under notes/.
+// IndexAllFiles recursively indexes visible folders, notes, and attachments under notes/.
 // Returns an error if discovery or indexing fails.
 func IndexAllFiles(projectPath string, bleveIndex bleve.Index) error {
 	return indexFiles(projectPath, bleveIndex, util.WORKER_COUNT, func(ctx context.Context, jobs chan<- DocumentJob) error {
@@ -56,8 +57,7 @@ func IndexDiscoveredFiles(projectPath string, filePaths []string, bleveIndex ble
 			}
 			job, err := buildDocumentJob(projectPath, filePath)
 			if err != nil {
-				log.Printf("Error building indexing job for %s: %v", filePath, err)
-				continue
+				return fmt.Errorf("build indexing job for %s: %w", filePath, err)
 			}
 			if err := enqueueDocumentJob(ctx, jobs, job); err != nil {
 				return err
@@ -144,12 +144,11 @@ func addResultsToIndex(ctx context.Context, bleveIndex bleve.Index, bleveBatch *
 			docResult = result
 		}
 		if docResult.isError {
-			continue
+			return nil, fmt.Errorf("could not read document %s", docResult.entryId)
 		}
 		document, err := bleveIndex.Document(docResult.entryId)
 		if err != nil {
-			log.Printf("Error when trying to fetch document in adding results: %v", err)
-			continue
+			return nil, fmt.Errorf("fetch indexed document %s: %w", docResult.entryId, err)
 		}
 
 		// The entry is already indexed, so we can skip here
@@ -172,7 +171,7 @@ func addResultsToIndex(ctx context.Context, bleveIndex bleve.Index, bleveBatch *
 	}
 }
 
-// populateJobs creates DocumentJob tasks for files found recursively inside each
+// populateJobs creates DocumentJob tasks for folders and files found recursively inside each
 // top-level folder under notesPath.
 func populateJobs(ctx context.Context, folders []os.DirEntry, notesPath string, jobs chan<- DocumentJob) error {
 	for _, folder := range folders {
@@ -217,16 +216,15 @@ func populateJobs(ctx context.Context, folders []os.DirEntry, notesPath string, 
 				return nil
 			}
 
-			if d.IsDir() {
-				return nil
-			}
-
 			fileId, err := filepath.Rel(notesPath, path)
 			if err != nil {
 				return err
 			}
 
 			folderPath, fileName := filepath.Split(fileId)
+			if d.IsDir() {
+				fileId += "/"
+			}
 			folderPath = strings.TrimSuffix(folderPath, string(filepath.Separator))
 
 			return enqueueDocumentJob(ctx, jobs, DocumentJob{
@@ -234,6 +232,7 @@ func populateJobs(ctx context.Context, folders []os.DirEntry, notesPath string, 
 				entryId:   fileId,
 				folder:    folderPath,
 				entryName: fileName,
+				isFolder:  d.IsDir(),
 			})
 		}); err != nil {
 			return err
@@ -260,7 +259,7 @@ func shouldSkipIndexedPath(projectPath, filePath string) bool {
 	return false
 }
 
-// startWorker processes files until discovery ends or the pipeline is cancelled.
+// startWorker processes folders and files until discovery ends or the pipeline is cancelled.
 func startWorker(ctx context.Context, projectPath string, jobs <-chan DocumentJob, results chan<- DocumentResult) {
 	for {
 		if ctx.Err() != nil {
@@ -278,12 +277,14 @@ func startWorker(ctx context.Context, projectPath string, jobs <-chan DocumentJo
 		}
 		result := DocumentResult{entryId: job.entryId}
 		fileExtension := filepath.Ext(job.entryName)
-		if fileExtension == ".md" {
+		if job.isFolder {
+			result.document = FolderBleveDocument{Type: FOLDER_TYPE, Folder: job.folder, FileName: job.entryName}
+		} else if fileExtension == ".md" {
 			content, err := os.ReadFile(job.entryPath)
 			if err != nil {
 				result.isError = true
 			} else {
-				result.document = CreateMarkdownNoteBleveDocument(string(content), job.folder, job.entryName)
+				result.document = CreateNoteBleveDocument(string(content), job.folder, job.entryName)
 			}
 		} else {
 			result.document = createAttachmentBleveDocument(projectPath, job.folder, job.entryName, fileExtension)

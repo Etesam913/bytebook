@@ -168,14 +168,16 @@ func TestPopulateJobs(t *testing.T) {
 		assert.Equal(t, filepath.Join("folder1", "nested"), jobsByFileID[filepath.Join("folder1", "nested", "asset.png")].folder)
 	})
 
-	t.Run("should emit no jobs for empty folders", func(t *testing.T) {
+	t.Run("should emit a folder job for empty folders", func(t *testing.T) {
 		_, notesDir := setupTempNotesDir(t)
 
 		emptyFolderPath := filepath.Join(notesDir, "empty-folder")
 		require.NoError(t, os.MkdirAll(emptyFolderPath, 0755))
 
 		receivedJobs := collectPopulateJobs(t, notesDir)
-		assert.Empty(t, receivedJobs)
+		require.Len(t, receivedJobs, 1)
+		assert.True(t, receivedJobs[0].isFolder)
+		assert.Equal(t, "empty-folder/", receivedJobs[0].entryId)
 	})
 
 	t.Run("should skip hidden files and hidden folders", func(t *testing.T) {
@@ -219,7 +221,7 @@ func TestStartWorker(t *testing.T) {
 		attachmentCount := 0
 		for _, result := range receivedResults {
 			assert.False(t, result.isError)
-			if doc, ok := result.document.(MarkdownNoteBleveDocument); ok {
+			if doc, ok := result.document.(NoteBleveDocument); ok {
 				markdownCount++
 				assert.Equal(t, "test-folder", doc.Folder)
 			} else if doc, ok := result.document.(AttachmentBleveDocument); ok {
@@ -358,18 +360,18 @@ func TestIndexDiscoveredFilesPipeline(t *testing.T) {
 		assert.Equal(t, uint64(len(paths)), count)
 	})
 
-	t.Run("keeps existing documents and skips missing markdown", func(t *testing.T) {
+	t.Run("keeps existing documents and reports missing markdown", func(t *testing.T) {
 		projectDir, notesDir := setupTempNotesDir(t)
 		index := createTempIndex(t, projectDir)
 		defer index.Close()
 		path := filepath.Join(notesDir, "note.md")
 		require.NoError(t, os.WriteFile(path, []byte("New content"), 0644))
-		original := CreateMarkdownNoteBleveDocument("Original content", "", "note.md")
+		original := CreateNoteBleveDocument("Original content", "", "note.md")
 		require.NoError(t, index.Index("note.md", original))
 
 		err := IndexDiscoveredFiles(projectDir, []string{path, filepath.Join(notesDir, "missing.md")}, index, 2)
 
-		require.NoError(t, err)
+		require.Error(t, err)
 		result, err := index.Search(bleve.NewSearchRequest(bleve.NewMatchQuery("Original")))
 		require.NoError(t, err)
 		assert.Equal(t, uint64(1), result.Total)

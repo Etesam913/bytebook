@@ -92,9 +92,9 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
   // Mount panels in their saved positions instead of animating from the default order.
   const visibleOrder = settingsLoaded
     ? getVisibleSidebarOrder(
-        order,
-        projectSettings.appearance.sidebarVisibility
-      )
+      order,
+      projectSettings.appearance.sidebarVisibility
+    )
     : [];
 
   // Preview the move locally; the ref keeps the latest order available when dragging ends.
@@ -174,7 +174,7 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
             isFullscreen && 'pl-[8px]'
           )}
         >
-          <span>
+          <span className="flex items-center">
             <Tooltip content="Go back" shortcut="⌘[">
               <MotionIconButton
                 {...getDefaultButtonVariants()}

@@ -57,7 +57,7 @@ func TestNoteServiceCodeResultsSidecar(t *testing.T) {
 		assert.ErrorIs(t, err, os.ErrNotExist)
 	})
 
-	t.Run("renames sidecar with markdown note", func(t *testing.T) {
+	t.Run("renames sidecar with note", func(t *testing.T) {
 		projectPath := t.TempDir()
 		oldNotePath := writeServiceTestNote(t, projectPath, "folder/old.md")
 		writeServiceTestSidecar(t, oldNotePath)

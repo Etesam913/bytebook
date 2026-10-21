@@ -45,11 +45,11 @@ export type DialogDataType = {
   children: ((errorText: string, isPending: boolean) => ReactNode) | null;
   dialogClassName?: string;
   onSubmit:
-    | ((
-        formData: FormData,
-        setErrorText: Dispatch<SetStateAction<string>>
-      ) => Promise<boolean>)
-    | null;
+  | ((
+    formData: FormData,
+    setErrorText: Dispatch<SetStateAction<string>>
+  ) => Promise<boolean>)
+  | null;
   onClose?: () => void;
   isPending: boolean;
 };
@@ -195,15 +195,15 @@ export type SidebarReorderOptions = {
 
 export type NotePaletteCommand = {
   id:
-    | 'open-in-new-window'
-    | 'find-in-note'
-    | 'rename-note'
-    | 'edit-tags'
-    | 'pin-note'
-    | 'unpin-note'
-    | 'show-table-of-contents'
-    | 'hide-table-of-contents'
-    | 'reveal-in-finder';
+  | 'open-in-new-window'
+  | 'find-in-note'
+  | 'rename-note'
+  | 'edit-tags'
+  | 'pin-note'
+  | 'unpin-note'
+  | 'show-table-of-contents'
+  | 'hide-table-of-contents'
+  | 'reveal-in-finder';
   label: string;
   keywords: string;
   shortcut?: string;
@@ -216,7 +216,7 @@ export type PaletteItem = {
   description: string;
   excerpt?: string;
   action:
-    | { kind: 'open-path'; path: import('@utils/path').FilePath }
-    | { kind: 'command'; run: () => void }
-    | { kind: 'create-note' };
+  | { kind: 'open-path'; path: import('@utils/path').FileOrFolderPath }
+  | { kind: 'command'; run: () => void }
+  | { kind: 'create-note' };
 };

@@ -22,7 +22,7 @@ func setupNotesDir(t *testing.T, projectPath string) string {
 	return notesDir
 }
 
-// createNoteFile creates a markdown note file in the specified folder
+// createNoteFile creates a note file in the specified folder
 func createNoteFile(t *testing.T, notesDir, folder, noteName, content string) {
 	folderPath := filepath.Join(notesDir, folder)
 	err := os.MkdirAll(folderPath, 0755)
@@ -34,7 +34,7 @@ func createNoteFile(t *testing.T, notesDir, folder, noteName, content string) {
 }
 
 func TestAddCreatedNotesToIndex(t *testing.T) {
-	t.Run("should add markdown notes to the index", func(t *testing.T) {
+	t.Run("should add notes to the index", func(t *testing.T) {
 		params := createTestParams(t)
 		notesDir := setupNotesDir(t, params.ProjectPath)
 

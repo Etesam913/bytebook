@@ -203,7 +203,7 @@ func createLinkQuery(linkTarget string) query.Query {
 func createTypeQuery(typeName string) query.Query {
 	typeName = strings.ToLower(strings.TrimSpace(typeName))
 	switch typeName {
-	case MARKDOWN_NOTE_TYPE, ATTACHMENT_TYPE:
+	case NOTE_TYPE, ATTACHMENT_TYPE, FOLDER_TYPE:
 		// supported search types
 	default:
 		return bleve.NewMatchNoneQuery()
@@ -417,4 +417,29 @@ func BuildBooleanQueryFromUserInput(input string) (query.Query, *SearchSortOptio
 	}
 
 	return currentQuery, sortOption
+}
+
+// ScopeSearchQuery limits result types before pagination and optionally boosts matching folders.
+// The user query is mandatory, so a folder boost cannot introduce nonmatching results.
+func ScopeSearchQuery(q query.Query, includeFolders bool) query.Query {
+	scoped := bleve.NewBooleanQuery()
+	scoped.AddMust(q)
+	types := bleve.NewDisjunctionQuery()
+	supportedTypes := []string{NOTE_TYPE, ATTACHMENT_TYPE}
+	if includeFolders {
+		supportedTypes = append(supportedTypes, FOLDER_TYPE)
+		folderBoost := bleve.NewTermQuery(FOLDER_TYPE)
+		folderBoost.SetField(FieldType)
+		folderBoost.SetBoost(0.2)
+		scoped.AddShould(folderBoost)
+	}
+	// Set boosts on the leaf terms: Bleve does not apply a disjunction's boost.
+	for _, kind := range supportedTypes {
+		typeFilter := bleve.NewTermQuery(kind)
+		typeFilter.SetField(FieldType)
+		typeFilter.SetBoost(0)
+		types.AddQuery(typeFilter)
+	}
+	scoped.AddMust(types)
+	return scoped
 }

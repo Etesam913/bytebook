@@ -228,6 +228,7 @@ func (c *BulkImportCoordinator) processRequest(relativeFolderPath string) {
 	}
 
 	directories, filePaths, err := discoverImportSubtree(rootPath)
+	discoverySucceeded := err == nil
 	if err != nil {
 		log.Printf("Error discovering subtree %s: %v", rootPath, err)
 	}
@@ -237,14 +238,21 @@ func (c *BulkImportCoordinator) processRequest(relativeFolderPath string) {
 		return
 	}
 
-	if len(filePaths) > 0 {
-		idx := c.index.RLock()
-		err := search.IndexDiscoveredFiles(c.projectPath, filePaths, idx, bulkImportIndexWorkerCount)
-		c.index.RUnlock()
-		if err != nil {
-			log.Printf("Error indexing subtree %s: %v", rootPath, err)
+	idx := c.index.RLock()
+	folderErr := search.IndexDiscoveredFolders(c.projectPath, directories, idx)
+	fileErr := search.IndexDiscoveredFiles(c.projectPath, filePaths, idx, bulkImportIndexWorkerCount)
+	if folderErr != nil {
+		log.Printf("Error indexing folders in %s: %v", rootPath, folderErr)
+	}
+	if fileErr != nil {
+		log.Printf("Error indexing files in %s: %v", rootPath, fileErr)
+	}
+	if relativeFolderPath == "" && discoverySucceeded && folderErr == nil && fileErr == nil {
+		if err := search.ReconcileFolderDocuments(c.projectPath, directories, idx); err != nil {
+			log.Printf("Error reconciling folders: %v", err)
 		}
 	}
+	c.index.RUnlock()
 
 	summary := c.addDirectoriesToWatcher(directories)
 	if len(filePaths) > 0 || summary.added > 0 || summary.deferred > 0 {

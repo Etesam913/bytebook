@@ -149,73 +149,6 @@ More text content.
 
 // Tests for index mapping functions
 
-func TestCreateMarkdownNoteBleveDocument(t *testing.T) {
-	t.Run("should create document with basic markdown", func(t *testing.T) {
-		doc := CreateMarkdownNoteBleveDocument(basicMarkdown, "test-folder", "test.md")
-
-		assert.Equal(t, "test-folder", doc.Folder)
-		assert.Equal(t, "test.md", doc.FileName)
-		assert.Equal(t, ".md", doc.FileExtension)
-		assert.Contains(t, doc.TextContent, "Test Content")
-		assert.False(t, doc.HasCode)
-		assert.Greater(t, doc.Size, int64(0))
-	})
-
-	t.Run("should handle complex markdown with all features", func(t *testing.T) {
-		doc := CreateMarkdownNoteBleveDocument(complexMarkdown, "examples", "multi.md")
-
-		assert.True(t, doc.HasCode)
-		assert.True(t, doc.HasGoCode)
-		assert.True(t, doc.HasPythonCode)
-		assert.True(t, doc.HasJavascriptCode)
-		assert.True(t, doc.HasJavaCode)
-		assert.Equal(t, "2023-12-05T14:30:00Z", doc.LastUpdated)
-		assert.Equal(t, "2023-12-01T10:00:00Z", doc.CreatedDate)
-	})
-}
-
-func TestCreateAttachmentBleveDocument(t *testing.T) {
-	env := setupTestEnv(t)
-	defer env.Close()
-
-	t.Run("should include tags from sidecar", func(t *testing.T) {
-		folderName := "test-folder-tags"
-		env.createAttachmentFile(env.createTestFolder(folderName), "image.jpg", "fake")
-		err := sidecar.WriteTags(env.TmpDir, folderName, "image.jpg", []string{"foo", "bar"})
-		require.NoError(t, err)
-
-		doc := createAttachmentBleveDocument(env.TmpDir, folderName, "image.jpg", ".jpg")
-		assert.ElementsMatch(t, []string{"foo", "bar"}, doc.Tags)
-		assert.NotEmpty(t, doc.CreatedDate)
-		assert.Greater(t, doc.Size, int64(0))
-	})
-
-	testCases := []struct {
-		fileName      string
-		fileExtension string
-	}{
-		{"test-file.pdf", ".pdf"},
-		{"image.jpg", ".jpg"},
-		{"document.docx", ".docx"},
-		{"video.mp4", ".mp4"},
-		{"file.txt", ".txt"}, // With extension
-		{"noext", ""},        // No extension
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.fileName+tc.fileExtension, func(t *testing.T) {
-			env.createAttachmentFile(env.createTestFolder("test-folder"), tc.fileName, "fake")
-			doc := createAttachmentBleveDocument(env.TmpDir, "test-folder", tc.fileName, tc.fileExtension)
-
-			assert.Equal(t, tc.fileName, doc.FileName)
-			assert.Equal(t, tc.fileExtension, doc.FileExtension)
-			assert.Empty(t, doc.Tags)
-			assert.NotEmpty(t, doc.CreatedDate)
-			assert.GreaterOrEqual(t, doc.Size, int64(0))
-		})
-	}
-}
-
 func TestIndexOperations(t *testing.T) {
 	env := setupTestEnv(t)
 	defer env.Close()
@@ -225,7 +158,7 @@ func TestIndexOperations(t *testing.T) {
 		assert.NotNil(t, env.Index)
 
 		// Verify we can index a document
-		doc := CreateMarkdownNoteBleveDocument(basicMarkdown, "test", "file")
+		doc := CreateNoteBleveDocument(basicMarkdown, "test", "file")
 		err := env.Index.Index("test-id", doc)
 		assert.NoError(t, err)
 
@@ -240,7 +173,7 @@ func TestAddFileToBatchMarkdown(t *testing.T) {
 	env := setupTestEnv(t)
 	defer env.Close()
 
-	t.Run("should add new markdown note to batch", func(t *testing.T) {
+	t.Run("should add new note to batch", func(t *testing.T) {
 		folderPath := env.createTestFolder("test-folder")
 		env.createMarkdownFile(folderPath, "test.md", basicMarkdown)
 
@@ -260,7 +193,7 @@ func TestAddFileToBatchMarkdown(t *testing.T) {
 		env.createMarkdownFile(folderPath, "test.md", markdownWithIdAndLastUpdated)
 
 		// Pre-index the document
-		bleveDoc := CreateMarkdownNoteBleveDocument(markdownWithIdAndLastUpdated, "test-folder-2", "test.md")
+		bleveDoc := CreateNoteBleveDocument(markdownWithIdAndLastUpdated, "test-folder-2", "test.md")
 		err := env.Index.Index("test-folder-2/test.md", bleveDoc)
 		require.NoError(t, err)
 
@@ -475,7 +408,7 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 
 		batch := env.Index.NewBatch()
 		require.NoError(t, IndexFilesInFolderWithBatch(env.TmpDir, folderPath, folderName, env.Index, batch))
-		assert.Equal(t, 1, batch.Size())
+		assert.Equal(t, 2, batch.Size())
 
 		documentCount, err := env.Index.DocCount()
 		require.NoError(t, err)
@@ -484,7 +417,7 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 		require.NoError(t, env.Index.Batch(batch))
 		documentCount, err = env.Index.DocCount()
 		require.NoError(t, err)
-		assert.EqualValues(t, initialDocumentCount+DefaultBatchSize+1, documentCount)
+		assert.EqualValues(t, initialDocumentCount+DefaultBatchSize+2, documentCount)
 	})
 }
 

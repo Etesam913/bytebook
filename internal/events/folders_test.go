@@ -61,7 +61,7 @@ func rawIndex(params EventParams) bleve.Index {
 	return idx
 }
 
-func createMarkdownNoteInFolder(t *testing.T, projectPath, folderPath, fileName, content string) {
+func createNoteInFolder(t *testing.T, projectPath, folderPath, fileName, content string) {
 	fullFolderPath := filepath.Join(projectPath, "notes", folderPath)
 	require.NoError(t, os.MkdirAll(fullFolderPath, 0755))
 	require.NoError(t, os.WriteFile(filepath.Join(fullFolderPath, fileName), []byte(content), 0644))
@@ -70,8 +70,8 @@ func createMarkdownNoteInFolder(t *testing.T, projectPath, folderPath, fileName,
 func TestHandleFolderCreateEvent(t *testing.T) {
 	t.Run("should index files from created folders in the background", func(t *testing.T) {
 		params := createTestParams(t)
-		createMarkdownNoteInFolder(t, params.ProjectPath, "folder1", "one.md", "# one")
-		createMarkdownNoteInFolder(t, params.ProjectPath, "folder2", "two.md", "# two")
+		createNoteInFolder(t, params.ProjectPath, "folder1", "one.md", "# one")
+		createNoteInFolder(t, params.ProjectPath, "folder2", "two.md", "# two")
 
 		handleFolderCreateEvent(params, []util.FolderCreateEventData{
 			{FolderPath: "folder1"},
@@ -90,7 +90,7 @@ func TestHandleFolderCreateEvent(t *testing.T) {
 
 	t.Run("should skip invalid entries", func(t *testing.T) {
 		params := createTestParams(t)
-		createMarkdownNoteInFolder(t, params.ProjectPath, "f.1", "note.md", "# note")
+		createNoteInFolder(t, params.ProjectPath, "f.1", "note.md", "# note")
 
 		handleFolderCreateEvent(params, []util.FolderCreateEventData{
 			{FolderPath: "f.1"},
@@ -108,9 +108,9 @@ func TestHandleFolderCreateEvent(t *testing.T) {
 func TestDeleteFolderDocumentsFromIndex(t *testing.T) {
 	t.Run("deletes the folder and its descendants but not siblings with a shared prefix", func(t *testing.T) {
 		params := createTestParams(t)
-		createMarkdownNoteInFolder(t, params.ProjectPath, "folder", "one.md", "# one")
-		createMarkdownNoteInFolder(t, params.ProjectPath, "folder/child", "two.md", "# two")
-		createMarkdownNoteInFolder(t, params.ProjectPath, "folder-other", "three.md", "# three")
+		createNoteInFolder(t, params.ProjectPath, "folder", "one.md", "# one")
+		createNoteInFolder(t, params.ProjectPath, "folder/child", "two.md", "# two")
+		createNoteInFolder(t, params.ProjectPath, "folder-other", "three.md", "# three")
 		require.NoError(t, search.IndexAllFiles(params.ProjectPath, rawIndex(params)))
 
 		idx := rawIndex(params)
@@ -118,7 +118,7 @@ func TestDeleteFolderDocumentsFromIndex(t *testing.T) {
 		require.NoError(t, deleteFolderDocumentsFromIndex(idx, batch, "folder"))
 		require.NoError(t, idx.Batch(batch))
 
-		for _, gone := range []string{filepath.Join("folder", "one.md"), filepath.Join("folder", "child", "two.md")} {
+		for _, gone := range []string{"folder/", "folder/child/", filepath.Join("folder", "one.md"), filepath.Join("folder", "child", "two.md")} {
 			doc, err := idx.Document(gone)
 			assert.NoError(t, err)
 			assert.Nil(t, doc, gone)
@@ -153,7 +153,7 @@ func TestDeleteFolderDocumentsFromIndex(t *testing.T) {
 		params := createTestParams(t)
 		noteCount := search.DefaultBatchSize + 10
 		for i := range noteCount {
-			createMarkdownNoteInFolder(t, params.ProjectPath, "big", fmt.Sprintf("note-%d.md", i), "# note")
+			createNoteInFolder(t, params.ProjectPath, "big", fmt.Sprintf("note-%d.md", i), "# note")
 		}
 		require.NoError(t, search.IndexAllFiles(params.ProjectPath, rawIndex(params)))
 		idx := rawIndex(params)
@@ -163,7 +163,7 @@ func TestDeleteFolderDocumentsFromIndex(t *testing.T) {
 		batch := idx.NewBatch()
 		require.NoError(t, deleteFolderDocumentsFromIndex(idx, batch, "big"))
 
-		assert.EqualValues(t, 10, batch.Size(), "a full batch should be flushed and reset")
+		assert.EqualValues(t, 11, batch.Size(), "a full batch should be flushed and reset")
 		countAfterFlush, err := idx.DocCount()
 		require.NoError(t, err)
 		assert.Equal(t, countBefore-uint64(search.DefaultBatchSize), countAfterFlush)
@@ -187,8 +187,8 @@ func TestDeleteFolderDocumentsFromIndex(t *testing.T) {
 func TestDeleteFoldersFromIndex(t *testing.T) {
 	t.Run("should skip invalid entries and keep other folders intact", func(t *testing.T) {
 		params := createTestParams(t)
-		createMarkdownNoteInFolder(t, params.ProjectPath, "folder1", "one.md", "# one")
-		createMarkdownNoteInFolder(t, params.ProjectPath, "folder2", "two.md", "# two")
+		createNoteInFolder(t, params.ProjectPath, "folder1", "one.md", "# one")
+		createNoteInFolder(t, params.ProjectPath, "folder2", "two.md", "# two")
 		require.NoError(t, search.IndexAllFiles(params.ProjectPath, rawIndex(params)))
 
 		deleteData := []util.FolderDeleteEventData{
@@ -215,11 +215,11 @@ func TestUpdateMarkdownFilesForFolderRename(t *testing.T) {
 		original := "[note](/notes/old/sub/note.md)\n![image](/notes/old/image.png)"
 		expected := "[note](/notes/new/sub/note.md)\n![image](/notes/new/image.png)"
 		for _, folder := range []string{"old", "old/sub", "old/sub/deep"} {
-			createMarkdownNoteInFolder(t, projectPath, folder, "note.md", original)
+			createNoteInFolder(t, projectPath, folder, "note.md", original)
 		}
-		createMarkdownNoteInFolder(t, projectPath, "old/sub", "attachment.txt", original)
-		createMarkdownNoteInFolder(t, projectPath, "old/.hidden", "note.md", original)
-		createMarkdownNoteInFolder(t, projectPath, "sibling", "note.md", original)
+		createNoteInFolder(t, projectPath, "old/sub", "attachment.txt", original)
+		createNoteInFolder(t, projectPath, "old/.hidden", "note.md", original)
+		createNoteInFolder(t, projectPath, "sibling", "note.md", original)
 		require.NoError(t, os.Rename(filepath.Join(projectPath, "notes", "old"), filepath.Join(projectPath, "notes", "new")))
 
 		updateMarkdownFilesForFolderRename(projectPath, "old", "new")
@@ -383,7 +383,7 @@ func TestFolderRenamePreservesIndexedTags(t *testing.T) {
 		idx := rawIndex(params)
 		for _, subfolder := range []string{"", "child/deep"} {
 			folder := filepath.Join(oldFolder, subfolder)
-			createMarkdownNoteInFolder(t, params.ProjectPath, folder, "note.md", "---\ntags: [markdown-tag]\n---\n# Note")
+			createNoteInFolder(t, params.ProjectPath, folder, "note.md", "---\ntags: [markdown-tag]\n---\n# Note")
 			require.NoError(t, os.WriteFile(filepath.Join(params.ProjectPath, "notes", folder, "photo.png"), []byte("image"), 0644))
 			require.NoError(t, sidecar.WriteTags(params.ProjectPath, folder, "photo.png", []string{"sidecar-tag"}))
 		}
@@ -394,6 +394,14 @@ func TestFolderRenamePreservesIndexedTags(t *testing.T) {
 
 		require.NoError(t, os.Rename(filepath.Join(params.ProjectPath, "notes", oldFolder), filepath.Join(params.ProjectPath, "notes", newFolder)))
 		renameFoldersInIndex(params, []util.FolderRenameEventData{{OldFolderPath: oldFolder, NewFolderPath: newFolder}})
+		for _, subfolder := range []string{"", "child"} {
+			oldDoc, err := rawIndex(params).Document(filepath.Join(oldFolder, subfolder) + "/")
+			require.NoError(t, err)
+			assert.Nil(t, oldDoc)
+		}
+		newDoc, err := rawIndex(params).Document(newFolder + "/")
+		require.NoError(t, err)
+		assert.NotNil(t, newDoc)
 
 		for _, subfolder := range []string{"", "child/deep"} {
 			for _, file := range []string{"note.md", "photo.png"} {

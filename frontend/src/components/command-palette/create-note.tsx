@@ -10,6 +10,7 @@ import { getPlaceholderPath } from '@components/virtualized/virtualized-file-tre
 import { splitPathSegments, stripTrailingSlash } from '@utils/path';
 import { FILE_TYPE } from '@utils/tree-item-types';
 import { CircleArrowLeft } from '@/icons/circle-arrow-left';
+import { Folder } from '@/icons/folder';
 import { Loader } from '@/icons/loader';
 
 export function CreateNote({
@@ -60,7 +61,7 @@ export function CreateNote({
           <AppSearchField
             autoFocus
             aria-label="Destination folder"
-            placeholder="Choose a destination folder…"
+            placeholder="Select a folder to create the note in"
             isDisabled={isPending}
             className="min-w-0 flex-1"
             autoComplete="off"
@@ -102,11 +103,14 @@ export function CreateNote({
               textValue={folder.id}
               className="flex items-center justify-between gap-2 rounded-md px-2 py-1 text-sm outline-none data-[focused]:bg-(--accent-color) data-[focused]:text-white"
             >
-              <span className="truncate" title={folder.id}>
-                {folder.id}
+              <span className="flex min-w-0 items-center gap-2">
+                <Folder width="1rem" height="1rem" className="shrink-0" />
+                <span className="truncate" title={folder.id}>
+                  {folder.id}
+                </span>
               </span>
               {folder.id === currentFolder && (
-                <span className="shrink-0 text-xs">Current folder</span>
+                <span className="shrink-0">Current folder</span>
               )}
             </MenuItem>
           )}
@@ -117,22 +121,22 @@ export function CreateNote({
           {error.message}
         </p>
       )}
-      <div className="flex items-center justify-between gap-2 border-t border-zinc-200 px-3 py-1 text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-        {isPending ? (
-          <span role="status" className="flex items-center gap-2">
-            <Loader width="1rem" height="1rem" />
-            Creating note…
-          </span>
-        ) : (
-          <span>Select a folder to create a note</span>
-        )}
-        {isError && (
-          <MotionButton onPress={() => void refetch()}>Retry</MotionButton>
-        )}
-        {!isLoading && !isError && folders.length === 0 && (
-          <MotionButton onPress={onShowFiles}>Open file sidebar</MotionButton>
-        )}
-      </div>
+      {(isPending || isError || (!isLoading && folders.length === 0)) && (
+        <div className="flex items-center justify-between gap-2 border-t border-zinc-200 px-3 py-1 text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+          {isPending && (
+            <span role="status" className="flex items-center gap-2">
+              <Loader width="1rem" height="1rem" />
+              Creating note…
+            </span>
+          )}
+          {isError && (
+            <MotionButton onPress={() => void refetch()}>Retry</MotionButton>
+          )}
+          {!isLoading && !isError && folders.length === 0 && (
+            <MotionButton onPress={onShowFiles}>Open file sidebar</MotionButton>
+          )}
+        </div>
+      )}
     </>
   );
 }

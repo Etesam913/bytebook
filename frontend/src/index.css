@@ -14,7 +14,7 @@
   }
 }
 
-/* Reflow Markdown notes once the sidebar drag ends. */
+/* Reflow notes once the sidebar drag ends. */
 .bb-sidebar-resizing #note-editor-pane {
   pointer-events: none;
   opacity: 0.5;
@@ -82,8 +82,8 @@
 
 :root {
   --ui-scale: 1;
-  /* Keep headers aligned, with less vertical space at lower UI zoom. */
-  --app-header-height: clamp(48px, calc(18px + 40px * var(--ui-scale)), 62px);
+  /* Native window controls stay fixed when the app's rem-based UI zooms. */
+  --app-header-height: 54px;
   --app-font-family: ui-sans-serif;
   --editor-default-font-family: system-ui, sans-serif;
   --code-block-font-family: monospace;

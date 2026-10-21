@@ -15,7 +15,7 @@ func TestTagsFacadeDispatch(t *testing.T) {
 	folder := filepath.Join(projectPath, "notes", "docs")
 	require.NoError(t, os.MkdirAll(folder, 0755))
 
-	t.Run("markdown notes store tags in frontmatter", func(t *testing.T) {
+	t.Run("notes store tags in frontmatter", func(t *testing.T) {
 		notePath := filepath.Join(folder, "note.md")
 		require.NoError(t, os.WriteFile(notePath, []byte("# Note"), 0644))
 

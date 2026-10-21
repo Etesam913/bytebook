@@ -11,7 +11,7 @@ import (
 )
 
 func TestAddNoteToFolder(t *testing.T) {
-	t.Run("Creates an empty markdown note in an existing folder", func(t *testing.T) {
+	t.Run("Creates an empty note in an existing folder", func(t *testing.T) {
 		project := t.TempDir()
 		require.NoError(t, os.MkdirAll(filepath.Join(project, "notes", "nested", "folder"), 0755))
 		service := NoteService{ProjectPath: project}

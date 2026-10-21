@@ -28,7 +28,7 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 			Hits: []*search.DocumentMatch{
 				{
 					Fields: map[string]interface{}{
-						"type":      MARKDOWN_NOTE_TYPE,
+						"type":      NOTE_TYPE,
 						"folder":    "folder1",
 						"file_name": "doc1",
 					},
@@ -38,7 +38,7 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 				},
 				{
 					Fields: map[string]interface{}{
-						"type":         MARKDOWN_NOTE_TYPE,
+						"type":         NOTE_TYPE,
 						"folder":       "folder2",
 						"file_name":    "doc2",
 						"last_updated": "2023-12-02T15:45:00Z",
@@ -57,7 +57,7 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 
 		// Verify first result
 		expectedFirst := SearchResult{
-			Type:        MARKDOWN_NOTE_TYPE,
+			Type:        NOTE_TYPE,
 			Title:       "doc1",
 			Folder:      "folder1",
 			Name:        "doc1",
@@ -69,7 +69,7 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 
 		// Verify second result
 		expectedSecond := SearchResult{
-			Type:        MARKDOWN_NOTE_TYPE,
+			Type:        NOTE_TYPE,
 			Title:       "doc2",
 			Folder:      "folder2",
 			Name:        "doc2",
@@ -99,7 +99,7 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 				},
 				{
 					Fields: map[string]interface{}{
-						"type":      MARKDOWN_NOTE_TYPE,
+						"type":      NOTE_TYPE,
 						"folder":    "valid-folder",
 						"file_name": "valid-file.md",
 					},
@@ -121,7 +121,7 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 			Hits: []*search.DocumentMatch{
 				{
 					Fields: map[string]interface{}{
-						"type":      MARKDOWN_NOTE_TYPE,
+						"type":      NOTE_TYPE,
 						"folder":    "highlight-test",
 						"file_name": "highlight",
 					},
@@ -157,7 +157,7 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 			Hits: []*search.DocumentMatch{
 				{
 					Fields: map[string]interface{}{
-						"type":      MARKDOWN_NOTE_TYPE,
+						"type":      NOTE_TYPE,
 						"folder":    "test",
 						"file_name": "file.md",
 					},
@@ -177,7 +177,7 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 			Hits: []*search.DocumentMatch{
 				{
 					Fields: map[string]interface{}{
-						"type":      MARKDOWN_NOTE_TYPE,
+						"type":      NOTE_TYPE,
 						"folder":    "mixed-content",
 						"file_name": "example",
 					},

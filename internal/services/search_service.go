@@ -74,7 +74,7 @@ func splitNotePath(pathToNote string) (folder string, note string, ok bool) {
 	return trimmed[:slashIdx], trimmed[slashIdx+1:], true
 }
 
-func (s *SearchService) FullTextSearch(searchQuery string, searchAfter []string, pageSize *int) config.BackendResponseWithData[search.FullTextSearchPage] {
+func (s *SearchService) FullTextSearch(searchQuery string, searchAfter []string, pageSize *int, includeFolders bool) config.BackendResponseWithData[search.FullTextSearchPage] {
 	effectivePageSize := search.FullTextSearchPageSize
 	if pageSize != nil && *pageSize > 0 {
 		effectivePageSize = *pageSize
@@ -82,7 +82,7 @@ func (s *SearchService) FullTextSearch(searchQuery string, searchAfter []string,
 
 	// Build the boolean query and request using helpers for clarity
 	totalQuery, sortOption := search.BuildBooleanQueryFromUserInput(searchQuery)
-	request := search.CreateSearchRequest(totalQuery, effectivePageSize+1, sortOption, searchAfter)
+	request := search.CreateSearchRequest(search.ScopeSearchQuery(totalQuery, includeFolders), effectivePageSize+1, sortOption, searchAfter)
 
 	res, err := func() (*bleve.SearchResult, error) {
 		idx := s.Index.RLock()
@@ -129,7 +129,7 @@ func (s *SearchService) GetPathsFromSearchQuery(searchQuery string) config.Backe
 	totalQuery, _ := search.BuildBooleanQueryFromUserInput(searchQuery)
 
 	// Leaner than search.CreateSearchRequest: three stored fields, no highlighting.
-	request := bleve.NewSearchRequest(totalQuery)
+	request := bleve.NewSearchRequest(search.ScopeSearchQuery(totalQuery, false))
 	request.Fields = []string{search.FieldType, search.FieldFolder, search.FieldFileName}
 	request.Size = TREE_FILTER_MAX_RESULTS
 
@@ -155,7 +155,7 @@ func (s *SearchService) GetPathsFromSearchQuery(searchQuery string) config.Backe
 		fileName, _ := hit.Fields[search.FieldFileName].(string)
 
 		// Only notes and attachments map onto tree paths.
-		if docType != search.MARKDOWN_NOTE_TYPE && docType != search.ATTACHMENT_TYPE {
+		if docType != search.NOTE_TYPE && docType != search.ATTACHMENT_TYPE {
 			continue
 		}
 		if fileName == "" {

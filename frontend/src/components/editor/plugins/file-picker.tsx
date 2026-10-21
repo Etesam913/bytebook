@@ -28,12 +28,12 @@ import {
   excludeCurrentFile,
 } from '@utils/file-picker-results';
 import { useAllPaths } from '@hooks/all-paths';
-import { useFileSearchQuery, type SearchResult } from '@hooks/search';
+import { useFileSearchQuery, type FileSearchResult } from '@hooks/search';
 import { useFilePathFromRoute } from '@hooks/routes';
 
 type FilePickerOption = {
   item: Extract<FilePickerMenuItemData, { kind: 'file' }>;
-  searchResult: SearchResult | null;
+  searchResult: FileSearchResult | null;
   dropdownOption: DropdownPickerOption;
 };
 
@@ -59,6 +59,7 @@ export function FilePickerMenuPlugin() {
     query: searchQuery ?? '',
     enabled: searchQuery !== null,
     keepPreviousResults: true,
+    includeFolders: false,
   });
   const { data: allPaths } = useAllPaths();
   const currentFilePath = useFilePathFromRoute();
@@ -74,32 +75,32 @@ export function FilePickerMenuPlugin() {
   const options: FilePickerOption[] =
     !searchQuery?.trim() || (!searchPage && isSearchLoading)
       ? getRecentPickerFiles({
-          recent: mostRecentItems,
-          currentPath: currentFilePath?.fullPath,
-          allPaths,
-        }).flatMap((recentItem): FilePickerOption[] => {
-          return [
-            buildFilePickerOption({
-              item: { kind: 'file', filePath: recentItem },
-              searchResult: null,
-              editor,
-              insertLink,
-            }),
-          ];
-        })
+        recent: mostRecentItems,
+        currentPath: currentFilePath?.fullPath,
+        allPaths,
+      }).flatMap((recentItem): FilePickerOption[] => {
+        return [
+          buildFilePickerOption({
+            item: { kind: 'file', filePath: recentItem },
+            searchResult: null,
+            editor,
+            insertLink,
+          }),
+        ];
+      })
       : excludeCurrentFile(
-          searchPage?.results ?? [],
-          currentFilePath?.fullPath
-        ).flatMap((result): FilePickerOption[] => {
-          return [
-            buildFilePickerOption({
-              item: { kind: 'file', filePath: result.filePath },
-              searchResult: result,
-              editor,
-              insertLink,
-            }),
-          ];
-        });
+        searchPage?.results ?? [],
+        currentFilePath?.fullPath
+      ).flatMap((result): FilePickerOption[] => {
+        return [
+          buildFilePickerOption({
+            item: { kind: 'file', filePath: result.filePath },
+            searchResult: result,
+            editor,
+            insertLink,
+          }),
+        ];
+      });
 
   const onSelectOption = (
     selectedOption: DropdownPickerOption,
@@ -198,7 +199,7 @@ function buildFilePickerOption({
   insertLink,
 }: {
   item: Extract<FilePickerMenuItemData, { kind: 'file' }>;
-  searchResult: SearchResult | null;
+  searchResult: FileSearchResult | null;
   editor: LexicalEditor;
   insertLink: (text: string, url: string) => void;
 }): FilePickerOption {

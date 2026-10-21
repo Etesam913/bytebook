@@ -13,7 +13,7 @@ import (
 )
 
 // Data is the JSON payload stored in a sidecar file. The same shape is
-// used for markdown notes and attachments alike.
+// used for notes and attachments alike.
 type Data struct {
 	Tags        []string     `json:"tags,omitempty"`
 	CodeResults *CodeResults `json:"codeResults,omitempty"`

@@ -13,8 +13,8 @@ func TestFilenameQueryCaseInsensitiveMatches(t *testing.T) {
 	index, err := OpenOrCreateIndex(t.TempDir())
 	require.NoError(t, err)
 	t.Cleanup(func() { assert.NoError(t, index.Close()) })
-	require.NoError(t, index.Index("target", CreateMarkdownNoteBleveDocument("unrelated content", "Projects/Docs", "MyReadme")))
-	require.NoError(t, index.Index("other", CreateMarkdownNoteBleveDocument("unrelated content", "Archive", "Checklist")))
+	require.NoError(t, index.Index("target", CreateNoteBleveDocument("unrelated content", "Projects/Docs", "MyReadme")))
+	require.NoError(t, index.Index("other", CreateNoteBleveDocument("unrelated content", "Archive", "Checklist")))
 
 	assertMatches := func(t *testing.T, q query.Query, expected string) {
 		t.Helper()

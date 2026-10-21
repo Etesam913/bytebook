@@ -63,11 +63,14 @@ export function FolderRendererHeader({
   return (
     <header className="relative">
       <div
-        className={cn('absolute top-3 left-3', isFileMaximized && 'left-32')}
+        className={cn(
+          'absolute top-0 left-3 flex h-(--app-header-height) items-center',
+          isFileMaximized && 'left-32'
+        )}
       >
         <MaximizeNoteButton animationControls={animationControls} />
       </div>
-      <div className="absolute top-3 right-3">
+      <div className="absolute top-0 right-3 flex h-(--app-header-height) items-center">
         <AppMenuTrigger>
           <Tooltip
             content="Folder settings"

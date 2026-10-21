@@ -180,7 +180,7 @@ func (n *NoteService) SetNoteMarkdownWithCodeResults(
 	}
 }
 
-// AddNoteToFolder creates a new empty markdown note with the given noteName in the specified folder.
+// AddNoteToFolder creates a new empty note with the given noteName in the specified folder.
 // Returns a BackendResponseWithoutData indicating success or failure.
 func (n *NoteService) AddNoteToFolder(folderName string, noteName string) config.BackendResponseWithoutData {
 	notesRoot := filepath.Join(n.ProjectPath, "notes")

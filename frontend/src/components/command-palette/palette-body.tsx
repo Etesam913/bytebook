@@ -14,6 +14,7 @@ import { CircleInfo } from '@/icons/circle-info';
 import { AppIconButton, MotionButton } from '@components/buttons';
 import { AppSearchField } from '@components/input';
 import { SearchExcerpt } from '@components/search-excerpt';
+import { Folder } from '@/icons/folder';
 import { RenderNoteIcon } from '@/icons/render-note-icon';
 import { navigateToPath } from '@utils/routes';
 import { usePaletteResults } from './hooks/use-palette-results';
@@ -73,7 +74,7 @@ export function PaletteBody({
           placeholder={
             mode === 'files'
               ? 'Search notes…  f:filename, #tag, or a phrase'
-              : 'Search commands…'
+              : 'Search commands'
           }
           maxLength={512}
           autoCapitalize="off"
@@ -206,9 +207,12 @@ function PaletteResult({ item }: { item: PaletteItem }) {
           : item.label
       }
     >
-      {item.action.kind === 'open-path' && (
-        <RenderNoteIcon filePath={item.action.path} size="sm" />
-      )}
+      {item.action.kind === 'open-path' &&
+        (item.action.path.type === 'folder' ? (
+          <Folder width="1rem" height="1rem" className="shrink-0" />
+        ) : (
+          <RenderNoteIcon filePath={item.action.path} size="sm" />
+        ))}
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-3">
           <Text

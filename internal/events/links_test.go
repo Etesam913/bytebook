@@ -53,11 +53,11 @@ func TestReplaceLocalLinksInNotes(t *testing.T) {
 		notesDir := filepath.Join(params.ProjectPath, "notes")
 
 		// Create a note that will be renamed (the target)
-		createMarkdownNoteInFolder(t, params.ProjectPath, "folder1", "target.md", "# Target")
+		createNoteInFolder(t, params.ProjectPath, "folder1", "target.md", "# Target")
 
 		// Create a note that links to the target
 		linkingContent := "# Linking Note\nSee [target](/notes/folder1/target.md) for info."
-		createMarkdownNoteInFolder(t, params.ProjectPath, "folder1", "linking.md", linkingContent)
+		createNoteInFolder(t, params.ProjectPath, "folder1", "linking.md", linkingContent)
 
 		// Index both notes so the links field is populated
 		addData := []util.FileCreateEventData{
@@ -67,7 +67,7 @@ func TestReplaceLocalLinksInNotes(t *testing.T) {
 		addCreatedNotesToIndex(params, addData)
 
 		// Simulate renaming target.md -> renamed.md
-		createMarkdownNoteInFolder(t, params.ProjectPath, "folder1", "renamed.md", "# Target")
+		createNoteInFolder(t, params.ProjectPath, "folder1", "renamed.md", "# Target")
 
 		renameData := []util.FileRenameEventData{{
 			OldFilePath: "folder1/target.md",
@@ -87,9 +87,9 @@ func TestReplaceLocalLinksInNotes(t *testing.T) {
 		params := createTestParams(t)
 		notesDir := filepath.Join(params.ProjectPath, "notes")
 
-		createMarkdownNoteInFolder(t, params.ProjectPath, "src", "doc.md", "# Doc")
+		createNoteInFolder(t, params.ProjectPath, "src", "doc.md", "# Doc")
 		linkingContent := "# Index\nRef: [doc](/notes/src/doc.md)"
-		createMarkdownNoteInFolder(t, params.ProjectPath, "index", "main.md", linkingContent)
+		createNoteInFolder(t, params.ProjectPath, "index", "main.md", linkingContent)
 
 		addData := []util.FileCreateEventData{
 			{FilePath: "src/doc.md"},
@@ -97,7 +97,7 @@ func TestReplaceLocalLinksInNotes(t *testing.T) {
 		}
 		addCreatedNotesToIndex(params, addData)
 
-		createMarkdownNoteInFolder(t, params.ProjectPath, "dest", "doc.md", "# Doc")
+		createNoteInFolder(t, params.ProjectPath, "dest", "doc.md", "# Doc")
 
 		renameData := []util.FileRenameEventData{{
 			OldFilePath: "src/doc.md",
@@ -117,7 +117,7 @@ func TestReplaceLocalLinksInNotes(t *testing.T) {
 		notesDir := filepath.Join(params.ProjectPath, "notes")
 
 		originalContent := "# Unrelated\nNo links here."
-		createMarkdownNoteInFolder(t, params.ProjectPath, "folder1", "unrelated.md", originalContent)
+		createNoteInFolder(t, params.ProjectPath, "folder1", "unrelated.md", originalContent)
 
 		addData := []util.FileCreateEventData{
 			{FilePath: "folder1/unrelated.md"},
@@ -141,15 +141,15 @@ func TestFindNotesWithLink(t *testing.T) {
 	t.Run("matches encoded internal note links and respects page size", func(t *testing.T) {
 		params := createTestParams(t)
 
-		createMarkdownNoteInFolder(t, params.ProjectPath, "My Folder", "Target Note.md", "# Target")
-		createMarkdownNoteInFolder(
+		createNoteInFolder(t, params.ProjectPath, "My Folder", "Target Note.md", "# Target")
+		createNoteInFolder(
 			t,
 			params.ProjectPath,
 			"refs",
 			"one.md",
 			"# One\n[target](/notes/My%20Folder/Target%20Note.md)",
 		)
-		createMarkdownNoteInFolder(
+		createNoteInFolder(
 			t,
 			params.ProjectPath,
 			"refs",

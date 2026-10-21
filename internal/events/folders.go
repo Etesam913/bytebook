@@ -1,7 +1,6 @@
 package events
 
 import (
-	"errors"
 	"fmt"
 	"io/fs"
 	"log"
@@ -66,31 +65,34 @@ func createFolderAndDescendantsQuery(folderPath string) query.Query {
 	prefixQuery := bleve.NewPrefixQuery(lower + "/")
 	prefixQuery.SetField(search.FieldFolder)
 	folderQuery.AddQuery(prefixQuery)
+	folderQuery.AddQuery(bleve.NewDocIDQuery([]string{folderPath + "/"}))
 
 	return folderQuery
 }
 
 // deleteFolderDocumentsFromIndex queues deletes for every document in folderPath and its
 // subfolders. Full batches are flushed as they fill; the caller flushes the remainder.
-// Flush errors don't stop the remaining deletes and are returned joined.
+// Returns search or batch errors without continuing past a failed batch.
 func deleteFolderDocumentsFromIndex(idx bleve.Index, batch *bleve.Batch, folderPath string) error {
 	searchRequest := bleve.NewSearchRequest(createFolderAndDescendantsQuery(folderPath))
-	searchRequest.Size = search.MaxDeleteSearchResults
-	searchRequest.Fields = []string{search.FieldFolder}
-
-	searchResult, err := idx.Search(searchRequest)
-	if err != nil {
-		return fmt.Errorf("searching for documents in folder %s: %w", folderPath, err)
-	}
-
-	var flushErrs []error
-	for _, hit := range searchResult.Hits {
-		batch.Delete(hit.ID)
-		if err := flushBatchIfFull(idx, batch); err != nil {
-			flushErrs = append(flushErrs, fmt.Errorf("flushing delete batch for folder %s: %w", folderPath, err))
+	searchRequest.Size = search.DefaultBatchSize
+	searchRequest.SortBy([]string{"_id"})
+	for {
+		searchResult, err := idx.Search(searchRequest)
+		if err != nil {
+			return fmt.Errorf("searching for documents in folder %s: %w", folderPath, err)
 		}
+		if len(searchResult.Hits) == 0 {
+			return nil
+		}
+		for _, hit := range searchResult.Hits {
+			batch.Delete(hit.ID)
+			if err := flushBatchIfFull(idx, batch); err != nil {
+				return fmt.Errorf("flushing folder deletes: %w", err)
+			}
+		}
+		searchRequest.SetSearchAfter(searchResult.Hits[len(searchResult.Hits)-1].Sort)
 	}
-	return errors.Join(flushErrs...)
 }
 
 func deleteFoldersFromIndex(params EventParams, data []util.FolderDeleteEventData) {

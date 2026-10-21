@@ -259,3 +259,53 @@ func TestBulkImportCoordinatorDeduplication(t *testing.T) {
 		assert.Empty(t, coordinator.jobs)
 	})
 }
+
+func TestFolderIndexLifecycle(t *testing.T) {
+	project := t.TempDir()
+	root := filepath.Join(project, "notes")
+	for _, path := range []string{"Parent/Empty", "Other", ".hidden/Empty"} {
+		require.NoError(t, os.MkdirAll(filepath.Join(root, path), 0755))
+	}
+	index, err := search.OpenOrCreateIndex(project)
+	require.NoError(t, err)
+	defer index.Close()
+	coordinator := &BulkImportCoordinator{projectPath: project, notesPath: root, index: search.NewIndexHolder(index)}
+	batch := index.NewBatch()
+	require.NoError(t, search.AddFolderToBatch(batch, "Missing"))
+	require.NoError(t, index.Batch(batch))
+
+	coordinator.processRequest("Parent")
+
+	doc, err := index.Document("Parent/Empty/")
+	require.NoError(t, err)
+	assert.NotNil(t, doc, "empty folders must be indexed during partial imports")
+	doc, err = index.Document("Missing/")
+	require.NoError(t, err)
+	assert.NotNil(t, doc, "partial imports must not prune other folders")
+	coordinator.processRequest("")
+	for _, id := range []string{"Parent/", "Parent/Empty/", "Other/"} {
+		doc, err := index.Document(id)
+		require.NoError(t, err)
+		assert.NotNil(t, doc)
+	}
+	for _, id := range []string{"Missing/", ".hidden/", ".hidden/Empty/", "./"} {
+		doc, err := index.Document(id)
+		require.NoError(t, err)
+		assert.Nil(t, doc)
+	}
+	// A directory created after discovery must survive reconciliation.
+	require.NoError(t, os.MkdirAll(filepath.Join(root, "Later"), 0755))
+	batch = index.NewBatch()
+	require.NoError(t, search.AddFolderToBatch(batch, "Later"))
+	require.NoError(t, index.Batch(batch))
+	require.NoError(t, search.ReconcileFolderDocuments(project, nil, index))
+	doc, err = index.Document("Later/")
+	require.NoError(t, err)
+	assert.NotNil(t, doc)
+	// Failed discovery must not prune the index.
+	require.NoError(t, os.Rename(root, root+"-unavailable"))
+	coordinator.processRequest("")
+	doc, err = index.Document("Parent/Empty/")
+	require.NoError(t, err)
+	assert.NotNil(t, doc)
+}

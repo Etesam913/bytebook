@@ -136,13 +136,13 @@ func updateNotesInIndex(params EventParams, data []util.FileWriteEventData) {
 					markdown = string(content)
 				}
 
-				bleveMarkdownDocument := search.CreateMarkdownNoteBleveDocument(
+				bleveNoteDocument := search.CreateNoteBleveDocument(
 					markdown,
 					folder,
 					noteName,
 				)
 
-				if err := batch.Index(notePath, bleveMarkdownDocument); err != nil {
+				if err := batch.Index(notePath, bleveNoteDocument); err != nil {
 					log.Printf("Error indexing note %s: %v", notePath, err)
 				}
 			}

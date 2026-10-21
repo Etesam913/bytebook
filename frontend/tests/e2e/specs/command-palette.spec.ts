@@ -79,7 +79,9 @@ test('finds a note with Quick Open and opens its content', async ({ page }) => {
   await expect(getEditor(page)).toHaveText('Research follow-up');
 });
 
-test('recovers from a failed search and opens a result', async ({ page }) => {
+test('recovers from a failed search and opens an indexed folder', async ({
+  page,
+}) => {
   await page.goto('/');
   await expect(page.getByTestId('file-sidebar')).toBeVisible();
   await updateMockBindingResponse(page, searchBinding, {
@@ -94,16 +96,37 @@ test('recovers from a failed search and opens a result', async ({ page }) => {
   await dialog.getByRole('searchbox').press('Enter');
   await expect(dialog).toBeVisible();
   await expect(page).toHaveURL('/');
-  await updateMockBindingResponse(
-    page,
-    searchBinding,
-    MOCK_FULL_TEXT_SEARCH_RESPONSE
-  );
+  await updateMockBindingResponse(page, searchBinding, {
+    ...MOCK_FULL_TEXT_SEARCH_RESPONSE,
+    data: {
+      ...MOCK_FULL_TEXT_SEARCH_RESPONSE.data,
+      results: [
+        {
+          type: 'folder',
+          name: 'Research Notes',
+          folder: '',
+          title: 'Research Notes',
+        },
+        ...MOCK_FULL_TEXT_SEARCH_RESPONSE.data.results,
+      ],
+      total: 4,
+    },
+  });
   await dialog.getByRole('button', { name: 'Retry' }).click();
-  await expect(dialog.getByRole('menuitem')).toHaveCount(3);
+  await expect(dialog.getByRole('menuitem')).toHaveCount(4);
+  await expect(dialog.getByRole('menuitem').first()).toHaveText(
+    /Research Notes/
+  );
+  await expect
+    .poll(
+      async () => (await getMockBindingCalls(page, searchBinding)).at(-1)?.[3]
+    )
+    .toBe(true);
   await dialog.getByRole('menuitem').first().click();
-  await expect(page).toHaveURL(NOTE_URL);
-  await expect(getEditor(page)).toContainText('Current note');
+  await expect(page).toHaveURL('/notes/Research%20Notes');
+  await expect(
+    page.getByRole('heading', { name: 'Research Notes', exact: true })
+  ).toBeVisible();
 });
 
 test('creates a note from the palette, writes content, and reopens it', async ({

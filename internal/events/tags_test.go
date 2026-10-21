@@ -8,7 +8,7 @@ import (
 )
 
 func TestReIndexNotesWithUpdatedTags(t *testing.T) {
-	t.Run("should re-index markdown notes with updated tags", func(t *testing.T) {
+	t.Run("should re-index notes with updated tags", func(t *testing.T) {
 		params := createTestParams(t)
 		notesDir := setupNotesDir(t, params.ProjectPath)
 

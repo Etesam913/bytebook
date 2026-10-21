@@ -6,7 +6,7 @@ import (
 	"github.com/etesam913/bytebook/internal/notes/sidecar"
 )
 
-// Tags live in frontmatter for markdown notes and in the JSON sidecar for
+// Tags live in frontmatter for notes and in the JSON sidecar for
 // attachments. These helpers pick the store from the file extension.
 
 func isMarkdownFile(folderAndFileName string) bool {

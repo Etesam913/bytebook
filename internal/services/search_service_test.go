@@ -226,7 +226,7 @@ func TestFullTextSearch(t *testing.T) {
 		service := SearchService{Index: search.NewIndexHolder(idx)}
 		require.NoError(t, idx.Close())
 
-		response := service.FullTextSearch("redis", nil, nil)
+		response := service.FullTextSearch("redis", nil, nil, false)
 		encoded, err := json.Marshal(response)
 		require.NoError(t, err)
 		var body map[string]any
@@ -242,23 +242,34 @@ func TestFullTextSearchPages(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() { require.NoError(t, idx.Close()) })
 	for _, name := range []string{"Alpha.md", "Beta.md", "Gamma.md"} {
-		require.NoError(t, idx.Index(name, search.MarkdownNoteBleveDocument{Type: "note", Folder: "Notes", FileName: name, TextContent: "redis caching"}))
+		require.NoError(t, idx.Index(name, search.NoteBleveDocument{Type: "note", Folder: "Notes", FileName: name, TextContent: "redis caching"}))
 	}
+	batch := idx.NewBatch()
+	require.NoError(t, search.AddFolderToBatch(batch, "Redis"))
+	require.NoError(t, search.AddFolderToBatch(batch, "Projects/Redis"))
+	require.NoError(t, idx.Batch(batch))
 	service := SearchService{Index: search.NewIndexHolder(idx)}
-	size := 2
+	size := 3
 
-	first := service.FullTextSearch("redis", nil, &size)
+	first := service.FullTextSearch("redis", nil, &size, true)
 	require.True(t, first.Success)
-	require.Len(t, first.Data.Results, 2)
-	second := service.FullTextSearch("redis", first.Data.NextSearchAfter, &size)
-	empty := service.FullTextSearch("zzzzzzzzzzzzzz", nil, &size)
+	require.Len(t, first.Data.Results, 3)
+	second := service.FullTextSearch("redis", first.Data.NextSearchAfter, &size, true)
+	empty := service.FullTextSearch("zzzzzzzzzzzzzz", nil, &size, false)
 
 	assert.True(t, first.Data.HasMore)
-	assert.Equal(t, uint64(3), first.Data.Total)
+	assert.Equal(t, uint64(5), first.Data.Total)
 	require.True(t, second.Success)
-	require.Len(t, second.Data.Results, 1)
-	assert.NotEqual(t, first.Data.Results[0].Name, second.Data.Results[0].Name)
-	assert.NotEqual(t, first.Data.Results[1].Name, second.Data.Results[0].Name)
+	require.Len(t, second.Data.Results, 2)
+	seen := make(map[string]bool)
+	types := make([]string, 0, 5)
+	for _, result := range append(first.Data.Results, second.Data.Results...) {
+		id := result.Type + ":" + result.Folder + "/" + result.Name
+		assert.False(t, seen[id], "pagination must not duplicate %s", id)
+		seen[id] = true
+		types = append(types, result.Type)
+	}
+	assert.ElementsMatch(t, []string{"note", "note", "note", "folder", "folder"}, types)
 	assert.False(t, second.Data.HasMore)
 	assert.True(t, empty.Success)
 	assert.Empty(t, empty.Data.Results)
@@ -271,10 +282,14 @@ func TestFullTextSearchSyntax(t *testing.T) {
 	writeTestNote(t, project, "work/alpha.md", "---\ntags:\n  - work\n---\n# Alpha\ncache invalidation\n[target](/notes/work/redis.md)")
 	writeTestNote(t, project, "personal/other.md", "# Other\nunrelated content")
 	indexTestNotes(t, project, idx, "work/redis.md", "work/alpha.md", "personal/other.md")
+	batch := idx.NewBatch()
+	require.NoError(t, search.AddFolderToBatch(batch, "Projects/Redis"))
+	require.NoError(t, search.AddFolderToBatch(batch, "Unrelated"))
+	require.NoError(t, idx.Batch(batch))
 	service := SearchService{ProjectPath: project, Index: search.NewIndexHolder(idx)}
 	assertNames := func(t *testing.T, query string, expected []string) {
 		t.Helper()
-		page := service.FullTextSearch(query, nil, nil)
+		page := service.FullTextSearch(query, nil, nil, false)
 
 		require.True(t, page.Success)
 		names := make([]string, 0, len(page.Data.Results))
@@ -291,4 +306,27 @@ func TestFullTextSearchSyntax(t *testing.T) {
 	t.Run("Quoted phrase and Boolean query", func(t *testing.T) { assertNames(t, "\"cache invalidation\" AND f:redis", []string{"redis.md"}) })
 	t.Run("Link syntax", func(t *testing.T) { assertNames(t, "@work/redis.md", []string{"alpha.md"}) })
 	t.Run("Language syntax", func(t *testing.T) { assertNames(t, "lang:python", []string{"redis.md"}) })
+	t.Run("Folders require opt-in and match case-insensitive paths", func(t *testing.T) {
+		page := service.FullTextSearch("t:folder AND f:PROJECTS/REDIS", nil, nil, true)
+		excluded := service.FullTextSearch("t:folder", nil, nil, false)
+
+		require.True(t, page.Success)
+		require.Len(t, page.Data.Results, 1)
+		assert.Equal(t, "Projects", page.Data.Results[0].Folder)
+		assert.Equal(t, "Redis", page.Data.Results[0].Name)
+		require.True(t, excluded.Success)
+		assert.Empty(t, excluded.Data.Results)
+	})
+	t.Run("Folder filters preserve negation and do not inherit note content", func(t *testing.T) {
+		page := service.FullTextSearch("t:folder AND -f:REDIS", nil, nil, true)
+
+		require.True(t, page.Success)
+		require.Len(t, page.Data.Results, 1)
+		assert.Equal(t, "Unrelated", page.Data.Results[0].Name)
+		for _, query := range []string{"t:folder AND cache", "t:folder AND #work", "t:folder AND l:go", "t:folder AND @Redis", `t:folder AND "Redis"`, "f:missing"} {
+			result := service.FullTextSearch(query, nil, nil, true)
+			require.True(t, result.Success)
+			assert.Empty(t, result.Data.Results, query)
+		}
+	})
 }

@@ -27,8 +27,15 @@ export const queryKeys = {
 
   // Search
   fileSearchAll: () => ['file-search'] as const,
-  fileSearch: (query: string, pageSize: number) =>
-    ['file-search', query, pageSize] as const,
+  fileSearch: ({
+    query,
+    pageSize,
+    includeFolders,
+  }: {
+    query: string;
+    pageSize: number;
+    includeFolders: boolean;
+  }) => ['file-search', query, pageSize, includeFolders] as const,
   savedSearches: () => ['saved-searches'] as const,
   treeFilterPathsAll: () => ['tree-filter-paths'] as const,
   treeFilterPaths: (searchQuery: string) =>

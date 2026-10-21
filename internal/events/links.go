@@ -122,7 +122,7 @@ func noteLinkPath(filePath string) string {
 	return "/notes/" + strings.Join(segments, "/")
 }
 
-// FindNotesWithLink queries the bleve index for markdown notes whose links field
+// FindNotesWithLink queries the bleve index for notes whose links field
 // contains the given URL path. Returns a slice of relative note paths (e.g. "folder/note.md").
 func FindNotesWithLink(index bleve.Index, urlPath string, pageSize int) []string {
 	if index == nil {

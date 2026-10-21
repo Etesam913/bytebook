@@ -37,7 +37,7 @@ func TestSetTagsOnNotes(t *testing.T) {
 		}
 	})
 
-	t.Run("Reports failure for a missing markdown note", func(t *testing.T) {
+	t.Run("Reports failure for a missing note", func(t *testing.T) {
 		service := TagsService{ProjectPath: t.TempDir()}
 
 		response := service.SetTagsOnNotes([]string{"missing.md"}, []string{"added"}, nil)
