@@ -12,8 +12,8 @@ export const SEARCH_HELP_SECTIONS: {
         description: 'Match the exact phrase "docker compose".',
       },
       {
-        query: 'auth AND middleware',
-        description: 'Notes containing both "auth" and "middleware".',
+        query: 'auth AND -middleware',
+        description: 'Match "auth"; use - to exclude "middleware".',
       },
       {
         query: 'auth OR middleware',

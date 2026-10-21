@@ -3,9 +3,47 @@ package search
 import (
 	"testing"
 
+	"github.com/blevesearch/bleve/v2"
 	"github.com/blevesearch/bleve/v2/search/query"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
+
+func TestFilenameQueryCaseInsensitiveMatches(t *testing.T) {
+	index, err := OpenOrCreateIndex(t.TempDir())
+	require.NoError(t, err)
+	t.Cleanup(func() { assert.NoError(t, index.Close()) })
+	require.NoError(t, index.Index("target", CreateMarkdownNoteBleveDocument("unrelated content", "Projects/Docs", "MyReadme")))
+	require.NoError(t, index.Index("other", CreateMarkdownNoteBleveDocument("unrelated content", "Archive", "Checklist")))
+
+	assertMatches := func(t *testing.T, q query.Query, expected string) {
+		t.Helper()
+
+		result, err := index.Search(bleve.NewSearchRequest(q))
+
+		require.NoError(t, err)
+		require.Len(t, result.Hits, 1)
+		assert.Equal(t, expected, result.Hits[0].ID)
+	}
+
+	t.Run("direct path query normalizes whitespace and mixed case", func(t *testing.T) {
+		assertMatches(t, CreateFilenameQuery("  PROJECTS/Docs/MyReAd  ", 1), "target")
+	})
+	t.Run("uppercase plain term matches and negation excludes filename", func(t *testing.T) {
+		q, _ := BuildBooleanQueryFromUserInput("README")
+		negated, _ := BuildBooleanQueryFromUserInput("-README")
+
+		assertMatches(t, q, "target")
+		assertMatches(t, negated, "other")
+	})
+	t.Run("uppercase filename prefix matches and negation excludes filename", func(t *testing.T) {
+		q, _ := BuildBooleanQueryFromUserInput("f:README")
+		negated, _ := BuildBooleanQueryFromUserInput("-file:README")
+
+		assertMatches(t, q, "target")
+		assertMatches(t, negated, "other")
+	})
+}
 
 func TestCreateExactQuery(t *testing.T) {
 	t.Run("should create match phrase query", func(t *testing.T) {

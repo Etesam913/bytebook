@@ -48,7 +48,7 @@ func createMatchQuery(field, term string, boost float64) query.Query {
 // folder portion to match FieldFolder AND the filename portion to match FieldFileName.
 // Otherwise, fall back to a disjunction across the two fields.
 func CreateFilenameQuery(prefixTerm string, boost float64) query.Query {
-	normalized := strings.TrimSpace(prefixTerm)
+	normalized := strings.ToLower(strings.TrimSpace(prefixTerm))
 
 	// fieldMatch returns a disjunction that matches the field on either a substring
 	// (wildcard) or a prefix. The prefix branch carries a higher boost so filenames
@@ -333,7 +333,7 @@ func BuildBooleanQueryFromUserInput(input string) (query.Query, *SearchSortOptio
 	createTokenQuery := func(token SearchToken) (query.Query, bool) {
 		// Check for filename prefix (f: or file:) — skip when prefix is empty to avoid full index scan
 		if prefixTerm, ok := extractFilenamePrefix(token.Text); ok {
-			prefixTerm = strings.TrimSpace(strings.ToLower(prefixTerm))
+			prefixTerm = strings.TrimSpace(prefixTerm)
 			if prefixTerm == "" {
 				return nil, true
 			}
