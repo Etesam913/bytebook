@@ -3,6 +3,7 @@ package services
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -112,4 +113,38 @@ func TestDoesNoteExist(t *testing.T) {
 		assert.False(t, parentExists)
 		assert.False(t, outsideExists)
 	})
+}
+
+func TestMoveToTrashPreservesSuccessfulItemsOnPartialFailure(t *testing.T) {
+	project := t.TempDir()
+	notesPath := filepath.Join(project, "notes")
+	require.NoError(t, os.MkdirAll(notesPath, 0755))
+	t.Setenv("BYTEBOOK_TRASH_DIR", filepath.Join(t.TempDir(), "trash"))
+	t.Setenv("XDG_DATA_HOME", t.TempDir())
+	attachmentPath := filepath.Join(notesPath, "report.pdf")
+	sidecarPath := filepath.Join(notesPath, ".report.pdf.json")
+	require.NoError(t, os.WriteFile(attachmentPath, []byte("attachment"), 0644))
+	require.NoError(t, os.WriteFile(sidecarPath, []byte(`{"tags":["report"]}`), 0644))
+	service := NoteService{ProjectPath: project}
+
+	response := service.MoveToTrash([]string{"missing.md", "report.pdf", "also-missing.md"})
+
+	assert.False(t, response.Success)
+	require.Len(t, response.Data, 1)
+	assert.Equal(t, attachmentPath, response.Data[0].OriginalPath)
+	assert.FileExists(t, response.Data[0].TrashedPath)
+	require.Len(t, response.Data[0].RelatedItems, 1)
+	assert.Equal(t, sidecarPath, response.Data[0].RelatedItems[0].OriginalPath)
+	assert.FileExists(t, response.Data[0].RelatedItems[0].TrashedPath)
+	assert.NoFileExists(t, attachmentPath)
+	assert.NoFileExists(t, sidecarPath)
+
+	if runtime.GOOS == "darwin" {
+		restored := service.RestoreFromTrash(response.Data)
+		require.True(t, restored.Success, restored.Message)
+		content, err := os.ReadFile(sidecarPath)
+		require.NoError(t, err)
+		assert.Equal(t, `{"tags":["report"]}`, string(content))
+		assert.FileExists(t, attachmentPath)
+	}
 }

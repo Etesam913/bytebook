@@ -227,7 +227,7 @@ func (n *NoteService) MoveToTrash(folderAndNotes []string) config.BackendRespons
 		return config.BackendResponseWithData[[]util.TrashRestoreInfo]{
 			Success: false,
 			Message: userFacingError(err, "Could not move items to trash"),
-			Data:    []util.TrashRestoreInfo{},
+			Data:    restoreItems,
 		}
 	}
 	return config.BackendResponseWithData[[]util.TrashRestoreInfo]{

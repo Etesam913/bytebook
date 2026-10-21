@@ -431,7 +431,7 @@ func CleanFileName(name string) string {
 }
 
 // MoveNotesToTrash moves the given notes (and folders) into the system trash.
-// It returns restore metadata for app-level undo when all moves succeed.
+// It returns restore metadata for successful moves, even when other moves fail.
 func MoveNotesToTrash(projectPath string, folderAndNotes []string) ([]TrashRestoreInfo, error) {
 	var failed []string
 	normalizedPaths := DedupeDescendantPaths(folderAndNotes)
@@ -443,7 +443,12 @@ func MoveNotesToTrash(projectPath string, folderAndNotes []string) ([]TrashResto
 		fullPath := filepath.Join(projectPath, "notes", relPath)
 
 		var relatedItems []TrashRestoreInfo
-		if strings.EqualFold(filepath.Ext(fullPath), ".md") {
+		fileInfo, err := os.Stat(fullPath)
+		if err != nil {
+			failed = append(failed, fileName)
+			continue
+		}
+		if !fileInfo.IsDir() {
 			sidecarPath := FileSidecarPath(fullPath)
 			if sidecarExists, err := FileOrFolderExists(sidecarPath); err != nil {
 				failed = append(failed, fileName)
@@ -472,7 +477,7 @@ func MoveNotesToTrash(projectPath string, folderAndNotes []string) ([]TrashResto
 
 	// Return a combined error if any moves failed
 	if len(failed) > 0 {
-		return nil, fmt.Errorf(
+		return restoreItems, fmt.Errorf(
 			"could not move %s to trash",
 			strings.Join(failed, ", "),
 		)

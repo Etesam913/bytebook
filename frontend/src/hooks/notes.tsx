@@ -18,7 +18,10 @@ import { CUSTOM_TRANSFORMERS } from '@components/editor/transformers';
 import { DEFAULT_SONNER_OPTIONS } from '@utils/general';
 import { getBackendResponseData } from '@utils/query';
 import { queryKeys } from '@utils/query-keys';
-import { getNavigationTargetForDeletedPaths } from '@utils/routes';
+import {
+  getNavigationTargetForDeletedPaths,
+  navigateToPath,
+} from '@utils/routes';
 import {
   createFilePath,
   stripTrailingSlash,
@@ -83,17 +86,33 @@ export function useRevealInFinderMutation() {
 export function useMoveToTrashMutation() {
   const { mutate: restoreFromTrash } = useRestoreFromTrashMutation();
   /** The currently-viewed path (file or folder), if any. */
-  const currentRoutePath = useRecentItemFromRoute()?.fullPath ?? null;
+  const currentRoute = useRecentItemFromRoute();
+  const currentRoutePath = currentRoute?.fullPath ?? null;
+
+  function showTrashUndo(
+    restoreItems: TrashRestoreInfo[],
+    returnTo: FileOrFolderPath | null
+  ) {
+    if (restoreItems.length === 0) return;
+
+    const label =
+      restoreItems.length === 1
+        ? `Moved ${restoreItems[0].originalPath.split('/').slice(-1)[0]} to Trash`
+        : `Moved ${restoreItems.length} items to Trash`;
+
+    toast.message(label, {
+      ...DEFAULT_SONNER_OPTIONS,
+      action: {
+        label: 'Undo',
+        onClick: () => {
+          restoreFromTrash({ restoreItems, returnTo });
+        },
+      },
+    });
+  }
 
   return useMutation({
     mutationFn: async ({ paths }: { paths: string[] }) => {
-      return (
-        (await getBackendResponseData(
-          MoveToTrash(paths.map(stripTrailingSlash))
-        )) ?? []
-      );
-    },
-    onMutate: ({ paths }) => {
       // Navigate immediately if the current route was among the deleted paths
       const navigationTarget = getNavigationTargetForDeletedPaths({
         currentRoutePath,
@@ -102,26 +121,23 @@ export function useMoveToTrashMutation() {
       if (navigationTarget) {
         navigate(navigationTarget);
       }
-    },
-    onSuccess: (restoreItems) => {
-      if (restoreItems.length === 0) {
-        return;
-      }
 
-      const label =
-        restoreItems.length === 1
-          ? `Moved ${restoreItems[0].originalPath.split('/').slice(-1)[0]} to Trash`
-          : `Moved ${restoreItems.length} items to Trash`;
-
-      toast.message(label, {
-        ...DEFAULT_SONNER_OPTIONS,
-        action: {
-          label: 'Undo',
-          onClick: () => {
-            restoreFromTrash({ restoreItems });
-          },
-        },
-      });
+      const response = await MoveToTrash(paths.map(stripTrailingSlash));
+      // Failed batches can still contain successful moves that need Undo.
+      const restoreItems = response.data ?? [];
+      const restoredPaths = paths.filter((path) =>
+        restoreItems.some((item) =>
+          item.originalPath.endsWith(`/${stripTrailingSlash(path)}`)
+        )
+      );
+      const returnTo = getNavigationTargetForDeletedPaths({
+        currentRoutePath,
+        paths: restoredPaths,
+      })
+        ? currentRoute
+        : null;
+      showTrashUndo(restoreItems, returnTo);
+      return (await getBackendResponseData(response)) ?? [];
     },
   });
 }
@@ -132,8 +148,12 @@ function useRestoreFromTrashMutation() {
       restoreItems,
     }: {
       restoreItems: TrashRestoreInfo[];
+      returnTo: FileOrFolderPath | null;
     }) => {
       await getBackendResponseData(RestoreFromTrash(restoreItems));
+    },
+    onSuccess: (_data, { returnTo }) => {
+      if (returnTo) navigateToPath(returnTo);
     },
   });
 }
