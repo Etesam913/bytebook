@@ -84,8 +84,8 @@ export function TagAccordionButton({
                   children: () => (
                     <TagDialogChildren tagsToDelete={newSelectionRange} />
                   ),
-                  onSubmit: async (_, setErrorText) => {
-                    return deleteTags({ tagsToDelete, setErrorText });
+                  onSubmit: async () => {
+                    return deleteTags({ tagsToDelete });
                   },
                 });
               },

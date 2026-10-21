@@ -59,7 +59,12 @@ export function NoteTitle({ filePath }: { filePath: FilePath }) {
           void renameFile({
             oldPath: filePath,
             newPath: newFilePath,
-            setErrorText,
+          }).catch((error: unknown) => {
+            setErrorText(
+              error instanceof Error
+                ? error.message
+                : 'An unknown error occurred'
+            );
           });
         }}
         onKeyDown={(e) => {

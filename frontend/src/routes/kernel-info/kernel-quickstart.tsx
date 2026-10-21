@@ -84,8 +84,8 @@ export function KernelQuickstart({ language }: { language: Languages }) {
               children: (errorText) => (
                 <PythonVenvDialog errorText={errorText} />
               ),
-              onSubmit: async (formData, setErrorText) => {
-                return await submitPythonVenv({ formData, setErrorText });
+              onSubmit: async (formData) => {
+                return await submitPythonVenv({ formData });
               },
             });
           }}

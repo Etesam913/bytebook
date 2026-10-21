@@ -146,8 +146,11 @@ export function useProjectSettings() {
  *
  * @returns The mutation object from useMutation.
  */
-export function useUpdateProjectSettingsMutation() {
+export function useUpdateProjectSettingsMutation({
+  inlineError = false,
+}: { inlineError?: boolean } = {}) {
   return useMutation({
+    meta: { inlineError },
     onMutate: ({ newProjectSettings }) => {
       const previousVariables = captureAppearanceVariables();
       applyAppearanceVariables(newProjectSettings);

@@ -32,8 +32,8 @@ const queryClient = new QueryClient({
     },
   }),
   mutationCache: new MutationCache({
-    onError: (error) => {
-      if (error instanceof QueryError) {
+    onError: (error, _variables, _context, mutation) => {
+      if (error instanceof QueryError && mutation.meta?.inlineError !== true) {
         toast.error(error.message, DEFAULT_SONNER_OPTIONS);
       }
     },

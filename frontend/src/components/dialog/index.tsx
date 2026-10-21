@@ -91,15 +91,22 @@ export function Dialog() {
               action={async (formData) => {
                 if (!dialogData.onSubmit) return;
 
+                setErrorText('');
                 setDialogData((prev) => ({ ...prev, isPending: true }));
-                const result = await dialogData.onSubmit(
-                  formData,
-                  setErrorText
-                );
-                setDialogData((prev) => ({ ...prev, isPending: false }));
-
-                if (result) {
-                  closeDialog();
+                try {
+                  const result = await dialogData.onSubmit(
+                    formData,
+                    setErrorText
+                  );
+                  if (result) closeDialog();
+                } catch (error) {
+                  setErrorText(
+                    error instanceof Error
+                      ? error.message
+                      : 'An unknown error occurred'
+                  );
+                } finally {
+                  setDialogData((prev) => ({ ...prev, isPending: false }));
                 }
               }}
               className={cn(

@@ -233,14 +233,7 @@ export function useOpenEditTagsDialog() {
       children: (errorText) => (
         <EditTagDialogChildren filePaths={filePaths} errorText={errorText} />
       ),
-      onSubmit: async (formData, setErrorText) => {
-        try {
-          return await editTags({ formData, setErrorText, filePaths });
-        } catch {
-          // onError fills in the dialog's error text; keep it open.
-          return false;
-        }
-      },
+      onSubmit: (formData) => editTags({ formData, filePaths }),
     });
   };
 }

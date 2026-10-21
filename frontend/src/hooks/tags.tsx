@@ -10,7 +10,6 @@ import {
 } from '@bindings/services/tagsservice';
 import { getBackendResponseData } from '@utils/query';
 import { queryKeys } from '@utils/query-keys';
-import { Dispatch, SetStateAction } from 'react';
 
 /**
  * Handles the `tags-folder:create`, "tags-folder:delete", and "tags:update" events.
@@ -63,7 +62,6 @@ export function useTagsForNotesQuery(paths: string[]) {
 
 type EditTagsFormMutationVariables = {
   formData: FormData;
-  setErrorText: Dispatch<SetStateAction<string>>;
   filePaths: string[];
 };
 
@@ -73,6 +71,7 @@ type EditTagsFormMutationVariables = {
  */
 export function useEditTagsFormMutation() {
   return useMutation({
+    meta: { inlineError: true },
     mutationFn: async ({
       formData,
       filePaths,
@@ -88,12 +87,6 @@ export function useEditTagsFormMutation() {
         SetTagsOnNotes(filePaths, tagNamesToAdd, tagNamesToRemove)
       );
       return true;
-    },
-    onError: (error, variables) => {
-      const { setErrorText } = variables;
-      setErrorText(
-        error instanceof Error ? error.message : 'Failed to set tags'
-      );
     },
   });
 }
@@ -121,7 +114,6 @@ export function useDeleteTagFromNoteMutation(filePath: string) {
 
 type DeleteTagsMutationVariables = {
   tagsToDelete: string[];
-  setErrorText: (error: string) => void;
 };
 
 /**
@@ -130,15 +122,10 @@ type DeleteTagsMutationVariables = {
  */
 export function useDeleteTagsMutation() {
   return useMutation({
+    meta: { inlineError: true },
     mutationFn: async (variables: DeleteTagsMutationVariables) => {
       await getBackendResponseData(DeleteTags(variables.tagsToDelete));
       return true;
-    },
-    onError: (error, variables) => {
-      const { setErrorText } = variables;
-      if (error instanceof Error) {
-        setErrorText(error.message);
-      }
     },
   });
 }

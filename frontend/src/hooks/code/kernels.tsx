@@ -1,7 +1,7 @@
 import { useSetAtom } from 'jotai';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Dispatch, SetStateAction, useEffect } from 'react';
+import { useEffect } from 'react';
 import type { KernelInstanceSnapshot } from '@bindings/kernel_manager/models';
 import {
   EnsureKernel,
@@ -220,14 +220,14 @@ export function useEnsureKernelMutation() {
  */
 type pythonVenvMutationParams = {
   formData: FormData;
-  setErrorText: Dispatch<SetStateAction<string>>;
 };
 
 export function usePythonVenvSubmitMutation(projectSettings: ProjectSettings) {
   const { mutateAsync: updateProjectSettings } =
-    useUpdateProjectSettingsMutation();
+    useUpdateProjectSettingsMutation({ inlineError: true });
 
   return useMutation({
+    meta: { inlineError: true },
     mutationFn: async (variables: pythonVenvMutationParams) => {
       const { formData } = variables;
       const selectedVenvPath = formData.get('venv-path-option');
@@ -267,14 +267,6 @@ export function usePythonVenvSubmitMutation(projectSettings: ProjectSettings) {
       // Tear down every existing python kernel; they will be recreated on next execute.
       await ShutdownKernelsByLanguage(LANGUAGES.PYTHON);
       return true;
-    },
-    onError: (error, variables) => {
-      const { setErrorText } = variables;
-      if (error instanceof Error) {
-        setErrorText(error.message);
-      } else {
-        setErrorText('An unknown error occurred');
-      }
     },
   });
 }

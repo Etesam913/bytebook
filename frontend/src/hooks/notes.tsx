@@ -1,7 +1,7 @@
+import { type Dispatch, type SetStateAction } from 'react';
 import { queryOptions, useMutation, useQuery } from '@tanstack/react-query';
 import { useAtomValue, useStore } from 'jotai/react';
 import { type LexicalEditor } from 'lexical';
-import { type Dispatch, type SetStateAction } from 'react';
 import { toast } from 'sonner';
 import { navigate } from 'wouter/use-browser-location';
 import {
@@ -196,29 +196,20 @@ export function usePinPathMutation() {
   });
 }
 
-// Renames a note file on disk from an old path to a new path and reports errors via the provided setter.
+// Renames a note file on disk; the caller displays errors inline.
 export function useRenameFileMutation() {
   return useMutation({
+    meta: { inlineError: true },
     mutationFn: async ({
       oldPath,
       newPath,
     }: {
       oldPath: FilePath;
       newPath: FilePath;
-      setErrorText: Dispatch<SetStateAction<string>>;
     }) => {
       return getBackendResponseData(
         RenameFile(oldPath.fullPath, newPath.fullPath)
       );
-    },
-    onError: (error, variables) => {
-      if (error instanceof Error) {
-        variables.setErrorText(error.message);
-      } else {
-        variables.setErrorText(
-          'An unknown error occurred. Please try again later.'
-        );
-      }
     },
   });
 }
