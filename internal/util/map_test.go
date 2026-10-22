@@ -12,22 +12,22 @@ func TestSet_Add(t *testing.T) {
 	t.Run("int set - add new and existing", func(t *testing.T) {
 		s := make(Set[int])
 		assert.False(t, s.Has(1), "Set should not have 1 initially")
-		assert.Len(t, s.Elements(), 0, "Set should be empty initially")
+		assert.Len(t, MapKeys(s), 0, "Set should be empty initially")
 
 		s.Add(1)
 		assert.True(t, s.Has(1), "Set should have 1 after adding")
-		assert.Len(t, s.Elements(), 1, "Set should have 1 element")
-		assert.ElementsMatch(t, []int{1}, s.Elements())
+		assert.Len(t, MapKeys(s), 1, "Set should have 1 element")
+		assert.ElementsMatch(t, []int{1}, MapKeys(s))
 
 		s.Add(2)
 		assert.True(t, s.Has(2), "Set should have 2 after adding")
-		assert.Len(t, s.Elements(), 2, "Set should have 2 elements")
-		assert.ElementsMatch(t, []int{1, 2}, s.Elements())
+		assert.Len(t, MapKeys(s), 2, "Set should have 2 elements")
+		assert.ElementsMatch(t, []int{1, 2}, MapKeys(s))
 
 		s.Add(1) // Add existing element
 		assert.True(t, s.Has(1), "Set should still have 1")
-		assert.Len(t, s.Elements(), 2, "Set size should not change when adding existing element")
-		assert.ElementsMatch(t, []int{1, 2}, s.Elements())
+		assert.Len(t, MapKeys(s), 2, "Set size should not change when adding existing element")
+		assert.ElementsMatch(t, []int{1, 2}, MapKeys(s))
 	})
 
 	t.Run("string set - add new and existing", func(t *testing.T) {
@@ -36,12 +36,12 @@ func TestSet_Add(t *testing.T) {
 		assert.True(t, s.Has("hello"))
 		s.Add("world")
 		assert.True(t, s.Has("world"))
-		assert.Len(t, s.Elements(), 2)
-		assert.ElementsMatch(t, []string{"hello", "world"}, s.Elements())
+		assert.Len(t, MapKeys(s), 2)
+		assert.ElementsMatch(t, []string{"hello", "world"}, MapKeys(s))
 
 		s.Add("hello")
-		assert.Len(t, s.Elements(), 2)
-		assert.ElementsMatch(t, []string{"hello", "world"}, s.Elements())
+		assert.Len(t, MapKeys(s), 2)
+		assert.ElementsMatch(t, []string{"hello", "world"}, MapKeys(s))
 	})
 }
 
@@ -68,39 +68,6 @@ func TestSet_Has(t *testing.T) {
 
 		s.Add("")
 		assert.True(t, s.Has(""), "Set should have empty string after adding it")
-	})
-}
-
-func TestSet_Elements(t *testing.T) {
-	t.Run("empty int set", func(t *testing.T) {
-		s := make(Set[int])
-		elements := s.Elements()
-		assert.Empty(t, elements, "Elements of an empty set should be an empty slice")
-		// The implementation `make([]T, 0, len(s))` returns a non-nil empty slice.
-		assert.NotNil(t, elements, "Elements should return non-nil empty slice for empty set")
-	})
-
-	t.Run("non-empty int set", func(t *testing.T) {
-		s := make(Set[int])
-		s.Add(1)
-		s.Add(3)
-		s.Add(2)
-		s.Add(1) // duplicate
-		expected := []int{1, 2, 3}
-		actual := s.Elements()
-		assert.ElementsMatch(t, expected, actual, "Elements should match expected, order independent")
-		assert.Len(t, actual, 3)
-	})
-
-	t.Run("non-empty string set", func(t *testing.T) {
-		s := make(Set[string])
-		s.Add("c")
-		s.Add("a")
-		s.Add("b")
-		expected := []string{"a", "b", "c"}
-		actual := s.Elements()
-		assert.ElementsMatch(t, expected, actual)
-		assert.Len(t, actual, 3)
 	})
 }
 
@@ -144,7 +111,7 @@ func TestSliceToSet(t *testing.T) {
 	for _, tc := range intTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultSet := SliceToSet(tc.slice)
-			actualElements := resultSet.Elements()
+			actualElements := MapKeys(resultSet)
 			assert.ElementsMatch(t, tc.expectedSetElements, actualElements)
 			assert.Len(t, actualElements, len(tc.expectedSetElements), "Set size should match expected unique elements count")
 		})
@@ -176,7 +143,7 @@ func TestSliceToSet(t *testing.T) {
 	for _, tc := range stringTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultSet := SliceToSet(tc.slice)
-			actualElements := resultSet.Elements()
+			actualElements := MapKeys(resultSet)
 			assert.ElementsMatch(t, tc.expectedSetElements, actualElements)
 			assert.Len(t, actualElements, len(tc.expectedSetElements))
 		})
@@ -245,5 +212,21 @@ func TestMapKeys(t *testing.T) {
 		actualKeys := MapKeys(m)
 		assert.ElementsMatch(t, expectedKeys, actualKeys)
 		assert.Len(t, actualKeys, len(expectedKeys))
+	})
+}
+
+func TestUniqueTrimmed(t *testing.T) {
+	t.Run("preserves first occurrence order after trimming", func(t *testing.T) {
+		input := []string{" zeta ", "alpha", "zeta", "", "\t ", " alpha ", "beta"}
+		original := append([]string{}, input...)
+
+		result := UniqueTrimmed(input)
+
+		assert.Equal(t, []string{"zeta", "alpha", "beta"}, result)
+		assert.Equal(t, original, input)
+	})
+
+	t.Run("returns an empty slice for nil input", func(t *testing.T) {
+		assert.Equal(t, []string{}, UniqueTrimmed(nil))
 	})
 }

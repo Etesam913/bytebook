@@ -427,9 +427,7 @@ func TestAddTagsToNote(t *testing.T) {
 		content, _ = os.ReadFile(testFile2)
 		tags, exists := GetTagsFromFrontmatter(string(content))
 		assert.True(t, exists)
-		assert.Len(t, tags, 2) // Should deduplicate and ignore empty tags
-		assert.Contains(t, tags, "existing")
-		assert.Contains(t, tags, "new")
+		assert.Equal(t, []string{"existing", "new"}, tags)
 	})
 
 	t.Run("should handle errors", func(t *testing.T) {

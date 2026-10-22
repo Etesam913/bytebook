@@ -1,22 +1,10 @@
 package sidecar
 
-import (
-	"strings"
-
-	"github.com/etesam913/bytebook/internal/util"
-)
+import "github.com/etesam913/bytebook/internal/util"
 
 // sanitizeTags trims, de-duplicates, and removes empty tags.
 func sanitizeTags(tags []string) []string {
-	tagSet := util.Set[string]{}
-	for _, tag := range tags {
-		trimmed := strings.TrimSpace(tag)
-		if trimmed == "" {
-			continue
-		}
-		tagSet.Add(trimmed)
-	}
-	return tagSet.Elements()
+	return util.UniqueTrimmed(tags)
 }
 
 // ReadTags returns the tags stored in the file's sidecar, or an empty slice if absent.

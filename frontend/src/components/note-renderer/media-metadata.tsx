@@ -30,16 +30,11 @@ export function MediaMetadata({
   const { mutate: deleteTagFromNote } = useDeleteTagFromNoteMutation(
     filePath.fullPath
   );
-  const notePath = `${filePath.folder}/${filePath.note}`;
   const folderSegments = filePath.folder
     .split('/')
     .filter(Boolean)
     .map((segment) => safeDecodeURIComponent(segment));
-  const tags = (
-    tagsMap?.[notePath] ??
-    tagsMap?.[filePath.fullPath] ??
-    []
-  ).sort();
+  const tags = [...(tagsMap?.[filePath.fullPath] ?? [])].sort();
 
   return (
     <div

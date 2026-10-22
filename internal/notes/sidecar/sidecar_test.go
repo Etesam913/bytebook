@@ -173,7 +173,7 @@ func TestEnsure(t *testing.T) {
 
 		tags, err := ReadTags(projectPath, "testfolder", "photo.jpg")
 		require.NoError(t, err)
-		assert.ElementsMatch(t, []string{"existing"}, tags)
+		assert.Equal(t, []string{"existing"}, tags)
 	})
 }
 
@@ -197,7 +197,7 @@ func TestMove(t *testing.T) {
 
 		tags, err := ReadTags(projectPath, "newfolder", "renamed.md")
 		require.NoError(t, err)
-		assert.ElementsMatch(t, []string{"tag1"}, tags)
+		assert.Equal(t, []string{"tag1"}, tags)
 
 		results, err := ReadCodeResults(newNotePath)
 		require.NoError(t, err)
@@ -241,6 +241,6 @@ func TestMove(t *testing.T) {
 
 		tags, err := ReadTags(projectPath, "testfolder", "Photo.jpg")
 		require.NoError(t, err)
-		assert.ElementsMatch(t, []string{"tag1"}, tags)
+		assert.Equal(t, []string{"tag1"}, tags)
 	})
 }

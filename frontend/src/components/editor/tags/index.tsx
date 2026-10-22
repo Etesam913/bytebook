@@ -28,7 +28,7 @@ export function Tags({ filePath }: { filePath: FilePath }) {
     filePath.fullPath
   );
 
-  const tags = (tagsMap?.[`${filePath.folder}/${filePath.note}`] ?? []).sort();
+  const tags = [...(tagsMap?.[filePath.fullPath] ?? [])].sort();
 
   return (
     <section

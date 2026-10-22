@@ -40,7 +40,7 @@ func TestSanitizeTags(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := sanitizeTags(tt.input)
-			assert.ElementsMatch(t, tt.expected, result)
+			assert.Equal(t, tt.expected, result)
 		})
 	}
 }
@@ -60,7 +60,7 @@ func TestReadTags(t *testing.T) {
 
 		tags, err := ReadTags(projectPath, "testfolder", "photo.jpg")
 		require.NoError(t, err)
-		assert.ElementsMatch(t, []string{"tag1", "tag2"}, tags)
+		assert.Equal(t, []string{"tag1", "tag2"}, tags)
 	})
 
 	t.Run("returns error for invalid json", func(t *testing.T) {
@@ -81,7 +81,7 @@ func TestWriteTags(t *testing.T) {
 
 		tags, err := ReadTags(projectPath, "testfolder", "photo.jpg")
 		require.NoError(t, err)
-		assert.ElementsMatch(t, []string{"tag1", "tag2"}, tags)
+		assert.Equal(t, []string{"tag1", "tag2"}, tags)
 	})
 
 	t.Run("sanitizes tags before writing", func(t *testing.T) {
@@ -91,7 +91,7 @@ func TestWriteTags(t *testing.T) {
 
 		tags, err := ReadTags(projectPath, "testfolder", "photo.jpg")
 		require.NoError(t, err)
-		assert.ElementsMatch(t, []string{"tag1"}, tags)
+		assert.Equal(t, []string{"tag1"}, tags)
 	})
 
 	t.Run("preserves CodeResults when updating tags", func(t *testing.T) {
@@ -118,7 +118,7 @@ func TestGetTags(t *testing.T) {
 
 		tags, err := GetTags(projectPath, "testfolder/photo.jpg")
 		require.NoError(t, err)
-		assert.ElementsMatch(t, []string{"tag1"}, tags)
+		assert.Equal(t, []string{"tag1"}, tags)
 	})
 
 	t.Run("returns empty slice when sidecar missing", func(t *testing.T) {
@@ -137,14 +137,14 @@ func TestAddTags(t *testing.T) {
 
 		tags, err := AddTags(projectPath, "testfolder/photo.jpg", []string{"new1", "new2"})
 		require.NoError(t, err)
-		assert.ElementsMatch(t, []string{"existing", "new1", "new2"}, tags)
+		assert.Equal(t, []string{"existing", "new1", "new2"}, tags)
 	})
 
 	t.Run("creates sidecar if missing", func(t *testing.T) {
 		projectPath := setupTestDir(t)
 		tags, err := AddTags(projectPath, "testfolder/photo.jpg", []string{"tag1"})
 		require.NoError(t, err)
-		assert.ElementsMatch(t, []string{"tag1"}, tags)
+		assert.Equal(t, []string{"tag1"}, tags)
 	})
 
 	t.Run("deduplicates tags", func(t *testing.T) {
@@ -154,7 +154,7 @@ func TestAddTags(t *testing.T) {
 
 		tags, err := AddTags(projectPath, "testfolder/photo.jpg", []string{"tag1", "tag2"})
 		require.NoError(t, err)
-		assert.ElementsMatch(t, []string{"tag1", "tag2"}, tags)
+		assert.Equal(t, []string{"tag1", "tag2"}, tags)
 	})
 }
 
@@ -166,7 +166,7 @@ func TestDeleteTags(t *testing.T) {
 
 		tags, err := DeleteTags(projectPath, "testfolder/photo.jpg", []string{"tag1", "tag3"})
 		require.NoError(t, err)
-		assert.ElementsMatch(t, []string{"tag2"}, tags)
+		assert.Equal(t, []string{"tag2"}, tags)
 	})
 
 	t.Run("handles deleting non-existent tags", func(t *testing.T) {
@@ -176,6 +176,6 @@ func TestDeleteTags(t *testing.T) {
 
 		tags, err := DeleteTags(projectPath, "testfolder/photo.jpg", []string{"nonexistent"})
 		require.NoError(t, err)
-		assert.ElementsMatch(t, []string{"tag1"}, tags)
+		assert.Equal(t, []string{"tag1"}, tags)
 	})
 }

@@ -288,19 +288,7 @@ func AddTagsToNote(projectPath string, folderAndNoteName string, newTags []strin
 
 	existingTags, _ := GetTagsFromFrontmatter(markdown)
 
-	// Use util.Set for deduplication
-	tagSet := util.SliceToSet(existingTags)
-
-	// Add new tags to the set
-	for _, tag := range newTags {
-		trimmed := strings.TrimSpace(tag)
-		if trimmed != "" {
-			tagSet.Add(trimmed)
-		}
-	}
-
-	// Convert set back to slice
-	finalTags := tagSet.Elements()
+	finalTags := util.UniqueTrimmed(append(existingTags, newTags...))
 
 	updatedMarkdown := updateFrontmatterWithTags(markdown, finalTags)
 

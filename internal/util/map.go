@@ -1,5 +1,7 @@
 package util
 
+import "strings"
+
 type Set[T comparable] map[T]struct{} // Generic Set type
 
 // Add an element to the set
@@ -16,15 +18,6 @@ func (s Set[T]) Remove(value T) {
 func (s Set[T]) Has(value T) bool {
 	_, exists := s[value]
 	return exists
-}
-
-// Get all elements in the set
-func (s Set[T]) Elements() []T {
-	result := make([]T, 0, len(s))
-	for key := range s {
-		result = append(result, key)
-	}
-	return result
 }
 
 // Convert a slice to a set
@@ -44,4 +37,20 @@ func MapKeys[K comparable, V any](m map[K]V) []K {
 		keys = append(keys, k)
 	}
 	return keys
+}
+
+// UniqueTrimmed trims strings and removes empty values and duplicates.
+// Returns values in first-occurrence order without modifying the input.
+func UniqueTrimmed(values []string) []string {
+	seen := make(Set[string])
+	result := make([]string, 0, len(values))
+	for _, value := range values {
+		trimmed := strings.TrimSpace(value)
+		if trimmed == "" || seen.Has(trimmed) {
+			continue
+		}
+		seen.Add(trimmed)
+		result = append(result, trimmed)
+	}
+	return result
 }
