@@ -30,7 +30,6 @@ func (f *FileTreeService) GetAllPaths() config.BackendResponseWithData[[]string]
 
 	return config.BackendResponseWithData[[]string]{
 		Success: true,
-		Message: "Successfully retrieved all paths",
 		Data:    paths,
 	}
 }
@@ -77,5 +76,5 @@ func (f *FileTreeService) MoveItemsToFolder(itemPaths []string, newFolder string
 		}
 	}
 
-	return config.BackendResponseWithoutData{Success: true, Message: ""}
+	return config.BackendResponseWithoutData{Success: true}
 }

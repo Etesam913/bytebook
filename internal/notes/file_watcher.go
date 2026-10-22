@@ -64,11 +64,6 @@ type FileWatcher struct {
 
 // newFileWatcher creates and initializes a new FileWatcher
 func newFileWatcher(app *application.App, projectPath string, watcher *fsnotify.Watcher, registry *DirectoryWatchRegistry) *FileWatcher {
-	if registry == nil {
-		registry = NewDirectoryWatchRegistry()
-		registry.SyncFromWatcher(watcher)
-	}
-
 	return &FileWatcher{
 		app:                           app,
 		projectPath:                   projectPath,

@@ -32,15 +32,7 @@ export function Pdf({
         <AnimatePresence>
           {isSelected && (
             <NoteComponentControls
-              buttonOptions={{
-                trash: {
-                  enabled: true,
-                },
-                link: {
-                  enabled: true,
-                  src,
-                },
-              }}
+              src={src}
               nodeKey={nodeKey}
               editor={editor}
             />

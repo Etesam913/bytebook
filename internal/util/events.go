@@ -28,7 +28,7 @@ const (
 	EventSettingsOpen        = "settings:open"
 	EventSearchNote          = "search:note"
 	EventQuickOpen           = "navigation:quick-open"
-	EventCommandPalette      = "commands:open"
+	EventCommandPaletteOpen  = "commands:open"
 	EventFullscreen          = "window:fullscreen"
 	EventToggleSidebar       = "sidebar:toggle"
 	EventSidebarFilesOpen    = "sidebar:files:open"
@@ -64,7 +64,6 @@ const (
 	EventCodeBlockInputRequest  = "code:code-block:input_request"
 	EventCodeBlockInspectReply  = "code:code-block:inspect_reply"
 	EventCodeBlockCompleteReply = "code:code-block:complete_reply"
-	EventCodeBlockExecuteReply  = "code:code-block:execute_reply"
 )
 
 // A map of folderAndNoteNames to tags
@@ -134,7 +133,7 @@ func init() {
 	application.RegisterEvent[application.Void](EventSettingsOpen)
 	application.RegisterEvent[application.Void](EventSearchNote)
 	application.RegisterEvent[application.Void](EventQuickOpen)
-	application.RegisterEvent[application.Void](EventCommandPalette)
+	application.RegisterEvent[application.Void](EventCommandPaletteOpen)
 	application.RegisterEvent[bool](EventFullscreen)
 	application.RegisterEvent[application.Void](EventToggleSidebar)
 	application.RegisterEvent[application.Void](EventSidebarFilesOpen)

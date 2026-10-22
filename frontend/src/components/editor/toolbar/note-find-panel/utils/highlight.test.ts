@@ -13,7 +13,7 @@ import {
 import '../../../transformers';
 import { editorConfig } from '../../../editor-config';
 import { performSearch } from './find';
-import { clearHighlight, highlightMatch } from './highlight';
+import { clearAllHighlights, highlightMatch } from './highlight';
 
 function createFormattedEditor(format = IS_BOLD | IS_ITALIC) {
   const editor = createEditor({
@@ -146,16 +146,13 @@ describe('highlightMatch', () => {
   });
 });
 
-describe('clearHighlight', () => {
+describe('clearAllHighlights', () => {
   it('clears every part of a cross-node match and restores the original text runs', () => {
     const editor = createMixedFormatEditor();
-    const keyRef = {
-      current: highlightMatch(editor, performSearch(editor, 'hello')[0]),
-    };
+    highlightMatch(editor, performSearch(editor, 'hello')[0]);
 
-    clearHighlight(editor, keyRef);
+    clearAllHighlights(editor);
 
-    expect(keyRef.current).toBeNull();
     editor.read(() => {
       expect(
         $getRoot()
@@ -176,13 +173,10 @@ describe('clearHighlight', () => {
     'merges split pieces back while preserving format %i',
     (format) => {
       const editor = createFormattedEditor(format);
-      const keyRef = {
-        current: highlightMatch(editor, performSearch(editor, 'match')[0]),
-      };
+      highlightMatch(editor, performSearch(editor, 'match')[0]);
 
-      clearHighlight(editor, keyRef);
+      clearAllHighlights(editor);
 
-      expect(keyRef.current).toBeNull();
       editor.read(() => {
         const nodes = $getRoot().getAllTextNodes();
         expect(nodes).toHaveLength(1);

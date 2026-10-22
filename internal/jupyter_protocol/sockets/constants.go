@@ -4,8 +4,6 @@ package sockets
 
 // ShellSocket contains message type constants for the shell socket
 var ShellSocket = struct {
-	// ExecuteReply is the response to an execute_request message, containing the execution status and results
-	ExecuteReply string
 
 	// InspectReply is the response to an inspect_request message, containing object introspection information
 	InspectReply string
@@ -16,7 +14,6 @@ var ShellSocket = struct {
 	// ShutdownReply is the response to a shutdown_request message, confirming kernel shutdown
 	ShutdownReply string
 }{
-	ExecuteReply:  "execute_reply",
 	InspectReply:  "inspect_reply",
 	CompleteReply: "complete_reply",
 	ShutdownReply: "shutdown_reply",

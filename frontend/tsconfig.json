@@ -30,11 +30,10 @@
       "@utils/*": ["./src/utils/*"]
     }
   },
-  "include": ["./src"],
+  "include": ["./src", "./vite.config.ts"],
   // eventdata.d.ts augments @wailsio/runtime's Events.CustomEvents with the
   // payload types of all registered backend events; "files" bypasses the
   // "bindings" exclude below so the augmentation is always loaded.
   "files": ["./bindings/github.com/wailsapp/wails/v3/internal/eventdata.d.ts"],
   "exclude": ["node_modules", "dist", "bindings", "src/assets"]
-  // "references": [{ "path": "./tsconfig.node.json" }]
 }

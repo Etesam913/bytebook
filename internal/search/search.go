@@ -54,7 +54,6 @@ type NoteFields struct {
 // SearchResult represents one search hit returned to the frontend
 type SearchResult struct {
 	Type        string            `json:"type"`
-	Title       string            `json:"title"`
 	Folder      string            `json:"folder"`
 	Name        string            `json:"name"`
 	LastUpdated string            `json:"lastUpdated"`
@@ -73,13 +72,13 @@ type FullTextSearchPage struct {
 
 // hasHighlightContent checks if a fragment contains actual highlighted content
 func hasHighlightContent(fragment string) bool {
-	return strings.Contains(fragment, "<mark>") || strings.Contains(fragment, "<em>")
+	return strings.Contains(fragment, "<mark>")
 }
 
-// Matches content inside <mark> or <em> tags
-var highlightTagRegex = regexp.MustCompile(`<(?:mark|em)>(.*?)</(?:mark|em)>`)
+// Matches content inside <mark> tags
+var highlightTagRegex = regexp.MustCompile(`<mark>(.*?)</mark>`)
 
-// extractHighlightedText extracts the text content from the first <mark> or <em> tag in a fragment.
+// extractHighlightedText extracts the text content from the first <mark> tag in a fragment.
 // Returns the text from the first highlighted portion, or empty string if none found.
 func extractHighlightedText(fragment string) string {
 	match := highlightTagRegex.FindStringSubmatch(fragment)
@@ -207,7 +206,6 @@ func processNoteResult(hit *blevesearch.DocumentMatch) *SearchResult {
 
 	return &SearchResult{
 		Type:        NOTE_TYPE,
-		Title:       fileName,
 		Folder:      folder,
 		Name:        fileName,
 		LastUpdated: fields.LastUpdated,
@@ -241,7 +239,6 @@ func processAttachmentResult(hit *blevesearch.DocumentMatch) *SearchResult {
 
 	return &SearchResult{
 		Type:        ATTACHMENT_TYPE,
-		Title:       fileName,
 		Folder:      folder,
 		Name:        fileName,
 		LastUpdated: "", // Attachments don't have lastUpdated
@@ -279,7 +276,7 @@ func ProcessDocumentSearchResults(searchResult *bleve.SearchResult) []SearchResu
 			folder, folderOK := hit.Fields[FieldFolder].(string)
 			name, nameOK := hit.Fields[FieldFileName].(string)
 			if folderOK && nameOK {
-				result = &SearchResult{Type: FOLDER_TYPE, Title: name, Folder: folder, Name: name, Highlights: []HighlightResult{}}
+				result = &SearchResult{Type: FOLDER_TYPE, Folder: folder, Name: name, Highlights: []HighlightResult{}}
 			}
 		case ATTACHMENT_TYPE:
 			result = processAttachmentResult(hit)

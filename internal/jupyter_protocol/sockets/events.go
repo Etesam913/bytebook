@@ -17,7 +17,6 @@ func init() {
 	application.RegisterEvent[CodeBlockStatusEvent](util.EventCodeBlockStatus)
 	application.RegisterEvent[IopubErrorEvent](util.EventCodeBlockIopubError)
 	application.RegisterEvent[InputRequestEvent](util.EventCodeBlockInputRequest)
-	application.RegisterEvent[ExecuteReplyEvent](util.EventCodeBlockExecuteReply)
 	application.RegisterEvent[InspectReplyEvent](util.EventCodeBlockInspectReply)
 	application.RegisterEvent[CompleteReplyEvent](util.EventCodeBlockCompleteReply)
 }

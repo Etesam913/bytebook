@@ -48,7 +48,7 @@ func (t *TagsService) SetTagsOnNotes(
 
 	app := application.Get()
 	if app != nil {
-		// Will handle bleve indexing and frontend updates
+		// Updates Bleve; the index update event then refreshes the frontend.
 		app.Event.EmitEvent(&application.CustomEvent{
 			Name: util.EventTagsUpdate,
 			Data: eventData,
@@ -57,7 +57,6 @@ func (t *TagsService) SetTagsOnNotes(
 
 	return config.BackendResponseWithoutData{
 		Success: true,
-		Message: "Successfully updated tags",
 	}
 }
 
@@ -81,7 +80,6 @@ func (t *TagsService) GetTagsForNotes(
 
 	return config.BackendResponseWithData[map[string][]string]{
 		Success: true,
-		Message: "Successfully got tags for notes",
 		Data:    tagsMap,
 	}
 }
@@ -104,7 +102,6 @@ func (t *TagsService) GetTags() config.BackendResponseWithData[[]string] {
 
 	return config.BackendResponseWithData[[]string]{
 		Success: true,
-		Message: "Successfully got tags",
 		Data:    tags,
 	}
 }
@@ -117,7 +114,6 @@ func (t *TagsService) DeleteTags(tagsToDelete []string) config.BackendResponseWi
 	if len(tagsToDelete) == 0 {
 		return config.BackendResponseWithoutData{
 			Success: true,
-			Message: "No tags to delete",
 		}
 	}
 
@@ -195,7 +191,7 @@ func (t *TagsService) DeleteTags(tagsToDelete []string) config.BackendResponseWi
 		eventData[folderAndNoteName] = updatedTags
 	}
 
-	// Emit event for frontend updates & bleve indexing
+	// Update Bleve; the index update event then refreshes the frontend.
 	app := application.Get()
 	if app != nil && len(eventData) > 0 {
 		app.Event.EmitEvent(&application.CustomEvent{
@@ -206,6 +202,5 @@ func (t *TagsService) DeleteTags(tagsToDelete []string) config.BackendResponseWi
 
 	return config.BackendResponseWithoutData{
 		Success: true,
-		Message: "Successfully deleted tags from all notes",
 	}
 }

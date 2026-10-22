@@ -19,14 +19,6 @@ type shellSocket struct {
 	socket *zmq4.Socket
 }
 
-type ExecuteReplyEvent struct {
-	Status         string   `json:"status"`
-	MessageId      string   `json:"messageId"`
-	ErrorName      string   `json:"errorName"`
-	ErrorValue     string   `json:"errorValue"`
-	ErrorTraceback []string `json:"errorTraceback"`
-}
-
 type InspectReplyEvent struct {
 	Status    string         `json:"status"`
 	MessageId string         `json:"messageId"`
@@ -95,53 +87,6 @@ func (s *shellSocket) Listen(p CreateParams) {
 			}
 
 			switch msg.Header.MsgType {
-			case ShellSocket.ExecuteReply:
-				status, ok := msg.Content["status"].(string)
-				if !ok {
-					continue
-				}
-				msgId, ok := msg.ParentHeader["msg_id"].(string)
-				if !ok {
-					continue
-				}
-
-				errorName := ""
-				errorValue := ""
-				errorTraceback := []string{}
-
-				if status == "error" {
-					if errorName, ok = msg.Content["ename"].(string); !ok {
-						errorName = ""
-					}
-					if errorValue, ok = msg.Content["evalue"].(string); !ok {
-						errorValue = ""
-					}
-					uncleanTraceback, ok := msg.Content["traceback"].([]any)
-					if ok {
-						for _, item := range uncleanTraceback {
-							if ansiStr, ok := item.(string); ok {
-								htmlStr := string(ansihtml.ConvertToHTML([]byte(ansiStr)))
-								errorTraceback = append(errorTraceback, htmlStr)
-							}
-						}
-					}
-				}
-				if app != nil {
-					if currentWindow := app.Window.Current(); currentWindow != nil {
-						currentWindow.EmitEvent(
-							util.EventCodeBlockExecuteReply,
-							ExecuteReplyEvent{
-								Status:         status,
-								MessageId:      msgId,
-								ErrorName:      errorName,
-								ErrorValue:     errorValue,
-								ErrorTraceback: errorTraceback,
-							},
-						)
-					}
-				}
-				time.Sleep(100 * time.Millisecond)
-
 			case ShellSocket.ShutdownReply:
 				// gonb only sends shutdown_request to the shell socket — let the
 				// instance's process-wait + cancel handle the rest. Nothing to do here.

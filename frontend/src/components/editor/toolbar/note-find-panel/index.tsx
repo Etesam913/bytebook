@@ -10,7 +10,7 @@ import { AppTextField } from '@components/input';
 import { Tooltip } from '@components/tooltip';
 import { useInteractOutside } from 'react-aria';
 import { useFindPanelSearch } from './hooks/find-panel';
-import { clearHighlight } from './utils/highlight';
+import { clearAllHighlights } from './utils/highlight';
 
 export function NoteFindPanel({
   isSearchOpen,
@@ -29,7 +29,6 @@ export function NoteFindPanel({
     handleSearch,
     matchData,
     currentMatchIndex,
-    highlightedNodeKeyRef,
     handleExitComplete,
     navigateToNextMatch,
     navigateToPreviousMatch,
@@ -39,7 +38,7 @@ export function NoteFindPanel({
   useInteractOutside({
     ref: panelRef,
     onInteractOutside: () => {
-      clearHighlight(editor, highlightedNodeKeyRef);
+      clearAllHighlights(editor);
     },
   });
 

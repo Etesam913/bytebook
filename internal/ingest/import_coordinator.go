@@ -233,11 +233,6 @@ func (c *BulkImportCoordinator) processRequest(relativeFolderPath string) {
 		log.Printf("Error discovering subtree %s: %v", rootPath, err)
 	}
 
-	if c.index == nil {
-		log.Printf("Error indexing subtree %s: index is nil", rootPath)
-		return
-	}
-
 	idx := c.index.RLock()
 	folderErr := search.IndexDiscoveredFolders(c.projectPath, directories, idx)
 	fileErr := search.IndexDiscoveredFiles(c.projectPath, filePaths, idx, bulkImportIndexWorkerCount)
@@ -278,14 +273,10 @@ type watchAddSummary struct {
 // watcher budget is exhausted. Remaining paths are counted as deferred.
 func (c *BulkImportCoordinator) addDirectoriesToWatcher(directories []string) watchAddSummary {
 	summary := watchAddSummary{}
-	if c.watcher == nil {
-		return summary
-	}
-
 	sort.Strings(directories)
 
 	for index, path := range directories {
-		if c.registry != nil && c.registry.Has(path) {
+		if c.registry.Has(path) {
 			summary.skipped++
 			continue
 		}
@@ -301,9 +292,7 @@ func (c *BulkImportCoordinator) addDirectoriesToWatcher(directories []string) wa
 		}
 
 		summary.added++
-		if c.registry != nil {
-			c.registry.Add(path)
-		}
+		c.registry.Add(path)
 	}
 
 	return summary

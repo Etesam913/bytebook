@@ -89,5 +89,5 @@ func (n *NodeService) AddAttachmentsFromPaths(folder string, filePaths []string)
 		return config.BackendResponseWithData[[]string]{Success: false, Message: userFacingError(err, "Could not add attachments"), Data: fileServerPaths}
 	}
 
-	return config.BackendResponseWithData[[]string]{Success: true, Message: "", Data: fileServerPaths}
+	return config.BackendResponseWithData[[]string]{Success: true, Data: fileServerPaths}
 }

@@ -8,11 +8,7 @@ import type {
   SerializedLexicalNode,
   Spread,
 } from 'lexical';
-import {
-  $applyNodeReplacement,
-  $createParagraphNode,
-  DecoratorNode,
-} from 'lexical';
+import { $applyNodeReplacement, DecoratorNode } from 'lexical';
 import type { JSX } from 'react/jsx-runtime';
 import type { FileDimensions } from './types';
 import { File } from '@components/file';
@@ -27,43 +23,12 @@ export interface FilePayload {
   src: string;
 }
 
-// I think this runs on copy and paste
 function convertFileElement(domNode: HTMLElement): null | DOMConversionOutput {
-  const parentNode = $createParagraphNode();
-  if (domNode.tagName === 'IMG') {
-    const image = domNode as HTMLImageElement;
-    if (image.src.startsWith('file:///')) {
-      return null;
-    }
-    const { alt, src } = image;
-    const node = $createFileNode({
-      alt,
-      src,
-      dimensions: DEFAULT_DIMENSIONS,
-    });
-    parentNode.append(node);
-    return { node: node };
-  }
-  if (domNode.tagName === 'VIDEO') {
-    const video = domNode as HTMLVideoElement;
-    const { src, title } = video;
-    const node = $createFileNode({
-      alt: title,
-      src,
-      dimensions: { width: 256 },
-    });
-    parentNode.append(node);
-    return { node: node };
-  }
-
-  const unknown = $createFileNode({
-    alt: 'Unknown',
-    src: '',
-    dimensions: DEFAULT_DIMENSIONS,
-  });
-  parentNode.append(unknown);
-
-  return { node: unknown };
+  const { alt, src } = domNode as HTMLImageElement;
+  if (src.startsWith('file:///')) return null;
+  return {
+    node: $createFileNode({ alt, src, dimensions: DEFAULT_DIMENSIONS }),
+  };
 }
 
 type SerializedFileNode = Spread<
@@ -107,23 +72,13 @@ export class FileNode extends DecoratorNode<JSX.Element> {
   }
 
   exportDOM(): DOMExportOutput {
-    let element: HTMLImageElement | HTMLVideoElement | null = null;
-    // if (this.__elementType === "image") {
-    element = document.createElement('img');
+    const isVideo = this.__elementType === 'video';
+    const element = document.createElement(isVideo ? 'video' : 'img');
     element.setAttribute('src', this.__src);
-    element.setAttribute('alt', this.__alt);
+    element.setAttribute(isVideo ? 'title' : 'alt', this.__alt);
     element.setAttribute('width', this.__dimensions.width.toString());
     if (this.__dimensions.height) {
       element.setAttribute('height', this.__dimensions.height.toString());
-    }
-    if (this.__elementType === 'video') {
-      element = document.createElement('video');
-      element.setAttribute('src', this.__src);
-      element.setAttribute('title', this.__alt);
-      element.setAttribute('width', this.__dimensions.width.toString());
-      if (this.__dimensions.height) {
-        element.setAttribute('height', this.__dimensions.height.toString());
-      }
     }
 
     return { element };

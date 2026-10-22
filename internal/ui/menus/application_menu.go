@@ -92,7 +92,7 @@ func configureViewMenu(app *application.App, menu *application.Menu) {
 	commands.SetAccelerator("shift+cmdorctrl+p")
 	commands.OnClick(func(ctx *application.Context) {
 		if win := app.Window.Current(); win != nil {
-			win.EmitEvent(util.EventCommandPalette)
+			win.EmitEvent(util.EventCommandPaletteOpen)
 		}
 	})
 

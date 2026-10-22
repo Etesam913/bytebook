@@ -45,7 +45,6 @@ func (f *FolderService) AddFolder(folderName string) config.BackendResponseWitho
 
 	return config.BackendResponseWithoutData{
 		Success: true,
-		Message: "",
 	}
 }
 
@@ -94,6 +93,5 @@ func (f *FolderService) RenameFolder(oldFolderName string, newFolderName string)
 
 	return config.BackendResponseWithoutData{
 		Success: true,
-		Message: "",
 	}
 }

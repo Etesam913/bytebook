@@ -325,7 +325,7 @@ export function useRegenerateSearchIndexMutation() {
       // Errors toast via the global MutationCache handler
       toast.promise(resultPromise, {
         loading: 'Regenerating search index...',
-        success: (data) => data.message,
+        success: 'Successfully regenerated search index',
       });
       return await resultPromise;
     },

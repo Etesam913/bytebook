@@ -56,7 +56,6 @@ func (s *SettingsService) UpdateProjectSettings(
 	}
 	return config.BackendResponseWithData[config.ProjectSettingsJson]{
 		Success: true,
-		Message: "",
 		Data:    newProjectSettings,
 	}
 }

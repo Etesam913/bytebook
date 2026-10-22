@@ -41,12 +41,6 @@ func FlushBatch(index bleve.Index, batch *bleve.Batch) error {
 	return index.Batch(batch)
 }
 
-// DocumentIndexInfo contains information about a document's presence in the search index.
-type DocumentIndexInfo struct {
-	Exists      bool
-	LastUpdated string
-}
-
 // GetPathToIndex returns the full path to the search index file for a given project.
 // It combines the project path with the search directory and the index filename.
 func GetPathToIndex(projectPath string) string {

@@ -8,11 +8,11 @@ const DRAG_GHOST_EXCLUDE_ATTR = 'data-drag-ghost-exclude';
 // Clones an HTML element into a styled drag ghost, stripping selection highlights and excluded children.
 export function createGhostElementFromHtmlElement({
   element,
-  classNames = ['dragging', 'drag-grid'],
+  classNames,
   useNoteContainer = false,
 }: {
   element: HTMLElement;
-  classNames?: string[];
+  classNames: string[];
   useNoteContainer?: boolean;
 }): HTMLElement {
   const ghostElement = element.cloneNode(true) as HTMLElement;

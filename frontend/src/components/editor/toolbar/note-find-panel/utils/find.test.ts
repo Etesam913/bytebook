@@ -173,9 +173,7 @@ describe('navigateToMatch', () => {
       const matchData = performSearch(editor, 'hello');
       expect(matchData).toHaveLength(2);
       const current = direction === 'next' ? 1 : 0;
-      const highlightedNodeKeyRef = {
-        current: highlightMatch(editor, matchData[current]),
-      };
+      highlightMatch(editor, matchData[current]);
       let selectedIndex: number = current;
 
       navigateToMatch({
@@ -185,7 +183,6 @@ describe('navigateToMatch', () => {
         setCurrentMatchIndex: (index) => {
           selectedIndex = index;
         },
-        highlightedNodeKeyRef,
         direction,
       });
 
@@ -228,9 +225,7 @@ describe('navigateToMatch', () => {
         ...performSearch(editor, 'first'),
         ...performSearch(editor, 'second'),
       ];
-      const highlightedNodeKeyRef = {
-        current: highlightMatch(editor, matchData[current]),
-      };
+      highlightMatch(editor, matchData[current]);
       let selectedIndex: number = current;
 
       navigateToMatch({
@@ -240,12 +235,10 @@ describe('navigateToMatch', () => {
         setCurrentMatchIndex: (index) => {
           selectedIndex = index;
         },
-        highlightedNodeKeyRef,
         direction,
       });
 
       expect(selectedIndex).toBe(expected);
-      expect(highlightedNodeKeyRef.current).not.toBeNull();
       editor.read(() => {
         expect(
           $getRoot()

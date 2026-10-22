@@ -159,7 +159,6 @@ func (s *SearchService) GetPathsFromSearchQuery(searchQuery string) config.Backe
 	sort.Strings(paths)
 	return config.BackendResponseWithData[[]string]{
 		Success: true,
-		Message: "Successfully retrieved paths",
 		Data:    paths,
 	}
 }
@@ -177,7 +176,6 @@ func (s *SearchService) GetAllSavedSearches() (config.BackendResponseWithData[[]
 
 	return config.BackendResponseWithData[[]search.SavedSearch]{
 		Success: true,
-		Message: "Successfully retrieved saved searches",
 		Data:    searches,
 	}, nil
 }
@@ -194,7 +192,6 @@ func (s *SearchService) AddSavedSearch(name, query string) config.BackendRespons
 
 	return config.BackendResponseWithoutData{
 		Success: true,
-		Message: "Successfully added saved search",
 	}
 }
 
@@ -210,7 +207,6 @@ func (s *SearchService) RemoveSavedSearch(name string) config.BackendResponseWit
 
 	return config.BackendResponseWithoutData{
 		Success: true,
-		Message: "Successfully removed saved search",
 	}
 }
 
@@ -222,7 +218,6 @@ func (s *SearchService) GetLinkedMentions(pathToNote string, pageSize int) confi
 	if urlPath == "" {
 		return config.BackendResponseWithData[[]LinkedMention]{
 			Success: true,
-			Message: "No linked mentions",
 			Data:    []LinkedMention{},
 		}
 	}
@@ -247,7 +242,6 @@ func (s *SearchService) GetLinkedMentions(pathToNote string, pageSize int) confi
 
 	return config.BackendResponseWithData[[]LinkedMention]{
 		Success: true,
-		Message: "Successfully retrieved linked mentions",
 		Data:    mentions,
 	}
 }
@@ -269,6 +263,5 @@ func (s *SearchService) RegenerateSearchIndex() config.BackendResponseWithoutDat
 
 	return config.BackendResponseWithoutData{
 		Success: true,
-		Message: "Successfully regenerated search index",
 	}
 }

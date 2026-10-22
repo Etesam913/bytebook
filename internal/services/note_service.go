@@ -35,7 +35,7 @@ func (n *NoteService) OpenInNewWindow(path string) config.BackendResponseWithout
 	// URL.Path escapes filename characters such as # and ? without treating them as navigation syntax.
 	route := (&url.URL{Path: "/notes/" + filepath.ToSlash(filepath.Clean(path))}).String()
 	ui.CreateWindow(app, route, ui.WindowBackgroundColor(app))
-	return config.BackendResponseWithoutData{Success: true, Message: "Opened in new window"}
+	return config.BackendResponseWithoutData{Success: true}
 }
 
 // RenameFile renames a file or folder from oldFolderNotePath to newFolderNotePath.
@@ -97,13 +97,8 @@ func (n *NoteService) RenameFile(oldFolderNotePath string, newFolderNotePath str
 		}
 	}
 
-	itemType := "File"
-	if isDir {
-		itemType = "Folder"
-	}
 	return config.BackendResponseWithData[string]{
 		Success: true,
-		Message: fmt.Sprintf("%s renamed successfully", itemType),
 		Data:    newFolderNotePath,
 	}
 }
@@ -133,7 +128,6 @@ func (n *NoteService) GetNoteMarkdownWithCodeResults(path string) config.Backend
 
 	return config.BackendResponseWithData[sidecar.NoteWithCodeResults]{
 		Success: true,
-		Message: "Successfully retrieved note markdown and code results",
 		Data: sidecar.NoteWithCodeResults{
 			Markdown:    string(noteContent),
 			CodeResults: codeResults,
@@ -175,7 +169,6 @@ func (n *NoteService) SetNoteMarkdownWithCodeResults(
 
 	return config.BackendResponseWithData[string]{
 		Success: true,
-		Message: "Successfully set note markdown and code results",
 		Data:    "",
 	}
 }
@@ -215,7 +208,6 @@ func (n *NoteService) AddNoteToFolder(folderName string, noteName string) config
 
 	return config.BackendResponseWithoutData{
 		Success: true,
-		Message: "",
 	}
 }
 
@@ -232,7 +224,6 @@ func (n *NoteService) MoveToTrash(folderAndNotes []string) config.BackendRespons
 	}
 	return config.BackendResponseWithData[[]util.TrashRestoreInfo]{
 		Success: true,
-		Message: "Successfully moved notes to trash",
 		Data:    restoreItems,
 	}
 }
@@ -249,7 +240,6 @@ func (n *NoteService) RestoreFromTrash(restoreItems []util.TrashRestoreInfo) con
 
 	return config.BackendResponseWithoutData{
 		Success: true,
-		Message: "Successfully restored notes from trash",
 	}
 }
 
@@ -292,7 +282,6 @@ func (n *NoteService) RevealFolderOrFileInFinder(
 	}
 	return config.BackendResponseWithoutData{
 		Success: true,
-		Message: "",
 	}
 }
 

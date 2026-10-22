@@ -269,7 +269,11 @@ func TestFolderIndexLifecycle(t *testing.T) {
 	index, err := search.OpenOrCreateIndex(project)
 	require.NoError(t, err)
 	defer index.Close()
-	coordinator := &BulkImportCoordinator{projectPath: project, notesPath: root, index: search.NewIndexHolder(index)}
+	watcher, err := fsnotify.NewWatcher()
+	require.NoError(t, err)
+	defer watcher.Close()
+	coordinator := NewBulkImportCoordinator(project, search.NewIndexHolder(index), watcher, notes.NewDirectoryWatchRegistry())
+	defer coordinator.Shutdown()
 	batch := index.NewBatch()
 	require.NoError(t, search.AddFolderToBatch(batch, "Missing"))
 	require.NoError(t, index.Batch(batch))

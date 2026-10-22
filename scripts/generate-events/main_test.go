@@ -7,7 +7,7 @@ import (
 
 func TestGenerate(t *testing.T) {
 	t.Run("Exports event names and preserves the frontend naming contract", func(t *testing.T) {
-		source := []byte("package util\nconst (\nEventFileCreate = \"file:create\"\nEventCommandPalette = \"commands:open\"\nEventCodeBlockIopubError = \"code:code-block:iopub_error\"\nEventHTTPReady = `http:ready`\nOtherConstant = \"other\"\n)\n")
+		source := []byte("package util\nconst (\nEventFileCreate = \"file:create\"\nEventCommandPaletteOpen = \"commands:open\"\nEventCodeBlockIopubError = \"code:code-block:iopub_error\"\nEventHTTPReady = `http:ready`\nOtherConstant = \"other\"\n)\n")
 
 		output, err := generate(source)
 

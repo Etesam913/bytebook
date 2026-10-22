@@ -159,14 +159,10 @@ func TestParseMarkdownMetadataDates(t *testing.T) {
 }
 
 func TestParseCodeBlocks(t *testing.T) {
-	t.Run("should group code contents by language", func(t *testing.T) {
+	t.Run("collects code contents and language flags", func(t *testing.T) {
 		markdown := "# Title\n```go\nfmt.Println(\"hello\")\n```\nMore text\n```python\nprint(\"world\")\n```"
 		blocks := ParseCodeBlocks(markdown)
 		assert.Equal(t, []string{"fmt.Println(\"hello\")", "print(\"world\")"}, blocks.All)
-		assert.Equal(t, []string{"fmt.Println(\"hello\")"}, blocks.Go)
-		assert.Equal(t, []string{"print(\"world\")"}, blocks.Python)
-		assert.Empty(t, blocks.Java)
-		assert.Empty(t, blocks.JavaScript)
 		assert.True(t, blocks.HasLanguage)
 		assert.True(t, blocks.HasGo)
 		assert.True(t, blocks.HasPython)
@@ -177,7 +173,6 @@ func TestParseCodeBlocks(t *testing.T) {
 	t.Run("empty code block still counts as present", func(t *testing.T) {
 		blocks := ParseCodeBlocks("```go\n\n```\n```python\nprint(\"hello\")\n```")
 		assert.Equal(t, []string{"print(\"hello\")"}, blocks.All)
-		assert.Empty(t, blocks.Go)
 		assert.True(t, blocks.HasGo)
 		assert.True(t, blocks.HasLanguage)
 	})
@@ -190,16 +185,16 @@ func TestParseCodeBlocks(t *testing.T) {
 
 	t.Run("should match language aliases and suffixes", func(t *testing.T) {
 		blocks := ParseCodeBlocks("```golang\npackage main\n```\n```java-17\nclass A {}\n```\n```js\nconsole.log(1)\n```")
-		assert.Equal(t, []string{"package main"}, blocks.Go)
-		assert.Equal(t, []string{"class A {}"}, blocks.Java)
-		assert.Equal(t, []string{"console.log(1)"}, blocks.JavaScript)
+		assert.Equal(t, []string{"package main", "class A {}", "console.log(1)"}, blocks.All)
+		assert.True(t, blocks.HasGo)
+		assert.True(t, blocks.HasJava)
+		assert.True(t, blocks.HasJavaScript)
 	})
 
 	t.Run("should not treat javascript as java", func(t *testing.T) {
 		blocks := ParseCodeBlocks("```javascript\nconsole.log(\"hello\")\n```")
 		assert.True(t, blocks.HasJavaScript)
 		assert.False(t, blocks.HasJava)
-		assert.Empty(t, blocks.Java)
 	})
 
 	t.Run("should return empty result when there are no code blocks", func(t *testing.T) {

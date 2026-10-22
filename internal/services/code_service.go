@@ -97,7 +97,6 @@ func (c *CodeService) SendExecuteRequest(noteID, codeBlockID, executionID, langu
 
 	return config.BackendResponseWithData[SendExecuteRequestResponse]{
 		Success: true,
-		Message: "Execute request sent successfully",
 		Data:    SendExecuteRequestResponse{KernelInstanceID: inst.ID()},
 	}
 }
@@ -136,7 +135,6 @@ func (c *CodeService) EnsureKernel(noteID, language string) config.BackendRespon
 	}
 	return config.BackendResponseWithData[SendExecuteRequestResponse]{
 		Success: true,
-		Message: "Kernel ready",
 		Data:    SendExecuteRequestResponse{KernelInstanceID: inst.ID()},
 	}
 }
@@ -146,13 +144,13 @@ func (c *CodeService) ShutdownKernel(kernelInstanceID string, restart bool) conf
 	if err := c.Manager.Shutdown(kernelInstanceID, restart); err != nil {
 		return config.BackendResponseWithoutData{Success: false, Message: userFacingError(err, "Could not shut down kernel")}
 	}
-	return config.BackendResponseWithoutData{Success: true, Message: "Kernel shutdown requested"}
+	return config.BackendResponseWithoutData{Success: true}
 }
 
 // ShutdownKernelsByLanguage shuts down every kernel of the given language.
 func (c *CodeService) ShutdownKernelsByLanguage(language string) config.BackendResponseWithoutData {
 	c.Manager.ShutdownAllByLanguage(language)
-	return config.BackendResponseWithoutData{Success: true, Message: fmt.Sprintf("All %s kernels shut down", language)}
+	return config.BackendResponseWithoutData{Success: true}
 }
 
 // SendInterruptRequest sends an interrupt_request to the named instance.
@@ -167,7 +165,7 @@ func (c *CodeService) SendInterruptRequest(kernelInstanceID, codeBlockID, execut
 	if err := inst.SendInterrupt(codeBlockID, executionID); err != nil {
 		return config.BackendResponseWithoutData{Success: false, Message: userFacingError(err, "Could not interrupt execution")}
 	}
-	return config.BackendResponseWithoutData{Success: true, Message: "Interrupt sent"}
+	return config.BackendResponseWithoutData{Success: true}
 }
 
 // SendInputReply forwards a user-supplied input value to the kernel's stdin socket.
@@ -182,7 +180,7 @@ func (c *CodeService) SendInputReply(kernelInstanceID, codeBlockID, executionID,
 	if err := inst.SendInputReply(codeBlockID, executionID, value); err != nil {
 		return config.BackendResponseWithoutData{Success: false, Message: userFacingError(err, "Could not send input to kernel")}
 	}
-	return config.BackendResponseWithoutData{Success: true, Message: "Input reply sent"}
+	return config.BackendResponseWithoutData{Success: true}
 }
 
 type SendInspectRequestResponse struct {
@@ -214,7 +212,6 @@ func (c *CodeService) SendInspectRequest(kernelInstanceID, codeBlockID, executio
 	}
 	return config.BackendResponseWithData[SendInspectRequestResponse]{
 		Success: true,
-		Message: "Inspection request sent",
 		Data:    SendInspectRequestResponse{MessageId: &messageID},
 	}
 }
@@ -248,7 +245,6 @@ func (c *CodeService) SendCompleteRequest(kernelInstanceID, codeBlockID, executi
 	}
 	return config.BackendResponseWithData[SendCompleteRequestResponse]{
 		Success: true,
-		Message: "Completion request sent",
 		Data:    SendCompleteRequestResponse{MessageId: &messageID},
 	}
 }
@@ -257,7 +253,6 @@ func (c *CodeService) SendCompleteRequest(kernelInstanceID, codeBlockID, executi
 func (c *CodeService) ListKernels() config.BackendResponseWithData[[]kernel_manager.KernelInstanceSnapshot] {
 	return config.BackendResponseWithData[[]kernel_manager.KernelInstanceSnapshot]{
 		Success: true,
-		Message: "Kernels listed",
 		Data:    c.Manager.List(),
 	}
 }
@@ -286,7 +281,6 @@ func (c *CodeService) GetPythonVirtualEnvironments() config.BackendResponseWithD
 	}
 	return config.BackendResponseWithData[[]string]{
 		Success: true,
-		Message: "Successfully got virtual environment paths",
 		Data:    virtualEnvironmentPaths,
 	}
 }
@@ -301,7 +295,6 @@ func (c *CodeService) IsPathAValidVirtualEnvironment(path string) config.Backend
 	if util.IsVirtualEnv(path) {
 		return config.BackendResponseWithoutData{
 			Success: true,
-			Message: fmt.Sprintf("%s is a valid virtual environment", path),
 		}
 	}
 	return config.BackendResponseWithoutData{
@@ -336,7 +329,6 @@ func (c *CodeService) ChooseCustomVirtualEnvironmentPath() config.BackendRespons
 	return config.BackendResponseWithData[string]{
 		Success: true,
 		Data:    localFilePath,
-		Message: "Successfully selected virtual environment",
 	}
 }
 
@@ -369,7 +361,6 @@ func (c *CodeService) GetKernelDescriptor(language string) config.BackendRespons
 	}
 	return config.BackendResponseWithData[*config.KernelJson]{
 		Success: true,
-		Message: "Kernel descriptor retrieved",
 		Data:    k,
 	}
 }

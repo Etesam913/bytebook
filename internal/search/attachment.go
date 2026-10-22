@@ -3,7 +3,6 @@ package search
 import (
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/blevesearch/bleve/v2"
@@ -17,7 +16,6 @@ type AttachmentBleveDocument struct {
 	Type          string   `json:"type"`
 	Folder        string   `json:"folder"`
 	FileName      string   `json:"file_name"`
-	FileNameLC    string   `json:"file_name_lc"`
 	FileExtension string   `json:"file_extension"`
 	Tags          []string `json:"tags"`
 	CreatedDate   string   `json:"created_date"`
@@ -45,7 +43,6 @@ func createAttachmentBleveDocument(projectPath, folder, fileName, fileExtension 
 		Type:          ATTACHMENT_TYPE,
 		Folder:        folder,
 		FileName:      fileName,
-		FileNameLC:    strings.ToLower(fileName),
 		FileExtension: fileExtension,
 		Tags:          tags,
 		CreatedDate:   createdDate,

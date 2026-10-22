@@ -75,15 +75,15 @@ tasks:
       - go run ./scripts/generate-events
 
   generate:icons:
-    summary: Generates Windows `.ico` and Mac `.icns` files from an image
+    summary: Generates the Mac `.icns` file from an image
     dir: build
     sources:
       - "appicon.png"
     generates:
-      - "icons.icns"
-      - "icons.ico"
+      - "darwin/icons.icns"
     cmds:
-      - wails3 generate icons -input appicon.png -macfilename darwin/icons.icns -windowsfilename windows/icons.ico
+      # An empty value disables the CLI default Windows output.
+      - wails3 generate icons -input appicon.png -macfilename darwin/icons.icns -windowsfilename ""
 
   dev:frontend:
     summary: Runs the frontend in development mode

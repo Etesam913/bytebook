@@ -104,7 +104,6 @@ export const MOCK_FULL_TEXT_SEARCH_RESPONSE = {
     results: [
       {
         type: 'note',
-        title: 'Supply and Demand.md',
         folder: 'Economics Notes',
         name: 'Supply and Demand.md',
         tags: ['economics', 'basics'],
@@ -121,7 +120,6 @@ export const MOCK_FULL_TEXT_SEARCH_RESPONSE = {
       },
       {
         type: 'note',
-        title: 'Inflation.md',
         folder: 'Economics Notes',
         name: 'Inflation.md',
         tags: ['economics'],
@@ -132,7 +130,6 @@ export const MOCK_FULL_TEXT_SEARCH_RESPONSE = {
       },
       {
         type: 'note',
-        title: 'Quantum Physics.md',
         folder: 'Research Notes',
         name: 'Quantum Physics.md',
         tags: ['research', 'physics'],

@@ -57,8 +57,8 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 
 		// Verify first result
 		expectedFirst := SearchResult{
+			CodeContent: []string{},
 			Type:        NOTE_TYPE,
-			Title:       "doc1",
 			Folder:      "folder1",
 			Name:        "doc1",
 			LastUpdated: "",
@@ -68,8 +68,8 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 
 		// Verify second result
 		expectedSecond := SearchResult{
+			CodeContent: []string{},
 			Type:        NOTE_TYPE,
-			Title:       "doc2",
 			Folder:      "folder2",
 			Name:        "doc2",
 			LastUpdated: "2023-12-02T15:45:00Z",
@@ -109,7 +109,6 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 
 		// Should only return the valid result (third one)
 		assert.Len(t, results, 1)
-		assert.Equal(t, "valid-file.md", results[0].Title)
 		assert.Equal(t, "valid-folder", results[0].Folder)
 		assert.Equal(t, "valid-file.md", results[0].Name)
 	})
@@ -232,9 +231,9 @@ func TestHasHighlightContent(t *testing.T) {
 			expected: true,
 		},
 		{
-			name:     "should return true for fragment with em tag",
+			name:     "should ignore emphasis tags",
 			fragment: "This contains <em>emphasized</em> content.",
-			expected: true,
+			expected: false,
 		},
 		{
 			name:     "should return false for fragment without highlight tags",
@@ -263,14 +262,14 @@ func TestExtractHighlightedText(t *testing.T) {
 		expected string
 	}{
 		{
-			name:     "extracts from single mark or em tag",
+			name:     "extracts from mark tags",
 			fragment: "Text with <mark>highlighted</mark> content and <em>emphasized</em> too.",
 			expected: "highlighted",
 		},
 		{
-			name:     "extracts first tag when multiple present",
+			name:     "ignores emphasis before the first highlight",
 			fragment: "Multiple <em>first</em> and <mark>second</mark> highlights.",
-			expected: "first",
+			expected: "second",
 		},
 		{
 			name:     "handles multi-word phrases and special characters",

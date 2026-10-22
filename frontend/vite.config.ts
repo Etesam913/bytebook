@@ -1,6 +1,6 @@
 import react from '@vitejs/plugin-react';
 import reactCompiler from 'babel-plugin-react-compiler';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig, loadEnv, type PluginOption } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import { visualizer } from 'rollup-plugin-visualizer';
 import wailsTypedEvents from '@wailsio/runtime/plugins/vite';
@@ -18,15 +18,19 @@ export default defineConfig(({ mode }) => {
     ? [
         visualizer({
           open: true,
-          filename: 'bundle-analysis.html',
+          filename: 'dist/bundle-analysis.html',
           gzipSize: true,
           brotliSize: true,
           template: 'treemap',
-        }),
+        }) as PluginOption,
       ]
     : [];
 
   return {
+    experimental: {
+      // Reduce module requests across parallel browser pages only during E2E.
+      bundledDev: mode === 'e2e',
+    },
     server: {
       host: '127.0.0.1',
     },
@@ -116,9 +120,6 @@ export default defineConfig(({ mode }) => {
           },
         },
       },
-    },
-    define: {
-      'process.env.IS_PREACT': JSON.stringify('false'),
     },
   };
 });

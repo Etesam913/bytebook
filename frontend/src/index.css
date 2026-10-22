@@ -52,32 +52,6 @@
   .kernel-heartbeat {
     animation: customPulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
-
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-    }
-
-    to {
-      opacity: 1;
-    }
-  }
-
-  @keyframes dialog-pop-in {
-    from {
-      opacity: 0;
-      transform: scale(0.9);
-    }
-
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  .dialog-animation {
-    animation: dialog-pop-in 150ms cubic-bezier(0.16, 1, 0.3, 1);
-  }
 }
 
 :root {
@@ -96,10 +70,6 @@
     var(--code-block-font-size-base) * var(--ui-scale)
   );
   --accent-color-values: 96, 165, 250;
-  /* Plus glyph for the table add-row/column affordances and the floating add
-     indicator — pseudo-elements/plugin-applied classes, so the icon must come
-     from CSS rather than a React icon component. */
-  --icon-plus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23666'%3E%3Cpath d='M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2z'/%3E%3C/svg%3E");
 }
 
 * {
@@ -131,10 +101,6 @@ html {
   font-size: calc(var(--app-font-size-base) * var(--ui-scale));
   font-family: var(--app-font-family);
   @apply cursor-default leading-[1.7];
-}
-
-html:has(.dark) {
-  color-scheme: dark;
 }
 
 /* native keyboard focus */
@@ -174,46 +140,40 @@ textarea,
   contain: layout style;
 
   /* Heading line heights scale proportionally to the default 2.0 multiplier. */
-  h1,
-  h1.dragging {
+  h1 {
     font-size: calc(var(--editor-font-size) * 1.875);
     line-height: calc(
       var(--editor-font-size) * 1.625 * var(--editor-line-height)
     );
   }
 
-  h2,
-  h2.dragging {
+  h2 {
     font-size: calc(var(--editor-font-size) * 1.5);
     line-height: calc(
       var(--editor-font-size) * 1.4375 * var(--editor-line-height)
     );
   }
 
-  h3,
-  h3.dragging {
+  h3 {
     font-size: calc(var(--editor-font-size) * 1.25);
     line-height: calc(
       var(--editor-font-size) * 1.25 * var(--editor-line-height)
     );
   }
 
-  h4,
-  h4.dragging {
+  h4 {
     font-size: calc(var(--editor-font-size) * 1.125);
     line-height: calc(
       var(--editor-font-size) * 1.125 * var(--editor-line-height)
     );
   }
 
-  h5,
-  h5.dragging {
+  h5 {
     font-size: var(--editor-font-size);
     line-height: calc(var(--editor-font-size) * var(--editor-line-height));
   }
 
-  h6,
-  h6.dragging {
+  h6 {
     font-size: calc(var(--editor-font-size) * 0.875);
     line-height: calc(
       var(--editor-font-size) * 0.875 * var(--editor-line-height)
@@ -353,28 +313,14 @@ textarea,
 
   .PlaygroundEditorTheme__table {
     @apply border-collapse w-full border-spacing-0 table-fixed text-sm;
-    /* font-size: calc(var(--editor-font-size) * 0.875);
-    line-height: calc(var(--editor-font-size) * 1.5); */
   }
 
   .PlaygroundEditorTheme__tableSelection *::selection {
     @apply bg-transparent;
   }
 
-  .PlaygroundEditorTheme__tableSelected {
-    @apply outline-2 outline-[rgb(60,132,244)];
-  }
-
   .PlaygroundEditorTheme__tableCell {
     @apply border border-zinc-300 dark:border-zinc-500 w-25 min-w-25 align-top text-start px-2 py-1.5 relative outline-none;
-  }
-
-  .PlaygroundEditorTheme__tableCellSortedIndicator {
-    @apply block opacity-50 absolute bottom-0 left-0 w-full h-1 bg-[#999];
-  }
-
-  .PlaygroundEditorTheme__tableCellResizer {
-    @apply absolute -right-1 h-full w-2 cursor-ew-resize z-10 top-0;
   }
 
   th {
@@ -383,60 +329,6 @@ textarea,
 
   .PlaygroundEditorTheme__tableCellSelected {
     @apply bg-(--accent-color-highlight);
-  }
-
-  .PlaygroundEditorTheme__tableCellPrimarySelected {
-    @apply border-2 border-[rgb(60,132,244)] block h-[calc(100%-2px)] absolute w-[calc(100%-2px)] -left-px -top-px z-2;
-  }
-
-  .PlaygroundEditorTheme__tableCellEditing {
-    @apply shadow-[0_0_5px_rgba(0,0,0,0.4)] rounded-[3px];
-  }
-
-  .PlaygroundEditorTheme__tableAddColumns {
-    @apply absolute top-0 w-5 bg-[#eee] h-full -right-[25px] border-0 cursor-pointer;
-    animation: table-controls 0.2s ease;
-  }
-
-  .PlaygroundEditorTheme__tableAddColumns:after {
-    background-image: var(--icon-plus);
-    @apply bg-contain bg-center bg-no-repeat block absolute top-0 left-0 w-full h-full opacity-40;
-    content: ' ';
-  }
-
-  .PlaygroundEditorTheme__tableAddColumns:hover {
-    @apply bg-[#c9dbf0];
-  }
-
-  .PlaygroundEditorTheme__tableAddRows {
-    @apply absolute -bottom-[25px] w-[calc(100%-25px)] bg-[#eee] h-5 left-0 border-0 cursor-pointer;
-    animation: table-controls 0.2s ease;
-  }
-
-  .PlaygroundEditorTheme__tableAddRows:after {
-    background-image: var(--icon-plus);
-    @apply bg-contain bg-center bg-no-repeat block absolute top-0 left-0 w-full h-full opacity-40;
-    content: ' ';
-  }
-
-  .PlaygroundEditorTheme__tableAddRows:hover {
-    @apply bg-[#c9dbf0];
-  }
-
-  .PlaygroundEditorTheme__tableCellResizeRuler {
-    @apply block absolute w-px bg-[rgb(60,132,244)] h-full top-0;
-  }
-
-  .PlaygroundEditorTheme__tableCellActionButtonContainer {
-    @apply block right-[5px] top-[6px] absolute z-4 w-5 h-5;
-  }
-
-  .PlaygroundEditorTheme__tableCellActionButton {
-    @apply bg-[#eee] block border-0 rounded-[20px] w-5 h-5 text-[#222] cursor-pointer;
-  }
-
-  .PlaygroundEditorTheme__tableCellActionButton:hover {
-    @apply bg-[#ddd];
   }
 }
 
@@ -595,21 +487,6 @@ textarea,
   border-radius: 0.2rem;
 }
 
-/* Makes sure that the code block does not overlap with the traffic lights when in fullscreen mode */
-div[data-is-fullscreen='true'] .cm-scroller {
-  @apply pt-12!;
-}
-
-/* Makes sure that the tabs are not overlapping with the icons in the code block */
-.sp-tabs {
-  @apply pr-26.5;
-}
-
-.sp-tab-button {
-  @apply font-mono;
-  font-family: var(--code-block-font-family);
-}
-
 .dragging {
   @apply bg-zinc-50 text-left dark:bg-zinc-700 text-zinc-950 dark:text-zinc-100 border-zinc-200 dark:border-zinc-600 border-2 absolute top-0 left-[-9999px] px-1 py-0.5 rounded-lg text-nowrap whitespace-nowrap overflow-hidden text-ellipsis;
 }
@@ -617,22 +494,6 @@ div[data-is-fullscreen='true'] .cm-scroller {
 .editor-drag-ghost {
   @apply absolute top-0 left-0 z-50 pointer-events-none box-content px-1 py-0.5 rounded-lg border-2 border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-700 text-zinc-950 dark:text-zinc-100;
   max-width: calc(100vw - 12px);
-}
-
-.drag-grid {
-  @apply grid grid-cols-[1.5rem_1fr] gap-y-[0.35rem];
-}
-
-/**
- * Lexical Editor Styles
- */
-
-.editor-scroller {
-  @apply min-h-37.5 border-0 flex relative outline-0 z-0 overflow-auto resize-y;
-}
-
-.editor {
-  @apply flex-auto relative resize-y -z-10 cursor-text;
 }
 
 /* Table of contents list */
@@ -643,25 +504,6 @@ div[data-is-fullscreen='true'] .cm-scroller {
 .toc-list-item::before {
   content: '•';
   @apply text-[1.2em] align-top mr-2;
-}
-
-@keyframes table-controls {
-  0% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
-
-.floating-add-indicator {
-  @apply bg-white bg-center bg-no-repeat bg-size-[12px_12px] border border-[#d0d0d0] rounded-[2px] shadow-[0_1px_3px_rgba(0,0,0,0.12)] box-border h-[18px] w-[18px] pointer-events-auto ease-in z-10 cursor-pointer;
-  background-image: var(--icon-plus);
-}
-
-.floating-add-indicator:hover {
-  @apply bg-[#f3f3f3];
 }
 
 .table-cell-action-button-container {

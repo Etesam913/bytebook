@@ -1,16 +1,10 @@
 bin/
 .zed
-rust-contents
-backend/backend-env/
 .env
-build/windows/nsis
 .task/
 venv/
-bundle-analysis.html
 .idea
-../.idea
 node_modules/
-.next/
 .cursor/
 .claude/
 .agents/debug.log

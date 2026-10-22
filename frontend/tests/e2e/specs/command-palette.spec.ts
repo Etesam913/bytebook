@@ -105,7 +105,6 @@ test('recovers from a failed search and opens an indexed folder', async ({
           type: 'folder',
           name: 'Research Notes',
           folder: '',
-          title: 'Research Notes',
         },
         ...MOCK_FULL_TEXT_SEARCH_RESPONSE.data.results,
       ],

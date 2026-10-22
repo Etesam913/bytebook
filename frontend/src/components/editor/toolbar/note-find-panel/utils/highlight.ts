@@ -6,6 +6,8 @@ import {
   $getRoot,
   $isTextNode,
   IS_HIGHLIGHT,
+  SKIP_DOM_SELECTION_TAG,
+  HISTORY_MERGE_TAG,
   LexicalEditor,
 } from 'lexical';
 
@@ -22,11 +24,11 @@ export type MatchData = {
  * Clears all highlights in the editor by removing the highlight format from all text nodes.
  * @param editor - The Lexical editor instance
  */
-function clearAllHighlights(editor: LexicalEditor): void {
+export function clearAllHighlights(editor: LexicalEditor): void {
   editor.update(
     () => {
       // Prevents the editor from being selected and stealing focus from the find input
-      $addUpdateTag('skip-dom-selection');
+      $addUpdateTag(SKIP_DOM_SELECTION_TAG);
 
       const nodes = $dfs($getRoot());
       nodes.forEach(({ node }) => {
@@ -37,26 +39,8 @@ function clearAllHighlights(editor: LexicalEditor): void {
       });
     },
     // The tag makes sure that the clearing of the highlight is not included in the history
-    { tag: 'history-merge' }
+    { tag: HISTORY_MERGE_TAG }
   );
-}
-
-/**
- * Clears the currently highlighted search match and restores its original formatting.
- * Also merges adjacent text nodes that were split during highlighting.
- * @param editor - The Lexical editor instance
- * @param highlightedNodeKey - The key of the currently highlighted node
- * @returns void
- */
-export function clearHighlight(
-  editor: LexicalEditor,
-  highlightedNodeKeyRef: React.MutableRefObject<string | null>
-): void {
-  // A match can span several nodes. Lexical normalizes the adjacent text
-  // pieces after their highlight formats are removed.
-  clearAllHighlights(editor);
-
-  highlightedNodeKeyRef.current = null;
 }
 
 /**
@@ -73,7 +57,7 @@ export function highlightMatch(
 
   editor.update(() => {
     // Prevents the editor from being selected and stealing focus from the find input
-    $addUpdateTag('skip-dom-selection');
+    $addUpdateTag(SKIP_DOM_SELECTION_TAG);
 
     const startNode = $getNodeByKey(match.nodeKey);
     const endNode = $getNodeByKey(match.endNodeKey);

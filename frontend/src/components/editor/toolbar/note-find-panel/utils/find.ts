@@ -6,8 +6,7 @@ import {
   LexicalEditor,
   TextNode,
 } from 'lexical';
-import { MatchData, clearHighlight, highlightMatch } from './highlight';
-import { type RefObject } from 'react';
+import { MatchData, clearAllHighlights, highlightMatch } from './highlight';
 
 /**
  * Performs a case-insensitive search for the given term in the editor content.
@@ -83,14 +82,12 @@ export function navigateToMatch({
   matchData,
   currentMatchIndex,
   setCurrentMatchIndex,
-  highlightedNodeKeyRef,
   direction,
 }: {
   editor: LexicalEditor;
   matchData: MatchData[];
   currentMatchIndex: number;
   setCurrentMatchIndex: (index: number) => void;
-  highlightedNodeKeyRef: RefObject<string | null>;
   direction: 'next' | 'previous';
 }): void {
   const total = matchData.length;
@@ -103,7 +100,7 @@ export function navigateToMatch({
         ? total - 1
         : currentMatchIndex - 1;
 
-  clearHighlight(editor, highlightedNodeKeyRef);
+  clearAllHighlights(editor);
   setCurrentMatchIndex(nextIndex);
-  highlightedNodeKeyRef.current = highlightMatch(editor, matchData[nextIndex]);
+  highlightMatch(editor, matchData[nextIndex]);
 }

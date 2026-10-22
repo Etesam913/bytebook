@@ -4,9 +4,9 @@ import { useRoute } from 'wouter';
 import { VirtualizedListAccordion } from '@components/virtualized/virtualized-list/accordion';
 import type { SidebarReorderOptions } from '@/types';
 import {
-  isValidKernelLanguage,
   LANGUAGES,
   languagesWithKernelsSet,
+  type LanguagesWithKernels,
 } from '@/types';
 import { routeUrls, type KernelWithFilesRouteParams } from '@utils/routes';
 import { KernelAccordionButton } from './kernel-accordion-button';
@@ -94,15 +94,12 @@ export function MyKernelsAccordion({
         title: 'Kernels',
       }}
     >
-      <VirtualizedListAccordion<Languages>
+      <VirtualizedListAccordion<LanguagesWithKernels>
         emptyElement={null}
         contentType="kernel"
         dataItemToKey={(kernelName) => kernelName}
         selectionOptions={{ disableSelection: true }}
         renderItem={({ dataItem: kernelName }) => {
-          if (!isValidKernelLanguage(kernelName)) {
-            return <></>;
-          }
           return (
             <KernelAccordionButton
               kernelName={kernelName}

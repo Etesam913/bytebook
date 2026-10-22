@@ -74,10 +74,6 @@ func generate(source []byte) ([]byte, error) {
 				name := strings.TrimPrefix(identifier.Name, "Event")
 				name = acronymBoundary.ReplaceAllString(name, "${1}_${2}")
 				name = strings.ToUpper(wordBoundary.ReplaceAllString(name, "${1}_${2}"))
-				// Preserve the existing frontend name without changing its callers.
-				if name == "COMMAND_PALETTE" {
-					name = "COMMAND_PALETTE_OPEN"
-				}
 				encoded, err := json.Marshal(value)
 				if err != nil {
 					return nil, fmt.Errorf("encode %s: %w", identifier.Name, err)

@@ -17,7 +17,6 @@ export default defineConfig([
     'tests/',
     'test-results/',
     'playwright-report/',
-    'vite.config.ts',
   ]),
   {
     files: ['**/*.{js,mjs,cjs,ts,jsx,tsx}'],

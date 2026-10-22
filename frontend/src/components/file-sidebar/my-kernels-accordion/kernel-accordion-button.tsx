@@ -1,11 +1,11 @@
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useSetAtom } from 'jotai';
 import { Button } from 'react-aria-components/Button';
 import { cn } from '@utils/string-formatting';
 import { navigate } from 'wouter/use-browser-location';
-import { contextMenuDataAtom, kernelInstancesByLanguageAtom } from '@/atoms';
+import { contextMenuDataAtom } from '@/atoms';
 import { PowerOff } from '@/icons/power-off';
 import { ShutdownKernelsByLanguage } from '@bindings/services/codeservice';
-import type { Languages, LanguagesWithKernels } from '@/types';
+import type { LanguagesWithKernels } from '@/types';
 import { routeUrls } from '@utils/routes';
 import { getKernelIcon } from './index';
 
@@ -14,17 +14,14 @@ export function KernelAccordionButton({
   kernelNameFromUrl,
   instanceCount,
 }: {
-  kernelName: Languages;
+  kernelName: LanguagesWithKernels;
   kernelNameFromUrl: string | undefined;
   instanceCount: number;
 }) {
   const isActive = decodeURIComponent(kernelNameFromUrl ?? '') === kernelName;
-  const byLanguage = useAtomValue(kernelInstancesByLanguageAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
 
-  const hasRunningInstances =
-    instanceCount > 0 ||
-    (byLanguage[kernelName as LanguagesWithKernels]?.length ?? 0) > 0;
+  const hasRunningInstances = instanceCount > 0;
 
   return (
     <Button

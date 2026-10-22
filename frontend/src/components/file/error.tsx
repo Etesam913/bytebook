@@ -36,15 +36,7 @@ export function FileError({
           <>
             <SelectionHighlight />
             <NoteComponentControls
-              buttonOptions={{
-                trash: {
-                  enabled: true,
-                },
-                link: {
-                  enabled: true,
-                  src: src,
-                },
-              }}
+              src={src}
               nodeKey={nodeKey}
               editor={editor}
             />

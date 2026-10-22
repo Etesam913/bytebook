@@ -36,7 +36,6 @@ func (s *LSPService) IsAvailable(language string) config.BackendResponseWithData
 	available := s.Manager != nil && s.Manager.Available(language)
 	return config.BackendResponseWithData[bool]{
 		Success: true,
-		Message: "ok",
 		Data:    available,
 	}
 }
@@ -48,7 +47,6 @@ func (s *LSPService) Completion(noteID, blockID string, blockOrder int, source s
 	if s.Manager == nil || !s.Manager.Available("python") {
 		return config.BackendResponseWithData[lsp.CompletionResult]{
 			Success: true,
-			Message: "ok",
 			Data:    lsp.CompletionResult{Available: false},
 		}
 	}
@@ -57,7 +55,6 @@ func (s *LSPService) Completion(noteID, blockID string, blockOrder int, source s
 		if errors.Is(err, lsp.ErrNotAvailable) {
 			return config.BackendResponseWithData[lsp.CompletionResult]{
 				Success: true,
-				Message: "ok",
 				Data:    lsp.CompletionResult{Available: false},
 			}
 		}
@@ -94,7 +91,6 @@ func (s *LSPService) Completion(noteID, blockID string, blockOrder int, source s
 		if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, lsp.ErrInstanceDown) {
 			return config.BackendResponseWithData[lsp.CompletionResult]{
 				Success: true,
-				Message: "ok",
 				Data:    lsp.CompletionResult{Available: true, Items: nil},
 			}
 		}
@@ -106,7 +102,6 @@ func (s *LSPService) Completion(noteID, blockID string, blockOrder int, source s
 	}
 	return config.BackendResponseWithData[lsp.CompletionResult]{
 		Success: true,
-		Message: "ok",
 		Data:    lsp.CompletionResult{Available: true, Items: items},
 	}
 }
@@ -117,7 +112,6 @@ func (s *LSPService) Hover(noteID, blockID string, blockOrder int, source string
 	if s.Manager == nil || !s.Manager.Available("python") {
 		return config.BackendResponseWithData[lsp.HoverResult]{
 			Success: true,
-			Message: "ok",
 			Data:    lsp.HoverResult{Available: false},
 		}
 	}
@@ -126,7 +120,6 @@ func (s *LSPService) Hover(noteID, blockID string, blockOrder int, source string
 		if errors.Is(err, lsp.ErrNotAvailable) {
 			return config.BackendResponseWithData[lsp.HoverResult]{
 				Success: true,
-				Message: "ok",
 				Data:    lsp.HoverResult{Available: false},
 			}
 		}
@@ -160,7 +153,6 @@ func (s *LSPService) Hover(noteID, blockID string, blockOrder int, source string
 		if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, lsp.ErrInstanceDown) {
 			return config.BackendResponseWithData[lsp.HoverResult]{
 				Success: true,
-				Message: "ok",
 				Data:    lsp.HoverResult{Available: true, Found: false},
 			}
 		}
@@ -172,7 +164,6 @@ func (s *LSPService) Hover(noteID, blockID string, blockOrder int, source string
 	}
 	return config.BackendResponseWithData[lsp.HoverResult]{
 		Success: true,
-		Message: "ok",
 		Data:    lsp.HoverResult{Available: true, Found: found, Contents: contents},
 	}
 }
@@ -182,12 +173,12 @@ func (s *LSPService) Hover(noteID, blockID string, blockOrder int, source string
 // source, so dropping this notification is harmless.
 func (s *LSPService) NotifyBlockEdit(noteID, blockID string, blockOrder int, newSource string) config.BackendResponseWithoutData {
 	if s.Manager == nil || !s.Manager.Available("python") {
-		return config.BackendResponseWithoutData{Success: true, Message: "lsp unavailable"}
+		return config.BackendResponseWithoutData{Success: true}
 	}
 	instance, err := s.Manager.GetOrCreate(noteID)
 	if err != nil {
 		if errors.Is(err, lsp.ErrNotAvailable) {
-			return config.BackendResponseWithoutData{Success: true, Message: "lsp unavailable"}
+			return config.BackendResponseWithoutData{Success: true}
 		}
 		return config.BackendResponseWithoutData{Success: false, Message: userFacingError(err, "Could not start language server")}
 	}
@@ -196,36 +187,36 @@ func (s *LSPService) NotifyBlockEdit(noteID, blockID string, blockOrder int, new
 	if err := instance.DidChange(ctx, blockID, blockOrder, newSource); err != nil {
 		return config.BackendResponseWithoutData{Success: false, Message: userFacingError(err, "Could not update code block")}
 	}
-	return config.BackendResponseWithoutData{Success: true, Message: "ok"}
+	return config.BackendResponseWithoutData{Success: true}
 }
 
 // NotifyBlockRemoved drops a block from the synthetic doc. Called when a
 // code block is unmounted from the editor.
 func (s *LSPService) NotifyBlockRemoved(noteID, blockID string) config.BackendResponseWithoutData {
 	if s.Manager == nil {
-		return config.BackendResponseWithoutData{Success: true, Message: "ok"}
+		return config.BackendResponseWithoutData{Success: true}
 	}
 	instance, err := s.Manager.GetOrCreate(noteID)
 	if err != nil {
 		// If we can't get an instance, there's nothing to remove from anyway.
-		return config.BackendResponseWithoutData{Success: true, Message: "ok"}
+		return config.BackendResponseWithoutData{Success: true}
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), DID_CHANGE_TIMEOUT)
 	defer cancel()
 	if err := instance.RemoveBlock(ctx, blockID); err != nil {
 		return config.BackendResponseWithoutData{Success: false, Message: userFacingError(err, "Could not update code block")}
 	}
-	return config.BackendResponseWithoutData{Success: true, Message: "ok"}
+	return config.BackendResponseWithoutData{Success: true}
 }
 
 // NotifyNoteClosed terminates the LSP instance for a note. Called when the
 // editor unmounts the last code block in a note.
 func (s *LSPService) NotifyNoteClosed(noteID string) config.BackendResponseWithoutData {
 	if s.Manager == nil {
-		return config.BackendResponseWithoutData{Success: true, Message: "ok"}
+		return config.BackendResponseWithoutData{Success: true}
 	}
 	if err := s.Manager.ShutdownNote(noteID); err != nil {
 		return config.BackendResponseWithoutData{Success: false, Message: userFacingError(err, "Could not stop language server")}
 	}
-	return config.BackendResponseWithoutData{Success: true, Message: "ok"}
+	return config.BackendResponseWithoutData{Success: true}
 }

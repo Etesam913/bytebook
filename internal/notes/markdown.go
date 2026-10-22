@@ -173,10 +173,10 @@ func GetTextContent(markdown string) string {
 
 // Code Content Functions
 
-// CodeBlocks summarizes the fenced code blocks in a note, grouped by language.
+// CodeBlocks summarizes fenced code content and language presence in a note.
 type CodeBlocks struct {
 	// Contents of non-empty blocks
-	All, Go, Java, Python, JavaScript []string
+	All []string
 
 	// Presence flags. Empty blocks still count, so these can be true when the content slices are empty.
 	HasLanguage, HasGo, HasJava, HasPython, HasJavaScript bool
@@ -188,36 +188,27 @@ func isJavaLang(lang string) bool {
 	return found && (rest == "" || rest[0] == '-' || rest[0] == '+')
 }
 
-// ParseCodeBlocks scans the code blocks in markdown once and groups them by language.
+// ParseCodeBlocks scans code blocks once to collect content and language presence.
 func ParseCodeBlocks(markdown string) CodeBlocks {
 	var blocks CodeBlocks
 	for _, match := range CODE_BLOCK_WITH_LANG_REGEX.FindAllStringSubmatch(markdown, -1) {
 		lang, content := match[1], strings.TrimSpace(match[2])
 		blocks.HasLanguage = blocks.HasLanguage || lang != ""
-
-		var group *[]string
 		switch {
 		case strings.HasPrefix(lang, "go"):
 			blocks.HasGo = true
-			group = &blocks.Go
 		case isJavaLang(lang):
 			blocks.HasJava = true
-			group = &blocks.Java
 		case strings.HasPrefix(lang, "python"):
 			blocks.HasPython = true
-			group = &blocks.Python
 		case strings.HasPrefix(lang, "javascript"), strings.HasPrefix(lang, "js"):
 			blocks.HasJavaScript = true
-			group = &blocks.JavaScript
 		}
 
 		if content == "" {
 			continue
 		}
 		blocks.All = append(blocks.All, content)
-		if group != nil {
-			*group = append(*group, content)
-		}
 	}
 	return blocks
 }
