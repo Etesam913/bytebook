@@ -16,7 +16,7 @@ const FullTextSearchPageSize = 100
 // used by the application (fields, size, and highlighting for text_content and code_content).
 func CreateSearchRequest(q query.Query, limit int, sortOption *SearchSortOption, searchAfter []string) *bleve.SearchRequest {
 	req := bleve.NewSearchRequest(q)
-	req.Fields = []string{FieldType, FieldFolder, FieldFileName, FieldLastUpdated, FieldCreatedDate, FieldSize, FieldTags, FieldCodeContent}
+	req.Fields = []string{FieldType, FieldFolder, FieldFileName, FieldLastUpdated, FieldCreatedDate, FieldSize, FieldTags}
 	req.Size = limit
 	if sortOption != nil {
 		if sortFields, ok := sortOption.ToBleveSortFields(); ok {

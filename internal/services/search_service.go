@@ -10,7 +10,6 @@ import (
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/events"
 	"github.com/etesam913/bytebook/internal/search"
-	"github.com/etesam913/bytebook/internal/util"
 )
 
 type SearchService struct {
@@ -128,9 +127,10 @@ func (s *SearchService) GetPathsFromSearchQuery(searchQuery string) config.Backe
 	// everything"), which is acceptable for tree filtering.
 	totalQuery, _ := search.BuildBooleanQueryFromUserInput(searchQuery)
 
-	// Leaner than search.CreateSearchRequest: three stored fields, no highlighting.
+	// Tree filtering needs only document IDs, with no stored fields or scoring.
 	request := bleve.NewSearchRequest(search.ScopeSearchQuery(totalQuery, false))
-	request.Fields = []string{search.FieldType, search.FieldFolder, search.FieldFileName}
+	request.Score = "none"
+	request.SortBy([]string{"_id"})
 	request.Size = TREE_FILTER_MAX_RESULTS
 
 	results, err := func() (*bleve.SearchResult, error) {
@@ -147,31 +147,11 @@ func (s *SearchService) GetPathsFromSearchQuery(searchQuery string) config.Backe
 		}
 	}
 
-	paths := []string{}
-	seen := make(util.Set[string])
+	paths := make([]string, 0, len(results.Hits))
+	// All note and attachment writers use the notes-relative path as the ID.
+	// ScopeSearchQuery excludes folders and other document types.
 	for _, hit := range results.Hits {
-		docType, _ := hit.Fields[search.FieldType].(string)
-		folder, _ := hit.Fields[search.FieldFolder].(string)
-		fileName, _ := hit.Fields[search.FieldFileName].(string)
-
-		// Only notes and attachments map onto tree paths.
-		if docType != search.NOTE_TYPE && docType != search.ATTACHMENT_TYPE {
-			continue
-		}
-		if fileName == "" {
-			continue
-		}
-
-		// Notes at the root of the vault index with an empty folder.
-		path := fileName
-		if folder != "" {
-			path = folder + "/" + fileName
-		}
-		if seen.Has(path) {
-			continue
-		}
-		seen.Add(path)
-		paths = append(paths, path)
+		paths = append(paths, hit.ID)
 	}
 
 	// Match GetAllPaths' sorted contract: relevance order is unstable across

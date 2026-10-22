@@ -65,6 +65,28 @@ func TestGetPathsFromSearchQuery(t *testing.T) {
 		return SearchService{ProjectPath: projectPath, Index: search.NewIndexHolder(index)}, projectPath, index
 	}
 
+	t.Run("returns paths from IDs without stored fields", func(t *testing.T) {
+		mapping := bleve.NewIndexMapping()
+		document := bleve.NewDocumentMapping()
+		field := bleve.NewTextFieldMapping()
+		field.Store = false
+		field.Analyzer = "keyword"
+		document.AddFieldMappingsAt(search.FieldType, field)
+		mapping.DefaultMapping = document
+		index, err := bleve.NewMemOnly(mapping)
+		require.NoError(t, err)
+		t.Cleanup(func() { require.NoError(t, index.Close()) })
+		require.NoError(t, index.Index("nested/note.md", map[string]string{"type": search.NOTE_TYPE}))
+		require.NoError(t, index.Index("photo.png", map[string]string{"type": search.ATTACHMENT_TYPE}))
+		require.NoError(t, index.Index("nested/", map[string]string{"type": search.FOLDER_TYPE}))
+		service := SearchService{Index: search.NewIndexHolder(index)}
+
+		response := service.GetPathsFromSearchQuery("t:note OR t:attachment OR t:folder")
+
+		require.True(t, response.Success)
+		assert.Equal(t, []string{"nested/note.md", "photo.png"}, response.Data)
+	})
+
 	t.Run("matches notes by tag filter", func(t *testing.T) {
 		service, projectPath, index := newService(t)
 		writeTestNote(t, projectPath, "cooking/pasta.md", "---\ntags:\n  - recipe\n---\n# Pasta")
