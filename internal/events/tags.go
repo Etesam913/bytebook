@@ -28,7 +28,7 @@ func reIndexNotesWithUpdatedTags(
 	params.withBatch(func(idx bleve.Index, batch *bleve.Batch) {
 		for _, folderAndNoteName := range folderAndNoteNames {
 			folder, fileName := util.SplitFolderAndFile(folderAndNoteName)
-			if _, err := search.AddFileToBatch(batch, idx, params.ProjectPath, folder, fileName, true); err != nil {
+			if err := search.IndexFile(batch, params.ProjectPath, folder, fileName, nil); err != nil {
 				log.Printf("Error adding %s to batch: %v", folderAndNoteName, err)
 			}
 		}

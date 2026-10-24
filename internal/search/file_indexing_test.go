@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sync"
 	"testing"
 
 	"github.com/blevesearch/bleve/v2"
@@ -16,15 +15,12 @@ import (
 )
 
 func collectPopulateJobs(t *testing.T, notesDir string) []DocumentJob {
-	folders, err := os.ReadDir(notesDir)
-	require.NoError(t, err)
-
 	jobs := make(chan DocumentJob, util.MAX_JOBS)
 	done := make(chan error, 1)
 
 	go func() {
 		defer close(jobs)
-		done <- populateJobs(context.Background(), folders, notesDir, jobs)
+		done <- populateJobs(context.Background(), filepath.Dir(notesDir), notesDir, jobs)
 	}()
 
 	var receivedJobs []DocumentJob
@@ -39,19 +35,12 @@ func collectPopulateJobs(t *testing.T, notesDir string) []DocumentJob {
 func runWorkerJobs(projectPath string, jobsToRun []DocumentJob) []DocumentResult {
 	jobs := make(chan DocumentJob, len(jobsToRun))
 	results := make(chan DocumentResult, len(jobsToRun))
-	var wg sync.WaitGroup
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		startWorker(context.Background(), projectPath, jobs, results)
-	}()
 
 	for _, job := range jobsToRun {
 		jobs <- job
 	}
 	close(jobs)
-	wg.Wait()
+	startWorker(context.Background(), projectPath, jobs, results)
 	close(results)
 
 	var receivedResults []DocumentResult
@@ -61,11 +50,11 @@ func runWorkerJobs(projectPath string, jobsToRun []DocumentJob) []DocumentResult
 	return receivedResults
 }
 
-// filterFileJobs returns only jobs that have a file extension.
+// filterFileJobs excludes folder jobs, including files without extensions.
 func filterFileJobs(jobs []DocumentJob) []DocumentJob {
 	var fileJobs []DocumentJob
 	for _, job := range jobs {
-		if filepath.Ext(job.entryName) != "" {
+		if !job.isFolder {
 			fileJobs = append(fileJobs, job)
 		}
 	}
@@ -168,16 +157,16 @@ func TestStartWorker(t *testing.T) {
 	t.Run("should process markdown and attachment files correctly", func(t *testing.T) {
 		projectDir, notesDir := setupTempNotesDir(t)
 
-		folderPath := createFolderWithFiles(t, notesDir, "test-folder", map[string]string{
+		createFolderWithFiles(t, notesDir, "test-folder", map[string]string{
 			"note1.md":  "# Note 1",
 			"note2.md":  "# Note 2",
 			"image.png": "binary content",
 		})
 
 		receivedResults := runWorkerJobs(projectDir, []DocumentJob{
-			{entryPath: filepath.Join(folderPath, "note1.md"), folder: "test-folder", entryName: "note1.md"},
-			{entryPath: filepath.Join(folderPath, "note2.md"), folder: "test-folder", entryName: "note2.md"},
-			{entryPath: filepath.Join(folderPath, "image.png"), folder: "test-folder", entryName: "image.png"},
+			{folder: "test-folder", entryName: "note1.md"},
+			{folder: "test-folder", entryName: "note2.md"},
+			{folder: "test-folder", entryName: "image.png"},
 		})
 
 		assert.Len(t, receivedResults, 3)
@@ -185,7 +174,7 @@ func TestStartWorker(t *testing.T) {
 		markdownCount := 0
 		attachmentCount := 0
 		for _, result := range receivedResults {
-			assert.False(t, result.isError)
+			assert.NoError(t, result.err)
 			if doc, ok := result.document.(NoteBleveDocument); ok {
 				markdownCount++
 				assert.Equal(t, "test-folder", doc.Folder)
@@ -202,39 +191,27 @@ func TestStartWorker(t *testing.T) {
 	})
 
 	t.Run("should return error result for non-existent file", func(t *testing.T) {
-		receivedResults := runWorkerJobs(t.TempDir(), []DocumentJob{{entryPath: "/non/existent/path/file.md", folder: "test-folder", entryName: "file.md"}})
+		receivedResults := runWorkerJobs(t.TempDir(), []DocumentJob{{folder: "test-folder", entryName: "file.md"}})
 
 		assert.Len(t, receivedResults, 1)
-		assert.True(t, receivedResults[0].isError)
+		assert.ErrorIs(t, receivedResults[0].err, os.ErrNotExist)
 		assert.Nil(t, receivedResults[0].document)
+	})
+	t.Run("worker rejects missing attachments", func(t *testing.T) {
+		results := runWorkerJobs(t.TempDir(), []DocumentJob{{entryId: "missing.png", entryName: "missing.png"}})
+
+		require.Len(t, results, 1)
+		assert.ErrorIs(t, results[0].err, os.ErrNotExist)
 	})
 }
 
-func TestIndexAllFiles(t *testing.T) {
+func TestIndexFolderTree(t *testing.T) {
 	t.Run("should return error for non-existent notes directory", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		index := createTempIndex(t, tmpDir)
 
-		err := IndexAllFiles("/non/existent/path", index)
+		err := IndexFolderTree("/non/existent/path", "", index)
 		assert.Error(t, err)
-	})
-
-	t.Run("should index all file types successfully", func(t *testing.T) {
-		projectDir, notesDir := setupTempNotesDir(t)
-
-		index := createTempIndex(t, projectDir)
-
-		createFolderWithFiles(t, notesDir, "folder1", map[string]string{
-			"note1.md":  "# Note 1",
-			"image.png": "binary content",
-		})
-		createFolderWithFiles(t, notesDir, "folder2", map[string]string{
-			"note2.md": "# Note 2",
-			"doc.pdf":  "pdf content",
-		})
-
-		err := IndexAllFiles(projectDir, index)
-		assert.NoError(t, err)
 	})
 
 	t.Run("should index nested markdown and attachment files", func(t *testing.T) {
@@ -247,7 +224,7 @@ func TestIndexAllFiles(t *testing.T) {
 			filepath.Join("folder1", "nested", "asset.png"):    "binary content",
 		})
 
-		err := IndexAllFiles(projectDir, index)
+		err := IndexFolderTree(projectDir, "", index)
 		require.NoError(t, err)
 
 		deepMarkdownID := filepath.Join("folder1", "nested", "deep-note.md")
@@ -368,7 +345,10 @@ func TestIndexingPipelineFailure(t *testing.T) {
 			defer close(discoveryStopped)
 			for i := 0; ; i++ {
 				name := fmt.Sprintf("attachment-%d.png", i)
-				job := DocumentJob{entryPath: filepath.Join(notesDir, name), entryId: name, entryName: name}
+				if err := os.WriteFile(filepath.Join(notesDir, name), []byte("attachment"), 0600); err != nil {
+					return err
+				}
+				job := DocumentJob{entryId: name, entryName: name}
 				if err := enqueueDocumentJob(ctx, jobs, job); err != nil {
 					return err
 				}
@@ -395,5 +375,53 @@ func TestIndexingPipelineFailure(t *testing.T) {
 		err := indexFiles(projectDir, index, 2, discover)
 
 		assert.ErrorIs(t, err, discoveryErr)
+	})
+}
+
+func TestIndexFolderTreeSubtree(t *testing.T) {
+	t.Run("indexes only the visible subtree with path based IDs", func(t *testing.T) {
+		env := setupTestEnv(t)
+		writeFilesRelative(t, env.NotesDir, map[string]string{
+			"parent/note.md":         markdownWithId,
+			"parent/nested/note.md":  basicMarkdown,
+			"parent/nested/asset":    "attachment",
+			"parent/.hidden.md":      "hidden",
+			"parent/.hidden.png":     "hidden",
+			"parent/.hidden/note.md": "hidden",
+			"sibling/note.md":        "outside subtree",
+		})
+		env.createTestFolder("parent/empty")
+
+		require.NoError(t, IndexFolderTree(env.TmpDir, "parent", env.Index))
+
+		result, err := env.Index.Search(bleve.NewSearchRequest(bleve.NewMatchAllQuery()))
+		require.NoError(t, err)
+		ids := make([]string, 0, len(result.Hits))
+		for _, hit := range result.Hits {
+			ids = append(ids, hit.ID)
+		}
+		assert.ElementsMatch(t, []string{"parent/", "parent/note.md", "parent/nested/", "parent/nested/note.md", "parent/nested/asset", "parent/empty/"}, ids)
+	})
+
+	t.Run("returns an error for a missing subtree", func(t *testing.T) {
+		env := setupTestEnv(t)
+
+		err := IndexFolderTree(env.TmpDir, "missing", env.Index)
+
+		assert.ErrorIs(t, err, os.ErrNotExist)
+	})
+
+	t.Run("commits the remainder after a full batch", func(t *testing.T) {
+		env := setupTestEnv(t)
+		folder := env.createTestFolder("large")
+		for i := 0; i < DefaultBatchSize+1; i++ {
+			env.createFile(folder, fmt.Sprintf("attachment-%04d.bin", i), "data")
+		}
+
+		require.NoError(t, IndexFolderTree(env.TmpDir, "large", env.Index))
+
+		count, err := env.Index.DocCount()
+		require.NoError(t, err)
+		assert.EqualValues(t, DefaultBatchSize+2, count)
 	})
 }

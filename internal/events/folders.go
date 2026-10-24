@@ -138,9 +138,8 @@ func handleFolderRenameEvent(params EventParams, data []util.FolderRenameEventDa
 }
 
 func renameFoldersInIndex(params EventParams, data []util.FolderRenameEventData) {
-	params.withBatch(func(idx bleve.Index, batch *bleve.Batch) {
-		// Each rename commits its own re-index so a failed walk discards only its
-		// own partial batch.
+	params.withBatch(func(idx bleve.Index, _ *bleve.Batch) {
+		// Each subtree uses its own bounded indexing batches.
 		for _, eventData := range data {
 			oldFolderPath := eventData.OldFolderPath
 			newFolderPath := eventData.NewFolderPath
@@ -157,36 +156,8 @@ func renameFoldersInIndex(params EventParams, data []util.FolderRenameEventData)
 			// Step 1: Delete all entries with the old folder name
 			deleteRenameFolderFromIndexLocked(idx, oldFolderPath)
 
-			// Step 2: Re-index all files in the new folder
-			newFolderPathOnDisk := filepath.Join(params.ProjectPath, "notes", newFolderPath)
-
-			err := filepath.WalkDir(newFolderPathOnDisk, func(path string, entry fs.DirEntry, err error) error {
-				if err != nil {
-					return err
-				}
-				if strings.HasPrefix(entry.Name(), ".") && entry.IsDir() {
-					return filepath.SkipDir
-				}
-				if !entry.IsDir() {
-					return nil
-				}
-				folderPath, err := filepath.Rel(filepath.Join(params.ProjectPath, "notes"), path)
-				if err != nil {
-					return err
-				}
-				return search.IndexFilesInFolderWithBatch(params.ProjectPath, path, folderPath, idx, batch)
-			})
-			if err != nil {
+			if err := search.IndexFolderTree(params.ProjectPath, newFolderPath, idx); err != nil {
 				log.Printf("Error re-indexing folder %s: %v", newFolderPath, err)
-				batch.Reset()
-				continue
-			}
-
-			if batch.Size() > 0 {
-				if err := idx.Batch(batch); err != nil {
-					log.Printf("Error committing re-index batch for folder %s: %v", newFolderPath, err)
-				}
-				batch.Reset()
 			}
 		}
 	})

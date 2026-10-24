@@ -59,7 +59,7 @@ func TestDeleteFolderDocumentsFromIndex(t *testing.T) {
 		createNoteInFolder(t, params.ProjectPath, "folder", "one.md", "# one")
 		createNoteInFolder(t, params.ProjectPath, "folder/child", "two.md", "# two")
 		createNoteInFolder(t, params.ProjectPath, "folder-other", "three.md", "# three")
-		require.NoError(t, search.IndexAllFiles(params.ProjectPath, rawIndex(params)))
+		require.NoError(t, search.IndexFolderTree(params.ProjectPath, "", rawIndex(params)))
 
 		idx := rawIndex(params)
 		batch := idx.NewBatch()
@@ -81,7 +81,7 @@ func TestDeleteFolderDocumentsFromIndex(t *testing.T) {
 		folderPath := filepath.Join(params.ProjectPath, "notes", "Foo", "Bar")
 		require.NoError(t, os.MkdirAll(folderPath, 0755))
 		require.NoError(t, os.WriteFile(filepath.Join(folderPath, "image.png"), []byte("image"), 0644))
-		require.NoError(t, search.IndexAllFiles(params.ProjectPath, rawIndex(params)))
+		require.NoError(t, search.IndexFolderTree(params.ProjectPath, "", rawIndex(params)))
 
 		docID := filepath.Join("Foo", "Bar", "image.png")
 		doc, err := rawIndex(params).Document(docID)
@@ -103,7 +103,7 @@ func TestDeleteFolderDocumentsFromIndex(t *testing.T) {
 		for i := range noteCount {
 			createNoteInFolder(t, params.ProjectPath, "big", fmt.Sprintf("note-%d.md", i), "# note")
 		}
-		require.NoError(t, search.IndexAllFiles(params.ProjectPath, rawIndex(params)))
+		require.NoError(t, search.IndexFolderTree(params.ProjectPath, "", rawIndex(params)))
 		idx := rawIndex(params)
 		countBefore, err := idx.DocCount()
 		require.NoError(t, err)
@@ -137,7 +137,7 @@ func TestDeleteFoldersFromIndex(t *testing.T) {
 		params := createTestParams(t)
 		createNoteInFolder(t, params.ProjectPath, "folder1", "one.md", "# one")
 		createNoteInFolder(t, params.ProjectPath, "folder2", "two.md", "# two")
-		require.NoError(t, search.IndexAllFiles(params.ProjectPath, rawIndex(params)))
+		require.NoError(t, search.IndexFolderTree(params.ProjectPath, "", rawIndex(params)))
 
 		deleteData := []util.FolderDeleteEventData{
 			{FolderPath: "folder1"},
@@ -335,7 +335,7 @@ func TestFolderRenamePreservesIndexedTags(t *testing.T) {
 			require.NoError(t, os.WriteFile(filepath.Join(params.ProjectPath, "notes", folder, "photo.png"), []byte("image"), 0644))
 			require.NoError(t, sidecar.WriteTags(params.ProjectPath, folder, "photo.png", []string{"sidecar-tag"}))
 		}
-		require.NoError(t, search.IndexAllFiles(params.ProjectPath, idx))
+		require.NoError(t, search.IndexFolderTree(params.ProjectPath, "", idx))
 		tags, err := search.GetTags(idx)
 		require.NoError(t, err)
 		require.ElementsMatch(t, []string{"markdown-tag", "sidecar-tag"}, tags)

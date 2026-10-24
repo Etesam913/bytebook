@@ -20,20 +20,16 @@ export function usePaletteResults(query: string, enabled: boolean) {
   });
   const files: { path: FileOrFolderPath; excerpt?: string }[] =
     query.trim() && (search.data || !search.isSearching)
-      ? (search.data?.results ?? [])
-        .map((result) => ({
-          path:
-            result.type === 'folder' ? result.folderPath : result.filePath,
+      ? (search.data?.results ?? []).map((result) => ({
+          path: result.type === 'folder' ? result.folderPath : result.filePath,
           excerpt:
-            result.type === 'note'
-              ? result.highlights[0]?.content
-              : undefined,
+            result.type === 'note' ? result.highlights[0]?.content : undefined,
         }))
       : getRecentPickerFiles({
-        recent,
-        currentPath: current?.fullPath,
-        allPaths,
-      }).map((filePath) => ({ path: filePath, excerpt: undefined }));
+          recent,
+          currentPath: current?.fullPath,
+          allPaths,
+        }).map((filePath) => ({ path: filePath, excerpt: undefined }));
 
   const items: PaletteItem[] = files.map((result) => ({
     id: result.path.fullPath,

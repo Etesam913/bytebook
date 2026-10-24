@@ -75,32 +75,32 @@ export function FilePickerMenuPlugin() {
   const options: FilePickerOption[] =
     !searchQuery?.trim() || (!searchPage && isSearchLoading)
       ? getRecentPickerFiles({
-        recent: mostRecentItems,
-        currentPath: currentFilePath?.fullPath,
-        allPaths,
-      }).flatMap((recentItem): FilePickerOption[] => {
-        return [
-          buildFilePickerOption({
-            item: { kind: 'file', filePath: recentItem },
-            searchResult: null,
-            editor,
-            insertLink,
-          }),
-        ];
-      })
+          recent: mostRecentItems,
+          currentPath: currentFilePath?.fullPath,
+          allPaths,
+        }).flatMap((recentItem): FilePickerOption[] => {
+          return [
+            buildFilePickerOption({
+              item: { kind: 'file', filePath: recentItem },
+              searchResult: null,
+              editor,
+              insertLink,
+            }),
+          ];
+        })
       : excludeCurrentFile(
-        searchPage?.results ?? [],
-        currentFilePath?.fullPath
-      ).flatMap((result): FilePickerOption[] => {
-        return [
-          buildFilePickerOption({
-            item: { kind: 'file', filePath: result.filePath },
-            searchResult: result,
-            editor,
-            insertLink,
-          }),
-        ];
-      });
+          searchPage?.results ?? [],
+          currentFilePath?.fullPath
+        ).flatMap((result): FilePickerOption[] => {
+          return [
+            buildFilePickerOption({
+              item: { kind: 'file', filePath: result.filePath },
+              searchResult: result,
+              editor,
+              insertLink,
+            }),
+          ];
+        });
 
   const onSelectOption = (
     selectedOption: DropdownPickerOption,

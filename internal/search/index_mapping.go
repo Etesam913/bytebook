@@ -29,13 +29,7 @@ const DefaultBatchSize = 750
 // querying for folder contents to delete. Bleve defaults to 10 if unset.
 const MaxDeleteSearchResults = 100000
 
-// FlushBatch commits the batch to the index
-// and creates a new batch. The batchPtr parameter should be a pointer to the batch variable
-// so it can be updated after flushing.
-// Example usage:
-//
-//	batch := index.NewBatch()
-//	FlushBatch(index, &batch)
+// FlushBatch commits a non-empty batch without resetting it.
 func FlushBatch(index bleve.Index, batch *bleve.Batch) error {
 	if batch == nil || batch.Size() == 0 {
 		return nil
@@ -137,94 +131,32 @@ func OpenOrCreateIndex(projectPath string) (bleve.Index, error) {
 	return index, nil
 }
 
-// AddFileToBatch adds the note or attachment at notes/<folderName>/<fileName> to the batch
-// when it is not indexed yet or forceIndex is set. notes are read from disk;
-// attachments are indexed from file metadata only.
-// Returns the document ID used for indexing and any error encountered.
-func AddFileToBatch(
-	batch *bleve.Batch,
-	index bleve.Index,
-	projectPath,
-	folderName,
-	fileName string,
-	forceIndex bool,
-) (string, error) {
-	fileId := filepath.Join(folderName, fileName)
-
-	if !forceIndex {
-		docInfo, err := index.Document(fileId)
-		if err != nil {
-			return "", err
-		}
-		if docInfo != nil {
-			return fileId, nil
-		}
+// buildDocument uses supplied Markdown when non-nil, including an empty string.
+// Otherwise notes are read from disk; attachments always use filesystem metadata.
+func buildDocument(projectPath, folder, fileName string, markdown *string) (any, error) {
+	if filepath.Ext(fileName) != ".md" {
+		return createAttachmentBleveDocument(projectPath, folder, fileName, filepath.Ext(fileName))
 	}
-
-	var bleveDocument any
-	if filepath.Ext(fileName) == ".md" {
-		content, err := os.ReadFile(filepath.Join(projectPath, "notes", fileId))
+	if markdown == nil {
+		content, err := os.ReadFile(filepath.Join(projectPath, "notes", folder, fileName))
 		if err != nil {
-			return "", err
+			return nil, fmt.Errorf("read note %s: %w", filepath.Join(folder, fileName), err)
 		}
-		bleveDocument = CreateNoteBleveDocument(string(content), folderName, fileName)
-	} else {
-		bleveDocument = createAttachmentBleveDocument(projectPath, folderName, fileName, filepath.Ext(fileName))
+		text := string(content)
+		markdown = &text
 	}
-	batch.Index(fileId, bleveDocument)
-	return fileId, nil
+	return CreateNoteBleveDocument(*markdown, folder, fileName), nil
 }
 
-// IndexFilesInFolderWithBatch processes all files in a specific folder and adds them to the provided batch.
-// It flushes and resets the batch in place when it reaches the default batch size, so on return
-// the batch holds only operations that have not yet been flushed.
-func IndexFilesInFolderWithBatch(
-	projectPath,
-	folderPath,
-	folderName string,
-	index bleve.Index,
-	batch *bleve.Batch,
-) error {
-	if batch == nil {
-		return nil
-	}
-
-	if _, err := os.Stat(folderPath); os.IsNotExist(err) {
-		return err
-	}
-
-	if err := AddFolderToBatch(batch, folderName); err != nil {
-		return err
-	}
-
-	// Process all files in the folder
-	files, err := os.ReadDir(folderPath)
+// IndexFile upserts a note or attachment in batch. A nil Markdown payload reads notes from disk.
+// Returns a document-building or batch-indexing error.
+func IndexFile(batch *bleve.Batch, projectPath, folder, fileName string, markdown *string) error {
+	document, err := buildDocument(projectPath, folder, fileName, markdown)
 	if err != nil {
 		return err
 	}
-
-	for _, file := range files {
-		// Ignore hidden files and folders.
-		if strings.HasPrefix(file.Name(), ".") {
-			continue
-		}
-
-		if file.IsDir() {
-			continue // Skip subdirectories
-		}
-
-		if _, err := AddFileToBatch(batch, index, projectPath, folderName, file.Name(), false); err != nil {
-			log.Printf("Error processing file %s: %v", filepath.Join(folderPath, file.Name()), err)
-			continue
-		}
-
-		if batch.Size() >= DefaultBatchSize {
-			if err := FlushBatch(index, batch); err != nil {
-				log.Printf("Error flushing batch: %v", err)
-				return err
-			}
-			batch.Reset()
-		}
+	if err := batch.Index(filepath.Join(folder, fileName), document); err != nil {
+		return fmt.Errorf("index file %s: %w", filepath.Join(folder, fileName), err)
 	}
 	return nil
 }
@@ -265,7 +197,7 @@ func regenerateSearchIndex(projectPath string, index bleve.Index, operations ind
 		return nil, err
 	}
 
-	if err := IndexAllFiles(projectPath, newIndex); err != nil {
+	if err := IndexFolderTree(projectPath, "", newIndex); err != nil {
 		newIndex.Close()
 		os.RemoveAll(tempPath)
 		return nil, err

@@ -1,7 +1,6 @@
 package search
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -25,16 +24,6 @@ This is test content.
 	markdownWithId = `---
 id: test-id-12345
 title: Test Document
----
-
-# Test Content
-This is test content.
-`
-
-	markdownWithIdAndLastUpdated = `---
-id: test-id-12345
-title: Test Document
-lastUpdated: 2023-12-01T10:30:00Z
 ---
 
 # Test Content
@@ -84,7 +73,7 @@ func TestIndexOperations(t *testing.T) {
 	})
 }
 
-func TestAddFileToBatchMarkdown(t *testing.T) {
+func TestIndexFileMarkdown(t *testing.T) {
 	env := setupTestEnv(t)
 
 	t.Run("should add new note to batch", func(t *testing.T) {
@@ -92,37 +81,33 @@ func TestAddFileToBatchMarkdown(t *testing.T) {
 		env.createFile(folderPath, "test.md", basicMarkdown)
 
 		batch := env.Index.NewBatch()
-		fileId, err := AddFileToBatch(batch, env.Index, env.TmpDir, "test-folder", "test.md", false)
+		err := IndexFile(batch, env.TmpDir, "test-folder", "test.md", nil)
 
 		assert.NoError(t, err)
-		assert.NotEmpty(t, fileId)
-		assert.Equal(t, "test-folder/test.md", fileId)
 		assert.Greater(t, batch.Size(), 0)
-
-		// The file doesn't have an ID in frontmatter and none is added
 	})
 
-	t.Run("should not add existing note if lastUpdated hasn't changed", func(t *testing.T) {
-		folderPath := env.createTestFolder("test-folder-2")
-		env.createFile(folderPath, "test.md", markdownWithIdAndLastUpdated)
-
-		// Pre-index the document
-		bleveDoc := CreateNoteBleveDocument(markdownWithIdAndLastUpdated, "test-folder-2", "test.md")
-		err := env.Index.Index("test-folder-2/test.md", bleveDoc)
-		require.NoError(t, err)
-
+	t.Run("should replace existing indexed content", func(t *testing.T) {
+		env := setupTestEnv(t)
+		folder := env.createTestFolder("folder")
+		require.NoError(t, env.Index.Index("folder/note.md", CreateNoteBleveDocument("original", "folder", "note.md")))
+		env.createFile(folder, "note.md", "replacement")
 		batch := env.Index.NewBatch()
-		initialSize := batch.Size()
 
-		returnedId, err := AddFileToBatch(batch, env.Index, env.TmpDir, "test-folder-2", "test.md", false)
+		require.NoError(t, IndexFile(batch, env.TmpDir, "folder", "note.md", nil))
+		require.NoError(t, env.Index.Batch(batch))
 
-		assert.NoError(t, err)
-		assert.Equal(t, "test-folder-2/test.md", returnedId)
-		assert.Equal(t, initialSize, batch.Size()) // Should not change
+		result, err := env.Index.Search(bleve.NewSearchRequest(bleve.NewMatchQuery("replacement")))
+		require.NoError(t, err)
+		require.Len(t, result.Hits, 1)
+		assert.Equal(t, "folder/note.md", result.Hits[0].ID)
+		result, err = env.Index.Search(bleve.NewSearchRequest(bleve.NewMatchQuery("original")))
+		require.NoError(t, err)
+		assert.Zero(t, result.Total)
 	})
 }
 
-func TestAddFileToBatchAttachment(t *testing.T) {
+func TestIndexFileAttachment(t *testing.T) {
 	env := setupTestEnv(t)
 
 	t.Run("should add new attachment to batch", func(t *testing.T) {
@@ -130,72 +115,25 @@ func TestAddFileToBatchAttachment(t *testing.T) {
 		env.createFile(folderPath, "test.pdf", "fake pdf content")
 
 		batch := env.Index.NewBatch()
-		fileId, err := AddFileToBatch(batch, env.Index, env.TmpDir, "test-folder", "test.pdf", false)
+		err := IndexFile(batch, env.TmpDir, "test-folder", "test.pdf", nil)
 
 		assert.NoError(t, err)
-		assert.Equal(t, "test-folder/test.pdf", fileId)
 		assert.Greater(t, batch.Size(), 0)
 	})
 
-	t.Run("should not add existing attachment to batch", func(t *testing.T) {
-		folderPath := env.createTestFolder("test-folder-2")
-		env.createFile(folderPath, "existing.jpg", "fake image content")
-
-		// Pre-index the attachment
-		fileId := "test-folder-2/existing.jpg"
-		bleveDoc := createAttachmentBleveDocument(env.TmpDir, "test-folder-2", "existing.jpg", ".jpg")
-		err := env.Index.Index(fileId, bleveDoc)
-		require.NoError(t, err)
-
-		batch := env.Index.NewBatch()
-		initialSize := batch.Size()
-
-		returnedId, err := AddFileToBatch(batch, env.Index, env.TmpDir, "test-folder-2", "existing.jpg", false)
-
-		assert.NoError(t, err)
-		assert.Equal(t, fileId, returnedId)
-		assert.Equal(t, initialSize, batch.Size()) // Should not change
-	})
-
-	t.Run("should handle different file types", func(t *testing.T) {
-		testCases := []struct {
-			fileName  string
-			extension string
-		}{
-			{"document.docx", ".docx"},
-			{"video.mp4", ".mp4"},
-			{"audio.mp3", ".mp3"},
-			{"image.png", ".png"},
-		}
-
-		for _, tc := range testCases {
-			t.Run(tc.fileName, func(t *testing.T) {
-				folderName := "test-folder-" + tc.fileName
-				folderPath := env.createTestFolder(folderName)
-				env.createFile(folderPath, tc.fileName+tc.extension, "fake content")
-
-				batch := env.Index.NewBatch()
-				expectedId := filepath.Join(folderName, tc.fileName)
-
-				fileId, err := AddFileToBatch(batch, env.Index, env.TmpDir, folderName, tc.fileName, false)
-
-				assert.NoError(t, err)
-				assert.Equal(t, expectedId, fileId)
-				assert.Greater(t, batch.Size(), 0)
-			})
-		}
-	})
-
-	t.Run("should index attachment tags from sidecar", func(t *testing.T) {
+	t.Run("should update indexed attachment tags from sidecar", func(t *testing.T) {
 		folderName := "tagged-folder"
 		folderPath := env.createTestFolder(folderName)
 		env.createFile(folderPath, "tagged.pdf", "fake content")
+		require.NoError(t, sidecar.WriteTags(env.TmpDir, folderName, "tagged.pdf", []string{"old"}))
+		initialBatch := env.Index.NewBatch()
+		require.NoError(t, IndexFile(initialBatch, env.TmpDir, folderName, "tagged.pdf", nil))
+		require.NoError(t, env.Index.Batch(initialBatch))
 		require.NoError(t, sidecar.WriteTags(env.TmpDir, folderName, "tagged.pdf", []string{"a", "b"}))
 
 		batch := env.Index.NewBatch()
-		fileId, err := AddFileToBatch(batch, env.Index, env.TmpDir, folderName, "tagged.pdf", true)
+		err := IndexFile(batch, env.TmpDir, folderName, "tagged.pdf", nil)
 		require.NoError(t, err)
-		require.Equal(t, filepath.Join(folderName, "tagged.pdf"), fileId)
 		require.NoError(t, env.Index.Batch(batch))
 
 		termQuery := bleve.NewTermQuery("a")
@@ -204,132 +142,13 @@ func TestAddFileToBatchAttachment(t *testing.T) {
 		searchRequest.Fields = []string{FieldFileName, FieldTags}
 		result, err := env.Index.Search(searchRequest)
 		require.NoError(t, err)
-		assert.EqualValues(t, 1, result.Total)
-	})
-}
-
-func TestIndexAllFilesInFolder(t *testing.T) {
-	env := setupTestEnv(t)
-
-	t.Run("should return error for non-existent folder", func(t *testing.T) {
-		err := indexFolderAndFlush(t, env.Index, env.TmpDir, "/non/existent/path", "non-existent")
-		assert.Error(t, err)
-	})
-
-	t.Run("should index markdown files with missing IDs", func(t *testing.T) {
-		folderPath := env.createTestFolder("test-folder")
-		env.createFile(folderPath, "test1.md", basicMarkdown)
-		env.createFile(folderPath, "test2.md", "# Content\nThis is test content without frontmatter.")
-
-		err := indexFolderAndFlush(t, env.Index, env.TmpDir, folderPath, "test-folder")
-		assert.NoError(t, err)
-
-		// Verify files are indexed using their file paths as document IDs
-		env.verifyDocumentExists("test-folder/test1.md")
-		env.verifyDocumentExists("test-folder/test2.md")
-
-		// Files don't have IDs added to their frontmatter
-	})
-
-	t.Run("should index files with existing IDs", func(t *testing.T) {
-		folderPath := env.createTestFolder("test-folder-2")
-		env.createFile(folderPath, "test.md", markdownWithId)
-
-		err := indexFolderAndFlush(t, env.Index, env.TmpDir, folderPath, "test-folder-2")
-		assert.NoError(t, err)
-
-		// Verify file is indexed
-		env.verifyDocumentExists("test-folder-2/test.md")
-	})
-
-	t.Run("should index files in the parent folder", func(t *testing.T) {
-		folderPath := env.createTestFolder("parent-folder")
-		subfolderPath := filepath.Join(folderPath, "subfolder")
-		err := os.MkdirAll(subfolderPath, 0755)
+		require.Len(t, result.Hits, 1)
+		assert.Equal(t, "tagged-folder/tagged.pdf", result.Hits[0].ID)
+		termQuery = bleve.NewTermQuery("old")
+		termQuery.SetField(FieldTags)
+		result, err = env.Index.Search(bleve.NewSearchRequest(termQuery))
 		require.NoError(t, err)
-
-		// Create files in parent folder
-		env.createFile(folderPath, "parent-note.md", "# Content in parent folder")
-
-		err = indexFolderAndFlush(t, env.Index, env.TmpDir, folderPath, "parent-folder")
-		assert.NoError(t, err)
-
-		// Verify parent file was indexed
-		env.verifyDocumentExists("parent-folder/parent-note.md")
-	})
-
-	t.Run("should not index files in subdirectories", func(t *testing.T) {
-		folderPath := env.createTestFolder("parent-folder")
-		subfolderPath := filepath.Join(folderPath, "subfolder")
-		err := os.MkdirAll(subfolderPath, 0755)
-		require.NoError(t, err)
-
-		// Create files in subfolder (should not be indexed)
-		env.createFile(subfolderPath, "sub-note.md", "# Content in subfolder")
-
-		err = indexFolderAndFlush(t, env.Index, env.TmpDir, folderPath, "parent-folder")
-		assert.NoError(t, err)
-
-		// Verify subfolder file was NOT indexed (since we only process files, not subdirectories)
-		doc, err := env.Index.Document("parent-folder/sub-note.md")
-		assert.NoError(t, err)
-		assert.Nil(t, doc, "Subfolder files should not be indexed")
-	})
-
-	t.Run("should handle empty folders", func(t *testing.T) {
-		folderPath := env.createTestFolder("empty-folder")
-
-		err := indexFolderAndFlush(t, env.Index, env.TmpDir, folderPath, "empty-folder")
-		assert.NoError(t, err) // Should not error on empty folders
-
-		// Verify empty folders do not create standalone folder documents
-		doc, err := env.Index.Document("empty-folder")
-		assert.NoError(t, err)
-		assert.Nil(t, doc)
-	})
-
-	t.Run("should skip hidden files in folder indexing", func(t *testing.T) {
-		folderPath := env.createTestFolder("hidden-skip-folder")
-		env.createFile(folderPath, "visible.md", "# visible")
-		env.createFile(folderPath, ".hidden.md", "# hidden")
-		env.createFile(folderPath, ".hidden.png", "fake image content")
-
-		err := indexFolderAndFlush(t, env.Index, env.TmpDir, folderPath, "hidden-skip-folder")
-		require.NoError(t, err)
-
-		env.verifyDocumentExists("hidden-skip-folder/visible.md")
-
-		hiddenMarkdownDoc, err := env.Index.Document("hidden-skip-folder/.hidden.md")
-		require.NoError(t, err)
-		assert.Nil(t, hiddenMarkdownDoc)
-
-		hiddenAttachmentDoc, err := env.Index.Document("hidden-skip-folder/.hidden.png")
-		require.NoError(t, err)
-		assert.Nil(t, hiddenAttachmentDoc)
-	})
-
-	t.Run("should replace a batch after flushing at the size limit", func(t *testing.T) {
-		initialDocumentCount, err := env.Index.DocCount()
-		require.NoError(t, err)
-
-		folderName := "large-folder"
-		folderPath := env.createTestFolder(folderName)
-		for i := 0; i < DefaultBatchSize+1; i++ {
-			env.createFile(folderPath, fmt.Sprintf("attachment-%04d.bin", i), "data")
-		}
-
-		batch := env.Index.NewBatch()
-		require.NoError(t, IndexFilesInFolderWithBatch(env.TmpDir, folderPath, folderName, env.Index, batch))
-		assert.Equal(t, 2, batch.Size())
-
-		documentCount, err := env.Index.DocCount()
-		require.NoError(t, err)
-		assert.EqualValues(t, initialDocumentCount+DefaultBatchSize, documentCount)
-
-		require.NoError(t, env.Index.Batch(batch))
-		documentCount, err = env.Index.DocCount()
-		require.NoError(t, err)
-		assert.EqualValues(t, initialDocumentCount+DefaultBatchSize+2, documentCount)
+		assert.Zero(t, result.Total)
 	})
 }
 

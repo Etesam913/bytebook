@@ -54,19 +54,6 @@ func (env *TestEnv) verifyDocumentExists(docId string) {
 	assert.NotNil(env.t, doc, "Document %s should not be nil", docId)
 }
 
-func indexFolderAndFlush(t *testing.T, idx bleve.Index, projectPath, folderPath, folderName string) error {
-	batch := idx.NewBatch()
-	if err := IndexFilesInFolderWithBatch(projectPath, folderPath, folderName, idx, batch); err != nil {
-		return err
-	}
-
-	if batch.Size() == 0 {
-		return nil
-	}
-
-	return idx.Batch(batch)
-}
-
 func setupTempNotesDir(t *testing.T) (projectDir, notesDir string) {
 	t.Helper()
 	projectDir = t.TempDir()

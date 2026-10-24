@@ -17,7 +17,8 @@ func TestCreateAttachmentBleveDocument(t *testing.T) {
 		err := sidecar.WriteTags(env.TmpDir, folderName, "image.jpg", []string{"foo", "bar"})
 		require.NoError(t, err)
 
-		doc := createAttachmentBleveDocument(env.TmpDir, folderName, "image.jpg", ".jpg")
+		doc, err := createAttachmentBleveDocument(env.TmpDir, folderName, "image.jpg", ".jpg")
+		require.NoError(t, err)
 		assert.ElementsMatch(t, []string{"foo", "bar"}, doc.Tags)
 		assert.NotEmpty(t, doc.CreatedDate)
 		assert.Greater(t, doc.Size, int64(0))
@@ -38,7 +39,8 @@ func TestCreateAttachmentBleveDocument(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.fileName+tc.fileExtension, func(t *testing.T) {
 			env.createFile(env.createTestFolder("test-folder"), tc.fileName, "fake")
-			doc := createAttachmentBleveDocument(env.TmpDir, "test-folder", tc.fileName, tc.fileExtension)
+			doc, err := createAttachmentBleveDocument(env.TmpDir, "test-folder", tc.fileName, tc.fileExtension)
+			require.NoError(t, err)
 
 			assert.Equal(t, tc.fileName, doc.FileName)
 			assert.Equal(t, tc.fileExtension, doc.FileExtension)

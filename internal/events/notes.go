@@ -2,7 +2,6 @@ package events
 
 import (
 	"log"
-	"os"
 	"path/filepath"
 	"time"
 
@@ -27,7 +26,7 @@ func addCreatedNotesToIndex(params EventParams, data []util.FileCreateEventData)
 							log.Printf("Error ensuring sidecar for %s: %v", noteName, err)
 						}
 					}
-					_, err := search.AddFileToBatch(batch, idx, params.ProjectPath, folder, noteName, true)
+					err := search.IndexFile(batch, params.ProjectPath, folder, noteName, nil)
 					return err
 				},
 				5,                   // maxRetries
@@ -73,7 +72,7 @@ func renameFilesInIndex(params EventParams, data []util.FileRenameEventData) {
 				log.Printf("Error moving sidecar from %s to %s: %v", oldFilePath, newFilePath, err)
 			}
 
-			if _, err := search.AddFileToBatch(batch, idx, params.ProjectPath, newFolder, newNoteName, true); err != nil {
+			if err := search.IndexFile(batch, params.ProjectPath, newFolder, newNoteName, nil); err != nil {
 				log.Println("Error adding renamed file to batch", err)
 			}
 
@@ -114,37 +113,13 @@ func updateNotesInIndex(params EventParams, data []util.FileWriteEventData) {
 		for _, note := range data {
 			folder, noteName := util.SplitFolderAndFile(note.FilePath)
 
-			notePath := filepath.Join(folder, noteName)
-
-			if filepath.Ext(noteName) != ".md" {
-				// Attachments are indexed by file metadata only — never read
-				// their contents into the markdown pipeline.
-				if _, err := search.AddFileToBatch(batch, idx, params.ProjectPath, folder, noteName, true); err != nil {
-					log.Printf("Error adding attachment to batch %s: %v", notePath, err)
-				}
-			} else {
-				// The file watcher already read the note when it emitted the event, so
-				// prefer the markdown from the payload and only fall back to disk.
-				markdown := note.Markdown
-				if markdown == "" {
-					noteFilePath := filepath.Join(params.ProjectPath, "notes", notePath)
-					content, err := os.ReadFile(noteFilePath)
-					if err != nil {
-						log.Printf("Error reading note file %s: %v", noteFilePath, err)
-						continue
-					}
-					markdown = string(content)
-				}
-
-				bleveNoteDocument := search.CreateNoteBleveDocument(
-					markdown,
-					folder,
-					noteName,
-				)
-
-				if err := batch.Index(notePath, bleveNoteDocument); err != nil {
-					log.Printf("Error indexing note %s: %v", notePath, err)
-				}
+			// Empty event payloads retain the existing fallback to disk.
+			var markdown *string
+			if note.Markdown != "" {
+				markdown = &note.Markdown
+			}
+			if err := search.IndexFile(batch, params.ProjectPath, folder, noteName, markdown); err != nil {
+				log.Printf("Error indexing file %s: %v", note.FilePath, err)
 			}
 
 			if err := flushBatchIfFull(idx, batch); err != nil {

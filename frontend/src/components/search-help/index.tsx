@@ -4,69 +4,69 @@ export const SEARCH_HELP_SECTIONS: {
   label: string;
   examples: { query: string; description: string }[];
 }[] = [
-    {
-      label: 'Basics',
-      examples: [
-        {
-          query: '"docker compose"',
-          description: 'Match the exact phrase "docker compose".',
-        },
-        {
-          query: 'auth AND -middleware',
-          description: 'Match "auth"; use - to exclude "middleware".',
-        },
-        {
-          query: 'auth OR middleware',
-          description: 'Notes containing either "auth" or "middleware".',
-        },
-      ],
-    },
-    {
-      label: 'Files',
-      examples: [
-        { query: 'f:readme', description: 'Files or folders named "readme".' },
-        {
-          query: 'f:jobs/applications/job-1.md',
-          description:
-            'Files named "job-1.md" in the "jobs/applications" folder.',
-        },
-      ],
-    },
-    {
-      label: 'Tags',
-      examples: [{ query: '#todo', description: 'Notes tagged with "todo".' }],
-    },
-    {
-      label: 'Type',
-      examples: [
-        {
-          query: 't:folder',
-          description: 'Folders in Quick Open; use t:note for notes.',
-        },
-        {
-          query: 'type:attachment',
-          description: 'Limit results to attachments.',
-        },
-      ],
-    },
-    {
-      label: 'Sort',
-      examples: [
-        {
-          query: 's:created',
-          description: 'Sort by creation time (newest first).',
-        },
-        {
-          query: 'sort:updated_asc',
-          description: 'Sort by last update time, oldest first.',
-        },
-        {
-          query: 'sort:size_desc',
-          description: 'Sort by size, largest first.',
-        },
-      ],
-    },
-  ];
+  {
+    label: 'Basics',
+    examples: [
+      {
+        query: '"docker compose"',
+        description: 'Match the exact phrase "docker compose".',
+      },
+      {
+        query: 'auth AND -middleware',
+        description: 'Match "auth"; use - to exclude "middleware".',
+      },
+      {
+        query: 'auth OR middleware',
+        description: 'Notes containing either "auth" or "middleware".',
+      },
+    ],
+  },
+  {
+    label: 'Files',
+    examples: [
+      { query: 'f:readme', description: 'Files or folders named "readme".' },
+      {
+        query: 'f:jobs/applications/job-1.md',
+        description:
+          'Files named "job-1.md" in the "jobs/applications" folder.',
+      },
+    ],
+  },
+  {
+    label: 'Tags',
+    examples: [{ query: '#todo', description: 'Notes tagged with "todo".' }],
+  },
+  {
+    label: 'Type',
+    examples: [
+      {
+        query: 't:folder',
+        description: 'Folders in Quick Open; use t:note for notes.',
+      },
+      {
+        query: 'type:attachment',
+        description: 'Limit results to attachments.',
+      },
+    ],
+  },
+  {
+    label: 'Sort',
+    examples: [
+      {
+        query: 's:created',
+        description: 'Sort by creation time (newest first).',
+      },
+      {
+        query: 'sort:updated_asc',
+        description: 'Sort by last update time, oldest first.',
+      },
+      {
+        query: 'sort:size_desc',
+        description: 'Sort by size, largest first.',
+      },
+    ],
+  },
+];
 
 export function SearchHelpSections({
   sections,

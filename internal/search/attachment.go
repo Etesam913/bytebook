@@ -1,6 +1,7 @@
 package search
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"time"
@@ -24,19 +25,16 @@ type AttachmentBleveDocument struct {
 
 // createAttachmentBleveDocument constructs an AttachmentBleveDocument from file information.
 // It extracts the filename, file extension, and attachment tags for search indexing.
-func createAttachmentBleveDocument(projectPath, folder, fileName, fileExtension string) AttachmentBleveDocument {
+func createAttachmentBleveDocument(projectPath, folder, fileName, fileExtension string) (AttachmentBleveDocument, error) {
 	tags, err := sidecar.ReadTags(projectPath, folder, fileName)
 	if err != nil {
 		tags = []string{}
 	}
 
-	size := int64(0)
-	createdDate := ""
 	attachmentPath := filepath.Join(projectPath, "notes", folder, fileName)
-	fileInfo, statErr := os.Stat(attachmentPath)
-	if statErr == nil {
-		size = fileInfo.Size()
-		createdDate = fileInfo.ModTime().UTC().Format(time.RFC3339)
+	fileInfo, err := os.Stat(attachmentPath)
+	if err != nil {
+		return AttachmentBleveDocument{}, fmt.Errorf("stat attachment %s: %w", attachmentPath, err)
 	}
 
 	return AttachmentBleveDocument{
@@ -45,9 +43,9 @@ func createAttachmentBleveDocument(projectPath, folder, fileName, fileExtension 
 		FileName:      fileName,
 		FileExtension: fileExtension,
 		Tags:          tags,
-		CreatedDate:   createdDate,
-		Size:          size,
-	}
+		CreatedDate:   fileInfo.ModTime().UTC().Format(time.RFC3339),
+		Size:          fileInfo.Size(),
+	}, nil
 }
 
 // createAttachmentDocumentMapping creates a Bleve document mapping for attachments.

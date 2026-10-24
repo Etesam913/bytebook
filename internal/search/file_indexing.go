@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/fs"
 	"log"
-	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -16,7 +15,6 @@ import (
 )
 
 type DocumentJob struct {
-	entryPath string
 	entryId   string
 	folder    string
 	entryName string
@@ -24,21 +22,17 @@ type DocumentJob struct {
 }
 
 type DocumentResult struct {
-	isError  bool
+	err      error
 	entryId  string
 	document any
 }
 
-// IndexAllFiles recursively indexes visible folders, notes, and attachments under notes/.
-// Returns an error if discovery or indexing fails.
-func IndexAllFiles(projectPath string, bleveIndex bleve.Index) error {
+// IndexFolderTree recursively upserts a notes-relative subtree in bounded batches.
+// An empty folder indexes the entire notes directory.
+// Completed batches remain committed if a later discovery or indexing operation fails.
+func IndexFolderTree(projectPath, folder string, bleveIndex bleve.Index) error {
 	return indexFiles(projectPath, bleveIndex, util.WORKER_COUNT, func(ctx context.Context, jobs chan<- DocumentJob) error {
-		notesPath := filepath.Join(projectPath, "notes")
-		folders, err := os.ReadDir(notesPath)
-		if err != nil {
-			return err
-		}
-		return populateJobs(ctx, folders, notesPath, jobs)
+		return populateJobs(ctx, projectPath, filepath.Join(projectPath, "notes", folder), jobs)
 	})
 }
 
@@ -143,8 +137,8 @@ func addResultsToIndex(ctx context.Context, bleveIndex bleve.Index, bleveBatch *
 			}
 			docResult = result
 		}
-		if docResult.isError {
-			return nil, fmt.Errorf("could not read document %s", docResult.entryId)
+		if docResult.err != nil {
+			return nil, fmt.Errorf("build document %s: %w", docResult.entryId, docResult.err)
 		}
 		if err := bleveBatch.Index(docResult.entryId, docResult.document); err != nil {
 			return nil, fmt.Errorf("add document %s to indexing batch: %w", docResult.entryId, err)
@@ -161,75 +155,34 @@ func addResultsToIndex(ctx context.Context, bleveIndex bleve.Index, bleveBatch *
 	}
 }
 
-// populateJobs creates DocumentJob tasks for folders and files found recursively inside each
-// top-level folder under notesPath.
-func populateJobs(ctx context.Context, folders []os.DirEntry, notesPath string, jobs chan<- DocumentJob) error {
-	for _, folder := range folders {
-		if err := ctx.Err(); err != nil {
+// populateJobs walks a subtree once, skipping hidden entries and the notes root.
+func populateJobs(ctx context.Context, projectPath, root string, jobs chan<- DocumentJob) error {
+	return filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return ctxErr
+		}
+		if err != nil {
 			return err
 		}
-		// Skip hidden top-level entries, files and folders alike.
-		if strings.HasPrefix(folder.Name(), ".") {
-			continue
+		if path == filepath.Join(projectPath, "notes") {
+			return nil
 		}
-
-		// Files sitting at the notes root index with an empty folder, so they
-		// stay reachable from tree filtering like any nested note.
-		if !folder.IsDir() {
-			if err := enqueueDocumentJob(ctx, jobs, DocumentJob{
-				entryPath: filepath.Join(notesPath, folder.Name()),
-				entryId:   folder.Name(),
-				folder:    "",
-				entryName: folder.Name(),
-			}); err != nil {
-				return err
+		if shouldSkipIndexedPath(projectPath, path) {
+			if entry.IsDir() {
+				return filepath.SkipDir
 			}
-			continue
+			return nil
 		}
-
-		rootFolderName := folder.Name()
-		rootFolderPath := filepath.Join(notesPath, rootFolderName)
-
-		if err := filepath.WalkDir(rootFolderPath, func(path string, d fs.DirEntry, err error) error {
-			if ctxErr := ctx.Err(); ctxErr != nil {
-				return ctxErr
-			}
-			if err != nil {
-				return err
-			}
-
-			// Skip hidden files, sidecars, and hidden directories.
-			if strings.HasPrefix(d.Name(), ".") {
-				if d.IsDir() {
-					return filepath.SkipDir
-				}
-				return nil
-			}
-
-			fileId, err := filepath.Rel(notesPath, path)
-			if err != nil {
-				return err
-			}
-
-			folderPath, fileName := filepath.Split(fileId)
-			if d.IsDir() {
-				fileId += "/"
-			}
-			folderPath = strings.TrimSuffix(folderPath, string(filepath.Separator))
-
-			return enqueueDocumentJob(ctx, jobs, DocumentJob{
-				entryPath: path,
-				entryId:   fileId,
-				folder:    folderPath,
-				entryName: fileName,
-				isFolder:  d.IsDir(),
-			})
-		}); err != nil {
+		job, err := buildDocumentJob(projectPath, path)
+		if err != nil {
 			return err
 		}
-	}
-
-	return nil
+		job.isFolder = entry.IsDir()
+		if job.isFolder {
+			job.entryId += "/"
+		}
+		return enqueueDocumentJob(ctx, jobs, job)
+	})
 }
 
 func shouldSkipIndexedPath(projectPath, filePath string) bool {
@@ -266,19 +219,12 @@ func startWorker(ctx context.Context, projectPath string, jobs <-chan DocumentJo
 			job = next
 		}
 		result := DocumentResult{entryId: job.entryId}
-		fileExtension := filepath.Ext(job.entryName)
 		if job.isFolder {
 			result.document = FolderBleveDocument{Type: FOLDER_TYPE, Folder: job.folder, FileName: job.entryName}
-		} else if fileExtension == ".md" {
-			content, err := os.ReadFile(job.entryPath)
-			if err != nil {
-				result.isError = true
-			} else {
-				result.document = CreateNoteBleveDocument(string(content), job.folder, job.entryName)
-			}
 		} else {
-			result.document = createAttachmentBleveDocument(projectPath, job.folder, job.entryName, fileExtension)
+			result.document, result.err = buildDocument(projectPath, job.folder, job.entryName, nil)
 		}
+
 		select {
 		case <-ctx.Done():
 			return
@@ -300,7 +246,6 @@ func buildDocumentJob(projectPath, filePath string) (DocumentJob, error) {
 	folderPath = strings.TrimSuffix(folderPath, string(filepath.Separator))
 
 	return DocumentJob{
-		entryPath: filePath,
 		entryId:   fileID,
 		folder:    folderPath,
 		entryName: fileName,
