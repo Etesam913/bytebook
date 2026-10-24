@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/etesam913/bytebook/internal/testutil"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/fsnotify/fsnotify"
 	"github.com/stretchr/testify/assert"
@@ -15,11 +16,9 @@ import (
 func TestWatcherFileReplacement(t *testing.T) {
 	t.Run("remove then create becomes a write with the final content", func(t *testing.T) {
 		project, _, root, _, _ := setupProjectFolders(t)
-		path := filepath.Join(root, "note.md")
-		require.NoError(t, os.WriteFile(path, []byte("before"), 0644))
+		path := testutil.WriteFile(t, root, "note.md", []byte("before"))
 		fw := newTestFileWatcher(t, project)
-		replacement := filepath.Join(t.TempDir(), "replacement.md")
-		require.NoError(t, os.WriteFile(replacement, []byte("after"), 0644))
+		replacement := testutil.WriteFile(t, t.TempDir(), "replacement.md", []byte("after"))
 
 		// Model Finder Replace: overwrite the path, then deliver Remove followed by Create.
 		require.NoError(t, os.Rename(replacement, path))
@@ -37,8 +36,7 @@ func TestWatcherFileReplacement(t *testing.T) {
 func TestWatcherReplacementEventOrder(t *testing.T) {
 	t.Run("create before remove still updates empty content", func(t *testing.T) {
 		project, _, root, _, _ := setupProjectFolders(t)
-		path := filepath.Join(root, "note.md")
-		require.NoError(t, os.WriteFile(path, []byte("before"), 0644))
+		path := testutil.WriteFile(t, root, "note.md", []byte("before"))
 		fw := newTestFileWatcher(t, project)
 		fw.hasFileChanged(path)
 
@@ -57,8 +55,7 @@ func TestWatcherReplacementEventOrder(t *testing.T) {
 	t.Run("real deletion and unrelated create remain separate", func(t *testing.T) {
 		project, _, root, _, _ := setupProjectFolders(t)
 		fw := newTestFileWatcher(t, project)
-		path := filepath.Join(root, "copy.md")
-		require.NoError(t, os.WriteFile(path, []byte("other"), 0644))
+		path := testutil.WriteFile(t, root, "copy.md", []byte("other"))
 
 		// A missing path and a different existing path are independent operations.
 		fw.processEvent(fsnotify.Event{Name: filepath.Join(root, "deleted.md"), Op: fsnotify.Remove})
@@ -73,16 +70,14 @@ func TestWatcherReplacementEventOrder(t *testing.T) {
 
 func TestNativeWatcherReplacement(t *testing.T) {
 	project, _, root, _, _ := setupProjectFolders(t)
-	path := filepath.Join(root, "note.md")
-	require.NoError(t, os.WriteFile(path, []byte("before"), 0644))
+	path := testutil.WriteFile(t, root, "note.md", []byte("before"))
 	fw := newTestFileWatcher(t, project)
 	fw.addFolderTreeToWatcher(root)
 	fw.hasFileChanged(path)
 	info, err := os.Stat(path)
 	require.NoError(t, err)
 	// Preserve size and timestamp so replacement detection cannot rely on the write cache.
-	replacement := filepath.Join(t.TempDir(), "replacement.md")
-	require.NoError(t, os.WriteFile(replacement, []byte("after!"), 0644))
+	replacement := testutil.WriteFile(t, t.TempDir(), "replacement.md", []byte("after!"))
 	require.NoError(t, os.Chtimes(replacement, info.ModTime(), info.ModTime()))
 
 	require.NoError(t, os.Rename(replacement, path))

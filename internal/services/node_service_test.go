@@ -5,24 +5,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/etesam913/bytebook/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func writeAttachmentSource(
-	t *testing.T,
-	basePath string,
-	relativePath string,
-	content []byte,
-) string {
-	t.Helper()
-
-	// Source fixtures may use nested folders to create duplicate basenames.
-	path := filepath.Join(basePath, relativePath)
-	require.NoError(t, os.MkdirAll(filepath.Dir(path), 0o755))
-	require.NoError(t, os.WriteFile(path, content, 0o644))
-	return path
-}
 
 func TestNodeServiceAddAttachmentsFromPaths(t *testing.T) {
 	t.Run("Copies files into a nested notes folder and returns frontend paths", func(t *testing.T) {
@@ -33,8 +19,8 @@ func TestNodeServiceAddAttachmentsFromPaths(t *testing.T) {
 		// Include binary data so the assertion verifies a byte-for-byte copy.
 		imageContent := []byte{0x00, 0x01, 0x02, 0xff}
 		documentContent := []byte("document content")
-		imagePath := writeAttachmentSource(t, sourcePath, "photo.png", imageContent)
-		documentPath := writeAttachmentSource(t, sourcePath, "document.pdf", documentContent)
+		imagePath := testutil.WriteFile(t, sourcePath, "photo.png", imageContent)
+		documentPath := testutil.WriteFile(t, sourcePath, "document.pdf", documentContent)
 		service := NodeService{ProjectPath: projectPath}
 
 		response := service.AddAttachmentsFromPaths(
@@ -62,8 +48,8 @@ func TestNodeServiceAddAttachmentsFromPaths(t *testing.T) {
 		require.NoError(t, os.MkdirAll(destinationPath, 0o755))
 		firstContent := []byte("first image")
 		secondContent := []byte("second image")
-		firstPath := writeAttachmentSource(t, sourcePath, "first/photo.png", firstContent)
-		secondPath := writeAttachmentSource(t, sourcePath, "second/photo.png", secondContent)
+		firstPath := testutil.WriteFile(t, sourcePath, "first/photo.png", firstContent)
+		secondPath := testutil.WriteFile(t, sourcePath, "second/photo.png", secondContent)
 		service := NodeService{ProjectPath: projectPath}
 
 		response := service.AddAttachmentsFromPaths("assets", []string{firstPath, secondPath})
@@ -89,7 +75,7 @@ func TestNodeServiceAddAttachmentsFromPaths(t *testing.T) {
 		require.NoError(t, os.MkdirAll(destinationPath, 0o755))
 		content := []byte("normalized")
 		// These characters are valid in the source path but removed on import.
-		filePath := writeAttachmentSource(t, sourcePath, "report:name?.txt", content)
+		filePath := testutil.WriteFile(t, sourcePath, "report:name?.txt", content)
 		service := NodeService{ProjectPath: projectPath}
 
 		response := service.AddAttachmentsFromPaths("assets", []string{filePath})
@@ -107,7 +93,7 @@ func TestNodeServiceAddAttachmentsFromPaths(t *testing.T) {
 		require.NoError(t, os.MkdirAll(filepath.Join(projectPath, "notes"), 0o755))
 		outside := filepath.Join(root, "outside")
 		require.NoError(t, os.Mkdir(outside, 0o755))
-		filePath := writeAttachmentSource(t, t.TempDir(), "attachment.txt", []byte("attachment"))
+		filePath := testutil.WriteFile(t, t.TempDir(), "attachment.txt", []byte("attachment"))
 		service := NodeService{ProjectPath: projectPath}
 
 		response := service.AddAttachmentsFromPaths("../../outside", []string{filePath})
@@ -125,9 +111,9 @@ func TestNodeServiceAddAttachmentsFromPaths(t *testing.T) {
 		require.NoError(t, os.Mkdir(destination, 0o755))
 		source := t.TempDir()
 		content := []byte("completed import")
-		filePath := writeAttachmentSource(t, source, "attachment.txt", content)
+		filePath := testutil.WriteFile(t, source, "attachment.txt", content)
 		folder := filepath.Join(source, "folder")
-		writeAttachmentSource(t, folder, "note.md", content)
+		testutil.WriteFile(t, folder, "note.md", content)
 		service := NodeService{ProjectPath: projectPath}
 
 		response := service.AddAttachmentsFromPaths("", []string{filePath, folder, filepath.Join(source, "missing.txt")})
@@ -165,7 +151,7 @@ func TestNodeServiceAddAttachmentsFromPaths(t *testing.T) {
 		projectPath := t.TempDir()
 		sourcePath := t.TempDir()
 		content := []byte("source remains")
-		filePath := writeAttachmentSource(t, sourcePath, "attachment.txt", content)
+		filePath := testutil.WriteFile(t, sourcePath, "attachment.txt", content)
 		service := NodeService{ProjectPath: projectPath}
 
 		response := service.AddAttachmentsFromPaths("missing", []string{filePath})
@@ -201,8 +187,8 @@ func TestNodeServiceImportFolders(t *testing.T) {
 		destination := filepath.Join(project, "notes", "assets")
 		require.NoError(t, os.MkdirAll(filepath.Join(destination, "release.v1"), 0o755))
 		folder := filepath.Join(source, "release.v1")
-		writeAttachmentSource(t, folder, "nested/note.md", []byte("# Note"))
-		writeAttachmentSource(t, folder, "nested/.note.md.json", []byte(`{"tags":["test"]}`))
+		testutil.WriteFile(t, folder, "nested/note.md", []byte("# Note"))
+		testutil.WriteFile(t, folder, "nested/.note.md.json", []byte(`{"tags":["test"]}`))
 		require.NoError(t, os.MkdirAll(filepath.Join(folder, "empty"), 0o755))
 		service := NodeService{ProjectPath: project}
 
@@ -237,8 +223,8 @@ func TestNodeServiceImportFolders(t *testing.T) {
 		require.NoError(t, os.Mkdir(filepath.Join(project, "notes"), 0o755))
 		source := t.TempDir()
 		folder := filepath.Join(source, "folder")
-		attachment := writeAttachmentSource(t, source, "attachment.txt", []byte("attachment"))
-		file := writeAttachmentSource(t, folder, "a.md", []byte("note"))
+		attachment := testutil.WriteFile(t, source, "attachment.txt", []byte("attachment"))
+		file := testutil.WriteFile(t, folder, "a.md", []byte("note"))
 		require.NoError(t, os.Symlink(file, filepath.Join(folder, "z-link")))
 		service := NodeService{ProjectPath: project}
 

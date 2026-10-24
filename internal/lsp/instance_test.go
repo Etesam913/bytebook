@@ -2,167 +2,18 @@ package lsp
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"net"
 	"sync"
-	"sync/atomic"
 	"testing"
 	"time"
 
-	"go.lsp.dev/jsonrpc2"
+	"github.com/stretchr/testify/require"
 	"go.lsp.dev/protocol"
 )
 
-// fakeServer is a minimal jsonrpc2.Handler that mimics enough of an LSP server
-// for the Instance unit tests. It records every request and produces canned
-// replies for the methods Instance actually calls.
-type fakeServer struct {
-	mu               sync.Mutex
-	gotInitialize    bool
-	gotInitialized   bool
-	gotDidOpen       bool
-	didChangeCount   int
-	completionCalls  int
-	hoverCalls       int
-	gotShutdown      bool
-	gotExit          bool
-	completionDelay  time.Duration
-	completionItems  []protocol.CompletionItem
-	hoverContents    string
-	completionErrors atomic.Int32
-	initialized      chan struct{}
-}
-
-func (s *fakeServer) handler(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) error {
-	switch req.Method() {
-	case protocol.MethodInitialize:
-		s.mu.Lock()
-		s.gotInitialize = true
-		s.mu.Unlock()
-		return reply(ctx, &protocol.InitializeResult{}, nil)
-
-	case protocol.MethodInitialized:
-		s.mu.Lock()
-		s.gotInitialized = true
-		s.mu.Unlock()
-		close(s.initialized)
-		return reply(ctx, nil, nil)
-
-	case protocol.MethodTextDocumentDidOpen:
-		s.mu.Lock()
-		s.gotDidOpen = true
-		s.mu.Unlock()
-		return reply(ctx, nil, nil)
-
-	case protocol.MethodTextDocumentDidChange:
-		s.mu.Lock()
-		s.didChangeCount++
-		s.mu.Unlock()
-		return reply(ctx, nil, nil)
-
-	case protocol.MethodTextDocumentCompletion:
-		s.mu.Lock()
-		s.completionCalls++
-		items := s.completionItems
-		delay := s.completionDelay
-		s.mu.Unlock()
-		if delay > 0 {
-			select {
-			case <-time.After(delay):
-			case <-ctx.Done():
-				return reply(ctx, nil, ctx.Err())
-			}
-		}
-		if s.completionErrors.Load() > 0 {
-			s.completionErrors.Add(-1)
-			return reply(ctx, nil, errors.New("completion failed (test)"))
-		}
-		return reply(ctx, &protocol.CompletionList{Items: items}, nil)
-
-	case protocol.MethodTextDocumentHover:
-		s.mu.Lock()
-		s.hoverCalls++
-		contents := s.hoverContents
-		s.mu.Unlock()
-		if contents == "" {
-			return reply(ctx, nil, nil)
-		}
-		return reply(ctx, &protocol.Hover{
-			Contents: protocol.MarkupContent{Kind: protocol.Markdown, Value: contents},
-		}, nil)
-
-	case protocol.MethodShutdown:
-		s.mu.Lock()
-		s.gotShutdown = true
-		s.mu.Unlock()
-		return reply(ctx, nil, nil)
-
-	case protocol.MethodExit:
-		s.mu.Lock()
-		s.gotExit = true
-		s.mu.Unlock()
-		return reply(ctx, nil, nil)
-
-	default:
-		// Unknown methods (e.g. workspace/configuration) — reply with null to
-		// keep the conversation moving.
-		var p json.RawMessage = json.RawMessage(`null`)
-		return reply(ctx, p, nil)
-	}
-}
-
-// newTestInstance wires an Instance directly to a fakeServer using net.Pipe,
-// without spawning any child process. Returns the instance, the fake server,
-// and a teardown func.
-func newTestInstance(t *testing.T) (*Instance, *fakeServer, func()) {
-	t.Helper()
-	clientConn, serverConn := net.Pipe()
-
-	srvCtx, srvCancel := context.WithCancel(context.Background())
-	fake := &fakeServer{initialized: make(chan struct{})}
-
-	// Start the server side. We use jsonrpc2 directly because protocol.NewServer
-	// requires a full protocol.Server impl; jsonrpc2's handler is the lower
-	// level the library is built on.
-	serverStream := jsonrpc2.NewStream(serverConn)
-	serverJSONRPC := jsonrpc2.NewConn(serverStream)
-	serverJSONRPC.Go(srvCtx, fake.handler)
-
-	cctx, cancel := context.WithCancel(context.Background())
-	in, err := newInstance(cctx, cancel, "test-note", clientConn)
-	if err != nil {
-		srvCancel()
-		_ = serverJSONRPC.Close()
-		_ = clientConn.Close()
-		t.Fatalf("newInstance: %v", err)
-	}
-
-	if err := in.initialize(); err != nil {
-		srvCancel()
-		_ = in.Shutdown()
-		t.Fatalf("initialize: %v", err)
-	}
-	select {
-	case <-fake.initialized:
-	case <-time.After(time.Second):
-		srvCancel()
-		_ = in.Shutdown()
-		t.Fatal("timed out waiting for initialized notification")
-	}
-
-	teardown := func() {
-		_ = in.Shutdown()
-		srvCancel()
-		_ = serverJSONRPC.Close()
-		_ = serverConn.Close()
-	}
-	return in, fake, teardown
-}
-
 func TestInstanceInitializeHandshake(t *testing.T) {
-	_, fake, teardown := newTestInstance(t)
-	defer teardown()
+	_, fake := newTestInstance(t)
 
 	fake.mu.Lock()
 	defer fake.mu.Unlock()
@@ -172,8 +23,7 @@ func TestInstanceInitializeHandshake(t *testing.T) {
 }
 
 func TestInstanceDidChangeOpensDocOnce(t *testing.T) {
-	in, fake, teardown := newTestInstance(t)
-	defer teardown()
+	in, fake := newTestInstance(t)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
@@ -183,6 +33,13 @@ func TestInstanceDidChangeOpensDocOnce(t *testing.T) {
 	if err := in.DidChange(ctx, "block-1", 0, "x = 2"); err != nil {
 		t.Fatalf("DidChange 2: %v", err)
 	}
+
+	// Notifications are processed asynchronously by the fake server.
+	require.Eventually(t, func() bool {
+		fake.mu.Lock()
+		defer fake.mu.Unlock()
+		return fake.didChangeCount == 2
+	}, time.Second, time.Millisecond)
 
 	fake.mu.Lock()
 	defer fake.mu.Unlock()
@@ -195,8 +52,7 @@ func TestInstanceDidChangeOpensDocOnce(t *testing.T) {
 }
 
 func TestInstanceCompletionReturnsItems(t *testing.T) {
-	in, fake, teardown := newTestInstance(t)
-	defer teardown()
+	in, fake := newTestInstance(t)
 
 	fake.mu.Lock()
 	fake.completionItems = []protocol.CompletionItem{
@@ -226,8 +82,7 @@ func TestInstanceCompletionReturnsItems(t *testing.T) {
 }
 
 func TestInstanceCompletionTimeoutReturnsContextErr(t *testing.T) {
-	in, fake, teardown := newTestInstance(t)
-	defer teardown()
+	in, fake := newTestInstance(t)
 
 	fake.mu.Lock()
 	fake.completionDelay = 200 * time.Millisecond
@@ -251,8 +106,7 @@ func TestInstanceCompletionTimeoutReturnsContextErr(t *testing.T) {
 }
 
 func TestInstanceCompletionUnknownBlock(t *testing.T) {
-	in, _, teardown := newTestInstance(t)
-	defer teardown()
+	in, _ := newTestInstance(t)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
@@ -263,8 +117,7 @@ func TestInstanceCompletionUnknownBlock(t *testing.T) {
 }
 
 func TestInstanceHoverReturnsMarkdown(t *testing.T) {
-	in, fake, teardown := newTestInstance(t)
-	defer teardown()
+	in, fake := newTestInstance(t)
 
 	fake.mu.Lock()
 	fake.hoverContents = "**print** — write to stdout"
@@ -285,8 +138,7 @@ func TestInstanceHoverReturnsMarkdown(t *testing.T) {
 }
 
 func TestInstanceHoverEmptyResultNotFound(t *testing.T) {
-	in, _, teardown := newTestInstance(t)
-	defer teardown()
+	in, _ := newTestInstance(t)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
@@ -306,8 +158,7 @@ func TestInstanceConcurrentCompletionRequests(t *testing.T) {
 	// jsonrpc2 must serialize stdin writes and demux replies by id correctly
 	// even when many goroutines call Completion in parallel. We're verifying
 	// that our wrapper doesn't introduce a regression here.
-	in, fake, teardown := newTestInstance(t)
-	defer teardown()
+	in, fake := newTestInstance(t)
 
 	fake.mu.Lock()
 	fake.completionItems = []protocol.CompletionItem{{Label: "x"}}
@@ -350,8 +201,7 @@ func TestInstanceConcurrentCompletionRequests(t *testing.T) {
 }
 
 func TestInstanceCheckAliveAfterShutdown(t *testing.T) {
-	in, _, teardown := newTestInstance(t)
-	defer teardown()
+	in, _ := newTestInstance(t)
 
 	if err := in.Shutdown(); err != nil {
 		t.Fatalf("Shutdown: %v", err)
@@ -373,7 +223,7 @@ func TestInstanceCheckAliveAfterShutdown(t *testing.T) {
 }
 
 func TestInstanceServerSideCloseFiresDone(t *testing.T) {
-	in, _, _ := newTestInstance(t)
+	in, _ := newTestInstance(t)
 
 	// Close from the server side (simulating pyright crashing).
 	if c, ok := in.transport.(net.Conn); ok {

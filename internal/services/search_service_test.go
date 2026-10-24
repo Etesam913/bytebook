@@ -2,7 +2,6 @@ package services
 
 import (
 	"encoding/json"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -11,30 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func createTestSearchIndex(t *testing.T) bleve.Index {
-	index, err := search.OpenOrCreateIndex(t.TempDir())
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		index.Close()
-	})
-	return index
-}
-
-func writeTestNote(t *testing.T, projectPath, relativePath, content string) {
-	notePath := filepath.Join(projectPath, "notes", relativePath)
-	require.NoError(t, os.MkdirAll(filepath.Dir(notePath), 0755))
-	require.NoError(t, os.WriteFile(notePath, []byte(content), 0644))
-}
-
-func indexTestNotes(t *testing.T, projectPath string, index bleve.Index, relativePaths ...string) {
-	discoveredPaths := make([]string, 0, len(relativePaths))
-	for _, relativePath := range relativePaths {
-		discoveredPaths = append(discoveredPaths, filepath.Join(projectPath, "notes", relativePath))
-	}
-
-	require.NoError(t, search.IndexDiscoveredFiles(projectPath, discoveredPaths, index, 1))
-}
 
 func TestBuildEncodedNoteURLPath(t *testing.T) {
 	assert.Equal(t, "/notes/root.md", buildEncodedNoteURLPath("root.md"))

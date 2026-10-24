@@ -97,7 +97,8 @@ const allTasks: CheckTask[] = [
     id: "be:deadcode",
     name: "Dead Code (Go deadcode)",
     category: "backend",
-    cmd: ["deadcode", "./..."],
+    // Include test programs so shared test fixtures count as reachable.
+    cmd: ["deadcode", "-test", "./..."],
     failOnStdout: true,
   },
   {

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/etesam913/bytebook/internal/config"
+	"github.com/etesam913/bytebook/internal/testutil"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/fsnotify/fsnotify"
 	"github.com/stretchr/testify/assert"
@@ -42,52 +43,17 @@ func TestShouldIgnoreFile(t *testing.T) {
 	})
 }
 
-// setupProjectFolders creates the basic project folder structure (settings, notes, search)
-// and returns the paths. It also creates saved-searches.json.
-func setupProjectFolders(t *testing.T) (string, string, string, string, string) {
-	testDir := t.TempDir()
-	settingsDir := filepath.Join(testDir, "settings")
-	notesDir := filepath.Join(testDir, "notes")
-	searchDir := filepath.Join(testDir, "search")
-	savedSearchesPath := filepath.Join(searchDir, "saved-searches.json")
-
-	err := os.MkdirAll(settingsDir, 0755)
-	assert.NoError(t, err)
-	err = os.MkdirAll(searchDir, 0755)
-	assert.NoError(t, err)
-	err = os.MkdirAll(notesDir, 0755)
-	assert.NoError(t, err)
-	err = os.WriteFile(savedSearchesPath, []byte("{}"), 0644)
-	assert.NoError(t, err)
-
-	return testDir, settingsDir, notesDir, searchDir, savedSearchesPath
-}
-
 func TestAddProjectFoldersToWatcher(t *testing.T) {
 	t.Run("should watch settings, search, and notes root", func(t *testing.T) {
 		testDir, settingsDir, notesDir, searchDir, _ := setupProjectFolders(t)
 		alphaDir := filepath.Join(notesDir, "alpha")
 		betaDir := filepath.Join(alphaDir, "beta")
 		gammaDir := filepath.Join(notesDir, "gamma")
-		rootNotePath := filepath.Join(notesDir, "root.md")
-		betaNotePath := filepath.Join(betaDir, "note1.md")
-		gammaNotePath := filepath.Join(gammaDir, "note2.md")
+		rootNotePath := testutil.WriteFile(t, notesDir, "root.md", []byte("root"))
+		betaNotePath := testutil.WriteFile(t, betaDir, "note1.md", []byte("beta"))
+		gammaNotePath := testutil.WriteFile(t, gammaDir, "note2.md", []byte("gamma"))
 
-		// Create nested directories and files
-		err := os.MkdirAll(betaDir, 0755)
-		assert.NoError(t, err)
-		err = os.MkdirAll(gammaDir, 0755)
-		assert.NoError(t, err)
-		err = os.WriteFile(rootNotePath, []byte("root"), 0644)
-		assert.NoError(t, err)
-		err = os.WriteFile(betaNotePath, []byte("beta"), 0644)
-		assert.NoError(t, err)
-		err = os.WriteFile(gammaNotePath, []byte("gamma"), 0644)
-		assert.NoError(t, err)
-
-		watcher, err := fsnotify.NewWatcher()
-		assert.NoError(t, err)
-		defer watcher.Close()
+		watcher := newTestWatcher(t)
 
 		AddProjectFoldersToWatcher(testDir, watcher)
 
@@ -110,23 +76,12 @@ func TestAddProjectFoldersToWatcher(t *testing.T) {
 		testDir, settingsDir, notesDir, searchDir, _ := setupProjectFolders(t)
 
 		// Create files that would have been watched in the old implementation
-		dsStorePath := filepath.Join(notesDir, ".DS_Store")
-		hiddenFile := filepath.Join(notesDir, ".hidden")
-		validFile := filepath.Join(notesDir, "note.md")
-		hiddenMarkdown := filepath.Join(notesDir, ".note.md")
+		hiddenFile := testutil.WriteFile(t, notesDir, ".hidden", []byte("ignored"))
+		validFile := testutil.WriteFile(t, notesDir, "note.md", []byte("valid"))
+		hiddenMarkdown := testutil.WriteFile(t, notesDir, ".note.md", []byte("valid"))
+		dsStorePath := testutil.WriteFile(t, notesDir, ".DS_Store", []byte("ignored"))
 
-		err := os.WriteFile(dsStorePath, []byte("ignored"), 0644)
-		assert.NoError(t, err)
-		err = os.WriteFile(hiddenFile, []byte("ignored"), 0644)
-		assert.NoError(t, err)
-		err = os.WriteFile(validFile, []byte("valid"), 0644)
-		assert.NoError(t, err)
-		err = os.WriteFile(hiddenMarkdown, []byte("valid"), 0644)
-		assert.NoError(t, err)
-
-		watcher, err := fsnotify.NewWatcher()
-		assert.NoError(t, err)
-		defer watcher.Close()
+		watcher := newTestWatcher(t)
 
 		AddProjectFoldersToWatcher(testDir, watcher)
 
@@ -147,9 +102,7 @@ func TestAddProjectFoldersToWatcher(t *testing.T) {
 	t.Run("should handle empty notes directory", func(t *testing.T) {
 		testDir, settingsDir, notesDir, searchDir, _ := setupProjectFolders(t)
 
-		watcher, err := fsnotify.NewWatcher()
-		assert.NoError(t, err)
-		defer watcher.Close()
+		watcher := newTestWatcher(t)
 
 		AddProjectFoldersToWatcher(testDir, watcher)
 
@@ -162,39 +115,11 @@ func TestAddProjectFoldersToWatcher(t *testing.T) {
 	})
 }
 
-func newTestFileWatcher(t *testing.T, projectPath string) *FileWatcher {
-	t.Helper()
-
-	watcher, err := fsnotify.NewWatcher()
-	assert.NoError(t, err)
-	t.Cleanup(func() {
-		_ = watcher.Close()
-	})
-
-	registry := NewDirectoryWatchRegistry()
-	registry.SyncFromWatcher(watcher)
-
-	fw := newFileWatcher(nil, projectPath, watcher, registry)
-	if !fw.debounceTimer.Stop() {
-		select {
-		case <-fw.debounceTimer.C:
-		default:
-		}
-	}
-
-	return fw
-}
-
 func TestProcessEventRoutingDoesNotCollideWithUserFolders(t *testing.T) {
 	t.Run("notes/settings/* file write is routed as a file event, not a settings update", func(t *testing.T) {
 		testDir, _, notesDir, _, _ := setupProjectFolders(t)
 		userSettingsDir := filepath.Join(notesDir, "settings")
-		userNote := filepath.Join(userSettingsDir, "note.md")
-
-		err := os.MkdirAll(userSettingsDir, 0755)
-		assert.NoError(t, err)
-		err = os.WriteFile(userNote, []byte("hello"), 0644)
-		assert.NoError(t, err)
+		userNote := testutil.WriteFile(t, userSettingsDir, "note.md", []byte("hello"))
 
 		fw := newTestFileWatcher(t, testDir)
 
@@ -208,12 +133,7 @@ func TestProcessEventRoutingDoesNotCollideWithUserFolders(t *testing.T) {
 	t.Run("notes/search/saved-searches.json is routed as a file event, not a saved-search update", func(t *testing.T) {
 		testDir, _, notesDir, _, _ := setupProjectFolders(t)
 		userSearchDir := filepath.Join(notesDir, "search")
-		collidingFile := filepath.Join(userSearchDir, "saved-searches.json")
-
-		err := os.MkdirAll(userSearchDir, 0755)
-		assert.NoError(t, err)
-		err = os.WriteFile(collidingFile, []byte("{}"), 0644)
-		assert.NoError(t, err)
+		collidingFile := testutil.WriteFile(t, userSearchDir, "saved-searches.json", []byte("{}"))
 
 		fw := newTestFileWatcher(t, testDir)
 
@@ -227,12 +147,7 @@ func TestProcessEventRoutingDoesNotCollideWithUserFolders(t *testing.T) {
 	t.Run("chmod inside notes/settings/* is ignored, not treated as settings update", func(t *testing.T) {
 		testDir, _, notesDir, _, _ := setupProjectFolders(t)
 		userSettingsDir := filepath.Join(notesDir, "settings")
-		userNote := filepath.Join(userSettingsDir, "note.md")
-
-		err := os.MkdirAll(userSettingsDir, 0755)
-		assert.NoError(t, err)
-		err = os.WriteFile(userNote, []byte("hello"), 0644)
-		assert.NoError(t, err)
+		userNote := testutil.WriteFile(t, userSettingsDir, "note.md", []byte("hello"))
 
 		fw := newTestFileWatcher(t, testDir)
 
@@ -268,11 +183,8 @@ func TestCollectWatchableFolderPaths(t *testing.T) {
 func TestResolvePendingRenames(t *testing.T) {
 	t.Run("emits file rename for an unambiguous file pair", func(t *testing.T) {
 		testDir, _, notesDir, _, _ := setupProjectFolders(t)
-		oldPath := filepath.Join(notesDir, "old.md")
 		newPath := filepath.Join(notesDir, "new.md")
-
-		err := os.WriteFile(oldPath, []byte("new"), 0644)
-		assert.NoError(t, err)
+		oldPath := testutil.WriteFile(t, notesDir, "old.md", []byte("new"))
 
 		fw := newTestFileWatcher(t, testDir)
 		fw.addFolderTreeToWatcher(notesDir)
@@ -307,10 +219,7 @@ func TestResolvePendingRenames(t *testing.T) {
 
 	t.Run("unmatched file create becomes create", func(t *testing.T) {
 		testDir, _, notesDir, _, _ := setupProjectFolders(t)
-		newPath := filepath.Join(notesDir, "new.md")
-
-		err := os.WriteFile(newPath, []byte("new"), 0644)
-		assert.NoError(t, err)
+		newPath := testutil.WriteFile(t, notesDir, "new.md", []byte("new"))
 
 		fw := newTestFileWatcher(t, testDir)
 		fw.mostRecentFileCreatedEvents = []pendingWatcherEvent{{event: fsnotify.Event{Name: newPath, Op: fsnotify.Create}}}
@@ -325,13 +234,8 @@ func TestResolvePendingRenames(t *testing.T) {
 	t.Run("ambiguous file batch degrades to delete and create", func(t *testing.T) {
 		testDir, _, notesDir, _, _ := setupProjectFolders(t)
 		oldPath := filepath.Join(notesDir, "old.md")
-		newPathA := filepath.Join(notesDir, "new-a.md")
-		newPathB := filepath.Join(notesDir, "new-b.md")
-
-		err := os.WriteFile(newPathA, []byte("a"), 0644)
-		assert.NoError(t, err)
-		err = os.WriteFile(newPathB, []byte("b"), 0644)
-		assert.NoError(t, err)
+		newPathB := testutil.WriteFile(t, notesDir, "new-b.md", []byte("b"))
+		newPathA := testutil.WriteFile(t, notesDir, "new-a.md", []byte("a"))
 
 		fw := newTestFileWatcher(t, testDir)
 		fw.pendingFileRenameEvents = fw.addPendingRename(nil, fsnotify.Event{Name: oldPath, Op: fsnotify.Rename})
@@ -354,10 +258,7 @@ func TestResolvePendingRenames(t *testing.T) {
 
 	t.Run("same-path file pair emits file write", func(t *testing.T) {
 		testDir, _, notesDir, _, _ := setupProjectFolders(t)
-		path := filepath.Join(notesDir, "same.md")
-
-		err := os.WriteFile(path, []byte("# title"), 0644)
-		assert.NoError(t, err)
+		path := testutil.WriteFile(t, notesDir, "same.md", []byte("# title"))
 
 		fw := newTestFileWatcher(t, testDir)
 		fw.fileStateCache[path] = fileState{modTime: time.Unix(0, 0), size: 0}
@@ -384,9 +285,7 @@ func TestResolvePendingRenames(t *testing.T) {
 		err := os.MkdirAll(oldChild, 0755)
 		assert.NoError(t, err)
 
-		watcher, err := fsnotify.NewWatcher()
-		assert.NoError(t, err)
-		defer watcher.Close()
+		watcher := newTestWatcher(t)
 
 		AddProjectFoldersToWatcher(testDir, watcher)
 		registry := NewDirectoryWatchRegistry()
@@ -466,9 +365,7 @@ func waitForSavedSearchEvent(t *testing.T, watcher *fsnotify.Watcher, path strin
 func TestSavedSearchDirectoryWatch(t *testing.T) {
 	t.Run("receives consecutive atomic saves", func(t *testing.T) {
 		projectPath, _, _, _, savedSearchesPath := setupProjectFolders(t)
-		watcher, err := fsnotify.NewWatcher()
-		require.NoError(t, err)
-		t.Cleanup(func() { _ = watcher.Close() })
+		watcher := newTestWatcher(t)
 		AddProjectFoldersToWatcher(projectPath, watcher)
 
 		require.NoError(t, util.WriteJsonToPath(savedSearchesPath, map[string]int{"revision": 1}))
@@ -486,9 +383,7 @@ func TestSavedSearchDirectoryWatch(t *testing.T) {
 
 	t.Run("receives deletion followed by recreation", func(t *testing.T) {
 		projectPath, _, _, _, savedSearchesPath := setupProjectFolders(t)
-		watcher, err := fsnotify.NewWatcher()
-		require.NoError(t, err)
-		t.Cleanup(func() { _ = watcher.Close() })
+		watcher := newTestWatcher(t)
 		AddProjectFoldersToWatcher(projectPath, watcher)
 
 		require.NoError(t, os.Remove(savedSearchesPath))
@@ -503,9 +398,7 @@ func TestSavedSearchDirectoryWatch(t *testing.T) {
 	t.Run("watches for the first save when the file does not exist at startup", func(t *testing.T) {
 		projectPath, _, _, _, savedSearchesPath := setupProjectFolders(t)
 		require.NoError(t, os.Remove(savedSearchesPath))
-		watcher, err := fsnotify.NewWatcher()
-		require.NoError(t, err)
-		t.Cleanup(func() { _ = watcher.Close() })
+		watcher := newTestWatcher(t)
 		AddProjectFoldersToWatcher(projectPath, watcher)
 
 		require.NoError(t, util.WriteJsonToPath(savedSearchesPath, map[string]int{"revision": 1}))
@@ -535,8 +428,7 @@ func TestSavedSearchDirectoryWatch(t *testing.T) {
 func TestFileWriteContent(t *testing.T) {
 	t.Run("empty markdown survives event serialization", func(t *testing.T) {
 		projectPath, _, notesPath, _, _ := setupProjectFolders(t)
-		path := filepath.Join(notesPath, "empty.md")
-		require.NoError(t, os.WriteFile(path, nil, 0644))
+		path := testutil.WriteFile(t, notesPath, "empty.md", nil)
 		fw := newTestFileWatcher(t, projectPath)
 
 		fw.emitFileWriteEvent(path)

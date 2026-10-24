@@ -10,11 +10,10 @@ import (
 
 func TestCreateAttachmentBleveDocument(t *testing.T) {
 	env := setupTestEnv(t)
-	defer env.Close()
 
 	t.Run("should include tags from sidecar", func(t *testing.T) {
 		folderName := "test-folder-tags"
-		env.createAttachmentFile(env.createTestFolder(folderName), "image.jpg", "fake")
+		env.createFile(env.createTestFolder(folderName), "image.jpg", "fake")
 		err := sidecar.WriteTags(env.TmpDir, folderName, "image.jpg", []string{"foo", "bar"})
 		require.NoError(t, err)
 
@@ -38,7 +37,7 @@ func TestCreateAttachmentBleveDocument(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.fileName+tc.fileExtension, func(t *testing.T) {
-			env.createAttachmentFile(env.createTestFolder("test-folder"), tc.fileName, "fake")
+			env.createFile(env.createTestFolder("test-folder"), tc.fileName, "fake")
 			doc := createAttachmentBleveDocument(env.TmpDir, "test-folder", tc.fileName, tc.fileExtension)
 
 			assert.Equal(t, tc.fileName, doc.FileName)

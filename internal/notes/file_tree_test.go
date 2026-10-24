@@ -5,29 +5,24 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/etesam913/bytebook/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGetAllPaths(t *testing.T) {
-	tempDir, err := os.MkdirTemp("", "file_tree_all_paths_test")
-	assert.NoError(t, err)
-	defer os.RemoveAll(tempDir)
+	tempDir := t.TempDir()
 
 	notesDir := filepath.Join(tempDir, "notes")
-	assert.NoError(t, os.Mkdir(notesDir, 0755))
 
-	assert.NoError(t, os.Mkdir(filepath.Join(notesDir, "folder-a"), 0755))
-	assert.NoError(t, os.Mkdir(filepath.Join(notesDir, "folder-a", "nested"), 0755))
-	assert.NoError(t, os.Mkdir(filepath.Join(notesDir, "folder-b"), 0755))
-	assert.NoError(t, os.WriteFile(filepath.Join(notesDir, "folder-a", "note.md"), []byte("content"), 0644))
-	assert.NoError(t, os.WriteFile(filepath.Join(notesDir, "folder-a", "nested", "deep.md"), []byte("content"), 0644))
-	assert.NoError(t, os.WriteFile(filepath.Join(notesDir, "top.md"), []byte("content"), 0644))
+	require.NoError(t, os.MkdirAll(filepath.Join(notesDir, "folder-b"), 0755))
+	testutil.WriteFile(t, notesDir, "folder-a/note.md", []byte("content"))
+	testutil.WriteFile(t, notesDir, "folder-a/nested/deep.md", []byte("content"))
+	testutil.WriteFile(t, notesDir, "top.md", []byte("content"))
 
 	// Hidden entries should be skipped, including everything inside hidden dirs
-	assert.NoError(t, os.WriteFile(filepath.Join(notesDir, ".DS_Store"), []byte("content"), 0644))
-	assert.NoError(t, os.Mkdir(filepath.Join(notesDir, ".hidden_dir"), 0755))
-	assert.NoError(t, os.WriteFile(filepath.Join(notesDir, ".hidden_dir", "inside.md"), []byte("content"), 0644))
+	testutil.WriteFile(t, notesDir, ".DS_Store", []byte("content"))
+	testutil.WriteFile(t, notesDir, ".hidden_dir/inside.md", []byte("content"))
 
 	t.Run("returns sorted paths with trailing slashes on directories", func(t *testing.T) {
 		paths, err := GetAllPaths(tempDir)
@@ -50,8 +45,7 @@ func TestGetAllPaths(t *testing.T) {
 	t.Run("skips unreadable directories instead of failing the whole walk", func(t *testing.T) {
 		isolatedDir := t.TempDir()
 		isolatedNotes := filepath.Join(isolatedDir, "notes")
-		require.NoError(t, os.MkdirAll(filepath.Join(isolatedNotes, "readable"), 0755))
-		require.NoError(t, os.WriteFile(filepath.Join(isolatedNotes, "readable", "a.md"), []byte("content"), 0644))
+		testutil.WriteFile(t, isolatedNotes, "readable/a.md", []byte("content"))
 
 		locked := filepath.Join(isolatedNotes, "locked")
 		require.NoError(t, os.Mkdir(locked, 0755))

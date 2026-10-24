@@ -13,7 +13,7 @@ import (
 func TestAddFolderToBatch(t *testing.T) {
 	t.Run("Indexes a normalized folder with searchable and stored names", func(t *testing.T) {
 		env := setupTestEnv(t)
-		defer env.Close()
+
 		batch := env.Index.NewBatch()
 		parentQuery := bleve.NewMatchQuery("projects")
 		parentQuery.SetField(FieldFolder)
@@ -36,7 +36,7 @@ func TestAddFolderToBatch(t *testing.T) {
 
 	t.Run("Skips the notes root and hidden path components", func(t *testing.T) {
 		env := setupTestEnv(t)
-		defer env.Close()
+
 		batch := env.Index.NewBatch()
 
 		require.NoError(t, AddFolderToBatch(batch, "."))
@@ -48,7 +48,7 @@ func TestAddFolderToBatch(t *testing.T) {
 
 	t.Run("Rejects absolute paths", func(t *testing.T) {
 		env := setupTestEnv(t)
-		defer env.Close()
+
 		batch := env.Index.NewBatch()
 
 		err := AddFolderToBatch(batch, t.TempDir())
@@ -61,7 +61,7 @@ func TestAddFolderToBatch(t *testing.T) {
 func TestIndexDiscoveredFolders(t *testing.T) {
 	t.Run("Indexes folders across batch boundaries while excluding hidden folders", func(t *testing.T) {
 		env := setupTestEnv(t)
-		defer env.Close()
+
 		directories := []string{env.NotesDir, filepath.Join(env.NotesDir, ".hidden")}
 		for i := range DefaultBatchSize + 1 {
 			directories = append(directories, filepath.Join(env.NotesDir, fmt.Sprintf("folder-%d", i)))

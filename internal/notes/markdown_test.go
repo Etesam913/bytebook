@@ -2,8 +2,9 @@ package notes
 
 import (
 	"os"
-	"path/filepath"
 	"testing"
+
+	"github.com/etesam913/bytebook/internal/testutil"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -339,25 +340,12 @@ func TestUpdateFrontmatterWithTags(t *testing.T) {
 }
 
 func TestGetTagsFromNote(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "bytebook_get_tags_test")
-	if err != nil {
-		t.Fatalf("Failed to create temp dir: %v", err)
-	}
-	defer os.RemoveAll(tmpDir)
-
-	// Setup test directory structure
-	folderPath := filepath.Join(tmpDir, "notes", "test-folder")
-	err = os.MkdirAll(folderPath, 0755)
-	if err != nil {
-		t.Fatalf("Failed to create test folder: %v", err)
-	}
+	tmpDir, folderPath := setupNotesFolder(t)
 
 	t.Run("should read tags from note files", func(t *testing.T) {
 		// Test note with tags
-		testFile1 := filepath.Join(folderPath, "with-tags.md")
 		content1 := "---\ntags:\n  - golang\n  - testing\ntitle: Test\n---\n# Content"
-		err := os.WriteFile(testFile1, []byte(content1), 0644)
-		assert.NoError(t, err)
+		testutil.WriteFile(t, folderPath, "with-tags.md", []byte(content1))
 
 		tags, exists, err := GetTagsFromNote(tmpDir, "test-folder/with-tags.md")
 		assert.NoError(t, err)
@@ -383,26 +371,13 @@ func TestGetTagsFromNote(t *testing.T) {
 }
 
 func TestAddTagsToNote(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "bytebook_tags_test")
-	if err != nil {
-		t.Fatalf("Failed to create temp dir: %v", err)
-	}
-	defer os.RemoveAll(tmpDir)
-
-	// Setup test directory structure
-	folderPath := filepath.Join(tmpDir, "notes", "test-folder")
-	err = os.MkdirAll(folderPath, 0755)
-	if err != nil {
-		t.Fatalf("Failed to create test folder: %v", err)
-	}
+	tmpDir, folderPath := setupNotesFolder(t)
 
 	t.Run("should add tags to notes", func(t *testing.T) {
 		// Test without existing frontmatter
-		testFile1 := filepath.Join(folderPath, "test1.md")
-		err := os.WriteFile(testFile1, []byte("# Test Note"), 0644)
-		assert.NoError(t, err)
+		testFile1 := testutil.WriteFile(t, folderPath, "test1.md", []byte("# Test Note"))
 
-		_, err = AddTagsToNote(tmpDir, "test-folder/test1.md", []string{"golang", "testing"})
+		_, err := AddTagsToNote(tmpDir, "test-folder/test1.md", []string{"golang", "testing"})
 		assert.NoError(t, err)
 
 		content, _ := os.ReadFile(testFile1)
@@ -411,10 +386,8 @@ func TestAddTagsToNote(t *testing.T) {
 		assert.Contains(t, string(content), "- testing")
 
 		// Test with existing frontmatter and deduplication
-		testFile2 := filepath.Join(folderPath, "test2.md")
 		initialContent := "---\ntags:\n  - existing\ntitle: Test\n---\n# Content"
-		err = os.WriteFile(testFile2, []byte(initialContent), 0644)
-		assert.NoError(t, err)
+		testFile2 := testutil.WriteFile(t, folderPath, "test2.md", []byte(initialContent))
 
 		_, err = AddTagsToNote(tmpDir, "test-folder/test2.md", []string{"existing", "new", "", "  "})
 		assert.NoError(t, err)
@@ -437,25 +410,12 @@ func TestAddTagsToNote(t *testing.T) {
 }
 
 func TestDeleteTagsFromNote(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "bytebook_delete_tags_test")
-	if err != nil {
-		t.Fatalf("Failed to create temp dir: %v", err)
-	}
-	defer os.RemoveAll(tmpDir)
-
-	// Setup test directory structure
-	folderPath := filepath.Join(tmpDir, "notes", "test-folder")
-	err = os.MkdirAll(folderPath, 0755)
-	if err != nil {
-		t.Fatalf("Failed to create test folder: %v", err)
-	}
+	tmpDir, folderPath := setupNotesFolder(t)
 
 	t.Run("should delete tags from notes", func(t *testing.T) {
 		// Test deleting specific tags
-		testFile1 := filepath.Join(folderPath, "test1.md")
 		content1 := "---\ntags:\n  - golang\n  - testing\n  - keep\n---\n# Test Note"
-		err := os.WriteFile(testFile1, []byte(content1), 0644)
-		assert.NoError(t, err)
+		testFile1 := testutil.WriteFile(t, folderPath, "test1.md", []byte(content1))
 
 		updatedTags, err := DeleteTagsFromNote(tmpDir, "test-folder/test1.md", []string{"testing", "golang"})
 		assert.NoError(t, err)
@@ -469,10 +429,8 @@ func TestDeleteTagsFromNote(t *testing.T) {
 		assert.Contains(t, tags, "keep")
 
 		// Test removing all tags (removes tags field entirely)
-		testFile2 := filepath.Join(folderPath, "test2.md")
 		content2 := "---\ntags:\n  - tag1\n  - tag2\ntitle: Test\n---\n# Content"
-		err = os.WriteFile(testFile2, []byte(content2), 0644)
-		assert.NoError(t, err)
+		testFile2 := testutil.WriteFile(t, folderPath, "test2.md", []byte(content2))
 
 		updatedTags, err = DeleteTagsFromNote(tmpDir, "test-folder/test2.md", []string{"tag1", "tag2"})
 		assert.NoError(t, err)
@@ -485,10 +443,8 @@ func TestDeleteTagsFromNote(t *testing.T) {
 
 	t.Run("should handle edge cases", func(t *testing.T) {
 		// No tags to delete - should do nothing
-		testFile := filepath.Join(folderPath, "test3.md")
 		content := "---\ntitle: Test\n---\n# Content"
-		err := os.WriteFile(testFile, []byte(content), 0644)
-		assert.NoError(t, err)
+		testFile := testutil.WriteFile(t, folderPath, "test3.md", []byte(content))
 
 		updatedTags, err := DeleteTagsFromNote(tmpDir, "test-folder/test3.md", []string{"nonexistent"})
 		assert.NoError(t, err)
@@ -498,10 +454,8 @@ func TestDeleteTagsFromNote(t *testing.T) {
 		assert.Equal(t, content, string(result)) // Should be unchanged
 
 		// Non-existent tags - should do nothing
-		testFile2 := filepath.Join(folderPath, "test4.md")
 		content2 := "---\ntags:\n  - existing\n---\n# Content"
-		err = os.WriteFile(testFile2, []byte(content2), 0644)
-		assert.NoError(t, err)
+		testutil.WriteFile(t, folderPath, "test4.md", []byte(content2))
 
 		updatedTags, err = DeleteTagsFromNote(tmpDir, "test-folder/test4.md", []string{"missing"})
 		assert.NoError(t, err)

@@ -15,35 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupTempNotesDir(t *testing.T) (projectDir, notesDir string) {
-	projectDir = t.TempDir()
-	notesDir = filepath.Join(projectDir, "notes")
-	err := os.MkdirAll(notesDir, 0755)
-	require.NoError(t, err)
-	return
-}
-
-func createFolderWithFiles(t *testing.T, notesDir, folderName string, files map[string]string) string {
-	folderPath := filepath.Join(notesDir, folderName)
-	err := os.MkdirAll(folderPath, 0755)
-	require.NoError(t, err)
-
-	for fileName, content := range files {
-		filePath := filepath.Join(folderPath, fileName)
-		err := os.WriteFile(filePath, []byte(content), 0644)
-		require.NoError(t, err)
-	}
-	return folderPath
-}
-
-func writeFilesRelative(t *testing.T, baseDir string, files map[string]string) {
-	for relativePath, content := range files {
-		fullPath := filepath.Join(baseDir, relativePath)
-		require.NoError(t, os.MkdirAll(filepath.Dir(fullPath), 0755))
-		require.NoError(t, os.WriteFile(fullPath, []byte(content), 0644))
-	}
-}
-
 func collectPopulateJobs(t *testing.T, notesDir string) []DocumentJob {
 	folders, err := os.ReadDir(notesDir)
 	require.NoError(t, err)
@@ -88,12 +59,6 @@ func runWorkerJobs(projectPath string, jobsToRun []DocumentJob) []DocumentResult
 		receivedResults = append(receivedResults, result)
 	}
 	return receivedResults
-}
-
-func createTempIndex(t *testing.T, projectDir string) bleve.Index {
-	index, err := OpenOrCreateIndex(projectDir)
-	require.NoError(t, err)
-	return index
 }
 
 // filterFileJobs returns only jobs that have a file extension.
@@ -249,7 +214,6 @@ func TestIndexAllFiles(t *testing.T) {
 	t.Run("should return error for non-existent notes directory", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		index := createTempIndex(t, tmpDir)
-		defer index.Close()
 
 		err := IndexAllFiles("/non/existent/path", index)
 		assert.Error(t, err)
@@ -259,7 +223,6 @@ func TestIndexAllFiles(t *testing.T) {
 		projectDir, notesDir := setupTempNotesDir(t)
 
 		index := createTempIndex(t, projectDir)
-		defer index.Close()
 
 		createFolderWithFiles(t, notesDir, "folder1", map[string]string{
 			"note1.md":  "# Note 1",
@@ -278,7 +241,6 @@ func TestIndexAllFiles(t *testing.T) {
 		projectDir, notesDir := setupTempNotesDir(t)
 
 		index := createTempIndex(t, projectDir)
-		defer index.Close()
 
 		writeFilesRelative(t, notesDir, map[string]string{
 			filepath.Join("folder1", "nested", "deep-note.md"): "# Deep note",
@@ -304,7 +266,6 @@ func TestIndexAllFiles(t *testing.T) {
 func TestIndexDiscoveredFilesSkipsHiddenSidecars(t *testing.T) {
 	projectDir, notesDir := setupTempNotesDir(t)
 	index := createTempIndex(t, projectDir)
-	defer index.Close()
 
 	writeFilesRelative(t, notesDir, map[string]string{
 		filepath.Join("folder", "note.md"):       "# Visible",
@@ -344,7 +305,7 @@ func TestIndexDiscoveredFilesPipeline(t *testing.T) {
 	t.Run("indexes full and final batches with a nonpositive worker count", func(t *testing.T) {
 		projectDir, notesDir := setupTempNotesDir(t)
 		index := createTempIndex(t, projectDir)
-		defer index.Close()
+
 		paths := make([]string, 0, DefaultBatchSize+1)
 		for i := 0; i <= DefaultBatchSize; i++ {
 			path := filepath.Join(notesDir, fmt.Sprintf("attachment-%d.png", i))
@@ -363,7 +324,7 @@ func TestIndexDiscoveredFilesPipeline(t *testing.T) {
 	t.Run("does not flush an incomplete batch when markdown cannot be read", func(t *testing.T) {
 		projectDir, notesDir := setupTempNotesDir(t)
 		index := createTempIndex(t, projectDir)
-		defer index.Close()
+
 		path := filepath.Join(notesDir, "note.md")
 		require.NoError(t, os.WriteFile(path, []byte("New content"), 0644))
 		original := CreateNoteBleveDocument("Original content", "", "note.md")
@@ -383,7 +344,7 @@ func TestIndexDiscoveredFilesPipeline(t *testing.T) {
 	t.Run("returns final batch errors", func(t *testing.T) {
 		projectDir, notesDir := setupTempNotesDir(t)
 		index := createTempIndex(t, projectDir)
-		defer index.Close()
+
 		path := filepath.Join(notesDir, "note.md")
 		require.NoError(t, os.WriteFile(path, []byte("Note"), 0644))
 		batchErr := errors.New("batch failed")
@@ -399,7 +360,7 @@ func TestIndexingPipelineFailure(t *testing.T) {
 	t.Run("cancels and joins discovery after an intermediate batch fails", func(t *testing.T) {
 		projectDir, notesDir := setupTempNotesDir(t)
 		index := createTempIndex(t, projectDir)
-		defer index.Close()
+
 		batchErr := errors.New("batch failed")
 		failingIndex := &failingBatchIndex{testBatchIndex: index, err: batchErr}
 		discoveryStopped := make(chan struct{})
@@ -427,7 +388,7 @@ func TestIndexingPipelineFailure(t *testing.T) {
 	t.Run("returns discovery errors", func(t *testing.T) {
 		projectDir, _ := setupTempNotesDir(t)
 		index := createTempIndex(t, projectDir)
-		defer index.Close()
+
 		discoveryErr := errors.New("directory disappeared")
 		discover := func(context.Context, chan<- DocumentJob) error { return discoveryErr }
 

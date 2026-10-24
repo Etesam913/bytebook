@@ -3,21 +3,14 @@ package lsp
 import (
 	"errors"
 	"testing"
-	"time"
 )
 
 // TestManagerAvailableWhenBinaryMissing forces a missing-binary state and
 // asserts Available reports false. Achieves this by stubbing binaryPath to ""
 // and using a fresh-enough lastLookup that the TTL doesn't re-resolve.
 func TestManagerAvailableWhenBinaryMissing(t *testing.T) {
-	m := New()
-	t.Cleanup(m.ShutdownAll)
-
-	m.mu.Lock()
-	m.binaryPath = ""
-	m.lastLookup = time.Now() // recent — TTL skip
+	m := newTestManager(t, "")
 	m.lastLookupErr = errors.New("not found")
-	m.mu.Unlock()
 
 	if m.Available("python") {
 		t.Fatal("Available(python) = true with empty binaryPath, want false")
@@ -28,15 +21,7 @@ func TestManagerAvailableWhenBinaryMissing(t *testing.T) {
 }
 
 func TestManagerAvailableLanguageGating(t *testing.T) {
-	m := New()
-	t.Cleanup(m.ShutdownAll)
-
-	// Force binary present so Available depends only on language.
-	m.mu.Lock()
-	m.binaryPath = "/fake/pyright"
-	m.lastLookup = time.Now()
-	m.lastLookupErr = nil
-	m.mu.Unlock()
+	m := newTestManager(t, "/fake/pyright")
 
 	if !m.Available("python") {
 		t.Fatal("Available(python) = false, want true")
@@ -47,13 +32,7 @@ func TestManagerAvailableLanguageGating(t *testing.T) {
 }
 
 func TestManagerGetOrCreateRejectsWhenUnavailable(t *testing.T) {
-	m := New()
-	t.Cleanup(m.ShutdownAll)
-
-	m.mu.Lock()
-	m.binaryPath = ""
-	m.lastLookup = time.Now()
-	m.mu.Unlock()
+	m := newTestManager(t, "")
 
 	_, err := m.GetOrCreate("note-x")
 	if !errors.Is(err, ErrNotAvailable) {
@@ -62,14 +41,7 @@ func TestManagerGetOrCreateRejectsWhenUnavailable(t *testing.T) {
 }
 
 func TestManagerGetOrCreateRejectsEmptyNoteID(t *testing.T) {
-	m := New()
-	t.Cleanup(m.ShutdownAll)
-
-	// Even with binary "available", empty noteID must fail.
-	m.mu.Lock()
-	m.binaryPath = "/fake/pyright"
-	m.lastLookup = time.Now()
-	m.mu.Unlock()
+	m := newTestManager(t, "/fake/pyright")
 
 	if _, err := m.GetOrCreate(""); err == nil {
 		t.Fatal("GetOrCreate(\"\") returned nil err, want non-nil")

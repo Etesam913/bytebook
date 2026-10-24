@@ -14,7 +14,7 @@ func TestReconcileDocuments(t *testing.T) {
 	t.Run("Removes missing folders but preserves discovered and newly created folders and files", func(t *testing.T) {
 		// Arrange
 		env := setupTestEnv(t)
-		defer env.Close()
+
 		discovered := env.createTestFolder("discovered")
 		env.createTestFolder("created-after-discovery")
 		batch := env.Index.NewBatch()
@@ -49,7 +49,7 @@ func TestReconcileFiles(t *testing.T) {
 		// Arrange
 		project, root := setupTempNotesDir(t)
 		index := createTempIndex(t, project)
-		defer index.Close()
+
 		batch := index.NewBatch()
 		for i := range DefaultBatchSize + 1 {
 			name := fmt.Sprintf("missing-%04d.md", i)
@@ -83,7 +83,7 @@ func TestReconcileFiles(t *testing.T) {
 		// Arrange
 		project, root := setupTempNotesDir(t)
 		index := createTempIndex(t, project)
-		defer index.Close()
+
 		require.NoError(t, index.Index("loop.md", CreateNoteBleveDocument("content", "", "loop.md")))
 		require.NoError(t, os.Symlink("loop.md", filepath.Join(root, "loop.md")))
 

@@ -14,25 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// setupNotesDir creates a notes directory structure for testing
-func setupNotesDir(t *testing.T, projectPath string) string {
-	notesDir := filepath.Join(projectPath, "notes")
-	err := os.MkdirAll(notesDir, 0755)
-	require.NoError(t, err)
-	return notesDir
-}
-
-// createNoteFile creates a note file in the specified folder
-func createNoteFile(t *testing.T, notesDir, folder, noteName, content string) {
-	folderPath := filepath.Join(notesDir, folder)
-	err := os.MkdirAll(folderPath, 0755)
-	require.NoError(t, err)
-
-	notePath := filepath.Join(folderPath, noteName)
-	err = os.WriteFile(notePath, []byte(content), 0644)
-	require.NoError(t, err)
-}
-
 func TestAddCreatedNotesToIndex(t *testing.T) {
 	t.Run("should add notes to the index", func(t *testing.T) {
 		params := createTestParams(t)

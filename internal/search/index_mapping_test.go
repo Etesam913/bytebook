@@ -12,90 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Test utilities to reduce boilerplate and redundancy
-
-type TestEnv struct {
-	TmpDir   string
-	NotesDir string
-	Index    bleve.Index
-	t        *testing.T
-	cleanup  func()
-}
-
-// setupTestEnv creates a temporary directory and index for testing
-func setupTestEnv(t *testing.T) *TestEnv {
-	tmpDir, err := os.MkdirTemp("", "bytebook_test")
-	require.NoError(t, err)
-
-	notesDir := filepath.Join(tmpDir, "notes")
-
-	index, err := OpenOrCreateIndex(tmpDir)
-	require.NoError(t, err)
-
-	cleanup := func() {
-		if index != nil {
-			index.Close()
-		}
-		os.RemoveAll(tmpDir)
-	}
-
-	return &TestEnv{
-		TmpDir:   tmpDir,
-		NotesDir: notesDir,
-		Index:    index,
-		t:        t,
-		cleanup:  cleanup,
-	}
-}
-
-func (env *TestEnv) Close() {
-	env.cleanup()
-}
-
-// createTestFolder creates a folder structure for testing
-func (env *TestEnv) createTestFolder(folderName string) string {
-	folderPath := filepath.Join(env.NotesDir, folderName)
-	err := os.MkdirAll(folderPath, 0755)
-	require.NoError(env.t, err)
-	return folderPath
-}
-
-// createMarkdownFile creates a test markdown file
-func (env *TestEnv) createMarkdownFile(folderPath, filename, content string) string {
-	filePath := filepath.Join(folderPath, filename)
-	err := os.WriteFile(filePath, []byte(content), 0644)
-	require.NoError(env.t, err)
-	return filePath
-}
-
-// createAttachmentFile creates a test attachment file
-func (env *TestEnv) createAttachmentFile(folderPath, filename, content string) string {
-	filePath := filepath.Join(folderPath, filename)
-	err := os.WriteFile(filePath, []byte(content), 0644)
-	require.NoError(env.t, err)
-	return filePath
-}
-
-// verifyDocumentExists checks if a document exists in the index
-func (env *TestEnv) verifyDocumentExists(docId string) {
-	doc, err := env.Index.Document(docId)
-	assert.NoError(env.t, err, "Document %s should exist", docId)
-	assert.NotNil(env.t, doc, "Document %s should not be nil", docId)
-}
-
-func indexFolderAndFlush(t *testing.T, idx bleve.Index, projectPath, folderPath, folderName string) error {
-	batch := idx.NewBatch()
-	if err := IndexFilesInFolderWithBatch(projectPath, folderPath, folderName, idx, batch); err != nil {
-		return err
-	}
-
-	if batch.Size() == 0 {
-		return nil
-	}
-
-	return idx.Batch(batch)
-}
-
 // Standard test markdown content
 const (
 	basicMarkdown = `---
@@ -151,7 +67,6 @@ More text content.
 
 func TestIndexOperations(t *testing.T) {
 	env := setupTestEnv(t)
-	defer env.Close()
 
 	t.Run("should create and open index successfully", func(t *testing.T) {
 		// Index is already created in setupTestEnv
@@ -171,11 +86,10 @@ func TestIndexOperations(t *testing.T) {
 
 func TestAddFileToBatchMarkdown(t *testing.T) {
 	env := setupTestEnv(t)
-	defer env.Close()
 
 	t.Run("should add new note to batch", func(t *testing.T) {
 		folderPath := env.createTestFolder("test-folder")
-		env.createMarkdownFile(folderPath, "test.md", basicMarkdown)
+		env.createFile(folderPath, "test.md", basicMarkdown)
 
 		batch := env.Index.NewBatch()
 		fileId, err := AddFileToBatch(batch, env.Index, env.TmpDir, "test-folder", "test.md", false)
@@ -190,7 +104,7 @@ func TestAddFileToBatchMarkdown(t *testing.T) {
 
 	t.Run("should not add existing note if lastUpdated hasn't changed", func(t *testing.T) {
 		folderPath := env.createTestFolder("test-folder-2")
-		env.createMarkdownFile(folderPath, "test.md", markdownWithIdAndLastUpdated)
+		env.createFile(folderPath, "test.md", markdownWithIdAndLastUpdated)
 
 		// Pre-index the document
 		bleveDoc := CreateNoteBleveDocument(markdownWithIdAndLastUpdated, "test-folder-2", "test.md")
@@ -210,11 +124,10 @@ func TestAddFileToBatchMarkdown(t *testing.T) {
 
 func TestAddFileToBatchAttachment(t *testing.T) {
 	env := setupTestEnv(t)
-	defer env.Close()
 
 	t.Run("should add new attachment to batch", func(t *testing.T) {
 		folderPath := env.createTestFolder("test-folder")
-		env.createAttachmentFile(folderPath, "test.pdf", "fake pdf content")
+		env.createFile(folderPath, "test.pdf", "fake pdf content")
 
 		batch := env.Index.NewBatch()
 		fileId, err := AddFileToBatch(batch, env.Index, env.TmpDir, "test-folder", "test.pdf", false)
@@ -226,7 +139,7 @@ func TestAddFileToBatchAttachment(t *testing.T) {
 
 	t.Run("should not add existing attachment to batch", func(t *testing.T) {
 		folderPath := env.createTestFolder("test-folder-2")
-		env.createAttachmentFile(folderPath, "existing.jpg", "fake image content")
+		env.createFile(folderPath, "existing.jpg", "fake image content")
 
 		// Pre-index the attachment
 		fileId := "test-folder-2/existing.jpg"
@@ -259,7 +172,7 @@ func TestAddFileToBatchAttachment(t *testing.T) {
 			t.Run(tc.fileName, func(t *testing.T) {
 				folderName := "test-folder-" + tc.fileName
 				folderPath := env.createTestFolder(folderName)
-				env.createAttachmentFile(folderPath, tc.fileName+tc.extension, "fake content")
+				env.createFile(folderPath, tc.fileName+tc.extension, "fake content")
 
 				batch := env.Index.NewBatch()
 				expectedId := filepath.Join(folderName, tc.fileName)
@@ -276,7 +189,7 @@ func TestAddFileToBatchAttachment(t *testing.T) {
 	t.Run("should index attachment tags from sidecar", func(t *testing.T) {
 		folderName := "tagged-folder"
 		folderPath := env.createTestFolder(folderName)
-		env.createAttachmentFile(folderPath, "tagged.pdf", "fake content")
+		env.createFile(folderPath, "tagged.pdf", "fake content")
 		require.NoError(t, sidecar.WriteTags(env.TmpDir, folderName, "tagged.pdf", []string{"a", "b"}))
 
 		batch := env.Index.NewBatch()
@@ -297,7 +210,6 @@ func TestAddFileToBatchAttachment(t *testing.T) {
 
 func TestIndexAllFilesInFolder(t *testing.T) {
 	env := setupTestEnv(t)
-	defer env.Close()
 
 	t.Run("should return error for non-existent folder", func(t *testing.T) {
 		err := indexFolderAndFlush(t, env.Index, env.TmpDir, "/non/existent/path", "non-existent")
@@ -306,8 +218,8 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 
 	t.Run("should index markdown files with missing IDs", func(t *testing.T) {
 		folderPath := env.createTestFolder("test-folder")
-		env.createMarkdownFile(folderPath, "test1.md", basicMarkdown)
-		env.createMarkdownFile(folderPath, "test2.md", "# Content\nThis is test content without frontmatter.")
+		env.createFile(folderPath, "test1.md", basicMarkdown)
+		env.createFile(folderPath, "test2.md", "# Content\nThis is test content without frontmatter.")
 
 		err := indexFolderAndFlush(t, env.Index, env.TmpDir, folderPath, "test-folder")
 		assert.NoError(t, err)
@@ -321,7 +233,7 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 
 	t.Run("should index files with existing IDs", func(t *testing.T) {
 		folderPath := env.createTestFolder("test-folder-2")
-		env.createMarkdownFile(folderPath, "test.md", markdownWithId)
+		env.createFile(folderPath, "test.md", markdownWithId)
 
 		err := indexFolderAndFlush(t, env.Index, env.TmpDir, folderPath, "test-folder-2")
 		assert.NoError(t, err)
@@ -337,7 +249,7 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create files in parent folder
-		env.createMarkdownFile(folderPath, "parent-note.md", "# Content in parent folder")
+		env.createFile(folderPath, "parent-note.md", "# Content in parent folder")
 
 		err = indexFolderAndFlush(t, env.Index, env.TmpDir, folderPath, "parent-folder")
 		assert.NoError(t, err)
@@ -353,7 +265,7 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create files in subfolder (should not be indexed)
-		env.createMarkdownFile(subfolderPath, "sub-note.md", "# Content in subfolder")
+		env.createFile(subfolderPath, "sub-note.md", "# Content in subfolder")
 
 		err = indexFolderAndFlush(t, env.Index, env.TmpDir, folderPath, "parent-folder")
 		assert.NoError(t, err)
@@ -378,9 +290,9 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 
 	t.Run("should skip hidden files in folder indexing", func(t *testing.T) {
 		folderPath := env.createTestFolder("hidden-skip-folder")
-		env.createMarkdownFile(folderPath, "visible.md", "# visible")
-		env.createMarkdownFile(folderPath, ".hidden.md", "# hidden")
-		env.createAttachmentFile(folderPath, ".hidden.png", "fake image content")
+		env.createFile(folderPath, "visible.md", "# visible")
+		env.createFile(folderPath, ".hidden.md", "# hidden")
+		env.createFile(folderPath, ".hidden.png", "fake image content")
 
 		err := indexFolderAndFlush(t, env.Index, env.TmpDir, folderPath, "hidden-skip-folder")
 		require.NoError(t, err)
@@ -403,7 +315,7 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 		folderName := "large-folder"
 		folderPath := env.createTestFolder(folderName)
 		for i := 0; i < DefaultBatchSize+1; i++ {
-			env.createAttachmentFile(folderPath, fmt.Sprintf("attachment-%04d.bin", i), "data")
+			env.createFile(folderPath, fmt.Sprintf("attachment-%04d.bin", i), "data")
 		}
 
 		batch := env.Index.NewBatch()
@@ -424,15 +336,14 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 func TestRegenerateSearchIndex(t *testing.T) {
 	t.Run("should regenerate index with existing files", func(t *testing.T) {
 		env := setupTestEnv(t)
-		// Don't defer env.Close() here - we'll handle cleanup manually
 
 		// Create and index some files
 		folder1Path := env.createTestFolder("folder1")
 		folder2Path := env.createTestFolder("folder2")
 
-		env.createMarkdownFile(folder1Path, "note1.md", basicMarkdown)
-		env.createMarkdownFile(folder2Path, "note2.md", markdownWithId)
-		env.createAttachmentFile(folder1Path, "attachment.pdf", "fake pdf content")
+		env.createFile(folder1Path, "note1.md", basicMarkdown)
+		env.createFile(folder2Path, "note2.md", markdownWithId)
+		env.createFile(folder1Path, "attachment.pdf", "fake pdf content")
 
 		// Store the old index reference (will be closed by RegenerateSearchIndex)
 		oldIndex := env.Index
@@ -453,22 +364,18 @@ func TestRegenerateSearchIndex(t *testing.T) {
 		// Verify the old index is closed (can't use it anymore)
 		_, err = oldIndex.Document("folder1/note1.md")
 		assert.Error(t, err, "Old index should be closed")
-
-		// Clean up manually: close new index and remove temp dir
-		newIndex.Close()
-		os.RemoveAll(env.TmpDir)
 	})
 
 	t.Run("should regenerate index when no index exists", func(t *testing.T) {
 		env := setupTestEnv(t)
-		// Don't defer env.Close() here - we'll handle cleanup manually
 
 		// Create some files
 		folder1Path := env.createTestFolder("folder1")
-		env.createMarkdownFile(folder1Path, "note1.md", basicMarkdown)
+		env.createFile(folder1Path, "note1.md", basicMarkdown)
 
 		// Close and remove the existing index
-		env.Index.Close()
+		require.NoError(t, env.Index.Close())
+		env.Index = nil
 		pathToIndex := GetPathToIndex(env.TmpDir)
 		err := os.RemoveAll(pathToIndex)
 		require.NoError(t, err)
@@ -483,24 +390,19 @@ func TestRegenerateSearchIndex(t *testing.T) {
 
 		// Verify files are indexed after regeneration
 		env.verifyDocumentExists("folder1/note1.md")
-
-		// Clean up manually: close new index and remove temp dir
-		newIndex.Close()
-		os.RemoveAll(env.TmpDir)
 	})
 
 	t.Run("should handle regeneration with multiple folders and file types", func(t *testing.T) {
 		env := setupTestEnv(t)
-		// Don't defer env.Close() here - we'll handle cleanup manually
 
 		// Create files in multiple folders with different types
 		folder1Path := env.createTestFolder("folder1")
 		folder2Path := env.createTestFolder("folder2")
 
-		env.createMarkdownFile(folder1Path, "markdown1.md", basicMarkdown)
-		env.createMarkdownFile(folder2Path, "markdown2.md", complexMarkdown)
-		env.createAttachmentFile(folder1Path, "file1.pdf", "pdf content")
-		env.createAttachmentFile(folder2Path, "file2.jpg", "jpg content")
+		env.createFile(folder1Path, "markdown1.md", basicMarkdown)
+		env.createFile(folder2Path, "markdown2.md", complexMarkdown)
+		env.createFile(folder1Path, "file1.pdf", "pdf content")
+		env.createFile(folder2Path, "file2.jpg", "jpg content")
 
 		// Regenerate the index
 		oldIndex := env.Index
@@ -516,9 +418,5 @@ func TestRegenerateSearchIndex(t *testing.T) {
 		env.verifyDocumentExists("folder2/markdown2.md")
 		env.verifyDocumentExists("folder1/file1.pdf")
 		env.verifyDocumentExists("folder2/file2.jpg")
-
-		// Clean up manually: close new index and remove temp dir
-		newIndex.Close()
-		os.RemoveAll(env.TmpDir)
 	})
 }

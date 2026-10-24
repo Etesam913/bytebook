@@ -11,28 +11,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func writeServiceTestNote(t *testing.T, projectPath, relativePath string) string {
-	notePath := filepath.Join(projectPath, "notes", relativePath)
-	require.NoError(t, os.MkdirAll(filepath.Dir(notePath), 0755))
-	require.NoError(t, os.WriteFile(notePath, []byte("# Note"), 0644))
-	return notePath
-}
-
-func writeServiceTestSidecar(t *testing.T, notePath string) {
-	require.NoError(t, sidecar.WriteCodeResults(notePath, sidecar.CodeResults{
-		CodeBlocks: []sidecar.CodeBlock{{
-			CodeBlockID:      "block-1",
-			LastRan:          "2026-05-03T18:42:10Z",
-			AreResultsHidden: true,
-			ResultHTML:       "<div>ok</div>",
-		}},
-	}))
-}
-
 func TestNoteServiceCodeResultsSidecar(t *testing.T) {
 	t.Run("saves reads and deletes code result sidecar state", func(t *testing.T) {
 		projectPath := t.TempDir()
-		writeServiceTestNote(t, projectPath, "folder/note.md")
+		writeTestNote(t, projectPath, "folder/note.md", "# Note")
 		service := NoteService{ProjectPath: projectPath}
 
 		res := service.SetNoteMarkdownWithCodeResults("folder", "note", "# Updated", sidecar.CodeResults{
@@ -59,8 +41,7 @@ func TestNoteServiceCodeResultsSidecar(t *testing.T) {
 
 	t.Run("renames sidecar with note", func(t *testing.T) {
 		projectPath := t.TempDir()
-		oldNotePath := writeServiceTestNote(t, projectPath, "folder/old.md")
-		writeServiceTestSidecar(t, oldNotePath)
+		oldNotePath := writeTestNoteWithCodeResults(t, projectPath, "folder/old.md")
 		service := NoteService{ProjectPath: projectPath}
 
 		res := service.RenameFile("folder/old.md", "folder/new.md")
@@ -76,8 +57,7 @@ func TestNoteServiceCodeResultsSidecar(t *testing.T) {
 
 func TestFileTreeServiceMovesCodeResultsSidecar(t *testing.T) {
 	projectPath := t.TempDir()
-	oldNotePath := writeServiceTestNote(t, projectPath, "from/note.md")
-	writeServiceTestSidecar(t, oldNotePath)
+	oldNotePath := writeTestNoteWithCodeResults(t, projectPath, "from/note.md")
 	require.NoError(t, os.MkdirAll(filepath.Join(projectPath, "notes", "to"), 0755))
 	service := FileTreeService{ProjectPath: projectPath}
 
@@ -94,8 +74,7 @@ func TestFileTreeServiceMovesCodeResultsSidecar(t *testing.T) {
 func TestMoveRejectsDestinationSidecarCollision(t *testing.T) {
 	t.Run("leaves the source note and both sidecars untouched", func(t *testing.T) {
 		projectPath := t.TempDir()
-		source := writeServiceTestNote(t, projectPath, "from/note.md")
-		writeServiceTestSidecar(t, source)
+		source := writeTestNoteWithCodeResults(t, projectPath, "from/note.md")
 		sourceMetadata, err := os.ReadFile(sidecar.PathFor(source))
 		require.NoError(t, err)
 		destination := filepath.Join(projectPath, "notes", "to", "note.md")
@@ -123,8 +102,7 @@ func TestMoveRejectsDestinationSidecarCollision(t *testing.T) {
 func TestRenameFileWithSidecarRecovery(t *testing.T) {
 	t.Run("rolls back the note when the sidecar rename fails", func(t *testing.T) {
 		projectPath := t.TempDir()
-		source := writeServiceTestNote(t, projectPath, "from/note.md")
-		writeServiceTestSidecar(t, source)
+		source := writeTestNoteWithCodeResults(t, projectPath, "from/note.md")
 		metadata, err := os.ReadFile(sidecar.PathFor(source))
 		require.NoError(t, err)
 		destination := filepath.Join(filepath.Dir(source), "new.md")
@@ -153,8 +131,7 @@ func TestRenameFileWithSidecarRecovery(t *testing.T) {
 
 	t.Run("rolls back if destination metadata appears after preflight", func(t *testing.T) {
 		projectPath := t.TempDir()
-		source := writeServiceTestNote(t, projectPath, "from/note.md")
-		writeServiceTestSidecar(t, source)
+		source := writeTestNoteWithCodeResults(t, projectPath, "from/note.md")
 		destination := filepath.Join(filepath.Dir(source), "new.md")
 		rename := func(oldPath, newPath string) error {
 			if err := os.Rename(oldPath, newPath); err != nil {
@@ -179,8 +156,7 @@ func TestRenameFileWithSidecarRecovery(t *testing.T) {
 
 	t.Run("reports the actual destination when rollback cannot restore the source", func(t *testing.T) {
 		projectPath := t.TempDir()
-		source := writeServiceTestNote(t, projectPath, "from/note.md")
-		writeServiceTestSidecar(t, source)
+		source := writeTestNoteWithCodeResults(t, projectPath, "from/note.md")
 		destination := filepath.Join(filepath.Dir(source), "new.md")
 		renameFailure := errors.New("sidecar rename failed")
 		rename := func(oldPath, newPath string) error {
@@ -207,8 +183,7 @@ func TestRenameFileWithSidecarRecovery(t *testing.T) {
 
 	t.Run("accepts a sidecar already moved by the watcher", func(t *testing.T) {
 		projectPath := t.TempDir()
-		source := writeServiceTestNote(t, projectPath, "from/note.md")
-		writeServiceTestSidecar(t, source)
+		source := writeTestNoteWithCodeResults(t, projectPath, "from/note.md")
 		destination := filepath.Join(filepath.Dir(source), "new.md")
 		rename := func(oldPath, newPath string) error {
 			if err := os.Rename(oldPath, newPath); err != nil {
@@ -234,10 +209,8 @@ func TestRenameFileWithSidecarRecovery(t *testing.T) {
 func TestPairedFileMoves(t *testing.T) {
 	t.Run("moves uppercase Markdown metadata to the unique destination name", func(t *testing.T) {
 		projectPath := t.TempDir()
-		source := writeServiceTestNote(t, projectPath, "from/note.MD")
-		writeServiceTestSidecar(t, source)
-		occupied := writeServiceTestNote(t, projectPath, "to/note.MD")
-		writeServiceTestSidecar(t, occupied)
+		source := writeTestNoteWithCodeResults(t, projectPath, "from/note.MD")
+		occupied := writeTestNoteWithCodeResults(t, projectPath, "to/note.MD")
 		service := FileTreeService{ProjectPath: projectPath}
 
 		res := service.MoveItemsToFolder([]string{"from/note.MD"}, "to")
@@ -254,7 +227,7 @@ func TestPairedFileMoves(t *testing.T) {
 
 	t.Run("moves attachment metadata with its file", func(t *testing.T) {
 		projectPath := t.TempDir()
-		source := writeServiceTestNote(t, projectPath, "from/photo.png")
+		source := writeTestNote(t, projectPath, "from/photo.png", "# Note")
 		require.NoError(t, os.WriteFile(sidecar.PathFor(source), []byte(`{"tags":["photo"]}`), 0644))
 		require.NoError(t, os.MkdirAll(filepath.Join(projectPath, "notes", "to"), 0755))
 		service := FileTreeService{ProjectPath: projectPath}
@@ -272,7 +245,7 @@ func TestPairedFileMoves(t *testing.T) {
 
 	t.Run("rejects orphan metadata during inline rename even without source metadata", func(t *testing.T) {
 		projectPath := t.TempDir()
-		source := writeServiceTestNote(t, projectPath, "folder/old.md")
+		source := writeTestNote(t, projectPath, "folder/old.md", "# Note")
 		destination := filepath.Join(filepath.Dir(source), "new.md")
 		require.NoError(t, os.WriteFile(sidecar.PathFor(destination), []byte("orphan"), 0644))
 		service := NoteService{ProjectPath: projectPath}
@@ -291,8 +264,8 @@ func TestPairedFileMoves(t *testing.T) {
 func TestPairedMovesPreserveOtherMoveBehavior(t *testing.T) {
 	t.Run("moves files without sidecars to a unique name without overwriting bytes", func(t *testing.T) {
 		projectPath := t.TempDir()
-		source := writeServiceTestNote(t, projectPath, "from/note.txt")
-		occupied := writeServiceTestNote(t, projectPath, "to/note.txt")
+		source := writeTestNote(t, projectPath, "from/note.txt", "# Note")
+		occupied := writeTestNote(t, projectPath, "to/note.txt", "# Note")
 		require.NoError(t, os.WriteFile(occupied, []byte("existing file"), 0644))
 		service := FileTreeService{ProjectPath: projectPath}
 
@@ -310,10 +283,8 @@ func TestPairedMovesPreserveOtherMoveBehavior(t *testing.T) {
 
 	t.Run("keeps successful directory moves when another item fails", func(t *testing.T) {
 		projectPath := t.TempDir()
-		source := writeServiceTestNote(t, projectPath, "from/bad.md")
-		writeServiceTestSidecar(t, source)
-		nested := writeServiceTestNote(t, projectPath, "from/folder/nested.md")
-		writeServiceTestSidecar(t, nested)
+		source := writeTestNoteWithCodeResults(t, projectPath, "from/bad.md")
+		nested := writeTestNoteWithCodeResults(t, projectPath, "from/folder/nested.md")
 		target := filepath.Join(projectPath, "notes", "to")
 		require.NoError(t, os.MkdirAll(target, 0755))
 		require.NoError(t, os.WriteFile(sidecar.PathFor(filepath.Join(target, "bad.md")), []byte("orphan"), 0644))
@@ -331,8 +302,7 @@ func TestPairedMovesPreserveOtherMoveBehavior(t *testing.T) {
 
 	t.Run("supports case-only renames of the file and sidecar", func(t *testing.T) {
 		projectPath := t.TempDir()
-		source := writeServiceTestNote(t, projectPath, "folder/note.md")
-		writeServiceTestSidecar(t, source)
+		source := writeTestNoteWithCodeResults(t, projectPath, "folder/note.md")
 		service := NoteService{ProjectPath: projectPath}
 
 		res := service.RenameFile("folder/note.md", "folder/NOTE.md")

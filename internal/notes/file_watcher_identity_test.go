@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/etesam913/bytebook/internal/testutil"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/fsnotify/fsnotify"
 	"github.com/stretchr/testify/assert"
@@ -101,8 +102,7 @@ collect:
 
 func TestWatcherAmbiguousIdentity(t *testing.T) {
 	project, _, root, _, _ := setupProjectFolders(t)
-	oldPath := filepath.Join(root, "old.md")
-	require.NoError(t, os.WriteFile(oldPath, []byte("same"), 0644))
+	oldPath := testutil.WriteFile(t, root, "old.md", []byte("same"))
 	fw := newTestFileWatcher(t, project)
 	fw.addFolderTreeToWatcher(root)
 
