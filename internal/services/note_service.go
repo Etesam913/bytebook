@@ -9,6 +9,7 @@ import (
 
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/notes/sidecar"
+	"github.com/etesam913/bytebook/internal/notes/trash"
 	"github.com/etesam913/bytebook/internal/ui"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -213,24 +214,24 @@ func (n *NoteService) AddNoteToFolder(folderName string, noteName string) config
 
 // MoveToTrash moves the specified folders and notes to the trash directory.
 // It returns restore metadata for app-level undo support.
-func (n *NoteService) MoveToTrash(folderAndNotes []string) config.BackendResponseWithData[[]util.TrashRestoreInfo] {
-	restoreItems, err := util.MoveNotesToTrash(n.ProjectPath, folderAndNotes)
+func (n *NoteService) MoveToTrash(folderAndNotes []string) config.BackendResponseWithData[[]trash.TrashRestoreInfo] {
+	restoreItems, err := trash.MoveNotesToTrash(n.ProjectPath, folderAndNotes)
 	if err != nil {
-		return config.BackendResponseWithData[[]util.TrashRestoreInfo]{
+		return config.BackendResponseWithData[[]trash.TrashRestoreInfo]{
 			Success: false,
 			Message: userFacingError(err, "Could not move items to trash"),
 			Data:    restoreItems,
 		}
 	}
-	return config.BackendResponseWithData[[]util.TrashRestoreInfo]{
+	return config.BackendResponseWithData[[]trash.TrashRestoreInfo]{
 		Success: true,
 		Data:    restoreItems,
 	}
 }
 
 // RestoreFromTrash restores previously trashed notes and folders back to their original paths.
-func (n *NoteService) RestoreFromTrash(restoreItems []util.TrashRestoreInfo) config.BackendResponseWithoutData {
-	err := util.RestoreNotesFromTrash(n.ProjectPath, restoreItems)
+func (n *NoteService) RestoreFromTrash(restoreItems []trash.TrashRestoreInfo) config.BackendResponseWithoutData {
+	err := trash.RestoreNotesFromTrash(n.ProjectPath, restoreItems)
 	if err != nil {
 		return config.BackendResponseWithoutData{
 			Success: false,

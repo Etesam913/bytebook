@@ -22,7 +22,7 @@ type Data struct {
 // PathFor returns the sidecar path that pairs with filePath.
 // Example: "/x/photo.jpg" -> "/x/.photo.jpg.json".
 func PathFor(filePath string) string {
-	return util.FileSidecarPath(filePath)
+	return filepath.Join(filepath.Dir(filePath), "."+filepath.Base(filePath)+".json")
 }
 
 // PathForFile returns the sidecar path for a project-relative file at notes/<folder>/<fileName>.
