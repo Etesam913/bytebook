@@ -6,7 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/blevesearch/bleve/v2"
 	"github.com/etesam913/bytebook/internal/notes"
+	"github.com/etesam913/bytebook/internal/notes/sidecar"
 	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/fsnotify/fsnotify"
@@ -302,7 +304,7 @@ func TestFolderIndexLifecycle(t *testing.T) {
 	batch = index.NewBatch()
 	require.NoError(t, search.AddFolderToBatch(batch, "Later"))
 	require.NoError(t, index.Batch(batch))
-	require.NoError(t, search.ReconcileFolderDocuments(project, nil, index))
+	require.NoError(t, search.ReconcileDocuments(project, nil, nil, index))
 	doc, err = index.Document("Later/")
 	require.NoError(t, err)
 	assert.NotNil(t, doc)
@@ -312,4 +314,128 @@ func TestFolderIndexLifecycle(t *testing.T) {
 	doc, err = index.Document("Parent/Empty/")
 	require.NoError(t, err)
 	assert.NotNil(t, doc)
+}
+
+func TestStartupCatchUpReconcilesFiles(t *testing.T) {
+	setup := func(t *testing.T) (*BulkImportCoordinator, bleve.Index, string) {
+		t.Helper()
+		project := t.TempDir()
+		root := filepath.Join(project, "notes")
+		require.NoError(t, os.MkdirAll(filepath.Join(root, "nested"), 0755))
+		write := func(path, content string) {
+			require.NoError(t, os.WriteFile(filepath.Join(root, path), []byte(content), 0644))
+		}
+		write("note.md", "---\ntags: [oldtag]\n---\nobsoleteword")
+		write("nested/renamed.md", "movedword")
+		write("deleted.md", "deletedword")
+		write("asset.png", "old")
+		write("deleted.png", "attachment")
+		require.NoError(t, sidecar.WriteTags(project, "", "asset.png", []string{"oldtag"}))
+		index, err := search.OpenOrCreateIndex(project)
+		require.NoError(t, err)
+		t.Cleanup(func() { require.NoError(t, index.Close()) })
+		watcher, err := fsnotify.NewWatcher()
+		require.NoError(t, err)
+		t.Cleanup(func() { require.NoError(t, watcher.Close()) })
+		coordinator := NewBulkImportCoordinator(project, search.NewIndexHolder(index), watcher, notes.NewDirectoryWatchRegistry())
+		t.Cleanup(coordinator.Shutdown)
+		coordinator.processRequest("")
+
+		// Simulate changes made while the app was closed, without watcher event handlers.
+		write("note.md", "---\ntags: [newtag]\n---\ncurrentword")
+		write("asset.png", "larger attachment")
+		require.NoError(t, sidecar.WriteTags(project, "", "asset.png", []string{"newtag"}))
+		require.NoError(t, os.Rename(filepath.Join(root, "nested/renamed.md"), filepath.Join(root, "nested/moved.md")))
+		require.NoError(t, os.Remove(filepath.Join(root, "deleted.md")))
+		require.NoError(t, os.Remove(filepath.Join(root, "deleted.png")))
+		write("added.md", "addedword")
+		return coordinator, index, root
+	}
+
+	t.Run("Partial imports preserve stale documents", func(t *testing.T) {
+		// Arrange
+		coordinator, index, _ := setup(t)
+
+		// Act
+		coordinator.processRequest("nested")
+
+		// Assert
+		for _, id := range []string{"deleted.md", "deleted.png", "nested/renamed.md"} {
+			doc, err := index.Document(id)
+			require.NoError(t, err)
+			assert.NotNil(t, doc, "partial scans must not prune: %s", id)
+		}
+	})
+
+	t.Run("Full scans refresh content and metadata and prune stale documents", func(t *testing.T) {
+		// Arrange
+		coordinator, index, _ := setup(t)
+
+		// Act
+		coordinator.processRequest("")
+
+		// Assert
+		for _, id := range []string{"deleted.md", "deleted.png", "nested/renamed.md"} {
+			doc, err := index.Document(id)
+			require.NoError(t, err)
+			assert.Nil(t, doc, id)
+		}
+		for _, id := range []string{"note.md", "asset.png", "nested/moved.md", "added.md"} {
+			doc, err := index.Document(id)
+			require.NoError(t, err)
+			assert.NotNil(t, doc, id)
+		}
+		for _, term := range []string{"obsoleteword", "oldtag"} {
+			result, err := index.Search(bleve.NewSearchRequest(bleve.NewMatchQuery(term)))
+			require.NoError(t, err)
+			assert.Zero(t, result.Total, term)
+		}
+		query := bleve.NewTermQuery("newtag")
+		query.SetField(search.FieldTags)
+		request := bleve.NewSearchRequest(query)
+		request.Fields = []string{search.FieldSize}
+		result, err := index.Search(request)
+		require.NoError(t, err)
+		require.Len(t, result.Hits, 2, "both note frontmatter and attachment sidecar tags must refresh")
+		for _, hit := range result.Hits {
+			if hit.ID == "asset.png" {
+				assert.Equal(t, float64(len("larger attachment")), hit.Fields[search.FieldSize])
+			}
+		}
+		result, err = index.Search(bleve.NewSearchRequest(bleve.NewMatchQuery("currentword")))
+		require.NoError(t, err)
+		require.Len(t, result.Hits, 1)
+		assert.Equal(t, "note.md", result.Hits[0].ID)
+	})
+
+	t.Run("Failed indexing preserves stale documents", func(t *testing.T) {
+		// Arrange
+		coordinator, index, root := setup(t)
+		require.NoError(t, os.Symlink("unreadable.md", filepath.Join(root, "unreadable.md")))
+
+		// Act
+		coordinator.processRequest("")
+
+		// Assert
+		for _, id := range []string{"deleted.md", "deleted.png", "nested/renamed.md"} {
+			doc, err := index.Document(id)
+			require.NoError(t, err)
+			assert.NotNil(t, doc, "failed indexing must not prune: %s", id)
+		}
+	})
+
+	t.Run("An empty full scan removes all stale documents", func(t *testing.T) {
+		// Arrange
+		coordinator, index, root := setup(t)
+		require.NoError(t, os.RemoveAll(root))
+		require.NoError(t, os.MkdirAll(root, 0755))
+
+		// Act
+		coordinator.processRequest("")
+
+		// Assert
+		count, err := index.DocCount()
+		require.NoError(t, err)
+		assert.Zero(t, count)
+	})
 }

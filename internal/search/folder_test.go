@@ -2,7 +2,6 @@ package search
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -76,34 +75,5 @@ func TestIndexDiscoveredFolders(t *testing.T) {
 		last, err := env.Index.Document(fmt.Sprintf("folder-%d/", DefaultBatchSize))
 		require.NoError(t, err)
 		assert.NotNil(t, last)
-	})
-}
-
-func TestReconcileFolderDocuments(t *testing.T) {
-	t.Run("Removes missing folders but preserves discovered and newly created folders and files", func(t *testing.T) {
-		env := setupTestEnv(t)
-		defer env.Close()
-		discovered := env.createTestFolder("discovered")
-		env.createTestFolder("created-after-discovery")
-		batch := env.Index.NewBatch()
-		for _, folder := range []string{"discovered", "created-after-discovery", "missing", "replaced-by-file"} {
-			require.NoError(t, AddFolderToBatch(batch, folder))
-		}
-		require.NoError(t, batch.Index("note.md", CreateNoteBleveDocument("content", "", "note.md")))
-		require.NoError(t, FlushBatch(env.Index, batch))
-		require.NoError(t, os.WriteFile(filepath.Join(env.NotesDir, "replaced-by-file"), []byte("attachment"), 0o644))
-
-		require.NoError(t, ReconcileFolderDocuments(env.TmpDir, []string{discovered}, env.Index))
-
-		for _, id := range []string{"discovered/", "created-after-discovery/", "note.md"} {
-			doc, err := env.Index.Document(id)
-			require.NoError(t, err)
-			assert.NotNil(t, doc, id)
-		}
-		for _, id := range []string{"missing/", "replaced-by-file/"} {
-			doc, err := env.Index.Document(id)
-			require.NoError(t, err)
-			assert.Nil(t, doc, id)
-		}
 	})
 }

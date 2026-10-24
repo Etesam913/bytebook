@@ -74,7 +74,7 @@ func NewBulkImportCoordinator(
 	return coordinator
 }
 
-// EnqueueInitialScan schedules a full notes-tree scan used during startup catch-up.
+// EnqueueInitialScan schedules startup catch-up to upsert the full notes tree and prune stale documents.
 func (c *BulkImportCoordinator) EnqueueInitialScan() {
 	c.enqueue(importRequest{relativeFolderPath: ""})
 }
@@ -243,8 +243,8 @@ func (c *BulkImportCoordinator) processRequest(relativeFolderPath string) {
 		log.Printf("Error indexing files in %s: %v", rootPath, fileErr)
 	}
 	if relativeFolderPath == "" && discoverySucceeded && folderErr == nil && fileErr == nil {
-		if err := search.ReconcileFolderDocuments(c.projectPath, directories, idx); err != nil {
-			log.Printf("Error reconciling folders: %v", err)
+		if err := search.ReconcileDocuments(c.projectPath, directories, filePaths, idx); err != nil {
+			log.Printf("Error reconciling search documents: %v", err)
 		}
 	}
 	c.index.RUnlock()

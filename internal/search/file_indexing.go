@@ -42,7 +42,7 @@ func IndexAllFiles(projectPath string, bleveIndex bleve.Index) error {
 	})
 }
 
-// IndexDiscoveredFiles indexes already-discovered files using bounded worker concurrency.
+// IndexDiscoveredFiles upserts already-discovered files using bounded worker concurrency.
 func IndexDiscoveredFiles(projectPath string, filePaths []string, bleveIndex bleve.Index, workerCount int) error {
 	if len(filePaths) == 0 {
 		return nil
@@ -146,16 +146,6 @@ func addResultsToIndex(ctx context.Context, bleveIndex bleve.Index, bleveBatch *
 		if docResult.isError {
 			return nil, fmt.Errorf("could not read document %s", docResult.entryId)
 		}
-		document, err := bleveIndex.Document(docResult.entryId)
-		if err != nil {
-			return nil, fmt.Errorf("fetch indexed document %s: %w", docResult.entryId, err)
-		}
-
-		// The entry is already indexed, so we can skip here
-		if document != nil {
-			continue
-		}
-
 		if err := bleveBatch.Index(docResult.entryId, docResult.document); err != nil {
 			return nil, fmt.Errorf("add document %s to indexing batch: %w", docResult.entryId, err)
 		}

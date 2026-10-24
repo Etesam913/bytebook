@@ -360,7 +360,7 @@ func TestIndexDiscoveredFilesPipeline(t *testing.T) {
 		assert.Equal(t, uint64(len(paths)), count)
 	})
 
-	t.Run("keeps existing documents and reports missing markdown", func(t *testing.T) {
+	t.Run("does not flush an incomplete batch when markdown cannot be read", func(t *testing.T) {
 		projectDir, notesDir := setupTempNotesDir(t)
 		index := createTempIndex(t, projectDir)
 		defer index.Close()

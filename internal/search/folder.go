@@ -2,7 +2,6 @@ package search
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -78,51 +77,4 @@ func IndexDiscoveredFolders(projectPath string, directories []string, index blev
 		}
 	}
 	return FlushBatch(index, batch)
-}
-
-// ReconcileFolderDocuments removes missing folder documents after a successful full discovery.
-// Rechecking disk preserves folders created after discovery. Callers must not use this for partial scans.
-// Returns an error without deleting entries whose filesystem state cannot be determined.
-func ReconcileFolderDocuments(projectPath string, directories []string, index bleve.Index) error {
-	seen := make(map[string]bool, len(directories))
-	for _, directory := range directories {
-		relative, err := filepath.Rel(filepath.Join(projectPath, "notes"), directory)
-		if err != nil {
-			return err
-		}
-		seen[filepath.ToSlash(relative)+"/"] = true
-	}
-	request := bleve.NewSearchRequest(createTypeQuery(FOLDER_TYPE))
-	request.Size = DefaultBatchSize
-	request.SortBy([]string{"_id"})
-	for {
-		result, err := index.Search(request)
-		if err != nil {
-			return fmt.Errorf("find stale folders: %w", err)
-		}
-		if len(result.Hits) == 0 {
-			return nil
-		}
-		batch := index.NewBatch()
-		for _, hit := range result.Hits {
-			if seen[hit.ID] {
-				continue
-			}
-			// Only our normalized folder IDs are eligible for filesystem reconciliation.
-			relative := strings.TrimSuffix(hit.ID, "/")
-			if !strings.HasSuffix(hit.ID, "/") || filepath.IsAbs(relative) || filepath.Clean(relative) != relative || relative == ".." || strings.HasPrefix(relative, "../") {
-				continue
-			}
-			info, err := os.Stat(filepath.Join(projectPath, "notes", relative))
-			if os.IsNotExist(err) || (err == nil && !info.IsDir()) {
-				batch.Delete(hit.ID)
-			} else if err != nil {
-				return fmt.Errorf("stat indexed folder %q: %w", relative, err)
-			}
-		}
-		if err := FlushBatch(index, batch); err != nil {
-			return err
-		}
-		request.SetSearchAfter(result.Hits[len(result.Hits)-1].Sort)
-	}
 }
