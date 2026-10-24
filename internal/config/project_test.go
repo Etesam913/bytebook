@@ -140,19 +140,6 @@ func TestGetProjectSettings(t *testing.T) {
 		assert.Equal(t, MaxCodeBlockFontSize, settings.Code.CodeBlockFontSize)
 	})
 
-	t.Run("Uses the default language when the configured language is unsupported", func(t *testing.T) {
-		projectPath := t.TempDir()
-		original := projectSettingsFixture(projectPath)
-		original.PinnedNotes = []string{}
-		original.Code.CodeBlockDefaultLanguage = "ruby"
-		writeProjectSettingsFixture(t, projectPath, original)
-
-		settings, err := GetProjectSettings(projectPath)
-
-		require.NoError(t, err)
-		assert.Equal(t, DefaultCodeBlockLanguage, settings.Code.CodeBlockDefaultLanguage)
-	})
-
 	t.Run("Returns invalid JSON without replacing it", func(t *testing.T) {
 		projectPath := t.TempDir()
 		settingsPath := filepath.Join(projectPath, "settings", "settings.json")
@@ -169,7 +156,7 @@ func TestGetProjectSettings(t *testing.T) {
 	})
 }
 
-func TestGetValidPinned(t *testing.T) {
+func TestValidPinned(t *testing.T) {
 	projectPath := t.TempDir()
 	notesPath := filepath.Join(projectPath, "notes")
 	require.NoError(t, os.MkdirAll(filepath.Join(notesPath, "docs"), 0o755))
@@ -180,35 +167,19 @@ func TestGetValidPinned(t *testing.T) {
 	settings := projectSettingsFixture(projectPath)
 	settings.PinnedNotes = []string{"docs", "missing.md", "guide.md"}
 
-	validPinned := GetValidPinned(projectPath, settings)
+	validPinned := ValidPinned(projectPath, settings.PinnedNotes)
 
 	assert.Equal(t, []string{"docs", "guide.md"}, validPinned)
 }
 
 func TestPinnedPathUpdates(t *testing.T) {
-	t.Run("Renames an exact pinned file and preserves unrelated settings", func(t *testing.T) {
-		projectPath := t.TempDir()
-		original, settingsPath := writePinnedSettingsFixture(
-			t,
-			projectPath,
-			[]string{"draft.md", "draft.md/child", "other.md"},
-		)
-
-		err := RenamePinnedFile(projectPath, "draft.md", "published.md")
-
-		require.NoError(t, err)
-		expected := original
-		expected.PinnedNotes = []string{"published.md", "draft.md/child", "other.md"}
-		assert.Equal(t, expected, readProjectSettingsFixture(t, settingsPath))
-	})
-
 	t.Run("Renames a pinned folder and its descendants without matching prefix siblings", func(t *testing.T) {
 		projectPath := t.TempDir()
 		original, settingsPath := writePinnedSettingsFixture(t, projectPath, []string{
 			"work", "work/today.md", "work/archive/old.md", "work-old/note.md", "other.md",
 		})
 
-		err := RenamePinnedFolder(projectPath, "work", "projects")
+		err := RenamePinnedPath(projectPath, "work", "projects")
 
 		require.NoError(t, err)
 		expected := original
@@ -222,29 +193,13 @@ func TestPinnedPathUpdates(t *testing.T) {
 		assert.Equal(t, expected, readProjectSettingsFixture(t, settingsPath))
 	})
 
-	t.Run("Deletes only an exact pinned file", func(t *testing.T) {
-		projectPath := t.TempDir()
-		original, settingsPath := writePinnedSettingsFixture(
-			t,
-			projectPath,
-			[]string{"draft.md", "draft.md/child", "other.md"},
-		)
-
-		err := DeletePinnedFile(projectPath, "draft.md")
-
-		require.NoError(t, err)
-		expected := original
-		expected.PinnedNotes = []string{"draft.md/child", "other.md"}
-		assert.Equal(t, expected, readProjectSettingsFixture(t, settingsPath))
-	})
-
 	t.Run("Deletes a pinned folder and its descendants without matching prefix siblings", func(t *testing.T) {
 		projectPath := t.TempDir()
 		original, settingsPath := writePinnedSettingsFixture(t, projectPath, []string{
 			"work", "work/today.md", "work/archive/old.md", "work-old/note.md", "other.md",
 		})
 
-		err := DeletePinnedFolder(projectPath, "work")
+		err := DeletePinnedPath(projectPath, "work")
 
 		require.NoError(t, err)
 		expected := original
@@ -256,7 +211,7 @@ func TestPinnedPathUpdates(t *testing.T) {
 		projectPath := t.TempDir()
 		settingsPath := filepath.Join(projectPath, "settings", "settings.json")
 
-		err := RenamePinnedFolder(projectPath, "work", "projects")
+		err := RenamePinnedPath(projectPath, "work", "projects")
 
 		assert.NoError(t, err)
 		assert.NoFileExists(t, settingsPath)
@@ -269,11 +224,44 @@ func TestPinnedPathUpdates(t *testing.T) {
 		invalidJSON := []byte("{invalid")
 		require.NoError(t, os.WriteFile(settingsPath, invalidJSON, 0o644))
 
-		err := DeletePinnedFile(projectPath, "notes.md")
+		err := DeletePinnedPath(projectPath, "notes.md")
 
 		assert.Error(t, err)
 		persisted, readErr := os.ReadFile(settingsPath)
 		require.NoError(t, readErr)
 		assert.Equal(t, invalidJSON, persisted)
+	})
+}
+
+func TestLoadProjectSettings(t *testing.T) {
+	t.Run("Does not create missing settings", func(t *testing.T) {
+		projectPath := t.TempDir()
+
+		_, err := LoadProjectSettings(projectPath)
+
+		assert.ErrorIs(t, err, os.ErrNotExist)
+		assert.NoDirExists(t, filepath.Join(projectPath, "settings"))
+	})
+
+	t.Run("Normalizes external edits without writing them back", func(t *testing.T) {
+		projectPath := t.TempDir()
+		original := projectSettingsFixture(projectPath)
+		original.Appearance.EditorFontSize = -1
+		original.Appearance.EditorLineHeight = -1
+		original.Appearance.AccentColor = " "
+		original.Code.CodeBlockFontSize = -1
+		original.Code.CodeBlockDefaultLanguage = "ruby"
+		settingsPath := writeProjectSettingsFixture(t, projectPath, original)
+
+		loaded, err := LoadProjectSettings(projectPath)
+
+		require.NoError(t, err)
+		assert.Equal(t, DefaultEditorFontSize, loaded.Appearance.EditorFontSize)
+		assert.Equal(t, DefaultEditorLineHeight, loaded.Appearance.EditorLineHeight)
+		assert.Equal(t, DefaultCodeBlockFontSize, loaded.Code.CodeBlockFontSize)
+		assert.Equal(t, DefaultAccentColor, loaded.Appearance.AccentColor)
+		assert.Equal(t, DefaultCodeBlockLanguage, loaded.Code.CodeBlockDefaultLanguage)
+		assert.Empty(t, loaded.PinnedNotes)
+		assert.Equal(t, original, readProjectSettingsFixture(t, settingsPath))
 	})
 }

@@ -162,8 +162,7 @@ func (fw *FileWatcher) handleFileEvents(event fsnotify.Event) {
 
 // handleSettingsUpdate processes updates to settings files
 func (fw *FileWatcher) handleSettingsUpdate() {
-	var projectSettings config.ProjectSettingsJson
-	err := util.ReadJsonFromPath(filepath.Join(fw.projectPath, "settings", "settings.json"), &projectSettings)
+	projectSettings, err := config.LoadProjectSettings(fw.projectPath)
 	if err == nil {
 		fw.app.Event.EmitEvent(&application.CustomEvent{
 			Name: util.EventSettingsUpdate,

@@ -66,7 +66,11 @@ export function validateProjectSettings(settings: {
 
 // Clamps and rounds a font size value to the allowed editor range, returning the default if invalid.
 export function validateEditorFontSize(fontSize: unknown): number {
-  if (typeof fontSize === 'number' && Number.isFinite(fontSize)) {
+  if (
+    typeof fontSize === 'number' &&
+    Number.isFinite(fontSize) &&
+    fontSize > 0
+  ) {
     return Math.min(
       MAX_EDITOR_FONT_SIZE,
       Math.max(MIN_EDITOR_FONT_SIZE, Math.round(fontSize))
@@ -78,7 +82,11 @@ export function validateEditorFontSize(fontSize: unknown): number {
 
 // Clamps a line height multiplier to the allowed range and rounds it to one decimal place, returning the default if invalid.
 export function validateEditorLineHeight(lineHeight: unknown): number {
-  if (typeof lineHeight === 'number' && Number.isFinite(lineHeight)) {
+  if (
+    typeof lineHeight === 'number' &&
+    Number.isFinite(lineHeight) &&
+    lineHeight > 0
+  ) {
     const clamped = Math.min(
       MAX_EDITOR_LINE_HEIGHT,
       Math.max(MIN_EDITOR_LINE_HEIGHT, lineHeight)
@@ -91,7 +99,11 @@ export function validateEditorLineHeight(lineHeight: unknown): number {
 
 // Clamps and rounds a font size value to the allowed code block range, returning the default if invalid.
 export function validateCodeBlockFontSize(fontSize: unknown): number {
-  if (typeof fontSize === 'number' && Number.isFinite(fontSize)) {
+  if (
+    typeof fontSize === 'number' &&
+    Number.isFinite(fontSize) &&
+    fontSize > 0
+  ) {
     return Math.min(
       MAX_CODE_BLOCK_FONT_SIZE,
       Math.max(MIN_CODE_BLOCK_FONT_SIZE, Math.round(fontSize))

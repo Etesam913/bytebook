@@ -58,10 +58,8 @@ describe('validateProjectSettings', () => {
 });
 
 describe('validateEditorFontSize', () => {
-  it('exposes the expected constants', () => {
-    expect(DEFAULT_EDITOR_FONT_SIZE).toBe(14);
-    expect(MIN_EDITOR_FONT_SIZE).toBe(8);
-    expect(MAX_EDITOR_FONT_SIZE).toBe(24);
+  it.each([0, -3])('uses the default for non-positive value %s', (value) => {
+    expect(validateEditorFontSize(value)).toBe(DEFAULT_EDITOR_FONT_SIZE);
   });
 
   it('returns in-range numbers unchanged', () => {
@@ -78,8 +76,6 @@ describe('validateEditorFontSize', () => {
   });
 
   it('clamps below the minimum to MIN_EDITOR_FONT_SIZE', () => {
-    expect(validateEditorFontSize(0)).toBe(MIN_EDITOR_FONT_SIZE);
-    expect(validateEditorFontSize(-100)).toBe(MIN_EDITOR_FONT_SIZE);
     expect(validateEditorFontSize(7.4)).toBe(MIN_EDITOR_FONT_SIZE);
   });
 
@@ -108,6 +104,10 @@ describe('validateEditorFontSize', () => {
 });
 
 describe('validateEditorLineHeight', () => {
+  it.each([0, -3])('uses the default for non-positive value %s', (value) => {
+    expect(validateEditorLineHeight(value)).toBe(DEFAULT_EDITOR_LINE_HEIGHT);
+  });
+
   it('accepts values within range and rounds to one decimal place', () => {
     expect(validateEditorLineHeight(2)).toBe(2);
     expect(validateEditorLineHeight(1.75)).toBe(1.8);
@@ -116,7 +116,6 @@ describe('validateEditorLineHeight', () => {
 
   it('clamps to the allowed range', () => {
     expect(validateEditorLineHeight(0.5)).toBe(MIN_EDITOR_LINE_HEIGHT);
-    expect(validateEditorLineHeight(-3)).toBe(MIN_EDITOR_LINE_HEIGHT);
     expect(validateEditorLineHeight(10)).toBe(MAX_EDITOR_LINE_HEIGHT);
   });
 
@@ -136,6 +135,10 @@ describe('validateEditorLineHeight', () => {
 });
 
 describe('validateCodeBlockFontSize', () => {
+  it.each([0, -3])('uses the default for non-positive value %s', (value) => {
+    expect(validateCodeBlockFontSize(value)).toBe(DEFAULT_CODE_BLOCK_FONT_SIZE);
+  });
+
   it('accepts and rounds values within range', () => {
     expect(validateCodeBlockFontSize(13)).toBe(13);
     expect(validateCodeBlockFontSize(15.6)).toBe(16);

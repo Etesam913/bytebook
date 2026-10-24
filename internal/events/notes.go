@@ -45,7 +45,7 @@ func addCreatedNotesToIndex(params EventParams, data []util.FileCreateEventData)
 // then replaces local links in other notes that reference the renamed file.
 func handleFileRenameEvent(params EventParams, data []util.FileRenameEventData) {
 	for _, item := range data {
-		if err := config.RenamePinnedFile(params.ProjectPath, item.OldFilePath, item.NewFilePath); err != nil {
+		if err := config.RenamePinnedPath(params.ProjectPath, item.OldFilePath, item.NewFilePath); err != nil {
 			log.Printf("Error updating pinned notes for file rename %s -> %s: %v", item.OldFilePath, item.NewFilePath, err)
 		}
 	}
@@ -87,7 +87,7 @@ func renameFilesInIndex(params EventParams, data []util.FileRenameEventData) {
 // handleFileDeleteEvent removes deleted files from pinned notes and the search index.
 func handleFileDeleteEvent(params EventParams, data []util.FileDeleteEventData) {
 	for _, item := range data {
-		if err := config.DeletePinnedFile(params.ProjectPath, item.FilePath); err != nil {
+		if err := config.DeletePinnedPath(params.ProjectPath, item.FilePath); err != nil {
 			log.Printf("Error updating pinned notes for file delete %s: %v", item.FilePath, err)
 		}
 	}

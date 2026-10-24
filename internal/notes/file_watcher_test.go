@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/util"
 	"github.com/fsnotify/fsnotify"
 	"github.com/stretchr/testify/assert"
@@ -554,4 +555,16 @@ func TestFileWriteContent(t *testing.T) {
 		assert.Empty(t, fw.batch.fileWrites)
 		assert.NotContains(t, fw.fileStateCache, path)
 	})
+}
+
+func TestSettingsUpdateDoesNotRecreateDeletedFile(t *testing.T) {
+	projectPath := t.TempDir()
+	_, err := config.GetProjectSettings(projectPath)
+	require.NoError(t, err)
+	require.NoError(t, os.Remove(config.SettingsFile(projectPath)))
+	watcher := &FileWatcher{projectPath: projectPath}
+
+	watcher.handleSettingsUpdate()
+
+	assert.NoFileExists(t, config.SettingsFile(projectPath))
 }

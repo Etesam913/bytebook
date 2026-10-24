@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"slices"
@@ -158,12 +159,38 @@ type ProjectSettingsJson struct {
 	Code        CodeProjectSettingsJson       `json:"code"`
 }
 
-// GetProjectSettings retrieves the project settings from the settings.json file.
-// If the file doesn't exist, it creates it with default settings.
-// It also validates pinned notes and updates the accent color.
-// Returns the project settings and any error encountered.
+// SettingsFile returns the path to the project's settings file.
+func SettingsFile(projectPath string) string {
+	return filepath.Join(projectPath, "settings", "settings.json")
+}
+
+// LoadProjectSettings reads and normalizes existing settings without creating or writing files.
+func LoadProjectSettings(projectPath string) (ProjectSettingsJson, error) {
+	var settings ProjectSettingsJson
+	if err := util.ReadJsonFromPath(SettingsFile(projectPath), &settings); err != nil {
+		return settings, fmt.Errorf("failed to load project settings: %w", err)
+	}
+	return NormalizeProjectSettings(projectPath, settings), nil
+}
+
+// SaveProjectSettings normalizes and writes settings, returning the persisted values.
+func SaveProjectSettings(projectPath string, settings ProjectSettingsJson) (ProjectSettingsJson, error) {
+	settings = NormalizeProjectSettings(projectPath, settings)
+	if err := os.MkdirAll(filepath.Dir(SettingsFile(projectPath)), 0o755); err != nil {
+		return settings, fmt.Errorf("failed to create settings directory: %w", err)
+	}
+	if err := util.WriteJsonToPath(SettingsFile(projectPath), settings); err != nil {
+		return settings, fmt.Errorf("failed to save project settings: %w", err)
+	}
+	return settings, nil
+}
+
+// GetProjectSettings loads settings, creating defaults only when the file is missing.
 func GetProjectSettings(projectPath string) (ProjectSettingsJson, error) {
-	projectSettingsPath := filepath.Join(projectPath, "settings", "settings.json")
+	settings, err := LoadProjectSettings(projectPath)
+	if !errors.Is(err, os.ErrNotExist) {
+		return settings, err
+	}
 
 	// Default settings
 	defaultSettings := ProjectSettingsJson{
@@ -192,62 +219,28 @@ func GetProjectSettings(projectPath string) (ProjectSettingsJson, error) {
 		},
 	}
 
-	// Load or create settings file
-	projectSettings, err := util.ReadOrCreateJSON(
-		projectSettingsPath,
-		defaultSettings,
-	)
+	return SaveProjectSettings(projectPath, defaultSettings)
+}
 
-	if err != nil {
-		return projectSettings, err
+// Non-positive values represent missing settings and use the default in Go and TypeScript.
+func clampOrDefault[T ~int | ~float64](value, minimum, maximum, fallback T) T {
+	if value <= 0 || math.IsNaN(float64(value)) || math.IsInf(float64(value), 0) {
+		return fallback
 	}
+	return min(maximum, max(minimum, value))
+}
 
-	if projectSettings.Appearance.EditorFontSize <= 0 {
-		projectSettings.Appearance.EditorFontSize = DefaultEditorFontSize
-	}
-	if projectSettings.Appearance.EditorFontSize < MinEditorFontSize {
-		projectSettings.Appearance.EditorFontSize = MinEditorFontSize
-	}
-	if projectSettings.Appearance.EditorFontSize > MaxEditorFontSize {
-		projectSettings.Appearance.EditorFontSize = MaxEditorFontSize
-	}
-
-	if projectSettings.Appearance.EditorLineHeight <= 0 {
-		projectSettings.Appearance.EditorLineHeight = DefaultEditorLineHeight
-	}
-	if projectSettings.Appearance.EditorLineHeight < MinEditorLineHeight {
-		projectSettings.Appearance.EditorLineHeight = MinEditorLineHeight
-	}
-	if projectSettings.Appearance.EditorLineHeight > MaxEditorLineHeight {
-		projectSettings.Appearance.EditorLineHeight = MaxEditorLineHeight
-	}
-
-	if projectSettings.Code.CodeBlockFontSize <= 0 {
-		projectSettings.Code.CodeBlockFontSize = DefaultCodeBlockFontSize
-	}
-	if projectSettings.Code.CodeBlockFontSize < MinCodeBlockFontSize {
-		projectSettings.Code.CodeBlockFontSize = MinCodeBlockFontSize
-	}
-	if projectSettings.Code.CodeBlockFontSize > MaxCodeBlockFontSize {
-		projectSettings.Code.CodeBlockFontSize = MaxCodeBlockFontSize
-	}
+// NormalizeProjectSettings applies numeric bounds, language defaults, valid pins, and the system accent color.
+func NormalizeProjectSettings(projectPath string, projectSettings ProjectSettingsJson) ProjectSettingsJson {
+	projectSettings.Appearance.EditorFontSize = clampOrDefault(projectSettings.Appearance.EditorFontSize, MinEditorFontSize, MaxEditorFontSize, DefaultEditorFontSize)
+	projectSettings.Appearance.EditorLineHeight = clampOrDefault(projectSettings.Appearance.EditorLineHeight, MinEditorLineHeight, MaxEditorLineHeight, DefaultEditorLineHeight)
+	projectSettings.Code.CodeBlockFontSize = clampOrDefault(projectSettings.Code.CodeBlockFontSize, MinCodeBlockFontSize, MaxCodeBlockFontSize, DefaultCodeBlockFontSize)
 
 	if !slices.Contains(ValidCodeBlockLanguages, projectSettings.Code.CodeBlockDefaultLanguage) {
 		projectSettings.Code.CodeBlockDefaultLanguage = DefaultCodeBlockLanguage
 	}
 
-	projectSettings = ValidateProjectSettings(projectPath, projectSettings)
-
-	return projectSettings, nil
-}
-
-// ValidateProjectSettings validates pinned notes and updates the accent color
-// in the project settings without writing to disk.
-func ValidateProjectSettings(
-	projectPath string,
-	projectSettings ProjectSettingsJson,
-) ProjectSettingsJson {
-	projectSettings.PinnedNotes = GetValidPinned(projectPath, projectSettings)
+	projectSettings.PinnedNotes = ValidPinned(projectPath, projectSettings.PinnedNotes)
 	app := application.Get()
 	if app != nil {
 		if accentColor := strings.TrimSpace(app.Env.GetAccentColor()); accentColor != "" {
@@ -260,13 +253,10 @@ func ValidateProjectSettings(
 	return projectSettings
 }
 
-/*
-GetValidPinned returns a list of valid pinned paths.
-It checks if the pinned path exists in the notes folder and returns all of the pinned paths that exist.
-*/
-func GetValidPinned(projectPath string, projectSettings ProjectSettingsJson) []string {
+// ValidPinned returns the pinned paths that still exist in the project's notes directory.
+func ValidPinned(projectPath string, pinned []string) []string {
 	validPinnedNotes := []string{}
-	for _, pinnedNote := range projectSettings.PinnedNotes {
+	for _, pinnedNote := range pinned {
 		pathToPinnedNote := filepath.Join(projectPath, "notes", pinnedNote)
 		pathExists, _ := util.FileOrFolderExists(pathToPinnedNote)
 		if pathExists {
@@ -280,8 +270,9 @@ func GetValidPinned(projectPath string, projectSettings ProjectSettingsJson) []s
 // and writes back only if the resulting slice differs from the original. It is
 // a no-op (and returns nil) when settings.json does not exist.
 func updatePinnedNotesOnDisk(projectPath string, transform func([]string) []string) error {
-	settingsPath := filepath.Join(projectPath, "settings", "settings.json")
+	settingsPath := SettingsFile(projectPath)
 
+	// Read raw pins: a renamed source no longer exists, but still needs rewriting.
 	var cfg ProjectSettingsJson
 	if err := util.ReadJsonFromPath(settingsPath, &cfg); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -299,28 +290,9 @@ func updatePinnedNotesOnDisk(projectPath string, transform func([]string) []stri
 	return util.WriteJsonToPath(settingsPath, cfg)
 }
 
-// RenamePinnedFile replaces any pinned entry equal to oldPath with newPath.
-// Used for file renames (exact path equality).
-func RenamePinnedFile(projectPath, oldPath, newPath string) error {
-	if oldPath == "" || newPath == "" || oldPath == newPath {
-		return nil
-	}
-	return updatePinnedNotesOnDisk(projectPath, func(pinned []string) []string {
-		next := make([]string, len(pinned))
-		for i, p := range pinned {
-			if p == oldPath {
-				next[i] = newPath
-			} else {
-				next[i] = p
-			}
-		}
-		return next
-	})
-}
-
-// RenamePinnedFolder rewrites pinned entries where path == oldPath OR
+// RenamePinnedPath rewrites pinned entries where path == oldPath OR
 // path starts with oldPath + "/" to use newPath instead.
-func RenamePinnedFolder(projectPath, oldPath, newPath string) error {
+func RenamePinnedPath(projectPath, oldPath, newPath string) error {
 	if oldPath == "" || newPath == "" || oldPath == newPath {
 		return nil
 	}
@@ -341,34 +313,16 @@ func RenamePinnedFolder(projectPath, oldPath, newPath string) error {
 	})
 }
 
-// DeletePinnedFile removes any pinned entry equal to path.
-func DeletePinnedFile(projectPath, path string) error {
+// DeletePinnedPath removes the pinned path and any pinned descendants.
+func DeletePinnedPath(projectPath, path string) error {
 	if path == "" {
 		return nil
 	}
+	prefix := path + "/"
 	return updatePinnedNotesOnDisk(projectPath, func(pinned []string) []string {
 		next := make([]string, 0, len(pinned))
 		for _, p := range pinned {
-			if p == path {
-				continue
-			}
-			next = append(next, p)
-		}
-		return next
-	})
-}
-
-// DeletePinnedFolder removes pinned entries where path == folderPath OR
-// path starts with folderPath + "/".
-func DeletePinnedFolder(projectPath, folderPath string) error {
-	if folderPath == "" {
-		return nil
-	}
-	prefix := folderPath + "/"
-	return updatePinnedNotesOnDisk(projectPath, func(pinned []string) []string {
-		next := make([]string, 0, len(pinned))
-		for _, p := range pinned {
-			if p == folderPath || strings.HasPrefix(p, prefix) {
+			if p == path || strings.HasPrefix(p, prefix) {
 				continue
 			}
 			next = append(next, p)

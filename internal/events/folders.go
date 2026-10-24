@@ -33,7 +33,7 @@ func handleFolderDeleteEvent(params EventParams, data []util.FolderDeleteEventDa
 		if item.FolderPath == "" {
 			continue
 		}
-		if err := config.DeletePinnedFolder(params.ProjectPath, item.FolderPath); err != nil {
+		if err := config.DeletePinnedPath(params.ProjectPath, item.FolderPath); err != nil {
 			log.Printf("Error updating pinned notes for folder delete %s: %v", item.FolderPath, err)
 		}
 	}
@@ -127,7 +127,7 @@ func handleFolderRenameEvent(params EventParams, data []util.FolderRenameEventDa
 			continue
 		}
 
-		if err := config.RenamePinnedFolder(params.ProjectPath, oldFolderPath, newFolderPath); err != nil {
+		if err := config.RenamePinnedPath(params.ProjectPath, oldFolderPath, newFolderPath); err != nil {
 			log.Printf("Error updating pinned notes for folder rename %s -> %s: %v", oldFolderPath, newFolderPath, err)
 		}
 

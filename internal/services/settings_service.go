@@ -2,11 +2,9 @@ package services
 
 import (
 	"log"
-	"path/filepath"
 
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/fonts"
-	"github.com/etesam913/bytebook/internal/util"
 )
 
 type SettingsService struct {
@@ -45,9 +43,7 @@ func (s *SettingsService) GetProjectSettings() config.BackendResponseWithData[co
 
 func (s *SettingsService) UpdateProjectSettings(
 	newProjectSettings config.ProjectSettingsJson) config.BackendResponseWithData[config.ProjectSettingsJson] {
-	projectSettingsPath := filepath.Join(s.ProjectPath, "settings", "settings.json")
-	newProjectSettings.PinnedNotes = config.GetValidPinned(s.ProjectPath, newProjectSettings)
-	err := util.WriteJsonToPath(projectSettingsPath, newProjectSettings)
+	newProjectSettings, err := config.SaveProjectSettings(s.ProjectPath, newProjectSettings)
 	if err != nil {
 		return config.BackendResponseWithData[config.ProjectSettingsJson]{
 			Success: false,
