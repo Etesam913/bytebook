@@ -30,6 +30,8 @@ export default defineConfig([
       globals: globals.browser,
       parserOptions: {
         projectService: true,
+        // Wails event payloads use JSDoc types from generated JavaScript models.
+        jsDocParsingMode: 'all',
         tsconfigRootDir: import.meta.dirname,
       },
     },

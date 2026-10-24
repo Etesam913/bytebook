@@ -16,10 +16,9 @@ import { CircleInfo } from '@/icons/circle-info';
 import { useCurrentWindowWailsEvent } from '@hooks/events';
 import { FILE_TREE_FILTER_FOCUS } from '@bindings/util/event-names';
 
-// The tree filter reuses the search syntax, but result ordering is fixed, so
-// the Sort examples don't apply here.
+// Keep the filter tooltip focused on text, filenames, and tags.
 const FILTER_HELP_SECTIONS = SEARCH_HELP_SECTIONS.filter(
-  (section) => section.label !== 'Sort'
+  (section) => section.label !== 'Sort' && section.label !== 'Type'
 );
 
 export function TreeSearchInput({

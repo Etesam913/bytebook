@@ -47,6 +47,10 @@ jobs:
           go install gotest.tools/gotestsum@${GOTESTSUM_VERSION}
           go install golang.org/x/tools/cmd/deadcode@${DEADCODE_VERSION}
 
+      - name: Install Playwright Chromium
+        working-directory: ./frontend
+        run: bunx playwright install --with-deps chromium
+
       - name: Run all checks in parallel
         run: bun check:ci
 
@@ -78,11 +82,10 @@ jobs:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('frontend/bun.lock') }}
 
-      # Only download browsers if the cache was NOT found
       - name: Install Playwright Browsers
         working-directory: ./frontend
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: bunx playwright install --with-deps
+        # OS dependencies are needed even when browser binaries are cached.
+        run: bunx playwright install --with-deps chromium
 
       - name: Run Playwright tests
         working-directory: ./frontend

@@ -34,6 +34,30 @@ func TestWatcherFileReplacement(t *testing.T) {
 }
 
 func TestWatcherReplacementEventOrder(t *testing.T) {
+	t.Run("create alone replaces a known file with preserved size and timestamp", func(t *testing.T) {
+		project, _, root, _, _ := setupProjectFolders(t)
+		path := testutil.WriteFile(t, root, "note.md", []byte("before"))
+		fw := newTestFileWatcher(t, project)
+		fw.knownWatchedDirectories.Add(root)
+		fw.hasFileChanged(path)
+		info, err := os.Stat(path)
+		require.NoError(t, err)
+		replacement := testutil.WriteFile(t, t.TempDir(), "replacement.md", []byte("after!"))
+		require.NoError(t, os.Chtimes(replacement, info.ModTime(), info.ModTime()))
+
+		require.NoError(t, os.Rename(replacement, path))
+		// Linux directory watches report an incoming rename as Create alone.
+		fw.processEvent(fsnotify.Event{Name: path, Op: fsnotify.Create})
+		fw.resolvePendingRenames(false)
+
+		events := fw.batch.events()
+		require.Len(t, events, 1)
+		assert.Equal(t, util.EventFileWrite, events[0].Name)
+		assert.Equal(t, []util.FileWriteEventData{{FilePath: "note.md", Markdown: "after!"}}, events[0].Data)
+		currentInfo, err := os.Stat(path)
+		require.NoError(t, err)
+		assert.True(t, os.SameFile(currentInfo, fw.knownWatchedDirectories.fileInfo(path)))
+	})
 	t.Run("create before remove still updates empty content", func(t *testing.T) {
 		project, _, root, _, _ := setupProjectFolders(t)
 		path := testutil.WriteFile(t, root, "note.md", []byte("before"))

@@ -494,6 +494,15 @@ func (fw *FileWatcher) resolvePendingRenames(isFolder bool) {
 			continue
 		}
 		if !isFolder {
+			// Linux can report an atomic overwrite as Create without Remove.
+			// Compare identities because size and timestamp may be preserved.
+			previous := fw.knownWatchedDirectories.fileInfo(path)
+			current, err := os.Lstat(path)
+			if previous != nil && err == nil && current.Mode().IsRegular() && !os.SameFile(previous, current) {
+				fw.clearFileState(path)
+				fw.emitFileWriteEvent(path)
+				continue
+			}
 			fw.hasFileChanged(path)
 		}
 		fw.queueCreate(isFolder, fw.pathFromNotes(path))
