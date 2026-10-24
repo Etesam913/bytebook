@@ -21,6 +21,7 @@ import {
   createFilePath,
   createFolderPath,
 } from '@utils/path';
+import { MAX_SIDEBAR_WIDTH } from '@utils/general';
 import { logger } from '@utils/logging';
 import {
   DEFAULT_CODE_BLOCK_FONT_SIZE,
@@ -98,6 +99,7 @@ export const projectSettingsAtom = atom<ProjectSettings>({
     showEmptyLinePlaceholder: true,
     showTableOfContentsByDefault: false,
     sidebarOrder: [...SIDEBAR_PANEL_KEYS],
+    sidebarWidth: MAX_SIDEBAR_WIDTH,
     sidebarVisibility: {
       hidePinned: false,
       hideRecent: false,

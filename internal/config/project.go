@@ -128,6 +128,7 @@ type SidebarVisibilitySettings struct {
 }
 
 type AppearanceProjectSettingsJson struct {
+	SidebarWidth                 float64                   `json:"sidebarWidth"`
 	SidebarOrder                 []string                  `json:"sidebarOrder"`
 	Theme                        string                    `json:"theme"`
 	AccentColor                  string                    `json:"accentColor"`

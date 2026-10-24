@@ -6,6 +6,7 @@ import {
 } from '@/types';
 import type { ProjectSettingsJson } from '@bindings/config/models';
 import { normalizeSidebarOrder } from './sidebar-panels';
+import { MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH } from './general';
 import { parseRGB } from './string-formatting';
 
 export const DEFAULT_ACCENT_COLOR = 'rgb(96, 165, 250)';
@@ -139,6 +140,14 @@ export function validateCodeBlockDefaultLanguage(language: unknown): Languages {
   return DEFAULT_CODE_BLOCK_LANGUAGE;
 }
 
+// Missing widths keep the original default; stored widths stay within the resize limits.
+export function validateSidebarWidth(width: unknown): number {
+  if (typeof width !== 'number' || !Number.isFinite(width) || width <= 0) {
+    return MAX_SIDEBAR_WIDTH;
+  }
+  return Math.max(MIN_SIDEBAR_WIDTH, Math.min(width, MAX_SIDEBAR_WIDTH));
+}
+
 // Pure: converts the raw backend payload into the typed settings the app uses. No DOM writes.
 export function normalizeProjectSettings(
   data: ProjectSettingsJson
@@ -179,6 +188,7 @@ export function normalizeProjectSettings(
       theme: validated.theme,
       noteWidth: validated.noteWidth,
       sidebarOrder: normalizeSidebarOrder(sidebarOrder),
+      sidebarWidth: validateSidebarWidth(appearance.sidebarWidth),
       sidebarVisibility: {
         hidePinned: sidebarVisibility?.hidePinned ?? false,
         hideRecent: sidebarVisibility?.hideRecent ?? false,

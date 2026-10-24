@@ -6,4 +6,5 @@ export const DEFAULT_SONNER_OPTIONS = {
   closeButton: true,
 };
 
+export const MIN_SIDEBAR_WIDTH = 265;
 export const MAX_SIDEBAR_WIDTH = 500;

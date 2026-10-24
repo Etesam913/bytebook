@@ -56,3 +56,19 @@ func TestSettingsServiceNormalizesUpdates(t *testing.T) {
 	require.True(t, reopened.Success)
 	assert.Equal(t, updated.Data, reopened.Data)
 }
+
+func TestSettingsServicePersistsSidebarWidth(t *testing.T) {
+	projectPath := t.TempDir()
+	service := SettingsService{ProjectPath: projectPath}
+	initial := service.GetProjectSettings()
+	require.True(t, initial.Success)
+	settings := initial.Data
+	settings.Appearance.SidebarWidth = 340.5
+
+	updated := service.UpdateProjectSettings(settings)
+
+	require.True(t, updated.Success)
+	reopened := (&SettingsService{ProjectPath: projectPath}).GetProjectSettings()
+	require.True(t, reopened.Success)
+	assert.Equal(t, 340.5, reopened.Data.Appearance.SidebarWidth)
+}

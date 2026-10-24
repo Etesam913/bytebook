@@ -1,11 +1,15 @@
-import { lazy, type ReactNode, Suspense } from 'react';
+import { lazy, type ReactNode, Suspense, useEffect } from 'react';
 import { RouterProvider } from 'react-aria-components';
 import { NotFound } from '@/routes/not-found';
 import { useMotionValue } from 'motion/react';
 import { useAtomValue, useSetAtom } from 'jotai/react';
 import { Toaster } from 'sonner';
 import { Route, Switch, useLocation } from 'wouter';
-import { contextMenuDataAtom, isFileMaximizedAtom } from '@/atoms';
+import {
+  contextMenuDataAtom,
+  isFileMaximizedAtom,
+  projectSettingsAtom,
+} from '@/atoms';
 import { ContextMenu } from '@components/context-menu';
 import { CommandPalette } from '@components/command-palette';
 import { Dialog } from '@components/dialog';
@@ -61,6 +65,12 @@ function App() {
   const fileSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
   const isFileMaximized = useAtomValue(isFileMaximizedAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
+
+  const savedSidebarWidth =
+    useAtomValue(projectSettingsAtom).appearance.sidebarWidth;
+  useEffect(() => {
+    fileSidebarWidth.set(savedSidebarWidth);
+  }, [fileSidebarWidth, savedSidebarWidth]);
 
   useTagEvents();
   useSavedSearchUpdates();

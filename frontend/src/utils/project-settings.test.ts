@@ -2,6 +2,7 @@ import '@/test/setup';
 import { describe, it, expect } from 'bun:test';
 import {
   validateProjectSettings,
+  validateSidebarWidth,
   validateEditorFontSize,
   validateEditorLineHeight,
   validateCodeBlockFontSize,
@@ -182,5 +183,22 @@ describe('validateCodeBlockDefaultLanguage', () => {
     expect(validateCodeBlockDefaultLanguage(42)).toBe(
       DEFAULT_CODE_BLOCK_LANGUAGE
     );
+  });
+});
+
+describe('validateSidebarWidth', () => {
+  it('restores a saved width', () => {
+    expect(validateSidebarWidth(340.5)).toBe(340.5);
+  });
+
+  it('uses the original default for missing or invalid settings', () => {
+    expect(validateSidebarWidth(undefined)).toBe(500);
+    expect(validateSidebarWidth(0)).toBe(500);
+    expect(validateSidebarWidth(Number.NaN)).toBe(500);
+  });
+
+  it('clamps saved widths to the resize limits', () => {
+    expect(validateSidebarWidth(100)).toBe(265);
+    expect(validateSidebarWidth(900)).toBe(500);
   });
 });
