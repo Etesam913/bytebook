@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, master]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # ------------------------------------------------------------------
   # JOB 1: Parallel Code Quality, Linters, Dead Code & Unit Tests
@@ -47,12 +51,9 @@ jobs:
           go install gotest.tools/gotestsum@${GOTESTSUM_VERSION}
           go install golang.org/x/tools/cmd/deadcode@${DEADCODE_VERSION}
 
-      - name: Install Playwright Chromium
-        working-directory: ./frontend
-        run: bunx playwright install --with-deps chromium
-
       - name: Run all checks in parallel
-        run: bun check:ci
+        # Browser coverage runs in the dedicated Playwright job.
+        run: bun check:ci --skip-e2e
 
   # ------------------------------------------------------------------
   # JOB 4: Playwright Tests
@@ -89,7 +90,8 @@ jobs:
 
       - name: Run Playwright tests
         working-directory: ./frontend
-        run: bun run test:e2e:ci
+        # setup-wails has already generated bindings and event names.
+        run: bun run test:e2e
 
       - uses: actions/upload-artifact@v6
         if: ${{ !cancelled() }}

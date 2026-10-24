@@ -29,6 +29,7 @@ const isFix = args.includes("--fix");
 const isFeOnly = args.includes("--fe") || args.includes("--frontend");
 const isBeOnly = args.includes("--be") || args.includes("--backend");
 const isCI = args.includes("--ci") || !!process.env.CI;
+const skipE2E = args.includes("--skip-e2e");
 
 interface CheckTask {
   id: string;
@@ -125,6 +126,7 @@ const allTasks: CheckTask[] = [
 
 // Filter tasks based on flags
 const activeTasks = allTasks.filter((task) => {
+  if (skipE2E && task.id === "fe:e2e") return false;
   if (isFeOnly) return task.category !== "backend";
   if (isBeOnly) return task.category !== "frontend";
   return true;
