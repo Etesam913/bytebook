@@ -28,8 +28,6 @@ const DefaultCodeBlockLanguage = "python"
 
 var ValidCodeBlockLanguages = []string{"python", "go", "javascript", "java", "text"}
 
-var UserHomeDir = os.UserHomeDir
-
 type BackendResponseWithData[T any] struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
@@ -41,82 +39,41 @@ type BackendResponseWithoutData struct {
 	Message string `json:"message"`
 }
 
-// GetProjectPath returns the path to the project directory in the user's home directory.
-// On macOS, this is located in ~/Library/Application Support/Bytebook.
-// It creates the parent directory if it doesn't exist.
-// Returns the project path or an error if the home directory cannot be determined
-// or if the directory creation fails.
+// GetProjectPath returns the macOS project path without creating any directories.
 func GetProjectPath() (string, error) {
-	homeDir, err := UserHomeDir()
+	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("could not get user's home directory: %w", err)
 	}
 
-	// TODO: This projectPath solution only works on MacOS.
-	projectPath := filepath.Join(
-		homeDir,
-		"Library",
-		"Application Support",
-		PROJECT_NAME,
-	)
-
-	// Ensure the directory exists
-	if err := os.MkdirAll(filepath.Dir(projectPath), os.ModePerm); err != nil {
-		return "", fmt.Errorf("could not create the dbPath directory: %w", err)
-	}
-	return projectPath, nil
+	return filepath.Join(homeDir, "Library", "Application Support", PROJECT_NAME), nil
 }
 
-type ProjectFiles struct {
-	ProjectSettings ProjectSettingsJson
-	AllKernels      AllKernels
-}
-
-// CreateProjectFiles initializes and loads all necessary project files from the given project path.
-// It loads project settings and kernel descriptor configs. Per-instance connection info is now
-// generated at runtime by the kernel_manager.
-func CreateProjectFiles(projectPath string) (ProjectFiles, error) {
-	projectSettings, err := GetProjectSettings(projectPath)
+// InitProject creates the project directories and initializes settings and kernel descriptors.
+// Returns the project path and kernel descriptors needed at startup.
+func InitProject() (string, AllKernels, error) {
+	projectPath, err := GetProjectPath()
 	if err != nil {
-		return ProjectFiles{}, fmt.Errorf("failed to read project settings: %w", err)
+		return "", AllKernels{}, err
 	}
 
-	allKernelInfo, err := GetAllKernels(projectPath)
+	// The kernel manager creates code/.kernels when clearing stale connection files.
+	for _, directory := range []string{"settings", "code", "notes", "search"} {
+		if err := os.MkdirAll(filepath.Join(projectPath, directory), os.ModePerm); err != nil {
+			return "", AllKernels{}, fmt.Errorf("failed to create project %s directory: %w", directory, err)
+		}
+	}
+
+	if _, err := GetProjectSettings(projectPath); err != nil {
+		return "", AllKernels{}, fmt.Errorf("failed to initialize project settings: %w", err)
+	}
+
+	kernels, err := GetAllKernels(projectPath)
 	if err != nil {
-		return ProjectFiles{}, fmt.Errorf("failed to read json files for kernels: %w", err)
+		return "", AllKernels{}, fmt.Errorf("failed to initialize kernel descriptors: %w", err)
 	}
 
-	return ProjectFiles{
-		ProjectSettings: projectSettings,
-		AllKernels:      allKernelInfo,
-	}, nil
-}
-
-// CreateProjectDirectories ensures all required directories exist in the project path.
-// It creates the settings, code, tags, notes, and search directories with appropriate permissions.
-// Returns an error if any directory creation fails.
-func CreateProjectDirectories(projectPath string) error {
-	if err := os.MkdirAll(filepath.Join(projectPath, "settings"), os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create project settings directory: %w", err)
-	}
-
-	if err := os.MkdirAll(filepath.Join(projectPath, "code"), os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create project code directory: %w", err)
-	}
-
-	if err := os.MkdirAll(filepath.Join(projectPath, "code", ".kernels"), os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create per-instance kernels directory: %w", err)
-	}
-
-	if err := os.MkdirAll(filepath.Join(projectPath, "notes"), os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create project notes directory: %w", err)
-	}
-
-	if err := os.MkdirAll(filepath.Join(projectPath, "search"), os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create project search directory: %w", err)
-	}
-
-	return nil
+	return projectPath, kernels, nil
 }
 
 type SidebarVisibilitySettings struct {

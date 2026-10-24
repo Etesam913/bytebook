@@ -23,16 +23,7 @@ import (
 
 // main function serves as the application's entry point.
 func main() {
-	projectPath, err := config.GetProjectPath()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	if err := config.CreateProjectDirectories(projectPath); err != nil {
-		log.Fatal(err.Error())
-	}
-
-	projectFiles, err := config.CreateProjectFiles(projectPath)
+	projectPath, kernels, err := config.InitProject()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -49,7 +40,7 @@ func main() {
 	indexHolder := search.NewIndexHolder(searchIndex)
 	defer indexHolder.Close()
 
-	kernelManager := kernel_manager.New(projectPath, projectFiles.AllKernels)
+	kernelManager := kernel_manager.New(projectPath, kernels)
 	defer kernelManager.ShutdownAll()
 
 	lspManager := lsp.New()
