@@ -1,6 +1,8 @@
 package search
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -227,25 +229,39 @@ func IndexFilesInFolderWithBatch(
 	return nil
 }
 
-// RegenerateSearchIndex builds a fresh search index without disturbing the
-// existing one until the new one is fully populated. The new index is created
-// at a sibling temp path and re-indexed; only after that succeeds does this
-// function close the old index, remove its data on disk, and rename the temp
-// directory into place. On any failure during build/reindex the old index is
-// left untouched so the IndexHolder's existing handle remains usable.
+// RegenerateSearchIndex builds a fresh search index before replacing the existing
+// one. Callers must hold the IndexHolder write lock throughout the rebuild so
+// concurrent updates are not lost. A commit failure returns a reopened index
+// alongside the error, which the holder must install before releasing its lock.
 func RegenerateSearchIndex(projectPath string, index bleve.Index) (bleve.Index, error) {
-	finalPath := GetPathToIndex(projectPath)
-	tempPath := finalPath + ".regen"
+	return regenerateSearchIndex(projectPath, index, indexRebuildOperations{
+		removeAll: os.RemoveAll,
+		rename:    os.Rename,
+		open:      bleve.Open,
+	})
+}
 
-	// Clean up any leftover temp directory from a previous failed run.
-	if exists, _ := util.FileOrFolderExists(tempPath); exists {
-		if err := os.RemoveAll(tempPath); err != nil {
-			return nil, err
-		}
+// Keep filesystem failure injection local to a rebuild instead of changing globals.
+type indexRebuildOperations struct {
+	removeAll func(string) error
+	rename    func(string, string) error
+	open      func(string) (bleve.Index, error)
+}
+
+func regenerateSearchIndex(projectPath string, index bleve.Index, operations indexRebuildOperations) (bleve.Index, error) {
+	finalPath := GetPathToIndex(projectPath)
+	if err := os.MkdirAll(filepath.Dir(finalPath), 0o700); err != nil {
+		return nil, fmt.Errorf("create search directory: %w", err)
+	}
+	// Recovery may leave the active index at a staging path. Never reuse it.
+	tempPath, err := os.MkdirTemp(filepath.Dir(finalPath), INDEX_NAME+".regen-")
+	if err != nil {
+		return nil, fmt.Errorf("create rebuild directory: %w", err)
 	}
 
 	newIndex, err := createIndex(tempPath)
 	if err != nil {
+		os.RemoveAll(tempPath)
 		return nil, err
 	}
 
@@ -255,30 +271,58 @@ func RegenerateSearchIndex(projectPath string, index bleve.Index) (bleve.Index, 
 		return nil, err
 	}
 
-	// New index is fully populated. Close it so we can move its directory.
 	if err := newIndex.Close(); err != nil {
 		os.RemoveAll(tempPath)
 		return nil, err
 	}
 
-	// Commit the swap on disk: close the old index, remove its data, and
-	// rename the temp directory into the final location.
+	oldPath := finalPath
 	if index != nil {
+		oldPath = index.Name()
 		if err := index.Close(); err != nil {
 			log.Printf("Error closing existing index: %v", err)
 		}
 	}
 
-	if exists, _ := util.FileOrFolderExists(finalPath); exists {
-		if err := os.RemoveAll(finalPath); err != nil {
-			os.RemoveAll(tempPath)
-			return nil, err
+	// Remove only staging directories that no longer back a live handle.
+	cleanupStaging := func(activePath string) {
+		for _, path := range []string{tempPath, oldPath} {
+			if path == activePath || path == finalPath || filepath.Dir(path) != filepath.Dir(finalPath) ||
+				!strings.HasPrefix(filepath.Base(path), INDEX_NAME+".regen-") {
+				continue
+			}
+			if err := os.RemoveAll(path); err != nil {
+				log.Printf("Error removing unused staging index: %v", err)
+			}
 		}
 	}
 
-	if err := os.Rename(tempPath, finalPath); err != nil {
-		return nil, err
+	// Once the old handle is closed, every failure must try to reopen a valid
+	// directory. Keep the fully built staging index available during recovery.
+	recoverIndex := func(commitError error) (bleve.Index, error) {
+		errorsToReport := []error{commitError}
+		for _, path := range []string{tempPath, finalPath, oldPath} {
+			recovered, err := operations.open(path)
+			if err == nil {
+				cleanupStaging(path)
+				return recovered, commitError
+			}
+			errorsToReport = append(errorsToReport, fmt.Errorf("reopen index at %s: %w", path, err))
+		}
+		return nil, errors.Join(errorsToReport...)
 	}
 
-	return bleve.Open(finalPath)
+	if err := operations.removeAll(finalPath); err != nil {
+		return recoverIndex(fmt.Errorf("remove previous index: %w", err))
+	}
+	if err := operations.rename(tempPath, finalPath); err != nil {
+		return recoverIndex(fmt.Errorf("replace search index: %w", err))
+	}
+	opened, err := operations.open(finalPath)
+	if err != nil {
+		return recoverIndex(fmt.Errorf("open rebuilt index: %w", err))
+	}
+
+	cleanupStaging(finalPath)
+	return opened, nil
 }

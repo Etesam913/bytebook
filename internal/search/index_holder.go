@@ -43,16 +43,18 @@ func (h *IndexHolder) Read(fn func(bleve.Index) error) error {
 
 // Swap takes the write lock, passes the current index to fn, and stores the
 // returned index. fn is expected to close the old index itself (as
-// RegenerateSearchIndex does). Blocks until all in-flight readers finish.
+// RegenerateSearchIndex does). A non-nil returned index is installed even when
+// fn reports an error, allowing it to recover after closing the old handle.
+// A nil index on failure leaves the old handle unchanged. Blocks until all
+// in-flight readers finish.
 func (h *IndexHolder) Swap(fn func(old bleve.Index) (bleve.Index, error)) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	newIdx, err := fn(h.idx)
-	if err != nil {
-		return err
+	if newIdx != nil {
+		h.idx = newIdx
 	}
-	h.idx = newIdx
-	return nil
+	return err
 }
 
 // Close closes the underlying index under the write lock.

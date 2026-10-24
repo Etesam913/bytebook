@@ -334,6 +334,70 @@ func TestIndexAllFilesInFolder(t *testing.T) {
 }
 
 func TestRegenerateSearchIndex(t *testing.T) {
+	verifyCommitFailure := func(t *testing.T, configure func(*indexRebuildOperations)) (*IndexHolder, string) {
+		t.Helper()
+		projectPath := t.TempDir()
+		notesPath := filepath.Join(projectPath, "notes")
+		require.NoError(t, os.MkdirAll(notesPath, 0o755))
+		require.NoError(t, os.WriteFile(filepath.Join(notesPath, "note.md"), []byte("searchable content"), 0o644))
+		index, err := OpenOrCreateIndex(projectPath)
+		require.NoError(t, err)
+		holder := NewIndexHolder(index)
+		t.Cleanup(func() { assert.NoError(t, holder.Close()) })
+		operations := indexRebuildOperations{removeAll: os.RemoveAll, rename: os.Rename, open: bleve.Open}
+		configure(&operations)
+
+		err = holder.Swap(func(old bleve.Index) (bleve.Index, error) {
+			return regenerateSearchIndex(projectPath, old, operations)
+		})
+
+		require.ErrorIs(t, err, os.ErrPermission)
+		require.NoError(t, holder.Read(func(recovered bleve.Index) error {
+			document, err := recovered.Document("note.md")
+			require.NoError(t, err)
+			assert.NotNil(t, document)
+			return recovered.Index("after-failure.md", CreateNoteBleveDocument("updated content", "", "after-failure.md"))
+		}))
+		return holder, projectPath
+	}
+
+	t.Run("keeps search usable when removing the previous directory fails", func(t *testing.T) {
+		verifyCommitFailure(t, func(operations *indexRebuildOperations) {
+			operations.removeAll = func(string) error { return os.ErrPermission }
+		})
+	})
+
+	t.Run("keeps search usable when renaming the rebuilt directory fails", func(t *testing.T) {
+		holder, projectPath := verifyCommitFailure(t, func(operations *indexRebuildOperations) {
+			operations.rename = func(string, string) error { return os.ErrPermission }
+		})
+
+		// Retrying must preserve subsequent edits without deleting the active staging index.
+		require.NoError(t, os.WriteFile(filepath.Join(projectPath, "notes", "after-failure.md"), []byte("updated content"), 0o644))
+		require.NoError(t, holder.Swap(func(old bleve.Index) (bleve.Index, error) {
+			return RegenerateSearchIndex(projectPath, old)
+		}))
+		require.NoError(t, holder.Read(func(rebuilt bleve.Index) error {
+			document, err := rebuilt.Document("after-failure.md")
+			require.NoError(t, err)
+			assert.NotNil(t, document)
+			return nil
+		}))
+	})
+
+	t.Run("reopens the installed index when its first open fails", func(t *testing.T) {
+		verifyCommitFailure(t, func(operations *indexRebuildOperations) {
+			firstOpen := true
+			operations.open = func(path string) (bleve.Index, error) {
+				if firstOpen {
+					firstOpen = false
+					return nil, os.ErrPermission
+				}
+				return bleve.Open(path)
+			}
+		})
+	})
+
 	t.Run("should regenerate index with existing files", func(t *testing.T) {
 		env := setupTestEnv(t)
 
