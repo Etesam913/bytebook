@@ -4,26 +4,9 @@ import {
 } from '@hooks/project-settings';
 import { CheckboxGroup } from 'react-aria-components/CheckboxGroup';
 import type { SidebarVisibility } from '@/types';
+import { SIDEBAR_SECTION_OPTIONS } from '@utils/sidebar-panels';
 import { AppCheckbox } from '@components/checkbox';
 import { SettingsRow } from '../settings-row';
-
-type SectionKey = 'pinned' | 'recent' | 'kernels' | 'tags' | 'savedSearches';
-
-const SIDEBAR_SECTION_OPTIONS: {
-  value: SectionKey;
-  label: string;
-  hideKey: keyof SidebarVisibility;
-}[] = [
-  { value: 'pinned', label: 'Pinned', hideKey: 'hidePinned' },
-  { value: 'recent', label: 'Recent', hideKey: 'hideRecent' },
-  { value: 'kernels', label: 'Kernels', hideKey: 'hideKernels' },
-  { value: 'tags', label: 'Tags', hideKey: 'hideTags' },
-  {
-    value: 'savedSearches',
-    label: 'Saved Searches',
-    hideKey: 'hideSavedSearches',
-  },
-];
 
 function visibilityToSelectedKeys(visibility: SidebarVisibility): string[] {
   return SIDEBAR_SECTION_OPTIONS.filter(
@@ -39,13 +22,10 @@ export function SidebarSectionsRow() {
 
   const handleChange = (newSelectedKeys: string[]) => {
     const selectedSet = new Set(newSelectedKeys);
-    const nextVisibility: SidebarVisibility = {
-      hidePinned: !selectedSet.has('pinned'),
-      hideRecent: !selectedSet.has('recent'),
-      hideKernels: !selectedSet.has('kernels'),
-      hideTags: !selectedSet.has('tags'),
-      hideSavedSearches: !selectedSet.has('savedSearches'),
-    };
+    const nextVisibility = { ...visibility };
+    for (const { value, hideKey } of SIDEBAR_SECTION_OPTIONS) {
+      nextVisibility[hideKey] = !selectedSet.has(value);
+    }
     updateProjectSettings({
       newProjectSettings: {
         ...projectSettings,

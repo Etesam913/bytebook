@@ -1,5 +1,12 @@
 import { AccordionButton } from '@components/accordion/accordion-button';
+import { EyeSlash } from '@/icons/eye-slash';
 import type { SidebarReorderOptions } from '@/types';
+import { SIDEBAR_SECTION_OPTIONS } from '@utils/sidebar-panels';
+import { useSetAtom } from 'jotai';
+import {
+  useProjectSettingsQuery,
+  useUpdateProjectSettingsMutation,
+} from '@hooks/project-settings';
 import {
   type ComponentProps,
   type ReactNode,
@@ -10,7 +17,11 @@ import {
 import { animate, Reorder, useDragControls } from 'motion/react';
 import { cn } from '@utils/string-formatting';
 import { easingFunctions } from '@/animations';
-import type { SidebarFlexWeights, SidebarPanelKey } from '@/atoms';
+import {
+  contextMenuDataAtom,
+  type SidebarFlexWeights,
+  type SidebarPanelKey,
+} from '@/atoms';
 import { PanelResizeHandle } from './panel-resize-handle';
 import type { FlexWeightMVs } from './index';
 
@@ -41,6 +52,12 @@ export function SidebarAccordionPanel({
   const didDragRef = useRef(false);
   const dragControls = useDragControls();
   const flexGrowMV = flexWeightMVs[panelKey];
+  const setContextMenuData = useSetAtom(contextMenuDataAtom);
+  const { data: projectSettings } = useProjectSettingsQuery();
+  const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
+  const visibilityKey = SIDEBAR_SECTION_OPTIONS.find(
+    ({ value }) => value === panelKey
+  )?.hideKey;
 
   useEffect(() => {
     const target = isOpen ? storedWeightsRef.current[panelKey] : 0;
@@ -53,6 +70,8 @@ export function SidebarAccordionPanel({
     <Reorder.Item
       as="section"
       value={panelKey}
+      // Flex redistributes height when sections hide; scaling would distort their contents.
+      layout="position"
       dragListener={false}
       dragControls={dragControls}
       // Flex-weight animations change panel sizes outside React. Bump this before
@@ -85,6 +104,42 @@ export function SidebarAccordionPanel({
           {...trigger}
           isOpen={isOpen}
           className="touch-none cursor-grab active:cursor-grabbing"
+          onContextMenu={(event) => {
+            if (!visibilityKey) return;
+            event.preventDefault();
+            event.stopPropagation();
+            setContextMenuData({
+              x: event.clientX,
+              y: event.clientY,
+              isShowing: true,
+              targetId: null,
+              showSelectionCount: false,
+              items: [
+                {
+                  label: (
+                    <span className="flex items-center gap-1.5">
+                      <EyeSlash width="1rem" height="1rem" /> Hide
+                    </span>
+                  ),
+                  value: 'hide-section',
+                  onChange: () => {
+                    updateProjectSettings({
+                      newProjectSettings: {
+                        ...projectSettings,
+                        appearance: {
+                          ...projectSettings.appearance,
+                          sidebarVisibility: {
+                            ...projectSettings.appearance.sidebarVisibility,
+                            [visibilityKey]: true,
+                          },
+                        },
+                      },
+                    });
+                  },
+                },
+              ],
+            });
+          }}
           onPointerDown={(event) => {
             didDragRef.current = false;
             if (!reorderOptions.isSaving && event.button === 0) {

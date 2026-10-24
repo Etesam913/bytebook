@@ -7,8 +7,10 @@ import { AppMenu, AppMenuItem } from '@components/menu';
 import { createSelectionKey, FILE_SELECTION_PREFIX } from '@utils/selection';
 
 export function ContextMenu() {
-  const [{ isShowing, items, x, y, targetId }, setContextMenuData] =
-    useAtom(contextMenuDataAtom);
+  const [
+    { isShowing, items, x, y, targetId, showSelectionCount = true },
+    setContextMenuData,
+  ] = useAtom(contextMenuDataAtom);
 
   const { selections } = useAtomValue(sidebarSelectionAtom);
   const isTargetInSelection =
@@ -64,7 +66,7 @@ export function ContextMenu() {
         shouldFlip
         className="rounded-xl border-[0.078125rem] border-zinc-300 bg-zinc-50/92.5 shadow-xl dark:border-zinc-600 dark:bg-zinc-700/92.5 outline-hidden"
       >
-        {effectiveCount > 0 && (
+        {showSelectionCount && effectiveCount > 0 && (
           <div
             aria-label={`${selectionCountLabel} items selected`}
             className="absolute rounded-full font-bold min-w-6 h-6 px-1 text-xs leading-none pointer-events-none text-white flex justify-center items-center -left-2 -top-2 bg-(--accent-color) z-60"

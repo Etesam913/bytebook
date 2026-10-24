@@ -103,6 +103,7 @@ export type ContextMenuData = {
   x: number;
   y: number;
   targetId: string | null;
+  showSelectionCount?: boolean;
 };
 
 export type KernelStatus = 'busy' | 'idle' | 'starting';

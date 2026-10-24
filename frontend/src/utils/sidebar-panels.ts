@@ -12,6 +12,22 @@ export const SIDEBAR_PANEL_KEYS = [
 
 export type SidebarPanelKey = (typeof SIDEBAR_PANEL_KEYS)[number];
 
+export const SIDEBAR_SECTION_OPTIONS: {
+  value: Exclude<SidebarPanelKey, 'files'>;
+  label: string;
+  hideKey: keyof SidebarVisibility;
+}[] = [
+  { value: 'pinned', label: 'Pinned', hideKey: 'hidePinned' },
+  { value: 'recent', label: 'Recent', hideKey: 'hideRecent' },
+  { value: 'kernels', label: 'Kernels', hideKey: 'hideKernels' },
+  { value: 'tags', label: 'Tags', hideKey: 'hideTags' },
+  {
+    value: 'savedSearches',
+    label: 'Saved Searches',
+    hideKey: 'hideSavedSearches',
+  },
+];
+
 // Keep valid saved positions and append any missing sections in the default order.
 export function normalizeSidebarOrder(value: unknown): SidebarPanelKey[] {
   const keys = Array.isArray(value) ? value : [];
@@ -30,15 +46,10 @@ export function getVisibleSidebarOrder(
   order: SidebarPanelKey[],
   visibility: SidebarVisibility
 ) {
-  const hidden = {
-    files: false,
-    pinned: visibility.hidePinned,
-    recent: visibility.hideRecent,
-    kernels: visibility.hideKernels,
-    tags: visibility.hideTags,
-    savedSearches: visibility.hideSavedSearches,
-  };
-  return order.filter((key) => !hidden[key]);
+  return order.filter((key) => {
+    const option = SIDEBAR_SECTION_OPTIONS.find(({ value }) => value === key);
+    return !option || !visibility[option.hideKey];
+  });
 }
 
 // Hidden sections keep their slots when the visible sections move.
