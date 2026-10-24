@@ -1,8 +1,7 @@
+import { useProjectSettingsQuery } from '@hooks/project-settings';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { useAtomValue } from 'jotai/react';
 import { type RefObject, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { projectSettingsAtom } from '@/atoms';
 import type { Dispatch, SetStateAction } from 'react';
 import type { PlaceholderLineData } from '../types';
 import { useRefState } from '../hooks/ref-state';
@@ -23,7 +22,11 @@ export function EmptyLinePlaceholderPlugin({
   setPlaceholderLineData: Dispatch<SetStateAction<PlaceholderLineData>>;
 }) {
   const [editor] = useLexicalComposerContext();
-  const projectSettings = useAtomValue(projectSettingsAtom);
+  const {
+    data: {
+      appearance: { showEmptyLinePlaceholder, editorFontFamily },
+    },
+  } = useProjectSettingsQuery();
   const noteContainerElement = useRefState(noteContainerRef);
 
   // Clear placeholder when the accessed note changes
@@ -86,7 +89,7 @@ export function EmptyLinePlaceholderPlugin({
   if (
     !placeholderLineData.show ||
     !noteContainerElement ||
-    !(projectSettings.appearance.showEmptyLinePlaceholder ?? true)
+    !(showEmptyLinePlaceholder ?? true)
   ) {
     return null;
   }
@@ -97,9 +100,7 @@ export function EmptyLinePlaceholderPlugin({
       style={{
         position: 'absolute',
         transform: `translate(calc(${placeholderLineData.position.left}px + 0.1875rem), ${placeholderLineData.position.top}px)`,
-        fontFamily:
-          projectSettings.appearance.editorFontFamily ||
-          'var(--editor-default-font-family)',
+        fontFamily: editorFontFamily || 'var(--editor-default-font-family)',
         fontSize: 'var(--editor-font-size)',
         // Match the paragraph's line box so the hint stays vertically
         // centered on the line at any editor line-height setting.

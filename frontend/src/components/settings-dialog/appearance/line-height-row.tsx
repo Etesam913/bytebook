@@ -1,8 +1,9 @@
-import { useAtomValue } from 'jotai/react';
+import {
+  useProjectSettingsQuery,
+  useUpdateProjectSettingsMutation,
+} from '@hooks/project-settings';
 import { ArrowRotateAnticlockwise } from '@/icons/arrow-rotate-anticlockwise';
-import { projectSettingsAtom } from '@/atoms';
 import { getDefaultButtonVariants } from '@/animations';
-import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
 import {
   DEFAULT_EDITOR_LINE_HEIGHT,
   EDITOR_LINE_HEIGHT_STEP,
@@ -17,7 +18,7 @@ import { SettingsRow } from '../settings-row';
 
 export function LineHeightRow() {
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
-  const projectSettings = useAtomValue(projectSettingsAtom);
+  const projectSettings = useProjectSettingsQuery().data;
 
   function updateLineHeight(nextLineHeight: number) {
     const validatedLineHeight = validateEditorLineHeight(nextLineHeight);

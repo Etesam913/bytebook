@@ -1,10 +1,7 @@
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { useProjectSettingsQuery } from '@hooks/project-settings';
+import { useAtom, useSetAtom } from 'jotai';
 import type { RefObject } from 'react';
-import {
-  contextMenuDataAtom,
-  projectSettingsAtom,
-  fileSidebarOpenStateAtom,
-} from '@/atoms';
+import { contextMenuDataAtom, fileSidebarOpenStateAtom } from '@/atoms';
 import { PinTack2 } from '@/icons/pin-tack-2';
 import { Folder as FolderIcon } from '@/icons/folder';
 import type { SidebarReorderOptions } from '@/types';
@@ -34,8 +31,9 @@ export function PinnedAccordion({
   const [openState, setOpenState] = useAtom(fileSidebarOpenStateAtom);
   const isPinnedOpen = openState.pinned;
 
-  const projectSettings = useAtomValue(projectSettingsAtom);
-  const pinnedNotes = projectSettings.pinnedNotes;
+  const {
+    data: { pinnedNotes },
+  } = useProjectSettingsQuery();
   const pinnedItems = [...pinnedNotes].reduce<FileOrFolderPath[]>(
     (acc, path) => {
       const filePath = createFilePath(path);

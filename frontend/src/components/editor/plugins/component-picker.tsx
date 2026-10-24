@@ -1,3 +1,4 @@
+import { useProjectSettingsQuery } from '@hooks/project-settings';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import {
   LexicalTypeaheadMenuPlugin,
@@ -15,9 +16,7 @@ import {
   type TextNode,
 } from 'lexical';
 import { type JSX, useState } from 'react';
-import { useAtomValue } from 'jotai/react';
 import { createPortal } from 'react-dom';
-import { projectSettingsAtom } from '@/atoms';
 import { useAttachmentsMutation } from '@hooks/attachments';
 import { useCreateTableDialog } from '@hooks/dialogs';
 import { GolangLogo } from '@/icons/golang-logo';
@@ -221,7 +220,11 @@ export function ComponentPickerMenuPlugin({
 }): JSX.Element {
   const [editor] = useLexicalComposerContext();
   const [queryString, setQueryString] = useState<string | null>(null);
-  const projectSettings = useAtomValue(projectSettingsAtom);
+  const {
+    data: {
+      code: { codeBlockDefaultLanguage },
+    },
+  } = useProjectSettingsQuery();
 
   const checkForTriggerMatch = useBasicTypeaheadTriggerMatch('/', {
     minLength: 0,
@@ -240,7 +243,7 @@ export function ComponentPickerMenuPlugin({
       editor,
       insertAttachmentsMutation,
       openCreateTableDialog,
-      defaultCodeBlockLanguage: projectSettings.code.codeBlockDefaultLanguage,
+      defaultCodeBlockLanguage: codeBlockDefaultLanguage,
     });
 
     if (!queryString) {

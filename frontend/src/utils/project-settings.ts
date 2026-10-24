@@ -5,7 +5,7 @@ import {
   type ProjectSettings,
 } from '@/types';
 import type { ProjectSettingsJson } from '@bindings/config/models';
-import { normalizeSidebarOrder } from './sidebar-panels';
+import { SIDEBAR_PANEL_KEYS, normalizeSidebarOrder } from './sidebar-panels';
 import { MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH } from './general';
 import { parseRGB } from './string-formatting';
 
@@ -209,3 +209,39 @@ export function normalizeProjectSettings(
     },
   };
 }
+
+// Used while the persisted settings query is loading; never seeded into the cache.
+export const DEFAULT_PROJECT_SETTINGS: ProjectSettings = {
+  pinnedNotes: new Set<string>([]),
+  projectPath: '',
+  appearance: {
+    theme: 'light',
+    accentColor: 'rgb(96, 165, 250)',
+    noteWidth: 'fullWidth',
+    uiFontFamily: 'ui-sans-serif',
+    editorFontSize: DEFAULT_EDITOR_FONT_SIZE,
+    editorLineHeight: DEFAULT_EDITOR_LINE_HEIGHT,
+    editorFontFamily: '',
+    showEmptyLinePlaceholder: true,
+    showTableOfContentsByDefault: false,
+    sidebarOrder: [...SIDEBAR_PANEL_KEYS],
+    sidebarWidth: MAX_SIDEBAR_WIDTH,
+    sidebarVisibility: {
+      hidePinned: false,
+      hideRecent: false,
+      hideKernels: false,
+      hideTags: false,
+      hideSavedSearches: false,
+    },
+  },
+  code: {
+    codeBlockVimMode: false,
+    codeBlockFontFamily: '',
+    codeBlockFontSize: DEFAULT_CODE_BLOCK_FONT_SIZE,
+    codeBlockLineWrapping: false,
+    codeBlockShowLineNumbers: false,
+    codeBlockDefaultLanguage: DEFAULT_CODE_BLOCK_LANGUAGE,
+    pythonVenvPath: '',
+    customPythonVenvPaths: [],
+  },
+};

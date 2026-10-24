@@ -6,7 +6,11 @@ import {
   reopenSavedNote,
   SAVE_NOTE_BINDING,
 } from '../utils/editor';
-import { getMockBindingCalls, mockBinding } from '../utils/mock-binding';
+import {
+  getMockBindingCalls,
+  mockBinding,
+  updateMockBindingResponse,
+} from '../utils/mock-binding';
 import {
   MOCK_ALL_PATHS_RESPONSE,
   MOCK_PROJECT_SETTINGS_RESPONSE,
@@ -44,6 +48,16 @@ test('changes editor settings, writes a note, and restores both after reopening'
   await dialog.getByRole('tab', { name: 'Editor', exact: true }).click();
   const lineHeight = dialog.getByRole('textbox', {
     name: 'Editor line height',
+  });
+  await updateMockBindingResponse(page, updateSettings, {
+    ...MOCK_PROJECT_SETTINGS_RESPONSE,
+    data: {
+      ...MOCK_PROJECT_SETTINGS_RESPONSE.data,
+      appearance: {
+        ...MOCK_PROJECT_SETTINGS_RESPONSE.data.appearance,
+        editorLineHeight: 2.4,
+      },
+    },
   });
   await lineHeight.fill('2.4');
   await lineHeight.blur();

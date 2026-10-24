@@ -1,3 +1,4 @@
+import { useProjectSettingsQuery } from '@hooks/project-settings';
 import type { LegacyAnimationControls } from 'motion/react';
 import { CheckListPlugin } from '@lexical/react/LexicalCheckListPlugin';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
@@ -19,7 +20,6 @@ import {
   editorAtom,
 } from './atoms';
 import { isFileMaximizedAtom } from '@/atoms';
-import { projectSettingsAtom } from '@/atoms';
 import type { FloatingDataType, Frontmatter } from '@/types';
 import { isTableOfContentsVisible } from '@utils/project-settings';
 import { cn } from '@utils/string-formatting';
@@ -72,7 +72,7 @@ export function NotesEditor({
   filePath: FilePath;
   animationControls: LegacyAnimationControls;
 }) {
-  const projectSettings = useAtomValue(projectSettingsAtom);
+  const projectSettings = useProjectSettingsQuery().data;
   const setEditor = useSetAtom(editorAtom);
   const autosave = useDebouncedCallback(noteHandleChange, 150);
 

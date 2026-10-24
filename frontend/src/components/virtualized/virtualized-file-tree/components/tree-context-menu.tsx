@@ -1,15 +1,14 @@
+import { useProjectSettingsQuery } from '@hooks/project-settings';
 import type {
   ContextMenuItem as FileTreeContextMenuItem,
   ContextMenuOpenContext as FileTreeContextMenuOpenContext,
 } from '@pierre/trees';
 import { useOverlayPosition } from '@react-aria/overlays';
-import { useAtomValue } from 'jotai';
 import { useRef } from 'react';
 import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { AppMenu, AppMenuItem } from '@components/menu';
 import { useInteractOutside } from 'react-aria';
-import { projectSettingsAtom } from '@/atoms';
 import {
   createFilePath,
   createFolderPath,
@@ -130,7 +129,9 @@ export function TreeContextMenu({
     revealInFinder,
     openInNewWindow,
   } = useContextMenuItems();
-  const projectSettings = useAtomValue(projectSettingsAtom);
+  const {
+    data: { pinnedNotes },
+  } = useProjectSettingsQuery();
   const isFolder = item.kind === 'directory';
   const filePath = isFolder ? null : createFilePath(item.path);
   const folderPath = isFolder ? createFolderPath(item.path) : null;
@@ -194,9 +195,7 @@ export function TreeContextMenu({
   // membership checks strip pierre's folder marker.
   if (targetHasFolder) {
     // Folders (or mixed selections) pin only the right-clicked item.
-    const isPinned = projectSettings.pinnedNotes.has(
-      stripTrailingSlash(item.path)
-    );
+    const isPinned = pinnedNotes.has(stripTrailingSlash(item.path));
     rows.push(
       dropdownItemToMenuRow(
         pin({
@@ -211,9 +210,7 @@ export function TreeContextMenu({
       dropdownItemToMenuRow(
         pin({
           paths: [...targetPaths],
-          shouldPin: targetPaths.some(
-            (path) => !projectSettings.pinnedNotes.has(path)
-          ),
+          shouldPin: targetPaths.some((path) => !pinnedNotes.has(path)),
           kind: 'note',
         })
       )

@@ -1,3 +1,4 @@
+import { useProjectSettingsQuery } from '@hooks/project-settings';
 import { LANGUAGES, Languages } from '@/types';
 import { DEFAULT_SONNER_OPTIONS } from '@utils/general';
 import { toast } from 'sonner';
@@ -6,8 +7,8 @@ import { Link } from 'react-aria-components/Link';
 import { MotionButton } from '@components/buttons';
 import { getDefaultButtonVariants } from '@/animations';
 import { FolderOpen } from '@/icons/folder-open';
-import { useAtomValue, useSetAtom } from 'jotai';
-import { dialogDataAtom, projectSettingsAtom } from '@/atoms';
+import { useSetAtom } from 'jotai';
+import { dialogDataAtom } from '@/atoms';
 import { PythonVenvDialog } from '@components/editor/python-venv-dialog';
 import { usePythonVenvSubmitMutation } from '@hooks/code/kernels';
 import { RevealFolderOrFileInFinder } from '@bindings/services/noteservice';
@@ -23,7 +24,7 @@ function QuickstartDescription({ children }: { children: ReactNode }) {
 }
 
 export function KernelQuickstart({ language }: { language: Languages }) {
-  const projectSettings = useAtomValue(projectSettingsAtom);
+  const projectSettings = useProjectSettingsQuery().data;
   const setDialogData = useSetAtom(dialogDataAtom);
   const { mutateAsync: submitPythonVenv } =
     usePythonVenvSubmitMutation(projectSettings);

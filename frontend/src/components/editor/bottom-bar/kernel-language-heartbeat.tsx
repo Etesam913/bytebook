@@ -1,8 +1,9 @@
+import { useProjectSettingsQuery } from '@hooks/project-settings';
 import { motion } from 'motion/react';
 import type { Key } from 'react-aria-components';
 import { Button } from 'react-aria-components/Button';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { dialogDataAtom, projectSettingsAtom } from '@/atoms';
+import { dialogDataAtom } from '@/atoms';
 import { kernelInstanceForNoteAtomFamily } from '@/atoms';
 import type { Languages, LanguagesWithKernels } from '@/types';
 import { cn } from '@utils/string-formatting';
@@ -55,7 +56,7 @@ const languageSpecificOptions: {
 
 export function KernelLanguageHeartbeat({ language }: { language: Languages }) {
   const setDialogData = useSetAtom(dialogDataAtom);
-  const projectSettings = useAtomValue(projectSettingsAtom);
+  const projectSettings = useProjectSettingsQuery().data;
   const noteId = useDecodedNotesWildcardPath() ?? '';
   const instance = useAtomValue(
     kernelInstanceForNoteAtomFamily({

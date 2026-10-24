@@ -1,7 +1,6 @@
+import { useProjectSettingsQuery } from '@hooks/project-settings';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { useAtomValue } from 'jotai';
 import type { Key } from 'react-aria-components';
-import { projectSettingsAtom } from '@/atoms';
 import {
   useMoveToTrashMutation,
   useOpenInNewWindowMutation,
@@ -22,7 +21,7 @@ export function useNoteActions({
   filePath: FilePath;
   frontmatter: Frontmatter;
 }) {
-  const projectSettings = useAtomValue(projectSettingsAtom);
+  const projectSettings = useProjectSettingsQuery().data;
   const isPinned = projectSettings.pinnedNotes.has(filePath.fullPath);
   const [editor] = useLexicalComposerContext();
 

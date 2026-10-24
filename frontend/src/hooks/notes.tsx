@@ -1,6 +1,7 @@
+import { useProjectSettingsQuery } from '@hooks/project-settings';
 import { type Dispatch, type SetStateAction } from 'react';
 import { queryOptions, useMutation, useQuery } from '@tanstack/react-query';
-import { useAtomValue, useStore } from 'jotai/react';
+import { useStore } from 'jotai/react';
 import { type LexicalEditor } from 'lexical';
 import { toast } from 'sonner';
 import { navigate } from 'wouter/use-browser-location';
@@ -12,7 +13,6 @@ import {
   RestoreFromTrash,
   RevealFolderOrFileInFinder,
 } from '@bindings/services/noteservice';
-import { projectSettingsAtom } from '@/atoms';
 import { previousMarkdownAtom } from '@components/editor/atoms';
 import { CUSTOM_TRANSFORMERS } from '@components/editor/transformers';
 import { DEFAULT_SONNER_OPTIONS } from '@utils/general';
@@ -165,7 +165,7 @@ function useRestoreFromTrashMutation() {
 export function usePinPathMutation() {
   const { mutateAsync: updateProjectSettings } =
     useUpdateProjectSettingsMutation();
-  const projectSettings = useAtomValue(projectSettingsAtom);
+  const projectSettings = useProjectSettingsQuery().data;
 
   return useMutation({
     mutationFn: async ({

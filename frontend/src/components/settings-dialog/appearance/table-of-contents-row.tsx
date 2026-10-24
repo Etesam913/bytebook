@@ -1,11 +1,12 @@
-import { useAtomValue } from 'jotai/react';
-import { projectSettingsAtom } from '@/atoms';
-import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
+import {
+  useProjectSettingsQuery,
+  useUpdateProjectSettingsMutation,
+} from '@hooks/project-settings';
 import { AppSwitch } from '@components/switch';
 import { SettingsRow } from '../settings-row';
 
 export function TableOfContentsRow() {
-  const projectSettings = useAtomValue(projectSettingsAtom);
+  const projectSettings = useProjectSettingsQuery().data;
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
 
   return (

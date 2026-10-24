@@ -1,6 +1,7 @@
-import { useAtomValue } from 'jotai/react';
-import { projectSettingsAtom } from '@/atoms';
-import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
+import {
+  useProjectSettingsQuery,
+  useUpdateProjectSettingsMutation,
+} from '@hooks/project-settings';
 import {
   SettingImage,
   SettingImageGroup,
@@ -23,7 +24,7 @@ const THEMES = [
 
 export function ThemeRow({ isFirst = false }: { isFirst?: boolean }) {
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
-  const projectSettings = useAtomValue(projectSettingsAtom);
+  const projectSettings = useProjectSettingsQuery().data;
 
   return (
     <SettingsRow

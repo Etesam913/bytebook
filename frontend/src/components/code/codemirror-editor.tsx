@@ -1,6 +1,7 @@
+import { useProjectSettingsQuery } from '@hooks/project-settings';
 import { vscodeLight, vscodeDark } from '@uiw/codemirror-theme-vscode';
 import { useAtomValue } from 'jotai/react';
-import { isDarkModeOnAtom, projectSettingsAtom } from '@/atoms';
+import { isDarkModeOnAtom } from '@/atoms';
 import CodeMirror, { type ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { EditorView, tooltips } from '@codemirror/view';
 import type { Extension } from '@codemirror/state';
@@ -125,7 +126,15 @@ export function CodeMirrorEditor({
   useEffect(() => {
     return () => debouncedSetCode.flush();
   }, [debouncedSetCode]);
-  const projectSettings = useAtomValue(projectSettingsAtom);
+  const {
+    data: {
+      code: {
+        codeBlockVimMode,
+        codeBlockLineWrapping,
+        codeBlockShowLineNumbers,
+      },
+    },
+  } = useProjectSettingsQuery();
   const [, setSelected, clearSelection] = useLexicalNodeSelection(nodeKey);
   const isInNodeSelection = useNodeInNodeSelection(lexicalEditor, nodeKey);
   const lspNotifyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -159,7 +168,7 @@ export function CodeMirrorEditor({
   }, [language, loadedLanguage]);
 
   useEffect(() => {
-    if (!projectSettings.code.codeBlockVimMode) return;
+    if (!codeBlockVimMode) return;
     let cancelled = false;
     void loadVimExtension().then((ext) => {
       if (!cancelled) setVimExtension(ext);
@@ -167,7 +176,7 @@ export function CodeMirrorEditor({
     return () => {
       cancelled = true;
     };
-  }, [projectSettings.code.codeBlockVimMode]);
+  }, [codeBlockVimMode]);
 
   function handleEditorRef(instance: ReactCodeMirrorRef | null) {
     setCodeMirrorInstance(instance);
@@ -281,12 +290,8 @@ export function CodeMirrorEditor({
           //   parent: document.getElementById('code-dialog') ?? document.body,
           // }),
           EditorView.editable.of(isInNodeSelection),
-          ...(projectSettings.code.codeBlockLineWrapping
-            ? [EditorView.lineWrapping]
-            : []),
-          ...(projectSettings.code.codeBlockVimMode && vimExtension
-            ? [vimExtension]
-            : []),
+          ...(codeBlockLineWrapping ? [EditorView.lineWrapping] : []),
+          ...(codeBlockVimMode && vimExtension ? [vimExtension] : []),
           runCodeKeymap,
           ...(loadedLanguage && loadedLanguage.language === language
             ? [loadedLanguage.extension]
@@ -317,7 +322,7 @@ export function CodeMirrorEditor({
         basicSetup={{
           ...codeBlockBasicSetup,
           ...languageBasicSetup[language],
-          lineNumbers: projectSettings.code.codeBlockShowLineNumbers,
+          lineNumbers: codeBlockShowLineNumbers,
         }}
       />
     </div>

@@ -1,17 +1,22 @@
-import { useMutation } from '@tanstack/react-query';
-import { useSetAtom } from 'jotai';
+import {
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+import { queryKeys } from '@utils/query-keys';
 import { logger } from '@utils/logging';
 import { useEffect } from 'react';
 import {
   GetProjectSettings,
   UpdateProjectSettings,
 } from '@bindings/services/settingsservice';
-import { projectSettingsAtom, projectSettingsLoadedAtom } from '@/atoms';
 import { useOpenSettingsDialog } from '@hooks/dialogs';
 import { useWailsEvent, useCurrentWindowWailsEvent } from '@hooks/events';
 import type { ProjectSettings } from '@/types';
 import {
   DEFAULT_ACCENT_COLOR,
+  DEFAULT_PROJECT_SETTINGS,
   DEFAULT_CODE_BLOCK_FONT_FAMILY,
   DEFAULT_UI_FONT_FAMILY,
   normalizeProjectSettings,
@@ -21,20 +26,24 @@ import {
 } from '@utils/project-settings';
 import { SETTINGS_OPEN, SETTINGS_UPDATE } from '@bindings/util/event-names';
 import { parseRGB } from '@utils/string-formatting';
-import {
-  getBackendResponseData,
-  requireBackendResponseData,
-} from '@utils/query';
-import { ProjectSettingsJson } from '@bindings/config/models';
+import { requireBackendResponseData } from '@utils/query';
 
-const APPEARANCE_VARIABLES = [
-  '--accent-color-values',
-  '--editor-font-size-base',
-  '--editor-line-height',
-  '--code-block-font-size-base',
-  '--app-font-family',
-  '--code-block-font-family',
-] as const;
+const projectSettingsQueries = {
+  settings: () =>
+    queryOptions({
+      queryKey: queryKeys.projectSettings(),
+      queryFn: async () =>
+        normalizeProjectSettings(
+          await requireBackendResponseData(GetProjectSettings())
+        ),
+      staleTime: Infinity,
+    }),
+};
+
+export function useProjectSettingsQuery() {
+  const query = useQuery(projectSettingsQueries.settings());
+  return { ...query, data: query.data ?? DEFAULT_PROJECT_SETTINGS };
+}
 
 function fontFamilyOrDefault(fontFamily: string, defaultFontFamily: string) {
   return fontFamily.trim().length > 0 ? fontFamily : defaultFontFamily;
@@ -79,97 +88,77 @@ function applyAppearanceVariables({
   );
 }
 
-// Snapshots inline values so a failed update can restore them; an empty string removes the property.
-function captureAppearanceVariables() {
-  const style = document.documentElement.style;
-  return APPEARANCE_VARIABLES.map(
-    (name) => [name, style.getPropertyValue(name)] as const
-  );
-}
-
-function restoreAppearanceVariables(
-  snapshot: ReturnType<typeof captureAppearanceVariables>
-) {
-  const style = document.documentElement.style;
-  for (const [name, value] of snapshot) {
-    style.setProperty(name, value);
-  }
-}
-
-// Normalizes backend data and applies its appearance to the document.
-function applyProjectSettings(data: ProjectSettingsJson) {
-  const settings = normalizeProjectSettings(data);
-  applyAppearanceVariables(settings);
-  return settings;
-}
-
-/**
- * Custom hook to manage project settings.
- *
- * Loads project settings into projectSettingsAtom on mount, keeps it in sync
- * on 'settings:update' events, and opens the settings dialog on 'settings:open'.
- */
-export function useProjectSettings() {
-  const setProjectSettings = useSetAtom(projectSettingsAtom);
-  const setProjectSettingsLoaded = useSetAtom(projectSettingsLoadedAtom);
+// Mounted once by App; all appearance and event updates use the shared cache.
+export function useProjectSettingsSync() {
+  const queryClient = useQueryClient();
+  const { data: settings, isSuccess } = useProjectSettingsQuery();
   const openSettings = useOpenSettingsDialog();
 
   useEffect(() => {
-    requireBackendResponseData(GetProjectSettings())
-      .then((data) => {
-        setProjectSettings(applyProjectSettings(data));
-        setProjectSettingsLoaded(true);
-      })
-      .catch((error) =>
-        console.error('Failed to load project settings', error)
-      );
-  }, []);
+    if (isSuccess) applyAppearanceVariables(settings);
+  }, [settings, isSuccess]);
 
-  // Open the settings dialog on 'settings:open' event.
   useCurrentWindowWailsEvent(SETTINGS_OPEN, (data) => {
     logger.event(SETTINGS_OPEN, data);
     openSettings();
   });
 
   useWailsEvent(SETTINGS_UPDATE, (body) => {
-    setProjectSettings(applyProjectSettings(body.data));
-    setProjectSettingsLoaded(true);
+    // Prevent an older initial read from overwriting this event.
+    void queryClient.cancelQueries({ queryKey: queryKeys.projectSettings() });
+    queryClient.setQueryData(
+      queryKeys.projectSettings(),
+      normalizeProjectSettings(body.data)
+    );
   });
 }
 
-/**
- * Custom hook to create a mutation for updating project settings.
- *
- * Appearance variables are applied optimistically and restored if the backend
- * update fails. On success, the backend's 'settings:update' event re-applies
- * the authoritative values.
- *
- * @returns The mutation object from useMutation.
- */
+// Preview through the same cache that readers observe, then use the persisted response.
 export function useUpdateProjectSettingsMutation({
   inlineError = false,
 }: { inlineError?: boolean } = {}) {
+  const queryClient = useQueryClient();
+  const queryKey = queryKeys.projectSettings();
+
   return useMutation({
     meta: { inlineError },
-    onMutate: ({ newProjectSettings }) => {
-      const previousVariables = captureAppearanceVariables();
-      applyAppearanceVariables(newProjectSettings);
-      return { previousVariables };
+    onMutate: async ({ newProjectSettings }) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousSettings =
+        queryClient.getQueryData<ProjectSettings>(queryKey);
+      queryClient.setQueryData(queryKey, newProjectSettings);
+      const optimisticSettings =
+        queryClient.getQueryData<ProjectSettings>(queryKey);
+      return { previousSettings, optimisticSettings };
     },
     onError: (_error, _variables, context) => {
-      if (context) restoreAppearanceVariables(context.previousVariables);
+      // A later save or backend event takes precedence over this failed preview.
+      if (
+        context &&
+        queryClient.getQueryData(queryKey) === context.optimisticSettings
+      ) {
+        if (context.previousSettings) {
+          queryClient.setQueryData(queryKey, context.previousSettings);
+        } else {
+          void queryClient.resetQueries({ queryKey });
+        }
+      }
     },
     mutationFn: async ({
       newProjectSettings,
     }: {
       newProjectSettings: ProjectSettings;
     }) => {
-      await getBackendResponseData(
+      const saved = await requireBackendResponseData(
         UpdateProjectSettings({
           ...newProjectSettings,
           pinnedNotes: [...newProjectSettings.pinnedNotes],
         })
       );
+      return normalizeProjectSettings(saved);
+    },
+    onSuccess: (settings) => {
+      queryClient.setQueryData(queryKey, settings);
     },
   });
 }

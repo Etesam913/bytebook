@@ -1,3 +1,4 @@
+import { useProjectSettingsQuery } from '@hooks/project-settings';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   ChooseCustomVirtualEnvironmentPath,
@@ -5,8 +6,8 @@ import {
 } from '@bindings/services/codeservice';
 import { Loader } from '@/icons/loader';
 import { AppRadio, AppRadioGroup } from '@components/radio-button';
-import { useAtomValue, useSetAtom } from 'jotai';
-import { backendQueryAtom, projectSettingsAtom } from '@/atoms';
+import { useSetAtom } from 'jotai';
+import { backendQueryAtom } from '@/atoms';
 import { ShareRight } from '@/icons/share-right';
 import { MotionButton, MotionIconButton } from '@components/buttons';
 import { getDefaultButtonVariants } from '@/animations';
@@ -29,7 +30,12 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
     queryFn: () => GetPythonVirtualEnvironments(),
     refetchInterval: 3500,
   });
-  const projectSettings = useAtomValue(projectSettingsAtom);
+  const {
+    data: {
+      projectPath,
+      code: { pythonVenvPath },
+    },
+  } = useProjectSettingsQuery();
   const setBackendQuery = useSetAtom(backendQueryAtom);
   const { mutateAsync: chooseCustomVirtualEnvironmentPath } = useMutation({
     mutationFn: () =>
@@ -80,14 +86,14 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
             command in your terminal:
           </p>
           <PlainCodeSnippet
-            code={`cd "${projectSettings.projectPath}/code" && python3 -m venv bytebook-venv`}
+            code={`cd "${projectPath}/code" && python3 -m venv bytebook-venv`}
           />
           <p>
             To activate the virtual environment, run the below command in your
             terminal:
           </p>
           <PlainCodeSnippet
-            code={`source "${projectSettings.projectPath}/code/bytebook-venv/bin/activate"`}
+            code={`source "${projectPath}/code/bytebook-venv/bin/activate"`}
           />
           <p>
             The <code>ipykernel</code> package is required to run Python code in
@@ -103,7 +109,7 @@ export function PythonVenvDialog({ errorText }: { errorText: string }) {
         (pythonVenvPaths?.length ? (
           <AppRadioGroup
             name="venv-path-option"
-            defaultValue={projectSettings.code.pythonVenvPath}
+            defaultValue={pythonVenvPath}
             aria-label="Python virtual environment"
           >
             {pythonVenvPaths.map((venvPath) => (

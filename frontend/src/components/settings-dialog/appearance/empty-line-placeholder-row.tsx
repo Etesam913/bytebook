@@ -1,6 +1,9 @@
+import {
+  useProjectSettingsQuery,
+  useUpdateProjectSettingsMutation,
+} from '@hooks/project-settings';
 import { useAtomValue } from 'jotai/react';
-import { isDarkModeOnAtom, projectSettingsAtom } from '@/atoms';
-import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
+import { isDarkModeOnAtom } from '@/atoms';
 import { cn } from '@utils/string-formatting';
 import { SettingsRow } from '../settings-row';
 import { AppCheckbox } from '@components/checkbox';
@@ -10,7 +13,7 @@ import darkImagePlaceholder from '@/assets/images/empty-line-placeholder-dark.jp
 
 export function EmptyLinePlaceholderRow() {
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
-  const projectSettings = useAtomValue(projectSettingsAtom);
+  const projectSettings = useProjectSettingsQuery().data;
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
   const isEnabled = projectSettings.appearance.showEmptyLinePlaceholder ?? true;
 

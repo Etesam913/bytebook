@@ -1,11 +1,8 @@
+import { useProjectSettingsQuery } from '@hooks/project-settings';
 import { useAtomValue } from 'jotai';
 import type { Key } from 'react-aria-components';
 import { Button } from 'react-aria-components/Button';
-import {
-  isFullscreenAtom,
-  isFileMaximizedAtom,
-  projectSettingsAtom,
-} from '@/atoms';
+import { isFullscreenAtom, isFileMaximizedAtom } from '@/atoms';
 import { MaximizeNoteButton } from '@components/buttons/maximize-note';
 import {
   AppMenu,
@@ -40,9 +37,11 @@ export function NonMarkdownToolbar({
 }) {
   const isFullscreen = useAtomValue(isFullscreenAtom);
   const isFileMaximized = useAtomValue(isFileMaximizedAtom);
-  const projectSettings = useAtomValue(projectSettingsAtom);
+  const {
+    data: { pinnedNotes },
+  } = useProjectSettingsQuery();
 
-  const isPinned = projectSettings.pinnedNotes.has(filePath.fullPath);
+  const isPinned = pinnedNotes.has(filePath.fullPath);
 
   const { mutate: pinPath } = usePinPathMutation();
   const { mutate: moveToTrash } = useMoveToTrashMutation();

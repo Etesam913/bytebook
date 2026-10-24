@@ -1,10 +1,12 @@
+import {
+  useProjectSettingsQuery,
+  useUpdateProjectSettingsMutation,
+} from '@hooks/project-settings';
 import type { MotionValue } from 'motion/react';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtomValue } from 'jotai';
 import { useEffect, useRef, useState } from 'react';
 import { useMove } from 'react-aria';
 import { noteContainerRefAtom } from '@components/editor/atoms';
-import { projectSettingsAtom, projectSettingsLoadedAtom } from '@/atoms';
-import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
 import { MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH } from '@utils/general';
 import { cn } from '@utils/string-formatting';
 
@@ -54,9 +56,8 @@ function useSidebarResizePreview() {
 export function Spacer({ width }: { width: MotionValue<number> }) {
   const { isDragged, startResize, finishResize } = useSidebarResizePreview();
 
-  const projectSettings = useAtomValue(projectSettingsAtom);
-  const settingsLoaded = useAtomValue(projectSettingsLoadedAtom);
-  const setProjectSettings = useSetAtom(projectSettingsAtom);
+  const { data: projectSettings, isSuccess: settingsLoaded } =
+    useProjectSettingsQuery();
   const { mutate: updateSettings } = useUpdateProjectSettingsMutation();
 
   function saveWidth() {
@@ -67,21 +68,12 @@ export function Spacer({ width }: { width: MotionValue<number> }) {
       sidebarWidth === projectSettings.appearance.sidebarWidth
     )
       return;
-    updateSettings(
-      {
-        newProjectSettings: {
-          ...projectSettings,
-          appearance: { ...projectSettings.appearance, sidebarWidth },
-        },
+    updateSettings({
+      newProjectSettings: {
+        ...projectSettings,
+        appearance: { ...projectSettings.appearance, sidebarWidth },
       },
-      {
-        onSuccess: () =>
-          setProjectSettings((previous) => ({
-            ...previous,
-            appearance: { ...previous.appearance, sidebarWidth },
-          })),
-      }
-    );
+    });
   }
 
   const { moveProps } = useMove({

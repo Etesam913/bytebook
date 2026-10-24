@@ -42,6 +42,7 @@ export const queryKeys = {
     ['tree-filter-paths', searchQuery] as const,
 
   // Settings & kernels
+  projectSettings: () => ['project-settings'] as const,
   fontFamilies: () => ['font-families'] as const,
   kernelInstances: () => ['kernel-instances'] as const,
   kernelDescriptor: (language: string) =>

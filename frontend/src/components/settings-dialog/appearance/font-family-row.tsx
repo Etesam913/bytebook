@@ -1,3 +1,7 @@
+import {
+  useProjectSettingsQuery,
+  useUpdateProjectSettingsMutation,
+} from '@hooks/project-settings';
 import { useState } from 'react';
 import { ComboBox, Input } from 'react-aria-components/ComboBox';
 import { Button } from 'react-aria-components/Button';
@@ -11,9 +15,6 @@ import { MotionIconButton } from '@components/buttons';
 import { Tooltip } from '@components/tooltip';
 import { SettingsRow } from '../settings-row';
 import { getDefaultButtonVariants } from '@/animations';
-import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
-import { useAtomValue } from 'jotai/react';
-import { projectSettingsAtom } from '@/atoms';
 
 type FontFamilySetting = 'ui' | 'editor' | 'code-block';
 
@@ -54,7 +55,7 @@ export function FontFamilyRow({
   isFirst?: boolean;
 }) {
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
-  const projectSettings = useAtomValue(projectSettingsAtom);
+  const projectSettings = useProjectSettingsQuery().data;
   const { data: fontFamilies = [], isPending } = useFontFamiliesQuery();
   const copy = fontFamilyCopy[setting];
   const currentFontFamily =

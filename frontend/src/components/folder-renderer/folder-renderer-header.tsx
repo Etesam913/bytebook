@@ -1,3 +1,4 @@
+import { useProjectSettingsQuery } from '@hooks/project-settings';
 import { FOLDER_CONTENT_CLASS_NAME } from './styles';
 import { useAtomValue, useSetAtom } from 'jotai';
 import type { Key } from 'react-aria-components';
@@ -5,7 +6,6 @@ import { Button } from 'react-aria-components/Button';
 import {
   focusTreeFilterInputAtom,
   isFileMaximizedAtom,
-  projectSettingsAtom,
   treeFilterQueryAtom,
 } from '@/atoms';
 import { MaximizeNoteButton } from '@components/buttons/maximize-note';
@@ -34,16 +34,16 @@ export function FolderRendererHeader({
 }) {
   const folderName = folderPath.folder;
   const isFileMaximized = useAtomValue(isFileMaximizedAtom);
-  const projectSettings = useAtomValue(projectSettingsAtom);
+  const {
+    data: { pinnedNotes },
+  } = useProjectSettingsQuery();
   const setTreeFilterQuery = useSetAtom(treeFilterQueryAtom);
   const focusTreeFilterInput = useSetAtom(focusTreeFilterInputAtom);
   const { openInNewWindow, revealInFinder, pin, moveToTrash } =
     useContextMenuItems();
 
   // pinnedNotes stores slashless paths (the settings.json format).
-  const isPinned = projectSettings.pinnedNotes.has(
-    stripTrailingSlash(folderPath.fullPath)
-  );
+  const isPinned = pinnedNotes.has(stripTrailingSlash(folderPath.fullPath));
 
   const items = [
     openInNewWindow({ path: folderPath }),

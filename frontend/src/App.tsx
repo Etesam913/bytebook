@@ -1,24 +1,21 @@
-import { lazy, type ReactNode, Suspense, useEffect } from 'react';
+import {
+  useProjectSettingsQuery,
+  useProjectSettingsSync,
+} from '@hooks/project-settings';
+import { lazy, type ReactNode, Suspense } from 'react';
 import { RouterProvider } from 'react-aria-components';
 import { NotFound } from '@/routes/not-found';
-import { useMotionValue } from 'motion/react';
 import { useAtomValue, useSetAtom } from 'jotai/react';
 import { Toaster } from 'sonner';
 import { Route, Switch, useLocation } from 'wouter';
-import {
-  contextMenuDataAtom,
-  isFileMaximizedAtom,
-  projectSettingsAtom,
-} from '@/atoms';
+import { contextMenuDataAtom, isFileMaximizedAtom } from '@/atoms';
 import { ContextMenu } from '@components/context-menu';
 import { CommandPalette } from '@components/command-palette';
 import { Dialog } from '@components/dialog';
 import { FileSidebar } from '@components/file-sidebar';
 import { LoadingModal } from '@components/loading-modal';
-import { useProjectSettings } from '@hooks/project-settings';
 import { useTagEvents } from '@hooks/tags';
 import { useThemeSetting } from '@hooks/theme';
-import { MAX_SIDEBAR_WIDTH } from '@utils/general';
 import { disableBackspaceNavigation } from '@utils/routing';
 import { routeUrls } from '@utils/routes';
 import { RouteFallback } from '@components/route-fallback';
@@ -62,21 +59,15 @@ function AriaRouter({ children }: { children: ReactNode }) {
 
 // Root application component that sets up global event listeners, routing, sidebar, and modal/context-menu overlays.
 function App() {
-  const fileSidebarWidth = useMotionValue(MAX_SIDEBAR_WIDTH);
   const isFileMaximized = useAtomValue(isFileMaximizedAtom);
   const setContextMenuData = useSetAtom(contextMenuDataAtom);
-
-  const savedSidebarWidth =
-    useAtomValue(projectSettingsAtom).appearance.sidebarWidth;
-  useEffect(() => {
-    fileSidebarWidth.set(savedSidebarWidth);
-  }, [fileSidebarWidth, savedSidebarWidth]);
+  const { isPending: settingsPending } = useProjectSettingsQuery();
 
   useTagEvents();
   useSavedSearchUpdates();
   useAllPathsInvalidation();
   useThemeSetting();
-  useProjectSettings();
+  useProjectSettingsSync();
   useKernelInstancesQuery();
   useKernelInstanceEvents();
   useZoom();
@@ -87,6 +78,9 @@ function App() {
   useSyncFileMaximizedWithRoute();
   useSyncRouteWithRenames();
   useSyncRouteWithDeletions();
+
+  // Mount the layout at its saved dimensions instead of flashing the defaults.
+  if (settingsPending) return null;
 
   return (
     <AriaRouter>
@@ -113,7 +107,7 @@ function App() {
         <Toaster richColors theme="system" />
         {import.meta.env.DEV && !isE2ETestEnvironment() && <RouteDebugView />}
         <div className={isFileMaximized ? 'hidden' : 'contents'}>
-          <FileSidebar width={fileSidebarWidth} />
+          <FileSidebar />
         </div>
         <div id="main-content" className="flex-1 min-w-0 h-full">
           <Switch>

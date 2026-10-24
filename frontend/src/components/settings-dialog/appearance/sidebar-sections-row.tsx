@@ -1,7 +1,8 @@
-import { useAtomValue } from 'jotai/react';
+import {
+  useProjectSettingsQuery,
+  useUpdateProjectSettingsMutation,
+} from '@hooks/project-settings';
 import { CheckboxGroup } from 'react-aria-components/CheckboxGroup';
-import { projectSettingsAtom } from '@/atoms';
-import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
 import type { SidebarVisibility } from '@/types';
 import { AppCheckbox } from '@components/checkbox';
 import { SettingsRow } from '../settings-row';
@@ -32,7 +33,7 @@ function visibilityToSelectedKeys(visibility: SidebarVisibility): string[] {
 
 export function SidebarSectionsRow() {
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
-  const projectSettings = useAtomValue(projectSettingsAtom);
+  const projectSettings = useProjectSettingsQuery().data;
   const visibility = projectSettings.appearance.sidebarVisibility;
   const selectedKeys = visibilityToSelectedKeys(visibility);
 

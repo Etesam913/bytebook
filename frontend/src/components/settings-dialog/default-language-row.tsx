@@ -1,6 +1,7 @@
-import { useAtomValue } from 'jotai/react';
-import { projectSettingsAtom } from '@/atoms';
-import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
+import {
+  useProjectSettingsQuery,
+  useUpdateProjectSettingsMutation,
+} from '@hooks/project-settings';
 import { LANGUAGES, type DropdownItem } from '@/types';
 import { LANGUAGE_DISPLAY_NAMES } from '@utils/code';
 import { validateCodeBlockDefaultLanguage } from '@utils/project-settings';
@@ -21,7 +22,7 @@ const languageItems: DropdownItem[] = Object.values(LANGUAGES).map(
 );
 
 export function DefaultLanguageRow() {
-  const projectSettings = useAtomValue(projectSettingsAtom);
+  const projectSettings = useProjectSettingsQuery().data;
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
 
   return (

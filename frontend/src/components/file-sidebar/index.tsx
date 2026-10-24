@@ -1,4 +1,7 @@
-import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
+import {
+  useProjectSettingsQuery,
+  useUpdateProjectSettingsMutation,
+} from '@hooks/project-settings';
 import {
   getVisibleSidebarOrder,
   mergeSidebarOrder,
@@ -12,7 +15,7 @@ import {
   useMotionValue,
 } from 'motion/react';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getDefaultButtonVariants } from '@/animations';
 import {
   DEFAULT_SIDEBAR_FLEX_WEIGHTS,
@@ -20,8 +23,6 @@ import {
   isFileMaximizedAtom,
   isFullscreenAtom,
   MIN_FLEX_WEIGHT,
-  projectSettingsAtom,
-  projectSettingsLoadedAtom,
   SIDEBAR_PANEL_KEYS,
   type SidebarFlexWeights,
   type SidebarPanelKey,
@@ -71,7 +72,15 @@ function loadStoredWeights(): SidebarFlexWeights {
   }
 }
 
-export function FileSidebar({ width }: { width: MotionValue<number> }) {
+export function FileSidebar() {
+  const { data: projectSettings, isSuccess: settingsLoaded } =
+    useProjectSettingsQuery();
+  const { sidebarWidth: savedSidebarWidth } = projectSettings.appearance;
+  const width = useMotionValue(savedSidebarWidth);
+  useEffect(() => {
+    width.set(savedSidebarWidth);
+  }, [width, savedSidebarWidth]);
+
   const isFullscreen = useAtomValue(isFullscreenAtom);
   const panelContainerRef = useRef<HTMLElement | null>(null);
   const scaledWidth = useMotionTemplate`calc(${width}px * var(--ui-scale))`;
@@ -79,11 +88,8 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
   const openState = useAtomValue(fileSidebarOpenStateAtom);
   const setOpenState = useSetAtom(fileSidebarOpenStateAtom);
   const setIsFileMaximized = useSetAtom(isFileMaximizedAtom);
-  const projectSettings = useAtomValue(projectSettingsAtom);
-  const setProjectSettings = useSetAtom(projectSettingsAtom);
   const { mutate: updateSettings, isPending } =
     useUpdateProjectSettingsMutation();
-  const settingsLoaded = useAtomValue(projectSettingsLoadedAtom);
   const isSaving = isPending || !settingsLoaded;
   const [draftOrder, setDraftOrder] = useState<SidebarPanelKey[] | null>(null);
   const [layoutVersion, setLayoutVersion] = useState(0);
@@ -92,9 +98,9 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
   // Mount panels in their saved positions instead of animating from the default order.
   const visibleOrder = settingsLoaded
     ? getVisibleSidebarOrder(
-      order,
-      projectSettings.appearance.sidebarVisibility
-    )
+        order,
+        projectSettings.appearance.sidebarVisibility
+      )
     : [];
 
   // Preview the move locally; the ref keeps the latest order available when dragging ends.
@@ -116,11 +122,6 @@ export function FileSidebar({ width }: { width: MotionValue<number> }) {
         },
       },
       {
-        onSuccess: () =>
-          setProjectSettings((previous) => ({
-            ...previous,
-            appearance: { ...previous.appearance, sidebarOrder },
-          })),
         onSettled: () => {
           draftOrderRef.current = null;
           setDraftOrder(null);

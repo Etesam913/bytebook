@@ -1,8 +1,11 @@
+import {
+  useProjectSettingsQuery,
+  useUpdateProjectSettingsMutation,
+} from '@hooks/project-settings';
 import { AppSwitch } from '@components/switch';
 import { SettingsRow } from './settings-row';
-import { useAtomValue, useSetAtom } from 'jotai';
-import { dialogDataAtom, projectSettingsAtom } from '@/atoms';
-import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
+import { useSetAtom } from 'jotai';
+import { dialogDataAtom } from '@/atoms';
 import { MotionButton } from '@components/buttons';
 import { getDefaultButtonVariants } from '@/animations';
 import { PythonVenvDialog } from '@components/editor/python-venv-dialog';
@@ -13,7 +16,7 @@ import { FontSizeRow } from './appearance/font-size-row';
 import { DefaultLanguageRow } from './default-language-row';
 
 export function CodeBlockPage() {
-  const projectSettings = useAtomValue(projectSettingsAtom);
+  const projectSettings = useProjectSettingsQuery().data;
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
   const setDialogData = useSetAtom(dialogDataAtom);
   const { mutateAsync: submitPythonVenv } =

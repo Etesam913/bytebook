@@ -1,8 +1,9 @@
-import { useAtomValue } from 'jotai/react';
+import {
+  useProjectSettingsQuery,
+  useUpdateProjectSettingsMutation,
+} from '@hooks/project-settings';
 import { ArrowRotateAnticlockwise } from '@/icons/arrow-rotate-anticlockwise';
-import { projectSettingsAtom } from '@/atoms';
 import { getDefaultButtonVariants } from '@/animations';
-import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
 import {
   DEFAULT_CODE_BLOCK_FONT_SIZE,
   DEFAULT_EDITOR_FONT_SIZE,
@@ -60,7 +61,7 @@ export function FontSizeRow({
   isFirst?: boolean;
 }) {
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
-  const projectSettings = useAtomValue(projectSettingsAtom);
+  const projectSettings = useProjectSettingsQuery().data;
   const copy = fontSizeCopy[setting];
   const currentFontSize =
     setting === 'editor'

@@ -1,7 +1,4 @@
-import {
-  SIDEBAR_PANEL_KEYS,
-  type SidebarPanelKey,
-} from '@utils/sidebar-panels';
+import { type SidebarPanelKey } from '@utils/sidebar-panels';
 export {
   SIDEBAR_PANEL_KEYS,
   type SidebarPanelKey,
@@ -14,21 +11,13 @@ import {
   type DialogDataType,
   type KernelInstanceData,
   type LanguagesWithKernels,
-  type ProjectSettings,
 } from '@/types';
 import {
   type FileOrFolderPath,
   createFilePath,
   createFolderPath,
 } from '@utils/path';
-import { MAX_SIDEBAR_WIDTH } from '@utils/general';
 import { logger } from '@utils/logging';
-import {
-  DEFAULT_CODE_BLOCK_FONT_SIZE,
-  DEFAULT_CODE_BLOCK_LANGUAGE,
-  DEFAULT_EDITOR_FONT_SIZE,
-  DEFAULT_EDITOR_LINE_HEIGHT,
-} from '@utils/project-settings';
 
 /**
  * Creates a jotai atom with automatic STATE logging when values are set.
@@ -83,45 +72,6 @@ export const mostRecentItemsAtom = atom<
     set(mostRecentItemsBaseAtom, payload);
   }
 );
-
-// Holds the current project settings including appearance, code preferences, pinned notes, and project path.
-export const projectSettingsAtom = atom<ProjectSettings>({
-  pinnedNotes: new Set<string>([]),
-  projectPath: '',
-  appearance: {
-    theme: 'light',
-    accentColor: 'rgb(96, 165, 250)',
-    noteWidth: 'fullWidth',
-    uiFontFamily: 'ui-sans-serif',
-    editorFontSize: DEFAULT_EDITOR_FONT_SIZE,
-    editorLineHeight: DEFAULT_EDITOR_LINE_HEIGHT,
-    editorFontFamily: '',
-    showEmptyLinePlaceholder: true,
-    showTableOfContentsByDefault: false,
-    sidebarOrder: [...SIDEBAR_PANEL_KEYS],
-    sidebarWidth: MAX_SIDEBAR_WIDTH,
-    sidebarVisibility: {
-      hidePinned: false,
-      hideRecent: false,
-      hideKernels: false,
-      hideTags: false,
-      hideSavedSearches: false,
-    },
-  },
-  code: {
-    codeBlockVimMode: false,
-    codeBlockFontFamily: '',
-    codeBlockFontSize: DEFAULT_CODE_BLOCK_FONT_SIZE,
-    codeBlockLineWrapping: false,
-    codeBlockShowLineNumbers: false,
-    codeBlockDefaultLanguage: DEFAULT_CODE_BLOCK_LANGUAGE,
-    pythonVenvPath: '',
-    customPythonVenvPaths: [],
-  },
-});
-
-// Tracks whether project settings have been loaded from the backend at least once.
-export const projectSettingsLoadedAtom = atom<boolean>(false);
 
 export type SidebarSelectionState = {
   selections: Set<string>;

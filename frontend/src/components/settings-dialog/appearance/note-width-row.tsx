@@ -1,10 +1,13 @@
+import {
+  useProjectSettingsQuery,
+  useUpdateProjectSettingsMutation,
+} from '@hooks/project-settings';
 import { useAtomValue } from 'jotai';
 import {
   SettingImage,
   SettingImageGroup,
 } from '@components/settings-dialog/appearance';
-import { isDarkModeOnAtom, projectSettingsAtom } from '@/atoms';
-import { useUpdateProjectSettingsMutation } from '@hooks/project-settings';
+import { isDarkModeOnAtom } from '@/atoms';
 import { SettingsRow } from '../settings-row';
 import fullWidthDark from '@/assets/images/full-width-dark.avif';
 import fullWidthLight from '@/assets/images/full-width-light.avif';
@@ -13,7 +16,7 @@ import readabilityWidthLight from '@/assets/images/readability-width-light.avif'
 
 export function NoteWidthRow() {
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
-  const projectSettings = useAtomValue(projectSettingsAtom);
+  const projectSettings = useProjectSettingsQuery().data;
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
 
   return (
