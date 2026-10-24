@@ -24,6 +24,32 @@ export function createSelectionKey(prefix: string, value: string): string {
   return `${prefix}${SIDEBAR_SELECTION_SEPARATOR}${value}`;
 }
 
+// Use the full displayed order so ranges include virtualized, unmounted items.
+export function getSelectionRange({
+  items,
+  anchor,
+  target,
+}: {
+  items: readonly string[];
+  anchor: string | null;
+  target: string;
+}): string[] {
+  const targetIndex = items.indexOf(target);
+  const anchorIndex = anchor === null ? -1 : items.indexOf(anchor);
+  if (targetIndex < 0 || anchorIndex < 0) return [target];
+  return items.slice(
+    Math.min(anchorIndex, targetIndex),
+    Math.max(anchorIndex, targetIndex) + 1
+  );
+}
+
+export function toggleSelection(selection: Iterable<string>, target: string) {
+  const result = new Set(selection);
+  if (result.has(target)) result.delete(target);
+  else result.add(target);
+  return result;
+}
+
 /**
  * Filters a selection set to keep only items with the specified prefix.
  */

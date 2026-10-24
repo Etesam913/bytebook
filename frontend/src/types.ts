@@ -104,6 +104,7 @@ export type ContextMenuData = {
   y: number;
   targetId: string | null;
   showSelectionCount?: boolean;
+  selectionCount?: number;
 };
 
 export type KernelStatus = 'busy' | 'idle' | 'starting';

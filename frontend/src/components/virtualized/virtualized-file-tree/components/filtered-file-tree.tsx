@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { createFilePath } from '@utils/path';
 import { cn } from '@utils/string-formatting';
+import { getSelectionRange, toggleSelection } from '@utils/selection';
 import { prepareFileTreeInput } from '@pierre/trees';
 import { FileTree, useFileTree } from '@pierre/trees/react';
 import { FILE_TREE_ICONS } from './icons';
@@ -12,6 +13,8 @@ import { navigateToTreePath } from '../model/model-utils';
 import { FILE_TREE_UNSAFE_CSS } from '../styles';
 import { usePierreRowHeight } from '../hooks/use-pierre-row-height';
 import { TreeNameTooltip } from './tree-name-tooltip';
+import { useSearchResultsContextMenu } from '../hooks/use-search-results-context-menu';
+import { TreeContextMenu } from './tree-context-menu';
 
 function TreeMessage({ children }: { children: React.ReactNode }) {
   return (
@@ -22,8 +25,8 @@ function TreeMessage({ children }: { children: React.ReactNode }) {
 }
 
 // The ephemeral tree shown while a filter-syntax query is active. Navigation
-// only: renaming, drag-and-drop, and the context menu live on the canonical
-// tree, which stays mounted (hidden) with its state intact.
+// and metadata actions only. The canonical tree stays mounted (hidden) with
+// its state intact.
 export function FilteredFileTree({
   paths,
   isSorted,
@@ -49,7 +52,11 @@ export function FilteredFileTree({
   }
   if (isSorted) {
     return (
-      <SortedFileResults paths={paths} routeTargetPath={routeTargetPath} />
+      <SortedFileResults
+        key={paths.join('\n')}
+        paths={paths}
+        routeTargetPath={routeTargetPath}
+      />
     );
   }
   const treePaths = addAncestorDirectoryPaths(paths);
@@ -83,6 +90,8 @@ function FilteredTreeHost({
     stickyFolders: true,
     icons: FILE_TREE_ICONS,
     unsafeCSS: FILE_TREE_UNSAFE_CSS,
+    composition: { contextMenu: { triggerMode: 'both' } },
+    renaming: false,
     onSelectionChange: (selectedPaths) => {
       if (selectedPaths.length !== 1) return;
       navigateToTreePath(selectedPaths[0]);
@@ -90,12 +99,21 @@ function FilteredTreeHost({
   });
 
   usePierreRowHeight(model);
-
   return (
-    <>
-      <FileTree model={model} style={hostStyle} />
+    <div className="contents">
+      <FileTree
+        model={model}
+        style={hostStyle}
+        renderContextMenu={(item, context) => (
+          <TreeContextMenu
+            item={item}
+            context={context}
+            selectedPaths={model.getSelectedPaths()}
+          />
+        )}
+      />
       <TreeNameTooltip model={model} />
-    </>
+    </div>
   );
 }
 
@@ -109,6 +127,116 @@ function SortedFileResults({
   const listRef = useRef<VirtuosoHandle>(null);
   const linksRef = useRef(new Map<string, HTMLAnchorElement>());
   const [focusedPath, setFocusedPath] = useState<string | null>(null);
+  const [selectedPaths, setSelectedPaths] = useState<string[]>(
+    routeTargetPath && paths.includes(routeTargetPath) ? [routeTargetPath] : []
+  );
+  const anchorPath = useRef<string | null>(
+    routeTargetPath && paths.includes(routeTargetPath)
+      ? routeTargetPath
+      : paths[0]
+  );
+  const openContextMenu = useSearchResultsContextMenu();
+
+  function selectPath(
+    path: string,
+    modifiers: { shiftKey: boolean; metaKey: boolean; ctrlKey: boolean }
+  ) {
+    setSelectedPaths((selected) => {
+      if (modifiers.shiftKey) {
+        return getSelectionRange({
+          items: paths,
+          anchor: anchorPath.current,
+          target: path,
+        });
+      }
+      if (modifiers.metaKey || modifiers.ctrlKey) {
+        return [...toggleSelection(selected, path)];
+      }
+      return [path];
+    });
+    if (!modifiers.shiftKey) anchorPath.current = path;
+  }
+
+  function openResultContextMenu({
+    path,
+    x,
+    y,
+  }: {
+    path: string;
+    x: number;
+    y: number;
+  }) {
+    if (!selectedPaths.includes(path)) {
+      setSelectedPaths([path]);
+      anchorPath.current = path;
+    }
+    openContextMenu({ path, selectedPaths, x, y });
+  }
+
+  function selectAndNavigate(
+    path: string,
+    event: React.MouseEvent | React.KeyboardEvent
+  ) {
+    event.preventDefault();
+    selectPath(path, event);
+    if (!event.shiftKey && !event.metaKey && !event.ctrlKey)
+      navigateToTreePath(path);
+  }
+
+  function moveResultFocus(event: React.KeyboardEvent, index: number) {
+    if (event.altKey || event.ctrlKey || event.metaKey) return;
+    let nextIndex: number;
+    switch (event.key) {
+      case 'ArrowDown':
+        nextIndex = Math.min(index + 1, paths.length - 1);
+        break;
+      case 'ArrowUp':
+        nextIndex = Math.max(index - 1, 0);
+        break;
+      case 'Home':
+        nextIndex = 0;
+        break;
+      case 'End':
+        nextIndex = paths.length - 1;
+        break;
+      default:
+        return;
+    }
+    event.preventDefault();
+    const nextPath = paths[nextIndex];
+
+    if (event.shiftKey) selectPath(nextPath, event);
+    else anchorPath.current = nextPath;
+    setFocusedPath(nextPath);
+
+    // Mount the virtualized row before focusing it.
+    listRef.current?.scrollIntoView({
+      index: nextIndex,
+      done: () =>
+        linksRef.current.get(nextPath)?.focus({ preventScroll: true }),
+    });
+  }
+
+  function handleResultKeyDown(
+    event: React.KeyboardEvent<HTMLAnchorElement>,
+    { path, index }: { path: string; index: number }
+  ) {
+    if (
+      event.key === 'ContextMenu' ||
+      (event.shiftKey && event.key === 'F10')
+    ) {
+      event.preventDefault();
+      const rect = event.currentTarget.getBoundingClientRect();
+      openResultContextMenu({ path, x: rect.left, y: rect.bottom });
+      return;
+    }
+    if (event.key === ' ' && !event.altKey) {
+      selectAndNavigate(path, event);
+      return;
+    }
+    moveResultFocus(event, index);
+  }
+
   const tabStopPath =
     focusedPath && paths.includes(focusedPath)
       ? focusedPath
@@ -119,7 +247,8 @@ function SortedFileResults({
   return (
     <Virtuoso
       ref={listRef}
-      role="navigation"
+      role="listbox"
+      aria-multiselectable="true"
       aria-label="Sorted files"
       data={paths}
       overscan={{ main: 300, reverse: 300 }}
@@ -128,55 +257,30 @@ function SortedFileResults({
       itemContent={(index, path) => {
         const filePath = createFilePath(path);
         if (!filePath) return null;
-        const isActive = path === routeTargetPath;
+        const isActive = selectedPaths.includes(path);
         return (
           <a
             ref={(node) => {
               if (node) linksRef.current.set(path, node);
               else linksRef.current.delete(path);
             }}
+            role="option"
+            aria-selected={isActive}
             tabIndex={path === tabStopPath ? 0 : -1}
-            onFocus={() => setFocusedPath(path)}
-            onClick={(event) => {
+            onDragStart={(event) => event.preventDefault()}
+            onContextMenu={(event) => {
               event.preventDefault();
-              navigateToTreePath(path);
-            }}
-            onKeyDown={(event) => {
-              if (event.altKey || event.ctrlKey || event.metaKey) return;
-              let nextIndex: number;
-              switch (event.key) {
-                case ' ':
-                  event.preventDefault();
-                  event.currentTarget.click();
-                  return;
-                case 'ArrowDown':
-                  nextIndex = Math.min(index + 1, paths.length - 1);
-                  break;
-                case 'ArrowUp':
-                  nextIndex = Math.max(index - 1, 0);
-                  break;
-                case 'Home':
-                  nextIndex = 0;
-                  break;
-                case 'End':
-                  nextIndex = paths.length - 1;
-                  break;
-                default:
-                  return;
-              }
-              event.preventDefault();
-              const nextPath = paths[nextIndex];
-              setFocusedPath(nextPath);
-              listRef.current?.scrollIntoView({
-                index: nextIndex,
-                done: () =>
-                  linksRef.current
-                    .get(nextPath)
-                    ?.focus({ preventScroll: true }),
+              openResultContextMenu({
+                path,
+                x: event.clientX,
+                y: event.clientY,
               });
             }}
+            onFocus={() => setFocusedPath(path)}
+            onClick={(event) => selectAndNavigate(path, event)}
+            onKeyDown={(event) => handleResultKeyDown(event, { path, index })}
             href={filePath.encodedFileUrl}
-            aria-current={isActive ? 'page' : undefined}
+            aria-current={path === routeTargetPath ? 'page' : undefined}
             title={path}
             className={cn(
               'flex cursor-default items-center gap-1.5 px-2 py-1 text-sm transition-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-(--accent-color)',

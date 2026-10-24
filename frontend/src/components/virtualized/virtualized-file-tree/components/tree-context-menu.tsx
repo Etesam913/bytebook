@@ -25,6 +25,7 @@ import { FolderPen } from '@/icons/folder-pen';
 import { PaperclipPlus } from '@/icons/paperclip-plus';
 import type { TreeItemType } from '../model/create';
 import { FILE_TYPE, FOLDER_TYPE } from '@utils/tree-item-types';
+import { useSearchResultsContextMenuItems } from '../hooks/use-search-results-context-menu';
 
 type StartCreateHandler = (args: {
   folderPath: string;
@@ -107,6 +108,51 @@ function createRows({
 // document.body instead so no shadow container can clip or intercept it.
 // Each row uses `context.close()` after triggering its action.
 export function TreeContextMenu({
+  item,
+  context,
+  selectedPaths,
+  editing,
+}: {
+  item: FileTreeContextMenuItem;
+  context: FileTreeContextMenuOpenContext;
+  selectedPaths: readonly string[];
+  editing?: {
+    onAddFiles: (folderPath: string) => void;
+    onStartRename: (path: string) => void;
+    onStartCreate: StartCreateHandler;
+  };
+}) {
+  const getItems = useSearchResultsContextMenuItems();
+  if (editing) {
+    return (
+      <EditableTreeContextMenu
+        item={item}
+        context={context}
+        selectedPaths={selectedPaths}
+        {...editing}
+      />
+    );
+  }
+  return (
+    <TreeMenuPopover
+      rows={getItems({ path: item.path, selectedPaths }).map(
+        dropdownItemToMenuRow
+      )}
+      anchorRect={context.anchorRect}
+      isPointer={isPointerContextMenu(context)}
+      onClose={context.close}
+    />
+  );
+}
+
+function isPointerContextMenu(context: FileTreeContextMenuOpenContext) {
+  return (
+    context.anchorElement?.style.position === 'fixed' ||
+    context.anchorRect.width === 0
+  );
+}
+
+function EditableTreeContextMenu({
   item,
   context,
   selectedPaths,
@@ -242,9 +288,7 @@ export function TreeContextMenu({
   // When opened via the row trigger button or keyboard, align to the button's
   // right edge and open downwards; when opened via pointer (right click),
   // open from the click point.
-  const isPointer =
-    context.anchorElement?.style.position === 'fixed' ||
-    context.anchorRect.width === 0;
+  const isPointer = isPointerContextMenu(context);
 
   return (
     <TreeMenuPopover

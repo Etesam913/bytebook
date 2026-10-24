@@ -410,9 +410,11 @@ function PierreFileTreeInner({
               item={item}
               context={context}
               selectedPaths={model.getSelectedPaths()}
-              onAddFiles={addFilesToFolder}
-              onStartRename={handleStartRename}
-              onStartCreate={handleStartCreate}
+              editing={{
+                onAddFiles: addFilesToFolder,
+                onStartRename: handleStartRename,
+                onStartCreate: handleStartCreate,
+              }}
             />
           )}
           style={hostStyle}

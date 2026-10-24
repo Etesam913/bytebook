@@ -1,6 +1,77 @@
 import '@/test/setup';
 import { describe, it, expect } from 'bun:test';
-import { createSelectionKey, keepSelectionWithPrefix } from './selection';
+import {
+  createSelectionKey,
+  getSelectionRange,
+  keepSelectionWithPrefix,
+  toggleSelection,
+} from './selection';
+
+describe('getSelectionRange', () => {
+  it.each([
+    {
+      name: 'follows displayed order',
+      anchor: 'z.md',
+      target: 'm.md',
+      expected: ['z.md', 'a.md', 'm.md'],
+    },
+    {
+      name: 'selects a reverse range',
+      anchor: 'm.md',
+      target: 'z.md',
+      expected: ['z.md', 'a.md', 'm.md'],
+    },
+    {
+      name: 'selects a single item at the anchor',
+      anchor: 'a.md',
+      target: 'a.md',
+      expected: ['a.md'],
+    },
+    {
+      name: 'falls back when the anchor is missing',
+      anchor: 'missing.md',
+      target: 'a.md',
+      expected: ['a.md'],
+    },
+    {
+      name: 'falls back when there is no anchor',
+      anchor: null,
+      target: 'a.md',
+      expected: ['a.md'],
+    },
+    {
+      name: 'falls back when the target is missing',
+      anchor: 'z.md',
+      target: 'missing.md',
+      expected: ['missing.md'],
+    },
+  ])('$name', ({ anchor, target, expected }) => {
+    const items = ['z.md', 'a.md', 'm.md'];
+
+    const result = getSelectionRange({ items, anchor, target });
+
+    expect(result).toEqual([...expected]);
+    expect(items).toEqual(['z.md', 'a.md', 'm.md']);
+  });
+});
+
+describe('toggleSelection', () => {
+  it.each([
+    {
+      name: 'adds an unselected item',
+      target: 'file:b.md',
+      expected: ['file:a.md', 'file:b.md'],
+    },
+    { name: 'removes a selected item', target: 'file:a.md', expected: [] },
+  ])('$name without mutating the selection', ({ target, expected }) => {
+    const selected = new Set(['file:a.md']);
+
+    const result = toggleSelection(selected, target);
+
+    expect(result).toEqual(new Set(expected));
+    expect(selected).toEqual(new Set(['file:a.md']));
+  });
+});
 
 describe('createSelectionKey', () => {
   it('joins prefix and value with a colon separator', () => {

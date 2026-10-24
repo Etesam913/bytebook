@@ -8,7 +8,15 @@ import { createSelectionKey, FILE_SELECTION_PREFIX } from '@utils/selection';
 
 export function ContextMenu() {
   const [
-    { isShowing, items, x, y, targetId, showSelectionCount = true },
+    {
+      isShowing,
+      items,
+      x,
+      y,
+      targetId,
+      showSelectionCount = true,
+      selectionCount,
+    },
     setContextMenuData,
   ] = useAtom(contextMenuDataAtom);
 
@@ -17,11 +25,12 @@ export function ContextMenu() {
     targetId != null &&
     selections.has(createSelectionKey(FILE_SELECTION_PREFIX, targetId));
 
-  const effectiveCount = isTargetInSelection
-    ? selections.size
-    : targetId !== null
-      ? 1
-      : selections.size;
+  let effectiveCount = selections.size;
+  if (selectionCount !== undefined) {
+    effectiveCount = selectionCount;
+  } else if (!isTargetInSelection && targetId !== null) {
+    effectiveCount = 1;
+  }
 
   const selectionCountLabel =
     effectiveCount > 99 ? '99+' : effectiveCount.toString();

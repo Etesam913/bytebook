@@ -1,9 +1,11 @@
 import { useProjectSettingsQuery } from '@hooks/project-settings';
+import { useAllPaths } from '@hooks/all-paths';
 import { useAtom, useSetAtom } from 'jotai';
 import type { RefObject } from 'react';
 import { contextMenuDataAtom, fileSidebarOpenStateAtom } from '@/atoms';
 import { PinTack2 } from '@/icons/pin-tack-2';
 import { Folder as FolderIcon } from '@/icons/folder';
+import { RenderNoteIcon } from '@/icons/render-note-icon';
 import type { SidebarReorderOptions } from '@/types';
 import { AccordionItem } from '@components/accordion/accordion-item';
 import { VirtualizedListAccordion } from '@components/virtualized/virtualized-list/accordion';
@@ -34,15 +36,26 @@ export function PinnedAccordion({
   const {
     data: { pinnedNotes },
   } = useProjectSettingsQuery();
+  const { data: allPaths } = useAllPaths();
+  const folderPaths = new Set(allPaths?.filter((path) => path.endsWith('/')));
   const pinnedItems = [...pinnedNotes].reduce<FileOrFolderPath[]>(
     (acc, path) => {
+      // Settings omit the folder marker, so resolve folders from the tree snapshot.
+      const folderPath = createFolderPath(path);
+      if (
+        folderPath &&
+        (path.endsWith('/') || folderPaths.has(folderPath.fullPath))
+      ) {
+        acc.push(folderPath);
+        return acc;
+      }
+
       const filePath = createFilePath(path);
       if (filePath) {
         acc.push(filePath);
         return acc;
       }
 
-      const folderPath = createFolderPath(path);
       if (folderPath) {
         acc.push(folderPath);
       }
@@ -76,7 +89,7 @@ export function PinnedAccordion({
             height="1.25rem"
           />
         ),
-        title: 'Pinned',
+        title: `Pinned (${pinnedItems.length})`,
       }}
     >
       <VirtualizedListAccordion<FileOrFolderPath>
@@ -129,7 +142,13 @@ export function PinnedAccordion({
                     width="1rem"
                     strokeWidth={1.75}
                   />
-                ) : undefined
+                ) : (
+                  <RenderNoteIcon
+                    filePath={pinnedItem}
+                    size="sm"
+                    className="will-change-transform"
+                  />
+                )
               }
             />
           );
