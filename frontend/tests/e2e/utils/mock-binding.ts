@@ -95,13 +95,12 @@ export async function getMockBindingCalls(
   }, methodId);
 }
 
-/**
+/*
  * Retrieves the method ID for a given binding function by parsing the generated binding file.
  * Looks for the numeric method ID used in `$Call.ByID(<number>)` to keep tests resilient to regeneration.
  * Caches the IDs for repeated access. Throws if the file or method cannot be found.
  *
- * @param {BindingIdentifier} param0 - An object containing the binding file and exported method name.
- * @returns {number} The numeric method ID used for Wails RPC calls.
+ * Returns the numeric method ID used for Wails RPC calls.
  */
 function getMethodId({ file, method }: BindingIdentifier): number {
   const normalizedFile = file.endsWith('.js') ? file : `${file}.js`;

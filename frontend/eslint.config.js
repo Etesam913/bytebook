@@ -5,7 +5,6 @@ import pluginReact from 'eslint-plugin-react';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import * as reactHooks from 'eslint-plugin-react-hooks';
 
-/** @type {import('eslint').Linter.Config} */
 export default defineConfig([
   globalIgnores([
     'node_modules/',

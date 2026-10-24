@@ -214,13 +214,9 @@ export function useRenameFileMutation() {
   });
 }
 
-/**
+/*
  * Hook to handle the "file:write" event from the file watcher.
  * Updates the note content in the editor when the note is changed from another window or from the file system.
- *
- * @param filePath - The note currently open in the editor.
- * @param editor - The LexicalEditor instance to update the editor state.
- * @param setFrontmatter - A function to update the frontmatter state.
  */
 export function useNoteWriteEvent({
   filePath,
@@ -283,10 +279,9 @@ export function useNoteWriteEvent({
   });
 }
 
-/**
+/*
  * Checks whether a note exists on disk.
- * @param filePath - The note path, or null when no note is selected
- * @returns Query result indicating if the note exists
+ * Returns query result indicating if the note exists
  */
 export function useNoteExists(filePath: FilePath | null) {
   return useQuery({

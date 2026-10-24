@@ -2,15 +2,14 @@ import type { Frontmatter } from '@/types';
 
 const frontMatterRegex = /^---[\s\S]+?---/;
 
-/**
+/*
  * Checks if a Markdown string contains front matter.
  *
  * Front matter is a section at the beginning of a Markdown file
  * that is enclosed within triple dashes (`---`). It is commonly used
  * for metadata such as title, author, date, etc.
  *
- * @param {string} markdown - The Markdown string to check.
- * @returns {boolean} - Returns `true` if the Markdown string contains front matter, `false` otherwise.
+ * Returns `true` if the Markdown string contains front matter, `false` otherwise.
  */
 function hasFrontMatter(markdown: string): boolean {
   return frontMatterRegex.test(markdown);
@@ -89,14 +88,13 @@ export function parseFrontMatter(markdown: string): {
   return { frontMatter, content };
 }
 
-/**
+/*
  * Creates front matter from a frontmatter object.
  *
  * This function takes a Frontmatter object and generates a front matter section
  * formatted with triple dashes (`---`). String arrays are formatted as YAML lists with dashes.
  *
- * @param {Frontmatter} data - The frontmatter object to include in the front matter.
- * @returns {string} - The generated front matter string.
+ * Returns the generated front matter string.
  */
 function createFrontMatter(data: Frontmatter): string {
   // Initialize the front matter string with the opening triple dashes
@@ -123,15 +121,13 @@ function createFrontMatter(data: Frontmatter): string {
   return frontMatter;
 }
 
-/**
+/*
  * Replaces the front matter in a Markdown string with new front matter.
  *
  * If the Markdown string already contains front matter, it will be replaced with the new front matter.
  * If no front matter is found, the new front matter will be prepended to the Markdown content.
  *
- * @param {string} markdown - The original Markdown string.
- * @param {Frontmatter} newFrontMatterData - The frontmatter object for the new front matter.
- * @returns {string} - The Markdown string with the replaced or prepended front matter.
+ * Returns the Markdown string with the replaced or prepended front matter.
  */
 export function replaceFrontMatter(
   markdown: string,

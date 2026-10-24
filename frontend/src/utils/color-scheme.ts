@@ -1,9 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react';
+
 // Applies or removes the dark mode class and color-scheme style on the root HTML element.
-/**
- * @param isDarkMode - Flag to determine if dark mode is enabled
- * @param setIsDarkModeOn - State setter function to update dark mode state
- */
 export function addColorSchemeClassToBody(
   isDarkMode: boolean,
   setIsDarkModeOn: Dispatch<SetStateAction<boolean>>

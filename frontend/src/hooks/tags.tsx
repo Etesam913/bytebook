@@ -31,10 +31,10 @@ export function useTagEvents() {
   });
 }
 
-/**
+/*
  * Hook to fetch all tags in the project.
  *
- * @returns A query result containing an array of all tags.
+ * Returns a query result containing an array of all tags.
  * The query will automatically refetch when tags are created, deleted or updated
  * via the useTags event handlers.
  */
@@ -46,9 +46,8 @@ export function useTagsQuery() {
   });
 }
 
-/**
- * @param paths - Note paths with extensions
- * @returns A map of note path to its tags
+/*
+ * Returns a map of note path to its tags
  */
 export function useTagsForNotesQuery(paths: string[]) {
   return useQuery({
@@ -116,9 +115,9 @@ type DeleteTagsMutationVariables = {
   tagsToDelete: string[];
 };
 
-/**
+/*
  * Deletes tags from all notes. Used for tag context-menu option.
- * @returns The mutation result.
+ * Returns the mutation result.
  */
 export function useDeleteTagsMutation() {
   return useMutation({

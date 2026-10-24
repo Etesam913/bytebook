@@ -22,10 +22,9 @@ export function getTagNameFromSelectionRange(tagSetValue: string) {
 type RGB = { r: number; g: number; b: number };
 type RGBA = { r: number; g: number; b: number; a: number };
 
-/**
+/*
  * Parses an RGB or RGBA color string and returns its components.
- * @param colorString - The RGB(A) color string to parse.
- * @returns An object with r, g, b, and optionally a properties, or null if parsing fails.
+ * Returns an object with r, g, b, and optionally a properties, or null if parsing fails.
  */
 export function parseRGB(colorString: string): RGB | RGBA | null {
   // Remove all spaces for easier matching

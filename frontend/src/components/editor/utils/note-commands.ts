@@ -50,12 +50,8 @@ export function setSelectionFromPointerInNoteEditor(
   return true;
 }
 
-/**
+/*
  * Handles changes to the note editor.
- *
- * @param editor - The LexicalEditor instance that is being updated.
- * @param tags - A set of tags indicating the context of the change, such as
- * "note:write-from-external" or "note:initial-load"
  */
 export function noteHandleChange(editor: LexicalEditor, tags: Set<string>) {
   /*

@@ -18,13 +18,13 @@ import {
   MAX_TABLE_ROWS,
 } from '@components/editor/utils/table';
 
-/**
+/*
  * Custom hook that returns a function to open a "Save Search" dialog.
  *
  * When invoked with a search query, this function opens a dialog allowing the user to enter a name for the search.
  * On submission, it saves the search query with the given name.
  *
- * @returns {(searchQuery: string) => void} Function to open the save search dialog for the specified query.
+ * Returns function to open the save search dialog for the specified query.
  */
 export function useSaveSearchDialog(): (searchQuery: string) => void {
   const setDialogData = useSetAtom(dialogDataAtom);
@@ -95,14 +95,13 @@ export function useSaveSearchDialog(): (searchQuery: string) => void {
   };
 }
 
-/**
+/*
  * Custom hook that returns a function to open a "Create Table" dialog.
  *
  * When invoked with an editor and selection, this function opens a dialog allowing the user to specify
  * the number of rows and columns for a new table. On submission, it creates a table with the specified
  * dimensions at the stored selection location.
  *
- * @returns {(editor: LexicalEditor, editorSelection: RangeSelection | null) => void}
  *
  * Usage:
  *   const openCreateTableDialog = useCreateTableDialog();

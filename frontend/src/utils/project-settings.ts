@@ -33,14 +33,11 @@ export const MAX_CODE_BLOCK_FONT_SIZE = 24;
 
 export const DEFAULT_CODE_BLOCK_LANGUAGE: Languages = LANGUAGES.PYTHON;
 
-/**
+/*
  * Validates the project settings and ensures they conform to the expected types.
  * If the provided settings are not valid, default values are used.
  *
- * @param settings - The project settings to validate.
- * @param settings.theme - The dark mode setting, expected to be 'light', 'dark', or 'system'.
- * @param settings.noteWidth - The note width setting, expected to be 'fullWidth' or 'readability'.
- * @returns The validated project settings.
+ * Returns the validated project settings.
  */
 export function validateProjectSettings(settings: {
   theme: string;

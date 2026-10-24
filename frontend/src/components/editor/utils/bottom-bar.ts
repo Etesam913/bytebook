@@ -1,9 +1,7 @@
-/**
+/*
  * Calculates the time difference between two dates and returns it in a human-readable format.
  *
- * @param date1 - The earlier date.
- * @param date2 - The later date.
- * @returns A string representing the time difference in the largest applicable unit (e.g., "2 years", "3 days").
+ * Returns a string representing the time difference in the largest applicable unit (e.g., "2 years", "3 days").
  */
 export function timeSince(date1: Date, date2: Date): string {
   // Calculate the difference in seconds between the two dates

@@ -3,10 +3,8 @@ import { createRoot } from 'react-dom/client';
 import { PDFIcon } from '@/icons/pdf-icon';
 import { VideoIcon } from '@/icons/video';
 import type { FileNode } from '../nodes/file';
-/**
+/*
  * Constructs a ghost element for dragging based on the type of node
- * @param node - The Lexical node to create a ghost element for
- * @param ghostElement - The HTML element that will become the ghost element
  */
 export function constructGhostElementForNode(
   node: LexicalNode,
@@ -26,10 +24,8 @@ export function constructGhostElementForNode(
   }
 }
 
-/**
+/*
  * Constructs a ghost element for an image file node.
- * @param fileNode - The FileNode representing the image.
- * @param ghostElement - The HTML element that will become the ghost element.
  */
 function constructGhostElementForImage(
   fileNode: FileNode,
@@ -44,9 +40,8 @@ function constructGhostElementForImage(
   ghostElement.replaceChildren(ghostElementChild);
 }
 
-/**
+/*
  * Constructs a ghost element for a video file node.
- * @param ghostElement - The HTML element that will become the ghost element.
  */
 function constructGhostElementForVideo(ghostElement: HTMLElement) {
   const container = document.createElement('div');
@@ -61,9 +56,8 @@ function constructGhostElementForVideo(ghostElement: HTMLElement) {
   ghostElement.replaceChildren(container);
 }
 
-/**
+/*
  * Constructs a ghost element for a PDF file node.
- * @param ghostElement - The HTML element that will become the ghost element.
  */
 function constructGhostElementForPdf(ghostElement: HTMLElement) {
   const container = document.createElement('div');

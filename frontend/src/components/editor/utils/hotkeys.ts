@@ -1,15 +1,13 @@
 import { OPEN_LINK_EDITOR_COMMAND } from '../nodes/link';
 import { FORMAT_TEXT_COMMAND, type LexicalEditor } from 'lexical';
 
-/**
+/*
  * Handles keyboard shortcuts for text formatting commands.
  * Currently handles:
  * - cmd+k / ctrl+k: Insert or edit a link
  * - cmd+shift+x / ctrl+shift+x: Toggle strikethrough
  *
- * @param event - The keyboard event
- * @param editor - The Lexical editor instance
- * @returns true if the event was handled, false otherwise
+ * Returns true if the event was handled, false otherwise
  */
 export function handleKeyboardShortcuts(
   event: KeyboardEvent,

@@ -20,9 +20,8 @@ export type MatchData = {
   format: number;
 };
 
-/**
+/*
  * Clears all highlights in the editor by removing the highlight format from all text nodes.
- * @param editor - The Lexical editor instance
  */
 export function clearAllHighlights(editor: LexicalEditor): void {
   editor.update(
@@ -43,11 +42,9 @@ export function clearAllHighlights(editor: LexicalEditor): void {
   );
 }
 
-/**
+/*
  * Highlights a search match across text nodes, splitting only its boundaries.
- * @param editor - The Lexical editor instance
- * @param match - The match data to highlight
- * @returns The key of the first highlighted node or null if highlighting failed
+ * Returns the key of the first highlighted node or null if highlighting failed
  */
 export function highlightMatch(
   editor: LexicalEditor,

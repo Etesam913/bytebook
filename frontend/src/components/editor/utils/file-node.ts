@@ -1,14 +1,14 @@
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '@/types';
 import type { FileType } from '../nodes/file';
 
-/**
+/*
  * Asynchronously checks the type of content at a given URL.
  *
  * This function sends a HEAD request to the specified URL to retrieve the content type
  * without downloading the entire content. It then determines if the content is an image,
  * video, or other type based on the "Content-Type" header in the response.
  *
- * @example
+ * Example:
  * checkURLType("https://example.com/image.jpg").then(type => console.log(type)); // "Image"
  */
 async function checkURLType(url: string) {
@@ -42,11 +42,10 @@ export async function getFileElementTypeFromExtensionAndHead(fileName: string) {
   return fileType;
 }
 
-/**
+/*
  * Determines the type of file based on its extension. This function does not make a HEAD request to the file.
  *
- * @param {string} fileName - The name of the file whose type is to be determined.
- * @returns {FileType} - The type of the file, which can be 'image', 'video', 'pdf', or 'unknown'.
+ * Returns the type of the file, which can be 'image', 'video', 'pdf', or 'unknown'.
  */
 function getFileElementTypeFromExtension(fileName: string): FileType {
   // Check if the file extension matches any of the image file extensions

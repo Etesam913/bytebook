@@ -1,8 +1,8 @@
 import { SidebarContentType } from '@/types';
 
-/** Selects are represent as strings with a separator between the prefix and value.
+/* Selects are represent as strings with a separator between the prefix and value.
  *
- * @example
+ * Example:
  * "file:123"
  * "tag:Python"
  * "kernel:python"
@@ -64,16 +64,11 @@ export function keepSelectionWithPrefix(
   );
 }
 
-/**
+/*
  * Handles selection range logic for context menus across different sidebar components.
  * Creates or updates the selection range when right-clicking on an item.
  * Optionally allows only one item in the selection set.
- * @param params - Object containing the selection parameters
- * @param params.setSelectionRange - Function to update the selection range
- * @param params.itemType - The type of item being selected ('folder', 'note', 'tag', 'kernel')
- * @param params.itemName - The name/identifier of the item being selected
- * @param params.onlyOne - If true, only allow one item in the selection set (default: false)
- * @returns The new selection range Set
+ * Returns the new selection range Set
  */
 export function handleContextMenuSelection({
   setSelectionRange,

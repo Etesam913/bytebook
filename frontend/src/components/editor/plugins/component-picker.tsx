@@ -80,12 +80,10 @@ const languageCommandData: {
     name: 'Java',
   },
 ];
-/**
+/*
  * Generates a list of base options for the dropdown picker menu in the Lexical editor.
  *
- * @param  editor - The Lexical editor instance.
- * @param insertAttachmentsMutation - Mutation hook for inserting attachments.
- * @returns Array of dropdown picker options.
+ * Returns array of dropdown picker options.
  */
 function getBaseOptions({
   editor,

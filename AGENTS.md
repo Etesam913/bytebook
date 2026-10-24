@@ -156,6 +156,7 @@ flowchart LR
 ## Working conventions
 
 - Prefer **small, surgical diffs**; avoid drive-by refactors.
+- Use plain `//` or `/* */` comments. Do not use JSDoc tags in comments; TypeScript owns type information.
 - The repo uses **jj (Jujutsu)** for version control, not raw git commands.
 - Do not prioritize backwards compatibility — this is not a released product.
 - Keep event names in `internal/util/events.go` as the source of truth.

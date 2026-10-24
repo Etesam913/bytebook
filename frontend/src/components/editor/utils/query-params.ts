@@ -1,9 +1,7 @@
-/**
+/*
  * Retrieves the value of a specific query parameter from a given URL string.
  *
- * @param fullString - The full URL string.
- * @param queryParamName - The name of the query parameter to retrieve the value for.
- * @returns The value of the query parameter if found, otherwise null.
+ * Returns the value of the query parameter if found, otherwise null.
  */
 export function getQueryParamValue(fullString: string, queryParamName: string) {
   // Match the query string part of the URL
@@ -18,13 +16,10 @@ export function getQueryParamValue(fullString: string, queryParamName: string) {
   return null;
 }
 
-/**
+/*
  * Adds or updates a query parameter in a given URL string.
  *
- * @param fullString - The full URL string.
- * @param queryParamName - The name of the query parameter to add or update.
- * @param queryParamValue - The value of the query parameter to set.
- * @returns The updated URL string with the new or updated query parameter.
+ * Returns the updated URL string with the new or updated query parameter.
  */
 export function addQueryParam(
   fullString: string,
@@ -46,12 +41,10 @@ export function addQueryParam(
   return `${fullString}?${queryParamName}=${queryParamValue}`;
 }
 
-/**
+/*
  * Removes a specific query parameter from a given URL string.
  *
- * @param fullString - The full URL string.
- * @param queryParamName - The name of the query parameter to remove.
- * @returns The updated URL string with the query parameter removed.
+ * Returns the updated URL string with the query parameter removed.
  */
 export function removeQueryParam(fullString: string, queryParamName: string) {
   // Match the query string part of the URL

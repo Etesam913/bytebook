@@ -8,11 +8,9 @@ import {
 } from 'lexical';
 import { MatchData, clearAllHighlights, highlightMatch } from './highlight';
 
-/**
+/*
  * Performs a case-insensitive search for the given term in the editor content.
- * @param editor - The Lexical editor instance
- * @param searchTerm - The text to search for in the editor
- * @returns Array of match data for all found matches
+ * Returns array of match data for all found matches
  */
 export function performSearch(
   editor: LexicalEditor,

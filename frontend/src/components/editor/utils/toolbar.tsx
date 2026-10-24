@@ -112,14 +112,10 @@ export function $openLinkEditor({
   return true;
 }
 
-/**
+/*
  * Handles the click event on toolbar block elements.
  * If the clicked block type matches the current block type, it converts the block to a paragraph.
  * Otherwise, it applies the appropriate list command based on the block type.
- *
- * @param editor - The LexicalEditor instance
- * @param block - The block type to be applied ('ul', 'ol', or 'check')
- * @param currentBlockType - The current block type
  */
 export function handleToolbarBlockElementClick({
   editor,
@@ -155,14 +151,10 @@ export function handleToolbarBlockElementClick({
   }
 }
 
-/**
+/*
  * Handles the click event for text formatting buttons in the toolbar.
  * This function toggles the given text format in the current selection.
  * If the format is already applied, it removes it; otherwise, it adds it.
- *
- * @param currentSelectionFormat - Array of currently applied text formats
- * @param setCurrentSelectionFormat - Function to update the current selection format
- * @param textFormat - The text format to toggle (e.g., 'bold', 'italic', etc.)
  */
 export function handleToolbarTextFormattingClick({
   editor,
