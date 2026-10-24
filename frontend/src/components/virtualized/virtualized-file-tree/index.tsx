@@ -232,6 +232,7 @@ function PierreFileTreeInner({
     onSearchChange,
     isFilterMode,
     filteredPaths,
+    isSorted,
     isFilterLoading,
   } = useTreeFilter();
 
@@ -433,6 +434,7 @@ function PierreFileTreeInner({
       {isFilterMode && (
         <FilteredFileTree
           paths={filteredPaths}
+          isSorted={isSorted}
           isLoading={isFilterLoading}
           hostStyle={hostStyle}
           routeTargetPath={routeTargetPath}

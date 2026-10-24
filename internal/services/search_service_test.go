@@ -59,7 +59,29 @@ func TestGetPathsFromSearchQuery(t *testing.T) {
 		response := service.GetPathsFromSearchQuery("t:note OR t:attachment OR t:folder")
 
 		require.True(t, response.Success)
-		assert.Equal(t, []string{"nested/note.md", "photo.png"}, response.Data)
+		assert.Equal(t, []string{"nested/note.md", "photo.png"}, response.Data.Paths)
+	})
+
+	t.Run("preserves size order across folders with stable ties", func(t *testing.T) {
+		service, _, index := newService(t)
+		require.NoError(t, index.Index("z/large.md", map[string]any{"type": search.NOTE_TYPE, "size": 100}))
+		require.NoError(t, index.Index("a/small.md", map[string]any{"type": search.NOTE_TYPE, "size": 10}))
+		require.NoError(t, index.Index("b/tie.md", map[string]any{"type": search.NOTE_TYPE, "size": 10}))
+
+		res := service.GetPathsFromSearchQuery("sort:size")
+
+		require.True(t, res.Success)
+		assert.True(t, res.Data.IsSorted)
+		assert.Equal(t, []string{"z/large.md", "a/small.md", "b/tie.md"}, res.Data.Paths)
+	})
+
+	t.Run("incomplete sort keeps tree presentation", func(t *testing.T) {
+		service, _, _ := newService(t)
+
+		res := service.GetPathsFromSearchQuery("sort:")
+
+		require.True(t, res.Success)
+		assert.False(t, res.Data.IsSorted)
 	})
 
 	t.Run("matches notes by tag filter", func(t *testing.T) {
@@ -71,7 +93,7 @@ func TestGetPathsFromSearchQuery(t *testing.T) {
 		res := service.GetPathsFromSearchQuery("#recipe")
 
 		assert.True(t, res.Success)
-		assert.Equal(t, []string{"cooking/pasta.md"}, res.Data)
+		assert.Equal(t, []string{"cooking/pasta.md"}, res.Data.Paths)
 	})
 
 	t.Run("matches notes by filename filter", func(t *testing.T) {
@@ -83,7 +105,7 @@ func TestGetPathsFromSearchQuery(t *testing.T) {
 		res := service.GetPathsFromSearchQuery("f:pasta")
 
 		assert.True(t, res.Success)
-		assert.Equal(t, []string{"cooking/pasta.md"}, res.Data)
+		assert.Equal(t, []string{"cooking/pasta.md"}, res.Data.Paths)
 	})
 
 	t.Run("type filter returns only attachments", func(t *testing.T) {
@@ -95,7 +117,7 @@ func TestGetPathsFromSearchQuery(t *testing.T) {
 		res := service.GetPathsFromSearchQuery("type:attachment")
 
 		assert.True(t, res.Success)
-		assert.Equal(t, []string{"cooking/photo.png"}, res.Data)
+		assert.Equal(t, []string{"cooking/photo.png"}, res.Data.Paths)
 	})
 
 	t.Run("supports negation and OR operators", func(t *testing.T) {
@@ -106,10 +128,10 @@ func TestGetPathsFromSearchQuery(t *testing.T) {
 		indexTestNotes(t, projectPath, index, "cooking/pasta.md", "cooking/soup.md", "work/meeting.md")
 
 		negated := service.GetPathsFromSearchQuery("#recipe -#draft")
-		assert.Equal(t, []string{"cooking/pasta.md"}, negated.Data)
+		assert.Equal(t, []string{"cooking/pasta.md"}, negated.Data.Paths)
 
 		ored := service.GetPathsFromSearchQuery("f:soup OR f:meeting")
-		assert.ElementsMatch(t, []string{"cooking/soup.md", "work/meeting.md"}, ored.Data)
+		assert.ElementsMatch(t, []string{"cooking/soup.md", "work/meeting.md"}, ored.Data.Paths)
 	})
 
 	t.Run("excludes documents that are not notes or attachments", func(t *testing.T) {
@@ -125,7 +147,7 @@ func TestGetPathsFromSearchQuery(t *testing.T) {
 		res := service.GetPathsFromSearchQuery("f:cooking")
 
 		assert.True(t, res.Success)
-		assert.Equal(t, []string{"cooking/pasta.md"}, res.Data)
+		assert.Equal(t, []string{"cooking/pasta.md"}, res.Data.Paths)
 	})
 
 	t.Run("empty query matches nothing", func(t *testing.T) {
@@ -136,9 +158,9 @@ func TestGetPathsFromSearchQuery(t *testing.T) {
 		res := service.GetPathsFromSearchQuery("")
 
 		assert.True(t, res.Success)
-		assert.Empty(t, res.Data)
+		assert.Empty(t, res.Data.Paths)
 		// Must be an empty slice, not nil: nil crosses the Wails boundary as null.
-		assert.NotNil(t, res.Data)
+		assert.NotNil(t, res.Data.Paths)
 	})
 
 	t.Run("matches notes at the vault root", func(t *testing.T) {
@@ -150,7 +172,7 @@ func TestGetPathsFromSearchQuery(t *testing.T) {
 		res := service.GetPathsFromSearchQuery("f:scratch")
 
 		assert.True(t, res.Success)
-		assert.Equal(t, []string{"scratch.md"}, res.Data)
+		assert.Equal(t, []string{"scratch.md"}, res.Data.Paths)
 	})
 
 	t.Run("returns sorted paths", func(t *testing.T) {
@@ -162,7 +184,8 @@ func TestGetPathsFromSearchQuery(t *testing.T) {
 		res := service.GetPathsFromSearchQuery("type:note")
 
 		assert.True(t, res.Success)
-		assert.Equal(t, []string{"a/alpha.md", "b/zeta.md"}, res.Data)
+		assert.Equal(t, []string{"a/alpha.md", "b/zeta.md"}, res.Data.Paths)
+		assert.False(t, res.Data.IsSorted)
 	})
 }
 

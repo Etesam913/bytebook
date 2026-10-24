@@ -169,7 +169,7 @@ export function TreeContextMenu({
   });
 
   const revealTarget = filePath ?? folderPath;
-  if (revealTarget) {
+  if (revealTarget && !isMultiSelection) {
     rows.push(
       dropdownItemToMenuRow(openInNewWindow({ path: revealTarget })),
       dropdownItemToMenuRow(revealInFinder({ path: revealTarget }))

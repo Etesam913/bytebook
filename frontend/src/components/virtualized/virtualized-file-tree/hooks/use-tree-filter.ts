@@ -5,6 +5,8 @@ import { useWailsEvent } from '@hooks/events';
 import { useDebouncedValue } from '@hooks/general';
 import { useTreeFilterPathsQuery } from '@hooks/search';
 import {
+  FILE_WRITE,
+  TAGS_INDEX_UPDATE,
   FILE_CREATE,
   FILE_DELETE,
   FILE_RENAME,
@@ -41,6 +43,8 @@ export function useTreeFilter() {
   };
   useWailsEvent(FOLDER_CREATE, invalidate);
   useWailsEvent(FILE_CREATE, invalidate);
+  useWailsEvent(FILE_WRITE, invalidate);
+  useWailsEvent(TAGS_INDEX_UPDATE, invalidate);
   useWailsEvent(FOLDER_DELETE, invalidate);
   useWailsEvent(FILE_DELETE, invalidate);
   useWailsEvent(FOLDER_RENAME, invalidate);
@@ -50,7 +54,8 @@ export function useTreeFilter() {
     searchValue,
     onSearchChange: setSearchValue,
     isFilterMode,
-    filteredPaths: pathsQuery.data,
+    filteredPaths: pathsQuery.data?.paths,
+    isSorted: pathsQuery.data?.isSorted ?? false,
     isFilterLoading: pathsQuery.isPending,
   };
 }

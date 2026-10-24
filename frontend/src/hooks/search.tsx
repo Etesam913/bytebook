@@ -191,10 +191,10 @@ export function useTreeFilterPathsQuery({
     queryKey: queryKeys.treeFilterPaths(searchQuery),
     queryFn: async () => {
       // Distinguishes a broken index from a query that matched nothing.
-      return (
-        (await getBackendResponseData(GetPathsFromSearchQuery(searchQuery))) ??
-        []
+      const results = await getBackendResponseData(
+        GetPathsFromSearchQuery(searchQuery)
       );
+      return results ?? { paths: [], isSorted: false };
     },
     enabled,
     placeholderData: keepPreviousData,

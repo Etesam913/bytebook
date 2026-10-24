@@ -16,9 +16,9 @@ import { CircleInfo } from '@/icons/circle-info';
 import { useCurrentWindowWailsEvent } from '@hooks/events';
 import { FILE_TREE_FILTER_FOCUS } from '@bindings/util/event-names';
 
-// Keep the filter tooltip focused on text, filenames, and tags.
+// Folder-type search is only available in Quick Open.
 const FILTER_HELP_SECTIONS = SEARCH_HELP_SECTIONS.filter(
-  (section) => section.label !== 'Sort' && section.label !== 'Type'
+  (section) => section.label !== 'Type'
 );
 
 export function TreeSearchInput({

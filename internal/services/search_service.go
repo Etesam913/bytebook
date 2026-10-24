@@ -2,7 +2,6 @@ package services
 
 import (
 	"log"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -116,21 +115,28 @@ func (s *SearchService) FullTextSearch(searchQuery string, searchAfter []string,
 	return config.BackendResponseWithData[search.FullTextSearchPage]{Success: true, Data: page}
 }
 
+// TreeFilterResults preserves the backend sort decision alongside its ordered paths.
+type TreeFilterResults struct {
+	Paths    []string `json:"paths"`
+	IsSorted bool     `json:"isSorted"`
+}
+
 // GetPathsFromSearchQuery runs the given filter-syntax query against the search
-// index and returns the matching note and attachment paths, sorted, in the form
+// index and returns the matching note and attachment paths in the requested order, in the form
 // "<folder>/<fileName>" (or just "<fileName>" at the notes root). Returns
 // Success: false when the index cannot be searched, so the tree can tell a
 // broken index apart from a query that simply matched nothing.
-func (s *SearchService) GetPathsFromSearchQuery(searchQuery string) config.BackendResponseWithData[[]string] {
-	// The sort option is discarded: the file tree has a fixed sort order. A
-	// query containing only a sort token degenerates to MatchAll ("show
-	// everything"), which is acceptable for tree filtering.
-	totalQuery, _ := search.BuildBooleanQueryFromUserInput(searchQuery)
+func (s *SearchService) GetPathsFromSearchQuery(searchQuery string) config.BackendResponseWithData[TreeFilterResults] {
+	totalQuery, sortOption := search.BuildBooleanQueryFromUserInput(searchQuery)
 
 	// Tree filtering needs only document IDs, with no stored fields or scoring.
 	request := bleve.NewSearchRequest(search.ScopeSearchQuery(totalQuery, false))
 	request.Score = "none"
 	request.SortBy([]string{"_id"})
+	if sortOption != nil {
+		fields, _ := sortOption.ToBleveSortFields()
+		request.SortBy(fields)
+	}
 	request.Size = TREE_FILTER_MAX_RESULTS
 
 	results, err := func() (*bleve.SearchResult, error) {
@@ -140,10 +146,10 @@ func (s *SearchService) GetPathsFromSearchQuery(searchQuery string) config.Backe
 	}()
 	if err != nil {
 		log.Println("tree filter search failed:", err)
-		return config.BackendResponseWithData[[]string]{
+		return config.BackendResponseWithData[TreeFilterResults]{
 			Success: false,
 			Message: "Search index is unavailable",
-			Data:    []string{},
+			Data:    TreeFilterResults{Paths: []string{}, IsSorted: sortOption != nil},
 		}
 	}
 
@@ -154,12 +160,9 @@ func (s *SearchService) GetPathsFromSearchQuery(searchQuery string) config.Backe
 		paths = append(paths, hit.ID)
 	}
 
-	// Match GetAllPaths' sorted contract: relevance order is unstable across
-	// reindexes, and the filtered tree is keyed off the joined path list.
-	sort.Strings(paths)
-	return config.BackendResponseWithData[[]string]{
+	return config.BackendResponseWithData[TreeFilterResults]{
 		Success: true,
-		Data:    paths,
+		Data:    TreeFilterResults{Paths: paths, IsSorted: sortOption != nil},
 	}
 }
 
