@@ -101,6 +101,48 @@ func TestNodeServiceAddAttachmentsFromPaths(t *testing.T) {
 		assert.Equal(t, content, copied)
 	})
 
+	t.Run("Rejects a destination outside the notes directory before copying", func(t *testing.T) {
+		root := t.TempDir()
+		projectPath := filepath.Join(root, "project")
+		require.NoError(t, os.MkdirAll(filepath.Join(projectPath, "notes"), 0o755))
+		outside := filepath.Join(root, "outside")
+		require.NoError(t, os.Mkdir(outside, 0o755))
+		filePath := writeAttachmentSource(t, t.TempDir(), "attachment.txt", []byte("attachment"))
+		service := NodeService{ProjectPath: projectPath}
+
+		response := service.AddAttachmentsFromPaths("../../outside", []string{filePath})
+
+		assert.False(t, response.Success)
+		assert.NotEmpty(t, response.Message)
+		assert.Empty(t, response.Data)
+		assert.NotNil(t, response.Data)
+		assert.NoFileExists(t, filepath.Join(outside, "attachment.txt"))
+	})
+
+	t.Run("Returns completed imports when a later source is missing", func(t *testing.T) {
+		projectPath := t.TempDir()
+		destination := filepath.Join(projectPath, "notes")
+		require.NoError(t, os.Mkdir(destination, 0o755))
+		source := t.TempDir()
+		content := []byte("completed import")
+		filePath := writeAttachmentSource(t, source, "attachment.txt", content)
+		folder := filepath.Join(source, "folder")
+		writeAttachmentSource(t, folder, "note.md", content)
+		service := NodeService{ProjectPath: projectPath}
+
+		response := service.AddAttachmentsFromPaths("", []string{filePath, folder, filepath.Join(source, "missing.txt")})
+
+		assert.False(t, response.Success)
+		assert.NotEmpty(t, response.Message)
+		assert.Equal(t, []string{"notes/attachment.txt", "notes/folder"}, response.Data)
+		copied, err := os.ReadFile(filepath.Join(destination, "attachment.txt"))
+		require.NoError(t, err)
+		assert.Equal(t, content, copied)
+		copied, err = os.ReadFile(filepath.Join(destination, "folder", "note.md"))
+		require.NoError(t, err)
+		assert.Equal(t, content, copied)
+	})
+
 	t.Run("Returns a failure when a source file is missing", func(t *testing.T) {
 		projectPath := t.TempDir()
 		destinationPath := filepath.Join(projectPath, "notes", "assets")
@@ -190,18 +232,21 @@ func TestNodeServiceImportFolders(t *testing.T) {
 		assert.False(t, response.Success)
 		assert.NoDirExists(t, filepath.Join(project, "notes", "assets", "notes"))
 	})
-	t.Run("Does not publish a partially copied folder when a symlink is encountered", func(t *testing.T) {
+	t.Run("Returns earlier imports without publishing a folder containing a symlink", func(t *testing.T) {
 		project := t.TempDir()
 		require.NoError(t, os.Mkdir(filepath.Join(project, "notes"), 0o755))
 		source := t.TempDir()
 		folder := filepath.Join(source, "folder")
+		attachment := writeAttachmentSource(t, source, "attachment.txt", []byte("attachment"))
 		file := writeAttachmentSource(t, folder, "a.md", []byte("note"))
 		require.NoError(t, os.Symlink(file, filepath.Join(folder, "z-link")))
 		service := NodeService{ProjectPath: project}
 
-		response := service.AddAttachmentsFromPaths("", []string{folder})
+		response := service.AddAttachmentsFromPaths("", []string{attachment, folder})
 
 		assert.False(t, response.Success)
+		assert.Equal(t, []string{"notes/attachment.txt"}, response.Data)
+		assert.FileExists(t, filepath.Join(project, "notes", "attachment.txt"))
 		assert.NoDirExists(t, filepath.Join(project, "notes", "folder"))
 	})
 }
