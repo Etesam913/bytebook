@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/etesam913/bytebook/internal/apperr"
 )
 
 // CopyDroppedFolder copies a local folder into the notes tree without overwriting existing folders.
@@ -61,7 +63,7 @@ func resolveFolderImportPaths(source, destination string) (string, string, error
 		return "", "", err
 	}
 	if relative != ".." && !strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
-		return "", "", fmt.Errorf("cannot copy a folder into itself")
+		return "", "", apperr.Userf("cannot copy a folder into itself")
 	}
 	return source, filepath.Join(parent, filepath.Base(destination)), nil
 }
@@ -75,7 +77,7 @@ func copyFolderContents(source, copied string) error {
 			return err
 		}
 		if !entry.IsDir() && !entry.Type().IsRegular() {
-			return fmt.Errorf("unsupported file in dropped folder: %s", path)
+			return apperr.Userf("unsupported file in dropped folder: %s", path)
 		}
 		return nil
 	}); err != nil {

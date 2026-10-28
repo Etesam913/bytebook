@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/etesam913/bytebook/internal/notes/trash"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -130,6 +131,7 @@ func TestMoveToTrashPreservesSuccessfulItemsOnPartialFailure(t *testing.T) {
 	response := service.MoveToTrash([]string{"missing.md", "report.pdf", "also-missing.md"})
 
 	assert.False(t, response.Success)
+	assert.Equal(t, "Could not move items to trash: also-missing.md, missing.md", response.Message)
 	require.Len(t, response.Data, 1)
 	assert.Equal(t, attachmentPath, response.Data[0].OriginalPath)
 	assert.FileExists(t, response.Data[0].TrashedPath)
@@ -147,4 +149,26 @@ func TestMoveToTrashPreservesSuccessfulItemsOnPartialFailure(t *testing.T) {
 		assert.Equal(t, `{"tags":["report"]}`, string(content))
 		assert.FileExists(t, attachmentPath)
 	}
+}
+
+func TestRestoreFromTrashConflictMessage(t *testing.T) {
+	if runtime.GOOS != "darwin" {
+		t.Skip("Trash restore is only supported on macOS")
+	}
+	project := t.TempDir()
+	destination := filepath.Join(project, "notes", "note.md")
+	trashed := filepath.Join(t.TempDir(), "note.md")
+	require.NoError(t, os.MkdirAll(filepath.Dir(destination), 0755))
+	require.NoError(t, os.WriteFile(destination, []byte("keep"), 0644))
+	require.NoError(t, os.WriteFile(trashed, []byte("old"), 0644))
+	service := NoteService{ProjectPath: project}
+
+	response := service.RestoreFromTrash([]trash.TrashRestoreInfo{{OriginalPath: destination, TrashedPath: trashed}})
+
+	assert.False(t, response.Success)
+	assert.Equal(t, "an item already exists at the restore destination", response.Message)
+	content, err := os.ReadFile(destination)
+	require.NoError(t, err)
+	assert.Equal(t, "keep", string(content))
+	assert.FileExists(t, trashed)
 }

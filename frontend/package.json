@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "cd .. && wails3 dev -config ./build/config.yml --port 5173",
+    "dev": "bun run dev:clear-port && cd .. && wails3 dev -config ./build/config.yml --port 5173",
+    "dev:clear-port": "lsof -tiTCP:5173 -sTCP:LISTEN | while read -r pid; do kill \"$pid\"; done",
     "dev:internal": "vite",
     "e2e:prepare": "cd .. && wails3 generate bindings ./internal/... && go run ./scripts/generate-events",
     "build": "vite build --minify false --mode development",

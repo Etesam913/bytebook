@@ -7,8 +7,10 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"strings"
 	"time"
 
+	"github.com/etesam913/bytebook/internal/apperr"
 	"github.com/etesam913/bytebook/internal/notes/sidecar"
 	"github.com/etesam913/bytebook/internal/util"
 )
@@ -74,6 +76,7 @@ func uniqueTrashName(trashDir, src string) (string, error) {
 // It returns restore metadata for successful moves, even when other moves fail.
 func MoveNotesToTrash(projectPath string, folderAndNotes []string) ([]TrashRestoreInfo, error) {
 	var failed []error
+	var failedNames []string
 	normalizedPaths := util.DedupeDescendantPaths(folderAndNotes)
 	restoreItems := make([]TrashRestoreInfo, 0, len(normalizedPaths))
 
@@ -83,6 +86,7 @@ func MoveNotesToTrash(projectPath string, folderAndNotes []string) ([]TrashResto
 		fullPath, err := util.SafeJoin(filepath.Join(projectPath, "notes"), relPath)
 		if err != nil {
 			failed = append(failed, fmt.Errorf("%s: %w", fileName, err))
+			failedNames = append(failedNames, fileName)
 			continue
 		}
 
@@ -90,17 +94,20 @@ func MoveNotesToTrash(projectPath string, folderAndNotes []string) ([]TrashResto
 		fileInfo, err := os.Stat(fullPath)
 		if err != nil {
 			failed = append(failed, fmt.Errorf("%s: %w", fileName, err))
+			failedNames = append(failedNames, fileName)
 			continue
 		}
 		if !fileInfo.IsDir() {
 			sidecarPath := sidecar.PathFor(fullPath)
 			if sidecarExists, err := util.FileOrFolderExists(sidecarPath); err != nil {
 				failed = append(failed, fmt.Errorf("%s: %w", fileName, err))
+				failedNames = append(failedNames, fileName)
 				continue
 			} else if sidecarExists {
 				sidecarRestoreInfo, err := MoveToTrash(sidecarPath)
 				if err != nil {
 					failed = append(failed, fmt.Errorf("%s: %w", fileName, err))
+					failedNames = append(failedNames, fileName)
 					continue
 				}
 				relatedItems = append(relatedItems, sidecarRestoreInfo)
@@ -113,13 +120,20 @@ func MoveNotesToTrash(projectPath string, folderAndNotes []string) ([]TrashResto
 				_ = restoreFromTrash(relatedItem.TrashedPath, relatedItem.OriginalPath)
 			}
 			failed = append(failed, fmt.Errorf("%s: %w", fileName, err))
+			failedNames = append(failedNames, fileName)
 			continue
 		}
 		restoreInfo.RelatedItems = relatedItems
 		restoreItems = append(restoreItems, restoreInfo)
 	}
 
-	return restoreItems, errors.Join(failed...)
+	if len(failed) > 0 {
+		return restoreItems, &apperr.UserError{
+			Msg: "Could not move items to trash: " + strings.Join(failedNames, ", "),
+			Err: errors.Join(failed...),
+		}
+	}
+	return restoreItems, nil
 }
 
 func restoreFromTrash(trashedPath, originalPath string) error {
@@ -128,14 +142,14 @@ func restoreFromTrash(trashedPath, originalPath string) error {
 		return fmt.Errorf("could not check trashed item: %w", err)
 	}
 	if !exists {
-		return fmt.Errorf("trashed item no longer exists")
+		return apperr.Userf("trashed item no longer exists")
 	}
 	destinationExists, err := util.FileOrFolderExists(originalPath)
 	if err != nil {
 		return fmt.Errorf("could not check restore destination: %w", err)
 	}
 	if destinationExists {
-		return fmt.Errorf("an item already exists at the restore destination")
+		return apperr.Userf("an item already exists at the restore destination")
 	}
 	if err := os.MkdirAll(filepath.Dir(originalPath), 0755); err != nil {
 		return fmt.Errorf("could not create restore directory: %w", err)

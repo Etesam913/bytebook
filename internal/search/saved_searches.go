@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/etesam913/bytebook/internal/apperr"
 	"github.com/etesam913/bytebook/internal/util"
 )
 
@@ -57,7 +58,7 @@ func AddSavedSearch(projectPath, name, query string) error {
 	// Check if search with this name already exists
 	for _, search := range searches {
 		if search.Name == name {
-			return fmt.Errorf("saved search with name '%s' already exists", name)
+			return apperr.Userf("saved search with name '%s' already exists", name)
 		}
 	}
 
@@ -91,7 +92,7 @@ func RemoveSavedSearch(projectPath, name string) error {
 	}
 
 	if !found {
-		return fmt.Errorf("saved search with name '%s' not found", name)
+		return apperr.Userf("saved search with name '%s' not found", name)
 	}
 
 	// Write back to file

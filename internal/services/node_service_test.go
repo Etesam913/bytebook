@@ -99,7 +99,7 @@ func TestNodeServiceAddAttachmentsFromPaths(t *testing.T) {
 		response := service.AddAttachmentsFromPaths("../../outside", []string{filePath})
 
 		assert.False(t, response.Success)
-		assert.NotEmpty(t, response.Message)
+		assert.Equal(t, "Could not add attachments", response.Message)
 		assert.Empty(t, response.Data)
 		assert.NotNil(t, response.Data)
 		assert.NoFileExists(t, filepath.Join(outside, "attachment.txt"))
@@ -119,7 +119,7 @@ func TestNodeServiceAddAttachmentsFromPaths(t *testing.T) {
 		response := service.AddAttachmentsFromPaths("", []string{filePath, folder, filepath.Join(source, "missing.txt")})
 
 		assert.False(t, response.Success)
-		assert.NotEmpty(t, response.Message)
+		assert.Equal(t, "Could not add attachments", response.Message)
 		assert.Equal(t, []string{"notes/attachment.txt", "notes/folder"}, response.Data)
 		copied, err := os.ReadFile(filepath.Join(destination, "attachment.txt"))
 		require.NoError(t, err)
@@ -141,7 +141,7 @@ func TestNodeServiceAddAttachmentsFromPaths(t *testing.T) {
 		)
 
 		assert.False(t, response.Success)
-		assert.NotEmpty(t, response.Message)
+		assert.Equal(t, "Could not add attachments", response.Message)
 		assert.Empty(t, response.Data)
 		assert.NotNil(t, response.Data)
 		assert.NoFileExists(t, filepath.Join(destinationPath, "missing.txt"))
@@ -157,7 +157,7 @@ func TestNodeServiceAddAttachmentsFromPaths(t *testing.T) {
 		response := service.AddAttachmentsFromPaths("missing", []string{filePath})
 
 		assert.False(t, response.Success)
-		assert.NotEmpty(t, response.Message)
+		assert.Equal(t, "Could not add attachments", response.Message)
 		assert.Empty(t, response.Data)
 		assert.NotNil(t, response.Data)
 		persistedSource, err := os.ReadFile(filePath)
@@ -216,6 +216,7 @@ func TestNodeServiceImportFolders(t *testing.T) {
 		response := service.AddAttachmentsFromPaths("assets", []string{filepath.Join(project, "notes")})
 
 		assert.False(t, response.Success)
+		assert.Equal(t, "cannot copy a folder into itself", response.Message)
 		assert.NoDirExists(t, filepath.Join(project, "notes", "assets", "notes"))
 	})
 	t.Run("Returns earlier imports without publishing a folder containing a symlink", func(t *testing.T) {
@@ -231,6 +232,7 @@ func TestNodeServiceImportFolders(t *testing.T) {
 		response := service.AddAttachmentsFromPaths("", []string{attachment, folder})
 
 		assert.False(t, response.Success)
+		assert.Equal(t, "unsupported file in dropped folder: z-link", response.Message)
 		assert.Equal(t, []string{"notes/attachment.txt"}, response.Data)
 		assert.FileExists(t, filepath.Join(project, "notes", "attachment.txt"))
 		assert.NoDirExists(t, filepath.Join(project, "notes", "folder"))
