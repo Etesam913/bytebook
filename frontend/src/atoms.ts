@@ -4,13 +4,10 @@ export {
   type SidebarPanelKey,
 } from '@utils/sidebar-panels';
 import { atom } from 'jotai';
-import { atomFamily } from 'jotai-family';
 import {
   type BackendQueryDataType,
   type ContextMenuData,
   type DialogDataType,
-  type KernelInstanceData,
-  type LanguagesWithKernels,
 } from '@/types';
 import {
   type FileOrFolderPath,
@@ -139,55 +136,6 @@ export const contextMenuDataAtom = atom<ContextMenuData>({
   targetId: null,
 });
 
-/**
- * Map of kernel instance id -> instance data. The backend KernelManager owns
- * the authoritative state and emits kernel:instance:* events whenever an
- * instance is created, updates status/heartbeat, or shuts down.
- */
-export const kernelInstancesAtom = atom<Record<string, KernelInstanceData>>({});
-
-/**
- * Derived: instances grouped by language.
- */
-const EMPTY_KERNEL_INSTANCES_BY_LANGUAGE: Record<
-  LanguagesWithKernels,
-  KernelInstanceData[]
-> = {
-  python: [],
-  go: [],
-  javascript: [],
-  java: [],
-};
-
-// Derived atom that groups all active kernel instances by their programming language.
-export const kernelInstancesByLanguageAtom = atom((get) =>
-  Object.values(get(kernelInstancesAtom)).reduce((grouped, inst) => {
-    grouped[inst.language].push(inst);
-    return grouped;
-  }, structuredClone(EMPTY_KERNEL_INSTANCES_BY_LANGUAGE))
-);
-
-/**
- * Derived: the instance for a given (noteId, language), or null if none exists.
- *
- * `atomFamily` memoizes a parameterized atom: each unique (noteId, language)
- * pair returns the same atom instance, so subscribers re-render only when
- * their specific kernel instance changes — not on every kernelInstancesAtom
- * mutation. The equality fn dedupes the param object by value, not reference.
- */
-export const kernelInstanceForNoteAtomFamily = atomFamily(
-  ({ noteId, language }: { noteId: string; language: LanguagesWithKernels }) =>
-    atom((get) => {
-      const all = get(kernelInstancesAtom);
-      return (
-        Object.values(all).find(
-          (i) => i.noteId === noteId && i.language === language
-        ) ?? null
-      );
-    }),
-  (a, b) => a.noteId === b.noteId && a.language === b.language
-);
-
 // Maps each sidebar panel key to whether its accordion section is currently expanded.
 type FileSidebarOpenState = Record<SidebarPanelKey, boolean>;
 
@@ -195,7 +143,6 @@ const defaultFileSidebarOpenState: FileSidebarOpenState = {
   files: true,
   pinned: true,
   recent: false,
-  kernels: false,
   tags: false,
   savedSearches: false,
 };
@@ -218,10 +165,6 @@ const initializeFileSidebarOpenState = (): FileSidebarOpenState => {
         typeof parsed.recent === 'boolean'
           ? parsed.recent
           : defaultFileSidebarOpenState.recent,
-      kernels:
-        typeof parsed.kernels === 'boolean'
-          ? parsed.kernels
-          : defaultFileSidebarOpenState.kernels,
       tags:
         typeof parsed.tags === 'boolean'
           ? parsed.tags
@@ -271,7 +214,6 @@ export const DEFAULT_SIDEBAR_FLEX_WEIGHTS: SidebarFlexWeights = {
   files: 1.5,
   pinned: 1,
   recent: 1,
-  kernels: 1,
   tags: 1,
   savedSearches: 1,
 };

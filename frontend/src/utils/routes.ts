@@ -23,12 +23,6 @@ export function navigateToPath(
   );
 }
 
-export type KernelWithFilesRouteParams = {
-  kernelName: string;
-  folder?: string;
-  note?: string;
-};
-
 export type NotesRouteParams = {
   '*'?: string;
 };
@@ -36,8 +30,6 @@ export type NotesRouteParams = {
 // Route patterns (used in Route components and useRoute hooks)
 export const ROUTE_PATTERNS = {
   ROOT: '/',
-  KERNELS: '/kernels/:kernelName',
-  KERNELS_WITH_FILES: '/kernels/:kernelName/:folder?/:note?',
   NOTES: '/notes/*',
   CATCH_ALL: '*',
   NOT_FOUND_FALLBACK: '/404',
@@ -45,11 +37,6 @@ export const ROUTE_PATTERNS = {
 
 // Route builders - functions to construct routes with parameters
 const routeBuilders = {
-  /**
-   * Build kernel route
-   */
-  kernel: (kernelName: string) => `/kernels/${encodeURIComponent(kernelName)}`,
-
   /**
    * Build 404 fallback route
    */

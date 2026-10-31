@@ -1,6 +1,7 @@
 package services
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -39,17 +40,10 @@ func indexTestNotes(t *testing.T, projectPath string, index bleve.Index, relativ
 
 func writeServiceTestSidecar(t *testing.T, notePath string) {
 	t.Helper()
-	require.NoError(t, sidecar.WriteCodeResults(notePath, sidecar.CodeResults{
-		CodeBlocks: []sidecar.CodeBlock{{
-			CodeBlockID:      "block-1",
-			LastRan:          "2026-05-03T18:42:10Z",
-			AreResultsHidden: true,
-			ResultHTML:       "<div>ok</div>",
-		}},
-	}))
+	require.NoError(t, os.WriteFile(sidecar.PathFor(notePath), []byte(`{"tags":["keep"]}`), 0644))
 }
 
-func writeTestNoteWithCodeResults(t *testing.T, projectPath, relativePath string) string {
+func writeTestNoteWithSidecar(t *testing.T, projectPath, relativePath string) string {
 	t.Helper()
 	path := writeTestNote(t, projectPath, relativePath, "# Note")
 	writeServiceTestSidecar(t, path)

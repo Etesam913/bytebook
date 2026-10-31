@@ -5,7 +5,6 @@ export const SIDEBAR_PANEL_KEYS = [
   'files',
   'pinned',
   'recent',
-  'kernels',
   'tags',
   'savedSearches',
 ] as const;
@@ -19,7 +18,6 @@ export const SIDEBAR_SECTION_OPTIONS: {
 }[] = [
   { value: 'pinned', label: 'Pinned', hideKey: 'hidePinned' },
   { value: 'recent', label: 'Recent', hideKey: 'hideRecent' },
-  { value: 'kernels', label: 'Kernels', hideKey: 'hideKernels' },
   { value: 'tags', label: 'Tags', hideKey: 'hideTags' },
   {
     value: 'savedSearches',

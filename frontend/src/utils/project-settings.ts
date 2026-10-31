@@ -189,7 +189,6 @@ export function normalizeProjectSettings(
       sidebarVisibility: {
         hidePinned: sidebarVisibility?.hidePinned ?? false,
         hideRecent: sidebarVisibility?.hideRecent ?? false,
-        hideKernels: sidebarVisibility?.hideKernels ?? false,
         hideTags: sidebarVisibility?.hideTags ?? false,
         hideSavedSearches: sidebarVisibility?.hideSavedSearches ?? false,
       },
@@ -226,7 +225,6 @@ export const DEFAULT_PROJECT_SETTINGS: ProjectSettings = {
     sidebarVisibility: {
       hidePinned: false,
       hideRecent: false,
-      hideKernels: false,
       hideTags: false,
       hideSavedSearches: false,
     },
@@ -238,7 +236,5 @@ export const DEFAULT_PROJECT_SETTINGS: ProjectSettings = {
     codeBlockLineWrapping: false,
     codeBlockShowLineNumbers: false,
     codeBlockDefaultLanguage: DEFAULT_CODE_BLOCK_LANGUAGE,
-    pythonVenvPath: '',
-    customPythonVenvPaths: [],
   },
 };

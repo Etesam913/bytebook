@@ -12,7 +12,7 @@ When making changes do not prioritize backwards compatibility. This is not a rel
 
 ## What is Bytebook
 
-Bytebook is a desktop note-taking app for developers built with [Wails v3](https://github.com/wailsapp/wails) (Go backend + React frontend). Notes are stored as Markdown files on disk. The app supports code execution via Jupyter kernels (Python, Go, JavaScript, Java), full-text search via Bleve, and a rich editor built on Lexical.
+Bytebook is a desktop note-taking app for developers built with [Wails v3](https://github.com/wailsapp/wails) (Go backend + React frontend). Notes are stored as Markdown files on disk. The app supports syntax-highlighted code blocks, full-text search via Bleve, and a rich editor built on Lexical.
 
 **Note:** The project uses a local fork of Wails v3. `go.mod` has a `replace` directive pointing to `../wails/v3` — the sibling `wails/` directory must exist for Go builds to work.
 
@@ -37,12 +37,11 @@ The app is a Wails v3 desktop app. The Go process runs the backend; the frontend
 
 | Package             | Responsibility                                                                                                                                                                                                 |
 | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `config/`           | Project path resolution, settings JSON R/W, kernel connection config                                                                                                                                           |
+| `config/`           | Project path resolution, settings JSON R/W                                                                                                                                           |
 | `notes/`            | Markdown R/W, file tree queries, file watcher, attachment tags                                                                                                                                                 |
 | `search/`           | Bleve full-text index: creation, indexing all files, query construction, sorting, saved searches                                                                                                               |
 | `events/`           | Listens to Wails app events and updates the search index / triggers UI refreshes                                                                                                                               |
 | `services/`         | Wails service structs (`NoteService`, `FolderService`, `FileTreeService`, `SearchService`, `SettingsService`, `TagsService`, `CodeService`, `NodeService`) — these are the RPC surface exposed to the frontend |
-| `jupyter_protocol/` | Jupyter messaging protocol implementation; ZeroMQ socket management for kernel communication                                                                                                                   |
 | `ui/`               | Window creation and native menus                                                                                                                                                                               |
 | `util/`             | Shared helpers: event name constants, file I/O, formatting, concurrency, SPA middleware                                                                                                                        |
 
@@ -55,11 +54,10 @@ The data directory is `~/Library/Application Support/Bytebook/` (macOS only curr
 - `/notes/*` — note or folder view (dispatched by `EditorWrapper`)
 - `/search` — full-text search
 - `/saved-search/:searchQuery/*` — saved search / tag filter view
-- `/kernels/:kernelName` — kernel info
 
 **State management:**
 
-- **Jotai atoms** (`atoms.ts`) — UI state: file tree data, sidebar selections, project settings, dialog/context-menu state, kernel statuses. Most atoms use a custom `atomWithLogging` wrapper that logs state transitions.
+- **Jotai atoms** (`atoms.ts`) — UI state: file tree data, sidebar selections, project settings, dialog/context-menu state. Most atoms use a custom `atomWithLogging` wrapper that logs state transitions.
 - **TanStack Query** — server state (notes content, folder listings, search results). Query keys follow `['resource-name', ...identifiers]` conventions.
 
 **Editor:** Built on Lexical (`@lexical/react`). Key pieces:
@@ -67,7 +65,7 @@ The data directory is `~/Library/Application Support/Bytebook/` (macOS only curr
 - `components/editor/index.tsx` (`NotesEditor`) — the editor shell
 - `components/editor/plugins/save.tsx` — dispatches `SAVE_MARKDOWN_CONTENT` Lexical command which converts to Markdown and calls `SetNoteMarkdown` backend binding
 - `components/editor/nodes/` — custom Lexical nodes (code blocks, files/attachments, inline equations, links)
-- `components/editor/plugins/` — custom plugins (code execution, file picker, draggable blocks, table of contents, etc.)
+- `components/editor/plugins/` — custom plugins (code blocks, file picker, draggable blocks, table of contents, etc.)
 - `components/editor/transformers/` — custom Markdown ↔ Lexical transformers
 
 **File tree:** `components/virtualized/virtualized-file-tree/` renders a lazy-loaded, virtualized tree using `react-virtuoso`. Tree state (a `Map<id, FileOrFolder>`) lives in `fileTreeDataAtom`.
@@ -98,4 +96,3 @@ type BackendResponseWithData[T any] struct {
 | Frontend styling        | Tailwind CSS v4                        | Utility-first CSS               |
 | Backend search          | `github.com/blevesearch/bleve/v2`      | Full-text search index          |
 | Backend file events     | `github.com/fsnotify/fsnotify`         | File system watcher             |
-| Backend kernel comms    | `github.com/pebbe/zmq4`                | ZeroMQ for Jupyter protocol     |

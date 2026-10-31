@@ -35,7 +35,7 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { GetNoteMarkdownWithCodeResults } from '@bindings/services/noteservice';
+import { GetNoteMarkdown } from '@bindings/services/noteservice';
 import { draggedGhostElementAtom, previousMarkdownAtom } from '../atoms';
 import type { EditorBlockTypes, FloatingDataType, Frontmatter } from '@/types';
 import { QueryError } from '@utils/query';
@@ -56,7 +56,6 @@ import { useCurrentWindowWailsEvent } from '@hooks/events';
 import { $convertFromMarkdownString } from '@lexical/markdown';
 import type { PlaceholderLineData } from '../types';
 import { updatePlaceholderLineData } from '../utils/placeholder-line';
-import { applyCodeResultsSidecar } from '../utils/code-results';
 import type { FilePath } from '@utils/path';
 import { queryKeys } from '@utils/query-keys';
 
@@ -79,17 +78,14 @@ export function useNoteMarkdown({
   const getNoteMarkdownQuery = useQuery({
     queryKey: queryKeys.noteMarkdown(filePath.fullPath),
     queryFn: async () => {
-      const res = await GetNoteMarkdownWithCodeResults(
-        `notes/${filePath.fullPath}`
-      );
+      const res = await GetNoteMarkdown(`notes/${filePath.fullPath}`);
       if (!res.success) {
         throw new QueryError(
           `Failed to get note markdown for ${filePath.fullPath}`
         );
       }
       return {
-        markdown: res.data?.markdown ?? '',
-        codeResults: res.data?.codeResults,
+        markdown: res.data ?? '',
       };
     },
   });
@@ -123,7 +119,6 @@ export function useNoteMarkdown({
           true,
           false
         );
-        applyCodeResultsSidecar(snapshot.codeResults);
 
         overflowContainerRef.current?.scrollTo(0, 0);
       },

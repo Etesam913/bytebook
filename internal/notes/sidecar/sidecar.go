@@ -1,6 +1,6 @@
 // Package sidecar manages the JSON metadata file that lives beside every
 // project file (note or attachment). Each source file `foo.ext` has a
-// companion `.foo.ext.json` that holds tags and any code-execution results.
+// companion `.foo.ext.json` that holds tags.
 package sidecar
 
 import (
@@ -15,8 +15,7 @@ import (
 // Data is the JSON payload stored in a sidecar file. The same shape is
 // used for notes and attachments alike.
 type Data struct {
-	Tags        []string     `json:"tags,omitempty"`
-	CodeResults *CodeResults `json:"codeResults,omitempty"`
+	Tags []string `json:"tags,omitempty"`
 }
 
 // PathFor returns the sidecar path that pairs with filePath.
@@ -33,21 +32,6 @@ func PathForFile(projectPath, folder, fileName string) string {
 // IsFileName reports whether fileName matches the `.<filename>.json` sidecar pattern.
 func IsFileName(fileName string) bool {
 	return strings.HasPrefix(fileName, ".") && strings.HasSuffix(fileName, ".json") && len(fileName) > len(".json")+1
-}
-
-// NotePathFromPath converts a sidecar path back to its associated `.md` note path.
-// Used by the watcher to refresh code-results when a sidecar changes.
-// Returns an empty string for attachment sidecars.
-func NotePathFromPath(sidecarPath string) string {
-	fileName := filepath.Base(sidecarPath)
-	if !IsFileName(fileName) {
-		return ""
-	}
-	noteName := strings.TrimSuffix(strings.TrimPrefix(fileName, "."), ".json")
-	if !strings.EqualFold(filepath.Ext(noteName), ".md") {
-		return ""
-	}
-	return filepath.Join(filepath.Dir(sidecarPath), noteName)
 }
 
 // read parses the sidecar at sidecarPath; returns a zero value if the file is missing.

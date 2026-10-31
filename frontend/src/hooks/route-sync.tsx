@@ -49,7 +49,6 @@ export function useHistoryNavigationEvents(): void {
  */
 export function useSyncFileMaximizedWithRoute(): void {
   const [pathname] = useLocation();
-  const isFileMaximized = useAtomValue(isFileMaximizedAtom);
   const setIsFileMaximized = useSetAtom(isFileMaximizedAtom);
 
   useEffect(() => {
@@ -57,12 +56,7 @@ export function useSyncFileMaximizedWithRoute(): void {
       setIsFileMaximized(false);
       return;
     }
-
-    const isKernelRoute = pathname.startsWith('/kernels');
-    if (isKernelRoute && isFileMaximized) {
-      setIsFileMaximized(false);
-    }
-  }, [isFileMaximized, pathname, setIsFileMaximized]);
+  }, [pathname, setIsFileMaximized]);
 }
 
 /**

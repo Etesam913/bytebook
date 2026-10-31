@@ -21,18 +21,10 @@ const (
 	debounceTimeout = 50 * time.Millisecond
 )
 
-// CodeResultsUpdateEventData is the payload for code-results:update events,
-// emitted when a note's code-results sidecar file changes on disk.
-type CodeResultsUpdateEventData struct {
-	FilePath    string              `json:"filePath"`
-	CodeResults sidecar.CodeResults `json:"codeResults"`
-}
-
 func init() {
 	// These events are named in util but their payload types live here / in
 	// config, which util cannot import without a cycle.
 	application.RegisterEvent[config.ProjectSettingsJson](util.EventSettingsUpdate)
-	application.RegisterEvent[CodeResultsUpdateEventData](util.EventCodeResultsUpdate)
 }
 
 type pendingWatcherEvent struct {
@@ -307,43 +299,6 @@ func (fw *FileWatcher) isDirectoryEvent(event fsnotify.Event) bool {
 	return fw.knownWatchedDirectories.Has(event.Name)
 }
 
-func (fw *FileWatcher) emitCodeResultsSidecarUpdateEvent(sidecarPath string) {
-	notePath := sidecar.NotePathFromPath(sidecarPath)
-	if notePath == "" {
-		return
-	}
-	if _, err := os.Stat(notePath); err != nil {
-		return
-	}
-
-	results := sidecar.CodeResults{
-		Version:    sidecar.CodeResultsVersion,
-		CodeBlocks: []sidecar.CodeBlock{},
-	}
-	if _, err := os.Stat(sidecarPath); err == nil {
-		readResults, err := sidecar.ReadCodeResults(notePath)
-		if err != nil {
-			log.Printf("Error reading code results sidecar %s: %v", sidecarPath, err)
-			return
-		}
-		results = readResults
-	} else if !os.IsNotExist(err) {
-		log.Printf("Error statting code results sidecar %s: %v", sidecarPath, err)
-		return
-	}
-
-	if fw.app == nil {
-		return
-	}
-	fw.app.Event.EmitEvent(&application.CustomEvent{
-		Name: util.EventCodeResultsUpdate,
-		Data: CodeResultsUpdateEventData{
-			FilePath:    fw.pathFromNotes(notePath),
-			CodeResults: results,
-		},
-	})
-}
-
 func (fw *FileWatcher) emitFileWriteEvent(filePath string) {
 	fw.knownWatchedDirectories.recordPath(filePath)
 	if !fw.hasFileChanged(filePath) {
@@ -386,14 +341,7 @@ func (fw *FileWatcher) processEvent(event fsnotify.Event) {
 		return
 	}
 
-	// File sidecars are hidden JSON files, but code-result sidecar changes need
-	// their own event so other windows can refresh rendered code output.
 	if sidecar.IsFileName(fileName) {
-		// Chmod events do not change sidecar contents, so only content or path
-		// mutations should trigger a code-results refresh.
-		if event.Has(fsnotify.Write) || event.Has(fsnotify.Create) || event.Has(fsnotify.Remove) || event.Has(fsnotify.Rename) {
-			fw.emitCodeResultsSidecarUpdateEvent(event.Name)
-		}
 		return
 	}
 

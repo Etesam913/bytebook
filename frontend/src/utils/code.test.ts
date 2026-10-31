@@ -6,7 +6,7 @@ import { LANGUAGES } from '@/types';
 describe('getDefaultCodeForLanguage', () => {
   it.each([
     [LANGUAGES.PYTHON, 'print("Hello, World!")\n\n\n\n'],
-    [LANGUAGES.GO, '%% \nfmt.Println("Hello, World!")\n\n\n\n'],
+    [LANGUAGES.GO, 'fmt.Println("Hello, World!")\n\n\n\n'],
     [LANGUAGES.JAVASCRIPT, 'console.log("Hello, World!");\n\n\n\n'],
     [LANGUAGES.JAVA, 'System.out.println("Hello, World!");\n\n\n\n'],
     [LANGUAGES.TEXT, ''],

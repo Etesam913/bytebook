@@ -10,8 +10,6 @@ require (
 
 require (
 	github.com/blevesearch/bleve/v2 v2.5.5
-	github.com/robert-nix/ansihtml v1.0.1
-	github.com/yuin/goldmark v1.7.16
 	golang.org/x/sync v0.21.0
 	golang.org/x/text v0.39.0
 )
@@ -48,15 +46,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
-	github.com/segmentio/asm v1.1.3 // indirect
-	github.com/segmentio/encoding v0.5.4 // indirect
 	go.etcd.io/bbolt v1.4.3 // indirect
-	go.lsp.dev/jsonrpc2 v0.10.0
-	go.lsp.dev/pkg v0.0.0-20210717090340-384b27a52fb2 // indirect
-	go.lsp.dev/protocol v0.12.0
-	go.lsp.dev/uri v0.3.0
-	go.uber.org/multierr v1.10.0 // indirect
-	go.uber.org/zap v1.28.0
 	google.golang.org/protobuf v1.36.10 // indirect
 )
 
@@ -65,10 +55,8 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
-	github.com/google/uuid v1.6.0
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/pebbe/zmq4 v1.4.0
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1

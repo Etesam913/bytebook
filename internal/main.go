@@ -8,8 +8,6 @@ import (
 	"github.com/etesam913/bytebook/internal/config"
 	"github.com/etesam913/bytebook/internal/events"
 	"github.com/etesam913/bytebook/internal/ingest"
-	"github.com/etesam913/bytebook/internal/kernel_manager"
-	"github.com/etesam913/bytebook/internal/lsp"
 	"github.com/etesam913/bytebook/internal/notes"
 	"github.com/etesam913/bytebook/internal/search"
 	"github.com/etesam913/bytebook/internal/services"
@@ -23,13 +21,8 @@ import (
 
 // main function serves as the application's entry point.
 func main() {
-	projectPath, kernels, err := config.InitProject()
+	projectPath, err := config.InitProject()
 	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	// Wipe stale per-instance connection files from a previous run.
-	if err := kernel_manager.SetupKernelsDir(projectPath); err != nil {
 		log.Fatal(err.Error())
 	}
 
@@ -39,12 +32,6 @@ func main() {
 	}
 	indexHolder := search.NewIndexHolder(searchIndex)
 	defer indexHolder.Close()
-
-	kernelManager := kernel_manager.New(projectPath, kernels)
-	defer kernelManager.ShutdownAll()
-
-	lspManager := lsp.New()
-	defer lspManager.ShutdownAll()
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -67,14 +54,6 @@ func main() {
 			application.NewService(&services.SearchService{ProjectPath: projectPath, Index: indexHolder}),
 			application.NewService(&services.SettingsService{ProjectPath: projectPath}),
 			application.NewService(&services.TagsService{ProjectPath: projectPath, Index: indexHolder}),
-			application.NewService(&services.CodeService{
-				ProjectPath: projectPath,
-				Manager:     kernelManager,
-			}),
-			application.NewService(&services.LSPService{
-				ProjectPath: projectPath,
-				Manager:     lspManager,
-			}),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(bytebook.Frontend),

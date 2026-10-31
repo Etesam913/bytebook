@@ -12,14 +12,13 @@ import {
 import { type Dispatch, type SetStateAction, useEffect } from 'react';
 import { useStore } from 'jotai';
 import { toast } from 'sonner';
-import { SetNoteMarkdownWithCodeResults } from '@bindings/services/noteservice';
+import { SetNoteMarkdown } from '@bindings/services/noteservice';
 import { CUSTOM_TRANSFORMERS } from '../transformers';
 import { replaceFrontMatter, parseFrontMatter } from '../utils/note-metadata';
 import { previousMarkdownAtom } from '../atoms';
 import { FilePath } from '@utils/path';
 import { Frontmatter } from '@/types';
 import { $convertToMarkdownString } from '@lexical/markdown';
-import { collectCodeResultsSidecar } from '../utils/code-results';
 import { queryKeys } from '@utils/query-keys';
 
 type SaveMarkdownContentPayload =
@@ -43,12 +42,10 @@ export function SavePlugin({
   const queryClient = useQueryClient();
 
   async function saveMarkdownContent(markdownWithFrontmatter: string) {
-    const codeResults = collectCodeResultsSidecar();
-    const res = await SetNoteMarkdownWithCodeResults(
+    const res = await SetNoteMarkdown(
       filePath.folder,
       filePath.noteWithoutExtension,
-      markdownWithFrontmatter,
-      codeResults
+      markdownWithFrontmatter
     );
     if (!res.success) {
       toast.error(`Failed to save note: ${res.message}`);

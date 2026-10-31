@@ -5,8 +5,6 @@ import { Duplicate2 } from '@/icons/duplicate-2';
 import { Maximize } from '@/icons/maximize';
 import { Minimize } from '@/icons/minimize';
 import { HorizontalDots } from '@/icons/horizontal-dots';
-import { SquareTerminal } from '@/icons/square-terminal';
-import { Subtitles } from '@/icons/subtitles';
 import {
   AppMenu,
   AppMenuItem,
@@ -14,15 +12,7 @@ import {
   AppMenuTrigger,
 } from '@components/menu';
 import { Tooltip } from '@components/tooltip';
-import { PlayButton } from './play-button';
-import type {
-  CodeBlockExecutionProps,
-  CodeBlockIdentityProps,
-  CodeBlockShellProps,
-} from './types';
-import { LANGUAGES, languagesWithKernelsSet } from '@/types';
-import { routeUrls } from '@utils/routes';
-import { navigate } from 'wouter/use-browser-location';
+import type { CodeBlockIdentityProps, CodeBlockShellProps } from './types';
 import { Trash } from '@/icons/trash';
 import { removeDecoratorNode } from '@utils/commands';
 import { cn } from '@utils/string-formatting';
@@ -30,12 +20,10 @@ import { UNSAFE_PortalProvider } from '@react-aria/overlays';
 
 export function CodeActions({
   identity,
-  execution,
   shell,
   isSelected,
 }: {
   identity: CodeBlockIdentityProps;
-  execution: CodeBlockExecutionProps;
   shell: CodeBlockShellProps;
   isSelected?: boolean;
 }) {
@@ -45,15 +33,9 @@ export function CodeActions({
     isExpanded,
     expandCodeBlock,
     collapseCodeBlock,
-    hideResults,
-    setHideResults,
     dialogRef,
   } = shell;
-  const { id, nodeKey, language } = identity;
-  const { status, setStatus, kernelInstanceId } = execution;
-
-  const canShowKernelInfo =
-    language !== LANGUAGES.TEXT && languagesWithKernelsSet.has(language);
+  const { nodeKey } = identity;
 
   const tooltipRoot = isExpanded && dialogRef ? dialogRef : undefined;
 
@@ -66,45 +48,6 @@ export function CodeActions({
         </span>
       ),
     },
-    {
-      id: isExpanded ? 'minimize' : 'maximize',
-      label: (
-        <span className="flex items-center gap-1.5 will-change-transform">
-          {isExpanded ? (
-            <Minimize height="1.125rem" width="1.125rem" />
-          ) : (
-            <Maximize height="1.125rem" width="1.125rem" />
-          )}
-          {isExpanded ? 'Minimize' : 'Maximize'}
-        </span>
-      ),
-    },
-    ...(canShowKernelInfo
-      ? [
-          {
-            id: 'kernel-info',
-            label: (
-              <span className="flex items-center gap-1.5 will-change-transform">
-                <SquareTerminal height="1.125rem" width="1.125rem" /> Kernel
-                Info
-              </span>
-            ),
-          },
-        ]
-      : []),
-    ...(language !== LANGUAGES.TEXT
-      ? [
-          {
-            id: hideResults ? 'show-results' : 'hide-results',
-            label: (
-              <span className="flex items-center gap-1.5 will-change-transform">
-                <Subtitles height="18" width="18" />
-                {hideResults ? 'Show Results' : 'Hide Results'}
-              </span>
-            ),
-          },
-        ]
-      : []),
     {
       id: 'delete',
       label: (
@@ -122,27 +65,6 @@ export function CodeActions({
         const editorContent = codeMirrorInstance.view.state.doc.toString();
         if (!editorContent) break;
         void navigator.clipboard.writeText(editorContent);
-        break;
-      }
-      case 'kernel-info': {
-        if (!canShowKernelInfo) break;
-        navigate(routeUrls.kernel(language));
-        break;
-      }
-      case 'hide-results': {
-        setHideResults(true);
-        break;
-      }
-      case 'show-results': {
-        setHideResults(false);
-        break;
-      }
-      case 'maximize': {
-        expandCodeBlock();
-        break;
-      }
-      case 'minimize': {
-        collapseCodeBlock();
         break;
       }
       case 'delete': {
@@ -164,34 +86,37 @@ export function CodeActions({
         isSelected ? 'opacity-100' : 'opacity-0'
       )}
     >
-      {!hideResults && language !== LANGUAGES.TEXT && (
-        <PlayButton
-          codeBlockId={id}
-          codeMirrorInstance={codeMirrorInstance}
-          language={language}
-          status={status}
-          setStatus={setStatus}
-          isExpanded={isExpanded}
-          dialogRef={dialogRef}
-          kernelInstanceId={kernelInstanceId}
-        />
-      )}
-      {isExpanded && (
-        <Tooltip content="Minimize" placement="bottom" root={tooltipRoot}>
-          <MotionIconButton onPress={collapseCodeBlock}>
+      <Tooltip
+        content={isExpanded ? 'Minimize' : 'Maximize'}
+        placement={isExpanded ? 'bottom' : 'top'}
+        root={tooltipRoot}
+        className="[font-family:var(--app-font-family)]"
+      >
+        <MotionIconButton
+          aria-label={isExpanded ? 'Minimize' : 'Maximize'}
+          onPress={isExpanded ? collapseCodeBlock : expandCodeBlock}
+        >
+          {isExpanded ? (
             <Minimize
               className="will-change-transform"
               height="1.125rem"
               width="1.125rem"
             />
-          </MotionIconButton>
-        </Tooltip>
-      )}
+          ) : (
+            <Maximize
+              className="will-change-transform"
+              height="1.125rem"
+              width="1.125rem"
+            />
+          )}
+        </MotionIconButton>
+      </Tooltip>
       <AppMenuTrigger>
         <Tooltip
           content="More actions"
           placement={isExpanded ? 'bottom' : 'top'}
           root={tooltipRoot}
+          className="[font-family:var(--app-font-family)]"
         >
           <Button
             aria-label="More actions"
@@ -210,7 +135,10 @@ export function CodeActions({
           <UNSAFE_PortalProvider
             getContainer={() => dialogRef.current ?? document.body}
           >
-            <AppMenuPopover className="w-48" placement="bottom end">
+            <AppMenuPopover
+              className="w-32 [font-family:var(--app-font-family)]"
+              placement="bottom end"
+            >
               <AppMenu onAction={handleAction}>
                 {items.map((item) => (
                   <AppMenuItem key={item.id} id={item.id}>
@@ -221,7 +149,10 @@ export function CodeActions({
             </AppMenuPopover>
           </UNSAFE_PortalProvider>
         ) : (
-          <AppMenuPopover className="w-32" placement="bottom end">
+          <AppMenuPopover
+            className="w-32 [font-family:var(--app-font-family)]"
+            placement="bottom end"
+          >
             <AppMenu onAction={handleAction}>
               {items.map((item) => (
                 <AppMenuItem key={item.id} id={item.id}>

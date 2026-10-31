@@ -94,20 +94,6 @@ func TestWriteTags(t *testing.T) {
 		assert.Equal(t, []string{"tag1"}, tags)
 	})
 
-	t.Run("preserves CodeResults when updating tags", func(t *testing.T) {
-		projectPath := setupTestDir(t)
-		notePath := filepath.Join(projectPath, "notes", "testfolder", "note.md")
-		require.NoError(t, os.WriteFile(notePath, []byte("# Note"), 0644))
-		require.NoError(t, WriteCodeResults(notePath, CodeResults{
-			CodeBlocks: []CodeBlock{{CodeBlockID: "x", ResultHTML: "<div>ok</div>"}},
-		}))
-
-		require.NoError(t, WriteTags(projectPath, "testfolder", "note.md", []string{"keep"}))
-
-		results, err := ReadCodeResults(notePath)
-		require.NoError(t, err)
-		assert.Len(t, results.CodeBlocks, 1)
-	})
 }
 
 func TestGetTags(t *testing.T) {
@@ -178,4 +164,14 @@ func TestDeleteTags(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, []string{"tag1"}, tags)
 	})
+}
+
+func TestWriteTagsPreservesOtherMetadata(t *testing.T) {
+	projectPath := setupTestDir(t)
+	path := PathForFile(projectPath, "testfolder", "note.md")
+	require.NoError(t, os.WriteFile(path, []byte(`{"other":{"value":"keep"}}`), 0644))
+	require.NoError(t, WriteTags(projectPath, "testfolder", "note.md", []string{"tag"}))
+	data, err := os.ReadFile(path)
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"other":{"value":"keep"},"tags":["tag"]}`, string(data))
 }

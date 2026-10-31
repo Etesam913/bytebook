@@ -150,7 +150,7 @@ test('renames a folder and reopens its notes at the new path', async ({
   await setupWailsEvents(context);
   const rename = { file: SERVICE_FILES.FOLDER_SERVICE, method: 'RenameFolder' };
   await mockBinding(context, rename, MOCK_SUCCESS_RESPONSE);
-  await mockNote(context, MOCK_NOTE_MARKDOWN_RESPONSE.data.markdown);
+  await mockNote(context, MOCK_NOTE_MARKDOWN_RESPONSE.data);
   await page.goto('/notes/Economics%20Notes/Inflation.md');
   await expect(page.locator('#content-editable-editor')).toBeVisible();
 
@@ -204,7 +204,7 @@ test('keeps the active note loaded when it is dragged into another folder', asyn
   context,
 }) => {
   await setupWailsEvents(context);
-  await mockNote(context, MOCK_NOTE_MARKDOWN_RESPONSE.data.markdown);
+  await mockNote(context, MOCK_NOTE_MARKDOWN_RESPONSE.data);
   await mockBinding(
     context,
     { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'MoveItemsToFolder' },
@@ -268,7 +268,7 @@ test('edits tags on same-named notes across folders', async ({
     file: SERVICE_FILES.TAGS_SERVICE,
     method: 'SetTagsOnNotes',
   };
-  await mockNote(context, MOCK_NOTE_MARKDOWN_RESPONSE.data.markdown);
+  await mockNote(context, MOCK_NOTE_MARKDOWN_RESPONSE.data);
   await mockBinding(
     context,
     { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetAllPaths' },

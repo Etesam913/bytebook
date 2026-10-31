@@ -9,10 +9,6 @@ import {
 describe('ROUTE_PATTERNS', () => {
   it('defines correct route pattern constants', () => {
     expect(ROUTE_PATTERNS.ROOT).toBe('/');
-    expect(ROUTE_PATTERNS.KERNELS).toBe('/kernels/:kernelName');
-    expect(ROUTE_PATTERNS.KERNELS_WITH_FILES).toBe(
-      '/kernels/:kernelName/:folder?/:note?'
-    );
     expect(ROUTE_PATTERNS.NOTES).toBe('/notes/*');
     expect(ROUTE_PATTERNS.CATCH_ALL).toBe('*');
     expect(ROUTE_PATTERNS.NOT_FOUND_FALLBACK).toBe('/404');
@@ -20,23 +16,6 @@ describe('ROUTE_PATTERNS', () => {
 });
 
 describe('routeUrls', () => {
-  describe('kernel', () => {
-    it('builds kernel route with encoded name', () => {
-      expect(routeUrls.kernel('python')).toBe('/kernels/python');
-      expect(routeUrls.kernel('javascript')).toBe('/kernels/javascript');
-    });
-
-    it('encodes special characters in kernel name', () => {
-      expect(routeUrls.kernel('python 3')).toBe('/kernels/python%203');
-      expect(routeUrls.kernel('node.js')).toBe('/kernels/node.js');
-      expect(routeUrls.kernel('c++')).toBe('/kernels/c%2B%2B');
-    });
-
-    it('handles empty kernel name', () => {
-      expect(routeUrls.kernel('')).toBe('/kernels/');
-    });
-  });
-
   describe('notFoundFallback', () => {
     it('returns 404 route', () => {
       expect(routeUrls.notFoundFallback()).toBe('/404');

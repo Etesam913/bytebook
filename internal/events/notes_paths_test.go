@@ -115,7 +115,7 @@ func TestBatchRenamePreservesMetadataPinsAndLinks(t *testing.T) {
 	params := createTestParams(t)
 	root := setupNotesDir(t, params.ProjectPath)
 	require.NoError(t, os.Mkdir(filepath.Join(root, "dest"), 0755))
-	metadata := []byte(`{"tags":["keep"],"codeResults":{"version":1,"codeBlocks":[]}}`)
+	metadata := []byte(`{"tags":["keep"]}`)
 	for _, name := range []string{"note.md", "image.png"} {
 		createNoteFile(t, root, "", name, "content")
 		require.NoError(t, os.WriteFile(sidecar.PathFor(filepath.Join(root, name)), metadata, 0644))

@@ -58,7 +58,6 @@ export const MOCK_PROJECT_SETTINGS_RESPONSE = {
       sidebarVisibility: {
         hidePinned: false,
         hideRecent: false,
-        hideKernels: false,
         hideTags: false,
         hideSavedSearches: false,
       },
@@ -70,8 +69,6 @@ export const MOCK_PROJECT_SETTINGS_RESPONSE = {
       codeBlockLineWrapping: false,
       codeBlockShowLineNumbers: false,
       codeBlockDefaultLanguage: 'python',
-      pythonVenvPath: '',
-      customPythonVenvPaths: [],
     },
   },
 };
@@ -81,10 +78,7 @@ export const MOCK_NOTE_EXISTS_RESPONSE = true;
 export const MOCK_NOTE_MARKDOWN_RESPONSE = {
   success: true,
   message: '',
-  data: {
-    markdown: '# Sample Note\n\nThis is sample markdown content.',
-    codeResults: { version: 1, codeBlocks: [] },
-  },
+  data: '# Sample Note\n\nThis is sample markdown content.',
 };
 
 /** Generic success response for operations returning BackendResponseWithoutData */

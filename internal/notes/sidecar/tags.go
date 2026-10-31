@@ -1,6 +1,13 @@
 package sidecar
 
-import "github.com/etesam913/bytebook/internal/util"
+import (
+	"encoding/json"
+	"errors"
+	"os"
+	"path/filepath"
+
+	"github.com/etesam913/bytebook/internal/util"
+)
 
 // sanitizeTags trims, de-duplicates, and removes empty tags.
 func sanitizeTags(tags []string) []string {
@@ -16,15 +23,25 @@ func ReadTags(projectPath, folder, fileName string) ([]string, error) {
 	return sanitizeTags(data.Tags), nil
 }
 
-// WriteTags persists tags into the file's sidecar, preserving any other fields (e.g. CodeResults).
+// WriteTags updates tags while preserving other sidecar metadata.
 func WriteTags(projectPath, folder, fileName string, tags []string) error {
 	sidecarPath := PathForFile(projectPath, folder, fileName)
-	data, err := read(sidecarPath)
+	data := map[string]json.RawMessage{}
+	if err := util.ReadJsonFromPath(sidecarPath, &data); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+	if data == nil {
+		data = map[string]json.RawMessage{}
+	}
+	encoded, err := json.Marshal(sanitizeTags(tags))
 	if err != nil {
 		return err
 	}
-	data.Tags = sanitizeTags(tags)
-	return write(sidecarPath, data)
+	data["tags"] = encoded
+	if err := os.MkdirAll(filepath.Dir(sidecarPath), 0755); err != nil {
+		return err
+	}
+	return util.WriteJsonToPath(sidecarPath, data)
 }
 
 // GetTags reads sidecar tags for the file at folder/fileName.

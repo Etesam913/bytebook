@@ -4,35 +4,21 @@ import { useAtomValue } from 'jotai/react';
 import { isDarkModeOnAtom } from '@/atoms';
 import CodeMirror, { type ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { EditorView, tooltips } from '@codemirror/view';
-import type { Extension } from '@codemirror/state';
+import { Prec, type Extension } from '@codemirror/state';
 import { useDebouncedCallback } from '@hooks/debounce';
-import { useEnsureKernelMutation } from '@hooks/code/kernels';
-import {
-  useSendExecuteRequestMutation,
-  useSendInterruptRequestMutation,
-} from '@hooks/code/code-execution';
-import { useDecodedNotesWildcardPath } from '@hooks/routes';
-import { useInspectTooltip } from '@hooks/code-codemirror';
-import { useCompletionExtension } from '@hooks/code-completion';
 import { getCodemirrorKeymap } from '@utils/codemirror';
-import { focusEditor } from '@components/code';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import type {
   CodeBlockDocumentProps,
-  CodeBlockExecutionProps,
   CodeBlockIdentityProps,
   CodeBlockShellProps,
 } from './types';
 import { cn } from '@utils/string-formatting';
-import { LANGUAGES, type Languages } from '@/types';
+import type { Languages } from '@/types';
 import { useNodeInNodeSelection } from '@hooks/lexical';
-import { useEffect, useRef, useState, type WheelEvent } from 'react';
+import { useEffect, useState, type WheelEvent } from 'react';
 import { languageDisplayConfig } from './language-config';
 import type { BasicSetupOptions } from '@uiw/react-codemirror';
-import {
-  NotifyBlockEdit,
-  NotifyBlockRemoved,
-} from '@bindings/services/lspservice';
 import {
   getLoadedLanguageExtension,
   loadLanguageExtension,
@@ -41,8 +27,8 @@ import {
 const codeBlockBasicSetup: BasicSetupOptions = {
   lineNumbers: false,
   foldGutter: false,
-  autocompletion: true,
-  completionKeymap: true,
+  autocompletion: false,
+  completionKeymap: false,
 };
 
 const languageBasicSetup: Record<Languages, BasicSetupOptions> = {
@@ -62,64 +48,26 @@ function loadVimExtension(): Promise<Extension> {
   return vimExtensionPromise;
 }
 
-// Map to store pending inspection promises by messageId
-const pendingInspections = new Map<
-  string,
-  (data: { found: boolean; messageId: string; message: string }) => void
->();
-
 export function CodeMirrorEditor({
   identity,
   editorDocument,
-  execution,
   shell,
 }: {
   identity: CodeBlockIdentityProps;
   editorDocument: CodeBlockDocumentProps;
-  execution: CodeBlockExecutionProps;
   shell: CodeBlockShellProps;
 }) {
-  const { id, nodeKey, language, blockOrder } = identity;
+  const { nodeKey, language } = identity;
   const { code, setCode } = editorDocument;
-  const { status, setStatus, executionId, kernelInstanceId } = execution;
   const {
     lexicalEditor,
     codeMirrorInstance,
     setCodeMirrorInstance,
     isExpanded,
-    hideResults,
     isCreatedNow,
     restoreCodeMirrorViewState,
   } = shell;
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
-  const noteId = useDecodedNotesWildcardPath() ?? '';
-
-  const { mutate: executeCode } = useSendExecuteRequestMutation({
-    noteId,
-    codeBlockId: id,
-    language,
-    setStatus,
-    editor: lexicalEditor,
-  });
-
-  const { mutate: interruptExecution } = useSendInterruptRequestMutation();
-
-  const { mutate: ensureKernel } = useEnsureKernelMutation();
-
-  const inspectTooltip = useInspectTooltip({
-    language,
-    id,
-    executionId,
-    pendingInspections,
-  });
-  const completionExtension = useCompletionExtension({
-    language,
-    noteId,
-    blockId: id,
-    blockOrder,
-    kernelInstanceId,
-    executionId,
-  });
 
   const debouncedSetCode = useDebouncedCallback(setCode, 300);
   // Keep the last keystrokes if the block unmounts mid-debounce (e.g. navigation)
@@ -137,10 +85,6 @@ export function CodeMirrorEditor({
   } = useProjectSettingsQuery();
   const [, setSelected, clearSelection] = useLexicalNodeSelection(nodeKey);
   const isInNodeSelection = useNodeInNodeSelection(lexicalEditor, nodeKey);
-  const lspNotifyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null
-  );
-
   const [loadedLanguage, setLoadedLanguage] = useState<{
     language: Languages;
     extension: Extension;
@@ -186,39 +130,11 @@ export function CodeMirrorEditor({
     }
   }
 
-  function scheduleLSPNotifyBlockEdit(newSource: string) {
-    if (lspNotifyTimeoutRef.current) {
-      clearTimeout(lspNotifyTimeoutRef.current);
-    }
-
-    if (language !== 'python' || !noteId) return;
-
-    lspNotifyTimeoutRef.current = setTimeout(() => {
-      void NotifyBlockEdit(noteId, id, blockOrder, newSource).catch(
-        () => undefined
-      );
-    }, 100);
-  }
-
   useEffect(() => {
     if (codeMirrorInstance?.view && isInNodeSelection) {
       codeMirrorInstance.view.focus();
     }
   }, [codeMirrorInstance, isInNodeSelection]);
-
-  useEffect(() => {
-    scheduleLSPNotifyBlockEdit(code);
-  }, [code, language, noteId, id, blockOrder]);
-
-  useEffect(() => {
-    return () => {
-      if (lspNotifyTimeoutRef.current) {
-        clearTimeout(lspNotifyTimeoutRef.current);
-      }
-      if (language !== 'python' || !noteId) return;
-      void NotifyBlockRemoved(noteId, id).catch(() => undefined);
-    };
-  }, [language, noteId, id]);
 
   /**
    * Previously, the codemirror scroller would be inconsistent and get stuck
@@ -243,17 +159,7 @@ export function CodeMirrorEditor({
   const runCodeKeymap = getCodemirrorKeymap({
     isExpanded,
     lexicalEditor,
-    status,
-    id,
-    noteId,
-    language,
-    kernelInstanceId,
-    executeCode,
-    interruptExecution,
-    ensureKernel,
-    codeMirrorInstance,
     setSelected,
-    isExecutionEnabled: !hideResults && language !== LANGUAGES.TEXT,
   });
 
   return (
@@ -274,10 +180,7 @@ export function CodeMirrorEditor({
       <CodeMirror
         ref={handleEditorRef}
         value={code}
-        onChange={(newCode) => {
-          debouncedSetCode(newCode);
-          scheduleLSPNotifyBlockEdit(newCode);
-        }}
+        onChange={debouncedSetCode}
         className={cn(
           'cm-background',
           isExpanded ? 'cm-background-expanded' : 'cm-background-collapsed'
@@ -292,27 +195,29 @@ export function CodeMirrorEditor({
           EditorView.editable.of(isInNodeSelection),
           ...(codeBlockLineWrapping ? [EditorView.lineWrapping] : []),
           ...(codeBlockVimMode && vimExtension ? [vimExtension] : []),
+          Prec.highest(
+            EditorView.domEventHandlers({
+              keydown(event) {
+                if (event.key === 'Backspace' || event.key === 'Delete') {
+                  // Keep Lexical from deleting the selected decorator node.
+                  event.stopPropagation();
+                }
+                return false;
+              },
+            })
+          ),
           runCodeKeymap,
           ...(loadedLanguage && loadedLanguage.language === language
             ? [loadedLanguage.extension]
             : []),
-          completionExtension,
-          inspectTooltip,
         ]}
         theme={isDarkModeOn ? vscodeDark : vscodeLight}
         onKeyDown={(e) => {
-          if (e.key === 'Backspace') {
-            //  TODO: Think of a better fix than this, Fixes weird bug where pressing backspace at beginning of first line focuses the <body> tag
-            setTimeout(() => {
-              focusEditor(codeMirrorInstance);
-            }, 5);
-          } else {
-            // ArrowDown and ArrowUp are handled in the keybinding extension
-            if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') {
-              setSelected(true);
-            }
-            e.stopPropagation();
+          // ArrowDown and ArrowUp are handled in the keybinding extension.
+          if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') {
+            setSelected(true);
           }
+          e.stopPropagation();
         }}
         onClick={(e) => {
           clearSelection();

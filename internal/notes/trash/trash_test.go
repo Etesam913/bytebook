@@ -79,7 +79,7 @@ func TestMoveNotesToTrash(t *testing.T) {
 		project := t.TempDir()
 		notes := filepath.Join(project, "notes")
 		note := testutil.WriteFile(t, notes, "report.md", []byte("# Report"))
-		sidecar := testutil.WriteFile(t, notes, ".report.md.json", []byte(`{"codeResults":{"codeBlocks":[]}}`))
+		sidecar := testutil.WriteFile(t, notes, ".report.md.json", []byte(`{"tags":["example"]}`))
 		sibling := testutil.WriteFile(t, notes, ".report.pdf.json", []byte(`{"tags":["attachment"]}`))
 
 		items, err := MoveNotesToTrash(project, []string{"missing.md", "report.md"})

@@ -49,7 +49,6 @@ import { CUSTOM_TRANSFORMERS } from './transformers';
 import { noteHandleChange } from './utils/note-commands.ts';
 import { useAutoScrollDuringDrag } from '@hooks/draggable';
 import { useCodeCleanup } from './hooks/code';
-import { useLspNoteLifecycle } from '@hooks/lsp';
 import { useNoteIntersectionObserver } from './hooks/intersection-observer';
 import { FilePath } from '@utils/path';
 import type { PlaceholderLineData } from './types';
@@ -121,7 +120,6 @@ export function NotesEditor({
   // Use custom hooks for code cleanup and intersection observer
   useCodeCleanup(noteContainerRef);
   useNoteIntersectionObserver({ folder, note, noteContainerRef });
-  useLspNoteLifecycle();
 
   return (
     <LexicalComposer initialConfig={editorConfig}>

@@ -36,22 +36,6 @@
 }
 
 @layer utilities {
-  @keyframes customPulse {
-    0%,
-    100% {
-      opacity: 1;
-      transform: scale(1.05);
-    }
-
-    50% {
-      opacity: 0.7;
-      transform: scale(0.9);
-    }
-  }
-
-  .kernel-heartbeat {
-    animation: customPulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
 }
 
 :root {
@@ -399,11 +383,6 @@ textarea,
 
 .cm-background.cm-background-selected .cm-activeLine {
   @apply bg-zinc-100/70 dark:bg-zinc-750/45;
-}
-
-.code-result-output img {
-  @apply max-w-full max-h-[480px] object-contain w-fit;
-  height: auto;
 }
 
 .cm-lineNumbers {

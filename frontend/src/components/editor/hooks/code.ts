@@ -1,16 +1,12 @@
 import { useEffect } from 'react';
-import { useAtom, useSetAtom } from 'jotai';
-import { $nodesOfType } from 'lexical';
+import { useSetAtom } from 'jotai';
 import { editorAtom, noteContainerRefAtom } from '../atoms';
-import { CodeNode } from '../nodes/code';
-import { useSendInterruptRequestMutation } from '@hooks/code/code-execution';
 
 export function useCodeCleanup(
   noteContainerRef: React.RefObject<HTMLDivElement | null>
 ) {
-  const [editor, setEditor] = useAtom(editorAtom);
+  const setEditor = useSetAtom(editorAtom);
   const setNoteContainerRef = useSetAtom(noteContainerRefAtom);
-  const { mutate: interruptExecution } = useSendInterruptRequestMutation();
 
   useEffect(() => {
     setNoteContainerRef(noteContainerRef);
@@ -19,20 +15,6 @@ export function useCodeCleanup(
       // Resets some state
       setNoteContainerRef(null);
       setEditor(null);
-
-      // Cancels ongoing requests for a code block when navigating away from the editor
-      if (editor) {
-        editor.read(() => {
-          const allCodeNodes = $nodesOfType(CodeNode);
-          allCodeNodes.forEach((codeNode) => {
-            interruptExecution({
-              kernelInstanceId: codeNode.getKernelInstanceId(),
-              codeBlockId: codeNode.getId(),
-              newExecutionId: '',
-            });
-          });
-        });
-      }
     };
   }, [noteContainerRef]);
 }

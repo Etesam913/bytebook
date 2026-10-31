@@ -7,7 +7,7 @@ export const NOTE_URL = '/notes/Economics%20Notes/Supply%20and%20Demand.md';
 
 export const SAVE_NOTE_BINDING = {
   file: SERVICE_FILES.NOTE_SERVICE,
-  method: 'SetNoteMarkdownWithCodeResults',
+  method: 'SetNoteMarkdown',
 };
 
 export function getEditor(page: Page) {
@@ -22,12 +22,12 @@ export async function mockNoteMarkdown(
     context,
     {
       file: SERVICE_FILES.NOTE_SERVICE,
-      method: 'GetNoteMarkdownWithCodeResults',
+      method: 'GetNoteMarkdown',
     },
     {
       success: true,
       message: '',
-      data: { markdown, codeResults: { version: 1, codeBlocks: [] } },
+      data: markdown,
     }
   );
 }
@@ -57,9 +57,9 @@ export async function reopenSavedNote(page: Page, expectedContent: string) {
     page.context(),
     {
       file: SERVICE_FILES.NOTE_SERVICE,
-      method: 'GetNoteMarkdownWithCodeResults',
+      method: 'GetNoteMarkdown',
     },
-    { success: true, message: '', data: { markdown, codeResults: saved[3] } }
+    { success: true, message: '', data: markdown }
   );
   await page.reload();
   await expect(getEditor(page)).toBeVisible();

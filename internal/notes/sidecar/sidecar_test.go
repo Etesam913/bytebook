@@ -63,19 +63,6 @@ func TestIsFileName(t *testing.T) {
 	assert.False(t, IsFileName(".note.txt"))
 }
 
-func TestNotePathFromPath(t *testing.T) {
-	assert.Equal(
-		t,
-		filepath.Join("folder", "note.md"),
-		NotePathFromPath(filepath.Join("folder", ".note.md.json")),
-	)
-	assert.Equal(t, filepath.Join("folder", "note.name.MD"), NotePathFromPath(filepath.Join("folder", ".note.name.MD.json")))
-	assert.Empty(t, NotePathFromPath(filepath.Join("folder", ".note.pdf.json")))
-	assert.Empty(t, NotePathFromPath(filepath.Join("folder", ".note.json")))
-	assert.Empty(t, NotePathFromPath(filepath.Join("folder", ".Makefile.json")))
-	assert.Empty(t, NotePathFromPath(filepath.Join("folder", "note.json")))
-}
-
 func setupSameStemFiles(t *testing.T) string {
 	t.Helper()
 	projectPath := setupTestDir(t)
@@ -84,14 +71,11 @@ func setupSameStemFiles(t *testing.T) string {
 		require.NoError(t, os.WriteFile(filePath, []byte(name), 0644))
 		require.NoError(t, WriteTags(projectPath, "testfolder", name, []string{name}))
 	}
-	require.NoError(t, WriteCodeResults(filepath.Join(projectPath, "notes", "testfolder", "report.md"), CodeResults{
-		CodeBlocks: []CodeBlock{{CodeBlockID: "result", ResultHTML: "<div>saved</div>"}},
-	}))
 	return projectPath
 }
 
 func TestSameStemFiles(t *testing.T) {
-	t.Run("keep separate tags and note results", func(t *testing.T) {
+	t.Run("keep separate tags", func(t *testing.T) {
 		projectPath := setupSameStemFiles(t)
 
 		for _, name := range []string{"report.md", "report.pdf", "report.png"} {
@@ -100,10 +84,6 @@ func TestSameStemFiles(t *testing.T) {
 			assert.Equal(t, []string{name}, tags)
 			assert.FileExists(t, filepath.Join(projectPath, "notes", "testfolder", "."+name+".json"))
 		}
-		results, err := ReadCodeResults(filepath.Join(projectPath, "notes", "testfolder", "report.md"))
-		require.NoError(t, err)
-		require.Len(t, results.CodeBlocks, 1)
-		assert.Equal(t, "<div>saved</div>", results.CodeBlocks[0].ResultHTML)
 	})
 
 	t.Run("deleting attachment metadata preserves its siblings", func(t *testing.T) {
@@ -117,9 +97,6 @@ func TestSameStemFiles(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, []string{name}, tags)
 		}
-		results, err := ReadCodeResults(filepath.Join(projectPath, "notes", "testfolder", "report.md"))
-		require.NoError(t, err)
-		assert.Len(t, results.CodeBlocks, 1)
 	})
 
 	t.Run("renaming note metadata preserves its siblings", func(t *testing.T) {
@@ -133,9 +110,6 @@ func TestSameStemFiles(t *testing.T) {
 		tags, err := ReadTags(projectPath, "testfolder", "renamed.md")
 		require.NoError(t, err)
 		assert.Equal(t, []string{"report.md"}, tags)
-		results, err := ReadCodeResults(newPath)
-		require.NoError(t, err)
-		assert.Len(t, results.CodeBlocks, 1)
 		for _, name := range []string{"report.pdf", "report.png"} {
 			tags, err := ReadTags(projectPath, "testfolder", name)
 			require.NoError(t, err)
@@ -178,7 +152,7 @@ func TestEnsure(t *testing.T) {
 }
 
 func TestMove(t *testing.T) {
-	t.Run("moves entire sidecar (tags and code results)", func(t *testing.T) {
+	t.Run("moves sidecar tags", func(t *testing.T) {
 		projectPath := setupTestDir(t)
 		require.NoError(t, os.MkdirAll(filepath.Join(projectPath, "notes", "newfolder"), 0755))
 
@@ -186,9 +160,6 @@ func TestMove(t *testing.T) {
 		newNotePath := filepath.Join(projectPath, "notes", "newfolder", "renamed.md")
 		require.NoError(t, os.WriteFile(oldNotePath, []byte("# Note"), 0644))
 		require.NoError(t, WriteTags(projectPath, "testfolder", "note.md", []string{"tag1"}))
-		require.NoError(t, WriteCodeResults(oldNotePath, CodeResults{
-			CodeBlocks: []CodeBlock{{CodeBlockID: "x", ResultHTML: "<div>ok</div>"}},
-		}))
 
 		require.NoError(t, Move(oldNotePath, newNotePath))
 
@@ -198,10 +169,6 @@ func TestMove(t *testing.T) {
 		tags, err := ReadTags(projectPath, "newfolder", "renamed.md")
 		require.NoError(t, err)
 		assert.Equal(t, []string{"tag1"}, tags)
-
-		results, err := ReadCodeResults(newNotePath)
-		require.NoError(t, err)
-		assert.Len(t, results.CodeBlocks, 1)
 	})
 
 	t.Run("no-op when source sidecar does not exist", func(t *testing.T) {

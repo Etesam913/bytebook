@@ -4,8 +4,7 @@ import "github.com/wailsapp/wails/v3/pkg/application"
 
 // Event name constants. Every custom Wails event used by the app is named here.
 // Events whose payload types live in this package are registered in init below;
-// events with payload types in other packages (config, notes, kernel_manager,
-// jupyter_protocol/sockets) are registered in those packages' init functions.
+// events with payload types in other packages are registered there.
 // Each event must be registered exactly once — application.RegisterEvent panics
 // on duplicates — and registration gives emit-time payload validation plus
 // generated TypeScript typings for the frontend.
@@ -44,26 +43,6 @@ const (
 	EventTagsUpdate        = "tags:update"
 	EventTagsIndexUpdate   = "tags:index_update"
 	EventSavedSearchUpdate = "saved-search:update"
-	EventCodeResultsUpdate = "code-results:update"
-
-	// Kernel instance events (per-instance, not per-language)
-	EventKernelInstanceCreated     = "kernel:instance:created"
-	EventKernelInstanceShutdown    = "kernel:instance:shutdown"
-	EventKernelInstanceStatus      = "kernel:instance:status"
-	EventKernelInstanceHeartbeat   = "kernel:instance:heartbeat"
-	EventKernelInstanceLaunchError = "kernel:instance:launch_error"
-	EventKernelInstanceExited      = "kernel:instance:exited"
-
-	// Code block events (scoped by messageId)
-	EventCodeBlockStream        = "code:code-block:stream"
-	EventCodeBlockExecuteResult = "code:code-block:execute_result"
-	EventCodeBlockDisplayData   = "code:code-block:display_data"
-	EventCodeBlockExecuteInput  = "code:code-block:execute_input"
-	EventCodeBlockStatus        = "code:code-block:status"
-	EventCodeBlockIopubError    = "code:code-block:iopub_error"
-	EventCodeBlockInputRequest  = "code:code-block:input_request"
-	EventCodeBlockInspectReply  = "code:code-block:inspect_reply"
-	EventCodeBlockCompleteReply = "code:code-block:complete_reply"
 )
 
 // A map of folderAndNoteNames to tags

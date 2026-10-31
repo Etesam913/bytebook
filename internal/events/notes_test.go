@@ -174,7 +174,7 @@ func TestWatcherDeletePreservesSidecarForPutBack(t *testing.T) {
 	root := setupNotesDir(t, params.ProjectPath)
 	createNoteFile(t, root, "", "note.md", "# Note")
 	notePath := filepath.Join(root, "note.md")
-	metadata := []byte(`{"tags":["keep"],"codeResults":{"version":1,"codeBlocks":[]}}`)
+	metadata := []byte(`{"tags":["keep"]}`)
 	require.NoError(t, os.WriteFile(sidecar.PathFor(notePath), metadata, 0644))
 	addCreatedNotesToIndex(params, []util.FileCreateEventData{{FilePath: "note.md"}})
 	// Finder trashes only the visible note, leaving its sidecar at the original path.

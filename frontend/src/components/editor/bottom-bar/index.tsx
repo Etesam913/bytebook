@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useAtomValue } from 'jotai';
-import { KernelHeartbeats } from './kernel-heartbeats';
 import { Folder } from '@/icons/folder';
 import { isFileMaximizedAtom } from '@/atoms';
 import { timeSince } from '../utils/bottom-bar';
@@ -20,7 +19,6 @@ import {
 export function BottomBar({
   frontmatter,
   filePath,
-  isNoteEditor,
 }: {
   frontmatter?: Frontmatter;
   filePath: FilePath;
@@ -88,7 +86,6 @@ export function BottomBar({
           {safeDecodeURIComponent(filePath.note)}
         </BreadcrumbItem>
       </BreadcrumbTrail>
-      {isNoteEditor && <KernelHeartbeats />}
       {lastUpdatedText.length > 0 && (
         <p className="text-zinc-500 dark:text-zinc-300 whitespace-nowrap text-ellipsis ml-auto">
           Last Updated: {' ' + lastUpdatedText} ago

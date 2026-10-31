@@ -5,7 +5,6 @@ import { SidebarContentType } from '@/types';
  * Example:
  * "file:123"
  * "tag:Python"
- * "kernel:python"
  * "search-result:Python"
  * "saved-search:Python"
  * "folder:docs"

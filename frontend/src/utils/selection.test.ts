@@ -87,14 +87,14 @@ describe('createSelectionKey', () => {
 
 describe('keepSelectionWithPrefix', () => {
   it('keeps only items with the given prefix', () => {
-    const input = new Set(['file:1', 'tag:x', 'file:2', 'kernel:py']);
+    const input = new Set(['file:1', 'tag:x', 'file:2', 'saved-search:py']);
     expect(keepSelectionWithPrefix(input, 'file')).toEqual(
       new Set(['file:1', 'file:2'])
     );
   });
 
   it('returns an empty set when nothing matches', () => {
-    const input = new Set(['tag:x', 'kernel:py']);
+    const input = new Set(['tag:x', 'saved-search:py']);
     expect(keepSelectionWithPrefix(input, 'file')).toEqual(new Set());
   });
 

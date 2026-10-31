@@ -1,16 +1,13 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import type { CodeMirrorRef } from './types';
 import { EditorSelection } from '@codemirror/state';
-import { $getRoot, $isElementNode, type LexicalNode } from 'lexical';
-import { $isCodeNode } from '@components/editor/nodes/code';
 import { Loader } from '@/icons/loader';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
 import { cn } from '@utils/string-formatting';
-import { CodeBlockStatus, Languages } from '@/types';
-import { AnimatePresence, motion } from 'motion/react';
+import { Languages } from '@/types';
+import { AnimatePresence } from 'motion/react';
 import { CodeActions } from './code-actions';
-import { CodeResult } from './code-result';
 import { languageDisplayConfig } from './language-config';
 import { useNodeInNodeSelection } from '@hooks/lexical';
 import { SelectionHighlight } from '@components/selection-highlight';
@@ -21,14 +18,6 @@ const CodeMirrorEditor = lazy(() =>
   }))
 );
 
-export const focusEditor = (codeMirrorInstance: CodeMirrorRef) => {
-  if (codeMirrorInstance?.view) {
-    codeMirrorInstance.view.focus();
-  }
-};
-
-const MAX_EXECUTION_COUNT = 999;
-
 type CodeMirrorViewState = {
   ranges: Array<{ anchor: number; head: number }>;
   mainIndex: number;
@@ -37,66 +26,18 @@ type CodeMirrorViewState = {
   shouldFocus: boolean;
 };
 
-function findCodeBlockOrder(nodeKey: string): number {
-  let order = 0;
-  let foundOrder = 0;
-
-  function visit(node: LexicalNode): boolean {
-    if ($isCodeNode(node)) {
-      if (node.getKey() === nodeKey) {
-        foundOrder = order;
-        return true;
-      }
-      order += 1;
-      return false;
-    }
-
-    if (!$isElementNode(node)) return false;
-    return node.getChildren().some(visit);
-  }
-
-  visit($getRoot());
-  return foundOrder;
-}
-
 export function Code({
-  id,
   code,
   setCode,
-  status,
-  setStatus,
   language,
   nodeKey,
   isCreatedNow,
-  lastExecutedResult,
-  setLastExecutedResult,
-  hideResults,
-  setHideResults,
-  isWaitingForInput,
-  setIsWaitingForInput,
-  executionCount,
-  durationText,
-  executionId,
-  kernelInstanceId,
 }: {
-  id: string;
   code: string;
   setCode: (code: string) => void;
-  status: CodeBlockStatus;
-  setStatus: (status: CodeBlockStatus) => void;
   language: Languages;
   nodeKey: string;
   isCreatedNow: boolean;
-  lastExecutedResult: string | null;
-  setLastExecutedResult: (lastExecutedResult: string) => void;
-  hideResults: boolean;
-  setHideResults: (hideResults: boolean) => void;
-  isWaitingForInput: boolean;
-  setIsWaitingForInput: (isWaitingForInput: boolean) => void;
-  executionCount: number;
-  durationText: string;
-  executionId: string;
-  kernelInstanceId: string | null;
 }) {
   const [codeMirrorInstance, setCodeMirrorInstance] =
     useState<CodeMirrorRef>(null);
@@ -104,7 +45,6 @@ export function Code({
   const [lexicalEditor] = useLexicalComposerContext();
   const [isSelected] = useLexicalNodeSelection(nodeKey);
   const isInNodeSelection = useNodeInNodeSelection(lexicalEditor, nodeKey);
-  const [blockOrder, setBlockOrder] = useState(0);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const pendingCodeMirrorViewStateRef = useRef<CodeMirrorViewState | null>(
     null
@@ -164,20 +104,6 @@ export function Code({
   }
 
   useEffect(() => {
-    const updateBlockOrder = () => {
-      lexicalEditor.getEditorState().read(() => {
-        const nextOrder = findCodeBlockOrder(nodeKey);
-        setBlockOrder((currentOrder) =>
-          currentOrder === nextOrder ? currentOrder : nextOrder
-        );
-      });
-    };
-
-    updateBlockOrder();
-    return lexicalEditor.registerUpdateListener(updateBlockOrder);
-  }, [lexicalEditor, nodeKey]);
-
-  useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
 
@@ -197,39 +123,15 @@ export function Code({
     expandCodeBlock,
     collapseCodeBlock,
     restoreCodeMirrorViewState,
-    hideResults,
-    setHideResults,
     dialogRef,
     isCreatedNow,
   };
 
-  const identityProps = { id, nodeKey, language, blockOrder };
+  const identityProps = { nodeKey, language };
   const editorDocumentProps = { code, setCode };
-  const executionProps = {
-    status,
-    setStatus,
-    executionId,
-    kernelInstanceId,
-  };
-
-  const executionMetadata = (
-    <>
-      <div>
-        {executionCount > 0 &&
-          `[${
-            executionCount > MAX_EXECUTION_COUNT
-              ? MAX_EXECUTION_COUNT
-              : executionCount
-          }]`}
-      </div>
-      <div>{durationText}</div>
-    </>
-  );
-
   const codeActions = (
     <CodeActions
       identity={identityProps}
-      execution={executionProps}
       shell={shellProps}
       isSelected={isSelected}
     />
@@ -253,36 +155,14 @@ export function Code({
       <CodeMirrorEditor
         identity={identityProps}
         editorDocument={editorDocumentProps}
-        execution={executionProps}
         shell={shellProps}
       />
       {!isExpanded && (
         <div className="absolute inset-y-1 right-1 translate-x-16 space-y-1 text-zinc-400 w-12 flex flex-col justify-between">
           {languageIcon}
-          <motion.div
-            layout="position"
-            className="font-mono text-xs leading-tight"
-            style={{ fontFamily: 'var(--code-block-font-family)' }}
-          >
-            {executionMetadata}
-          </motion.div>
         </div>
       )}
     </div>
-  );
-
-  const codeResult = lastExecutedResult !== null && !hideResults && (
-    <CodeResult
-      identity={identityProps}
-      execution={executionProps}
-      shell={shellProps}
-      output={{
-        lastExecutedResult,
-        setLastExecutedResult,
-        isWaitingForInput,
-        setIsWaitingForInput,
-      }}
-    />
   );
 
   const codeContent = (
@@ -293,7 +173,6 @@ export function Code({
     >
       {codeActions}
       {codeEditor}
-      {codeResult}
     </Suspense>
   );
 
@@ -310,15 +189,8 @@ export function Code({
         </div>
         <div className="flex justify-between w-12 shrink-0 flex-col items-center border-l border-l-zinc-200 pt-5 pb-3 text-zinc-400 dark:border-l-zinc-700">
           <div>{languageIcon}</div>
-          <div
-            className="font-mono text-xs leading-tight text-center"
-            style={{ fontFamily: 'var(--code-block-font-family)' }}
-          >
-            {executionMetadata}
-          </div>
         </div>
       </div>
-      {codeResult}
     </Suspense>
   );
 

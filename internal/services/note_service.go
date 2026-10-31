@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 
 	"github.com/etesam913/bytebook/internal/config"
-	"github.com/etesam913/bytebook/internal/notes/sidecar"
 	"github.com/etesam913/bytebook/internal/notes/trash"
 	"github.com/etesam913/bytebook/internal/ui"
 	"github.com/etesam913/bytebook/internal/util"
@@ -104,74 +103,30 @@ func (n *NoteService) RenameFile(oldFolderNotePath string, newFolderNotePath str
 	}
 }
 
-// GetNoteMarkdownWithCodeResults reads markdown and its Bytebook code-result sidecar.
-func (n *NoteService) GetNoteMarkdownWithCodeResults(path string) config.BackendResponseWithData[sidecar.NoteWithCodeResults] {
-	noteFilePath, err := util.SafeJoin(n.ProjectPath, path)
+// GetNoteMarkdown reads a note's markdown content.
+func (n *NoteService) GetNoteMarkdown(path string) config.BackendResponseWithData[string] {
+	notePath, err := util.SafeJoin(n.ProjectPath, path)
 	if err != nil {
-		return config.BackendResponseWithData[sidecar.NoteWithCodeResults]{Success: false, Message: userFacingError(err, "Could not read note")}
+		return config.BackendResponseWithData[string]{Success: false, Message: userFacingError(err, "Could not read note")}
 	}
-
-	noteContent, err := os.ReadFile(noteFilePath)
+	content, err := os.ReadFile(notePath)
 	if err != nil {
-		return config.BackendResponseWithData[sidecar.NoteWithCodeResults]{
-			Success: false,
-			Message: userFacingError(err, "Could not read note"),
-		}
+		return config.BackendResponseWithData[string]{Success: false, Message: userFacingError(err, "Could not read note")}
 	}
-
-	codeResults, err := sidecar.ReadCodeResults(noteFilePath)
-	if err != nil {
-		return config.BackendResponseWithData[sidecar.NoteWithCodeResults]{
-			Success: false,
-			Message: userFacingError(err, "Could not read code results"),
-		}
-	}
-
-	return config.BackendResponseWithData[sidecar.NoteWithCodeResults]{
-		Success: true,
-		Data: sidecar.NoteWithCodeResults{
-			Markdown:    string(noteContent),
-			CodeResults: codeResults,
-		},
-	}
+	return config.BackendResponseWithData[string]{Success: true, Data: string(content)}
 }
 
-// SetNoteMarkdownWithCodeResults writes markdown and stores code results in a hidden sidecar.
-func (n *NoteService) SetNoteMarkdownWithCodeResults(
-	folderName string,
-	noteTitle string,
-	markdown string,
-	codeResults sidecar.CodeResults,
-) config.BackendResponseWithData[string] {
+// SetNoteMarkdown writes a note's markdown content.
+func (n *NoteService) SetNoteMarkdown(folderName, noteTitle, markdown string) config.BackendResponseWithData[string] {
 	noteName := fmt.Sprintf("%s.md", noteTitle)
-	noteFilePath, err := util.SafeJoin(filepath.Join(n.ProjectPath, "notes"), filepath.Join(folderName, noteName))
+	notePath, err := util.SafeJoin(filepath.Join(n.ProjectPath, "notes"), filepath.Join(folderName, noteName))
 	if err != nil {
-		return config.BackendResponseWithData[string]{Success: false, Message: userFacingError(err, "Could not save note"), Data: ""}
+		return config.BackendResponseWithData[string]{Success: false, Message: userFacingError(err, "Could not save note")}
 	}
-
-	err = os.WriteFile(noteFilePath, []byte(markdown), 0644)
-	if err != nil {
-		return config.BackendResponseWithData[string]{
-			Success: false,
-			Message: userFacingError(err, "Could not save note"),
-			Data:    "",
-		}
+	if err := os.WriteFile(notePath, []byte(markdown), 0644); err != nil {
+		return config.BackendResponseWithData[string]{Success: false, Message: userFacingError(err, "Could not save note")}
 	}
-
-	// The file watcher can see the markdown write, but it cannot access the
-	// new in-memory code results payload, so the sidecar must be updated here.
-	if err := sidecar.WriteCodeResults(noteFilePath, codeResults); err != nil {
-		return config.BackendResponseWithData[string]{
-			Success: false,
-			Message: userFacingError(err, "Could not save code results"),
-			Data:    "",
-		}
-	}
-
-	return config.BackendResponseWithData[string]{
-		Success: true,
-		Data:    "",
-	}
+	return config.BackendResponseWithData[string]{Success: true}
 }
 
 // AddNoteToFolder creates a new empty note with the given noteName in the specified folder.

@@ -62,7 +62,6 @@ export type BackendQueryDataType = {
 export type SidebarVisibility = {
   hidePinned: boolean;
   hideRecent: boolean;
-  hideKernels: boolean;
   hideTags: boolean;
   hideSavedSearches: boolean;
 };
@@ -107,9 +106,6 @@ export type ContextMenuData = {
   selectionCount?: number;
 };
 
-export type KernelStatus = 'busy' | 'idle' | 'starting';
-export type CodeBlockStatus = KernelStatus | 'queueing';
-export type KernelHeartbeatStatus = 'success' | 'failure' | 'idle';
 // Enum-like constant mapping language display keys to their canonical string values used throughout the app.
 export const LANGUAGES = {
   PYTHON: 'python',
@@ -120,18 +116,6 @@ export const LANGUAGES = {
 } as const;
 
 export type Languages = (typeof LANGUAGES)[keyof typeof LANGUAGES];
-export type LanguagesWithKernels = Exclude<Languages, typeof LANGUAGES.TEXT>;
-
-export type KernelInstanceData = {
-  id: string;
-  language: LanguagesWithKernels;
-  noteId: string;
-  status: KernelStatus;
-  heartbeat: KernelHeartbeatStatus;
-  errorMessage: string | null;
-  lastActivityAt: number;
-};
-
 const allLanguages = [
   LANGUAGES.PYTHON,
   LANGUAGES.GO,
@@ -142,23 +126,6 @@ const allLanguages = [
 
 // Set of all supported language values including text, used for O(1) membership checks.
 export const allLanguagesSet = new Set<Languages>(allLanguages);
-
-// Set of languages that support Jupyter kernel execution, excluding the plain text language.
-export const languagesWithKernelsSet = new Set<LanguagesWithKernels>(
-  allLanguages.filter(
-    (language): language is LanguagesWithKernels => language !== LANGUAGES.TEXT
-  )
-);
-
-// Type guard that checks whether an unknown value is a supported kernel execution language.
-export function isValidKernelLanguage(
-  key: unknown
-): key is LanguagesWithKernels {
-  return (
-    typeof key === 'string' &&
-    languagesWithKernelsSet.has(key as LanguagesWithKernels)
-  );
-}
 
 export type Frontmatter = {
   folder?: string;
@@ -176,15 +143,10 @@ export type SidebarContentType =
   | 'pinned-note'
   | 'tag'
   | 'saved-search'
-  | 'search-result'
-  | 'kernel';
+  | 'search-result';
 
-export type TrashRestoreInfo = {
-  originalPath: string;
-  trashedPath: string;
-  isFolder: boolean;
-  relatedItems: TrashRestoreInfo[] | undefined;
-};
+export type TrashRestoreInfo =
+  import('@bindings/notes/trash/models').TrashRestoreInfo;
 
 export type SidebarReorderOptions = {
   visibleOrder: SidebarPanelKey[];

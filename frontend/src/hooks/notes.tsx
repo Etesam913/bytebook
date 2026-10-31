@@ -29,13 +29,12 @@ import {
   type FilePath,
 } from '@utils/path';
 import { useWailsEvent } from './events';
-import { CODE_RESULTS_UPDATE, FILE_WRITE } from '@bindings/util/event-names';
+import { FILE_WRITE } from '@bindings/util/event-names';
 import { useUpdateProjectSettingsMutation } from './project-settings';
 import type { Frontmatter, TrashRestoreInfo } from '@/types';
 import { $convertFromMarkdownString } from '@lexical/markdown';
 import { parseFrontMatter } from '@components/editor/utils/note-metadata';
 import { useRecentItemFromRoute } from './routes';
-import { applyCodeResultsSidecar } from '@components/editor/utils/code-results';
 
 const noteQueries = {
   doesNoteExist: (filePath: FilePath | null) =>
@@ -260,22 +259,6 @@ export function useNoteWriteEvent({
       store.set(previousMarkdownAtom, markdown);
       setFrontmatter(frontMatter);
     }
-  });
-
-  useWailsEvent(CODE_RESULTS_UPDATE, (e) => {
-    const data = e.data;
-    const eventPath = createFilePath(data.filePath);
-
-    if (!eventPath || eventPath.fullPath !== filePath.fullPath) {
-      return;
-    }
-
-    editor.update(
-      () => {
-        applyCodeResultsSidecar(data.codeResults);
-      },
-      { tag: 'note:write-from-external' }
-    );
   });
 }
 

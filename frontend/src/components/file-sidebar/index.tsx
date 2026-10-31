@@ -36,7 +36,6 @@ import { RecentAccordion } from './recent-accordion';
 import { Spacer } from './spacer';
 import { CircleArrowLeft } from '@/icons/circle-arrow-left';
 import { CircleArrowRight } from '@/icons/circle-arrow-right';
-import { MyKernelsAccordion } from './my-kernels-accordion/index';
 import { MySavedSearchesAccordion } from './my-saved-searches-accordion/index';
 import { Tooltip } from '@components/tooltip/index';
 import { cn } from '@utils/string-formatting';
@@ -47,7 +46,6 @@ const SIDEBAR_ACCORDIONS = {
   files: MyFilesAccordion,
   pinned: PinnedAccordion,
   recent: RecentAccordion,
-  kernels: MyKernelsAccordion,
   tags: MyTagsAccordion,
   savedSearches: MySavedSearchesAccordion,
 };
@@ -149,7 +147,6 @@ export function FileSidebar() {
     files: useMotionValue(openState.files ? sw.files : 0),
     pinned: useMotionValue(openState.pinned ? sw.pinned : 0),
     recent: useMotionValue(openState.recent ? sw.recent : 0),
-    kernels: useMotionValue(openState.kernels ? sw.kernels : 0),
     tags: useMotionValue(openState.tags ? sw.tags : 0),
     savedSearches: useMotionValue(
       openState.savedSearches ? sw.savedSearches : 0

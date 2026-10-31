@@ -47,12 +47,10 @@ function useRouteHistory(pathname: string, search: string): RouteEntry[] {
 function useMatchedPatternName(): string {
   // Order matters: check more specific patterns before catch-alls.
   const [isRoot] = useRoute(ROUTE_PATTERNS.ROOT);
-  const [isKernels] = useRoute(ROUTE_PATTERNS.KERNELS);
   const [isNotes] = useRoute(ROUTE_PATTERNS.NOTES);
   const [isNotFound] = useRoute(ROUTE_PATTERNS.NOT_FOUND_FALLBACK);
 
   if (isRoot) return 'ROOT';
-  if (isKernels) return 'KERNELS';
   if (isNotes) return 'NOTES';
   if (isNotFound) return 'NOT_FOUND_FALLBACK';
   return 'CATCH_ALL';

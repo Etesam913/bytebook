@@ -23,7 +23,6 @@ func projectSettingsFixture(projectPath string) ProjectSettingsJson {
 		Code: CodeProjectSettingsJson{
 			CodeBlockFontSize:        DefaultCodeBlockFontSize,
 			CodeBlockDefaultLanguage: DefaultCodeBlockLanguage,
-			CustomPythonVenvPaths:    []string{"/tmp/custom-venv"},
 		},
 	}
 }
@@ -79,7 +78,6 @@ func TestGetProjectSettings(t *testing.T) {
 		assert.Equal(t, DefaultCodeBlockFontSize, settings.Code.CodeBlockFontSize)
 		assert.Equal(t, DefaultCodeBlockLanguage, settings.Code.CodeBlockDefaultLanguage)
 		assert.NotNil(t, settings.PinnedNotes)
-		assert.NotNil(t, settings.Code.CustomPythonVenvPaths)
 
 		persisted := readProjectSettingsFixture(
 			t,

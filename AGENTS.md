@@ -10,7 +10,7 @@ Bytebook is a desktop note-taking app for developers built with **Wails v3**:
 - **React + TypeScript frontend** under `frontend/`
 - Notes are stored as **Markdown files on disk**
 - Full-text search uses **Bleve**
-- Code execution integrates **Jupyter kernels** (ZeroMQ)
+- Code blocks provide syntax-highlighted editing.
 
 Important: the repo uses a **local fork of Wails v3**. `go.mod` includes a `replace` pointing to `../wails/v3`, so the sibling `wails/` directory must exist for Go builds to work.
 
@@ -65,7 +65,7 @@ bun run test:unit
 
 1. Creates and loads the Bytebook project directory.
 2. Opens the Bleve index behind `search.IndexHolder`.
-3. Creates the Jupyter kernel manager, Python LSP manager, `fsnotify` watcher, directory-watch registry, and bulk-import coordinator.
+3. Creates the `fsnotify` watcher, directory-watch registry, and bulk-import coordinator.
 4. Registers the Wails services from `internal/services/`.
 5. Serves the embedded `frontend/dist` application, adding SPA fallback and project-local file middleware.
 6. Starts file watching and the initial notes-tree indexing pass once the Wails runtime is ready.
@@ -76,20 +76,17 @@ Backend responsibilities are split as follows:
 - `internal/notes/` — Markdown/file operations, the complete path listing, local media serving, `fsnotify` processing, and hidden metadata sidecars.
 - `internal/search/` — Bleve mappings, queries, indexing, sorting, and saved searches. `IndexHolder` coordinates searches with index replacement.
 - `internal/ingest/` — bounded background discovery, indexing, and watch registration for startup and newly imported folder trees.
-- `internal/kernel_manager/` and `internal/jupyter_protocol/` — Jupyter process lifecycle and ZeroMQ messaging.
-- `internal/lsp/` — per-note Pyright language-server processes used by Python code blocks.
 - `internal/events/` — backend reactions to Wails events, including keeping the search index synchronized with file changes.
-- `internal/config/` — project paths, persisted settings/kernel configuration, and shared backend response types.
+- `internal/config/` — project paths, persisted settings, and shared backend response types.
 - `internal/ui/` — native windows and application menus.
 
 ### Persistence and synchronization
 
 The project data directory is currently macOS-specific: `~/Library/Application Support/Bytebook/`. Important subdirectories are:
 
-- `notes/` — Markdown notes and arbitrary attachments. A file such as `foo.md` or `photo.png` may have a hidden `.<filename>.json` sidecar for tags and code-execution results.
+- `notes/` — Markdown notes and arbitrary attachments. A file such as `foo.md` or `photo.png` may have a hidden `.<filename>.json` sidecar for tags.
 - `settings/` — application settings.
 - `search/` — the Bleve index and saved searches.
-- `code/` — kernel descriptors and per-instance connection files under `code/.kernels/`.
 
 The filesystem is the source of truth for the notes tree. Service mutations write to disk; the watcher batches file/folder events; backend event handlers update Bleve; frontend event hooks invalidate or reconcile TanStack Query data and in-memory UI models. Large startup or folder-import scans go through `BulkImportCoordinator` rather than fanning out watcher work.
 
@@ -113,7 +110,6 @@ The filesystem is the source of truth for the notes tree. Service mutations writ
 Routes are wired in `frontend/src/App.tsx` using `wouter` + `routeUrls.patterns` (from `frontend/src/utils/routes.ts`). Key pages:
 
 - `/notes/*` → `EditorWrapper`, which selects `NoteRenderer` for files and `FolderRenderer` for folders
-- `/kernels/:kernelName` → `KernelInfo` (lazy-loaded)
 - `/404` and `*` → `NotFound`
 - `/` (`ROOT`) intentionally renders no main-page component. The initial window opens at `/?restore`, and `useRestoreLastVisitedOnLaunch` replaces it with the latest note/folder when available; manually opened windows remain at the root with the sidebar visible.
 
@@ -122,7 +118,7 @@ Layout note: `FileSidebar` visibility is toggled in `frontend/src/App.tsx` when 
 ## Key components (frontend)
 
 - `frontend/src/components/editor-wrapper.tsx` (`EditorWrapper`): interprets the wildcard notes route and dispatches to the note editor, folder grid, loading state, or not-found page.
-- `frontend/src/components/editor/index.tsx` (`NotesEditor`): composes the Lexical editor, toolbar, title, tags, linked mentions, and plugins for Markdown shortcuts, files, code execution, links, tables, drag/drop, and persistence. `OnChangePlugin` debounces the `SAVE_MARKDOWN_CONTENT` command; `SavePlugin` serializes Markdown/frontmatter plus code-result sidecar data through `NoteService`.
+- `frontend/src/components/editor/index.tsx` (`NotesEditor`): composes the Lexical editor, toolbar, title, tags, linked mentions, and plugins for Markdown shortcuts, files, code blocks, links, tables, drag/drop, and persistence. `OnChangePlugin` debounces the `SAVE_MARKDOWN_CONTENT` command; `SavePlugin` serializes Markdown/frontmatter through `NoteService`.
 - `frontend/src/components/virtualized/virtualized-file-tree/index.tsx` (`VirtualizedFileTree`): despite the legacy component name, the sidebar tree is built with `@pierre/trees`, not `react-virtuoso`. `useAllPaths()` supplies the canonical filesystem snapshot, while a long-lived Pierre model owns expansion, selection, rename, create, and drag/drop interaction state. Watcher events and completed path refetches reconcile that model.
 - `frontend/src/components/virtualized/virtualized-file-tree/filtered-file-tree.tsx` (`FilteredFileTree`): creates a separate ephemeral, navigation-only Pierre model for advanced/Bleve filter results. The canonical tree stays mounted and hidden so its state and synchronization remain active.
 - `frontend/src/components/folder-renderer/` and `frontend/src/components/virtualized/virtualized-list/`: folder contents and reusable sidebar lists still use `react-virtuoso`; do not infer that implementation for the Pierre file tree.
@@ -139,13 +135,11 @@ flowchart LR
   FS["Project files<br/>Markdown + attachments + sidecars"]
   WATCH["fsnotify watcher + Wails events"]
   IDX["Bleve index"]
-  RUNTIME["Kernel and LSP managers"]
 
   UI <--> DATA
   DATA <--> RPC
   RPC <--> SVC
   SVC --> DOM
-  SVC <--> RUNTIME
   DOM <--> FS
   DOM <--> IDX
   FS --> WATCH

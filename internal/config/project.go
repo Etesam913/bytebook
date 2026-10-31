@@ -49,37 +49,29 @@ func GetProjectPath() (string, error) {
 	return filepath.Join(homeDir, "Library", "Application Support", PROJECT_NAME), nil
 }
 
-// InitProject creates the project directories and initializes settings and kernel descriptors.
-// Returns the project path and kernel descriptors needed at startup.
-func InitProject() (string, AllKernels, error) {
+// InitProject creates the project directories and initializes settings.
+func InitProject() (string, error) {
 	projectPath, err := GetProjectPath()
 	if err != nil {
-		return "", AllKernels{}, err
+		return "", err
 	}
 
-	// The kernel manager creates code/.kernels when clearing stale connection files.
-	for _, directory := range []string{"settings", "code", "notes", "search"} {
+	for _, directory := range []string{"settings", "notes", "search"} {
 		if err := os.MkdirAll(filepath.Join(projectPath, directory), os.ModePerm); err != nil {
-			return "", AllKernels{}, fmt.Errorf("failed to create project %s directory: %w", directory, err)
+			return "", fmt.Errorf("failed to create project %s directory: %w", directory, err)
 		}
 	}
 
 	if _, err := GetProjectSettings(projectPath); err != nil {
-		return "", AllKernels{}, fmt.Errorf("failed to initialize project settings: %w", err)
+		return "", fmt.Errorf("failed to initialize project settings: %w", err)
 	}
 
-	kernels, err := GetAllKernels(projectPath)
-	if err != nil {
-		return "", AllKernels{}, fmt.Errorf("failed to initialize kernel descriptors: %w", err)
-	}
-
-	return projectPath, kernels, nil
+	return projectPath, nil
 }
 
 type SidebarVisibilitySettings struct {
 	HidePinned        bool `json:"hidePinned"`
 	HideRecent        bool `json:"hideRecent"`
-	HideKernels       bool `json:"hideKernels"`
 	HideTags          bool `json:"hideTags"`
 	HideSavedSearches bool `json:"hideSavedSearches"`
 }
@@ -100,14 +92,12 @@ type AppearanceProjectSettingsJson struct {
 }
 
 type CodeProjectSettingsJson struct {
-	CodeBlockVimMode         bool     `json:"codeBlockVimMode"`
-	CodeBlockFontFamily      string   `json:"codeBlockFontFamily"`
-	CodeBlockFontSize        int      `json:"codeBlockFontSize"`
-	CodeBlockLineWrapping    bool     `json:"codeBlockLineWrapping"`
-	CodeBlockShowLineNumbers bool     `json:"codeBlockShowLineNumbers"`
-	CodeBlockDefaultLanguage string   `json:"codeBlockDefaultLanguage"`
-	PythonVenvPath           string   `json:"pythonVenvPath"`
-	CustomPythonVenvPaths    []string `json:"customPythonVenvPaths"`
+	CodeBlockVimMode         bool   `json:"codeBlockVimMode"`
+	CodeBlockFontFamily      string `json:"codeBlockFontFamily"`
+	CodeBlockFontSize        int    `json:"codeBlockFontSize"`
+	CodeBlockLineWrapping    bool   `json:"codeBlockLineWrapping"`
+	CodeBlockShowLineNumbers bool   `json:"codeBlockShowLineNumbers"`
+	CodeBlockDefaultLanguage string `json:"codeBlockDefaultLanguage"`
 }
 
 type ProjectSettingsJson struct {
@@ -172,8 +162,6 @@ func GetProjectSettings(projectPath string) (ProjectSettingsJson, error) {
 			CodeBlockLineWrapping:    false,
 			CodeBlockShowLineNumbers: false,
 			CodeBlockDefaultLanguage: DefaultCodeBlockLanguage,
-			PythonVenvPath:           "",
-			CustomPythonVenvPaths:    []string{},
 		},
 	}
 

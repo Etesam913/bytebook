@@ -10,7 +10,7 @@ describe('sidebar order', () => {
   it('defaults missing settings and repairs duplicate, unknown and missing sections', () => {
     expect(normalizeSidebarOrder(undefined)).toEqual([...SIDEBAR_PANEL_KEYS]);
     expect(normalizeSidebarOrder(['tags', 'files', 'tags', 'unknown'])).toEqual(
-      ['tags', 'files', 'pinned', 'recent', 'kernels', 'savedSearches']
+      ['tags', 'files', 'pinned', 'recent', 'savedSearches']
     );
   });
 
@@ -19,7 +19,6 @@ describe('sidebar order', () => {
     const visibility = {
       hidePinned: true,
       hideRecent: false,
-      hideKernels: true,
       hideTags: false,
       hideSavedSearches: false,
     };
@@ -35,7 +34,6 @@ describe('sidebar order', () => {
       'tags',
       'pinned',
       'files',
-      'kernels',
       'recent',
       'savedSearches',
     ]);

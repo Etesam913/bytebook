@@ -15,7 +15,7 @@ func TestSettingsServicePersistsSidebarOrder(t *testing.T) {
 	initial := service.GetProjectSettings()
 	require.True(t, initial.Success)
 	settings := initial.Data
-	settings.Appearance.SidebarOrder = []string{"tags", "files", "pinned", "recent", "kernels", "savedSearches"}
+	settings.Appearance.SidebarOrder = []string{"tags", "files", "pinned", "recent", "savedSearches"}
 
 	updated := service.UpdateProjectSettings(settings)
 

@@ -4,13 +4,6 @@ import {
 } from '@hooks/project-settings';
 import { AppSwitch } from '@components/switch';
 import { SettingsRow } from './settings-row';
-import { useSetAtom } from 'jotai';
-import { dialogDataAtom } from '@/atoms';
-import { MotionButton } from '@components/buttons';
-import { getDefaultButtonVariants } from '@/animations';
-import { PythonVenvDialog } from '@components/editor/python-venv-dialog';
-import { FolderOpen } from '@/icons/folder-open';
-import { usePythonVenvSubmitMutation } from '@hooks/code/kernels';
 import { FontFamilyRow } from './appearance/font-family-row';
 import { FontSizeRow } from './appearance/font-size-row';
 import { DefaultLanguageRow } from './default-language-row';
@@ -18,9 +11,6 @@ import { DefaultLanguageRow } from './default-language-row';
 export function CodeBlockPage() {
   const projectSettings = useProjectSettingsQuery().data;
   const { mutate: updateProjectSettings } = useUpdateProjectSettingsMutation();
-  const setDialogData = useSetAtom(dialogDataAtom);
-  const { mutateAsync: submitPythonVenv } =
-    usePythonVenvSubmitMutation(projectSettings);
 
   return (
     <>
@@ -93,44 +83,6 @@ export function CodeBlockPage() {
         </div>
       </SettingsRow>
       <DefaultLanguageRow />
-      <SettingsRow
-        title="Python Virtual Environment"
-        description="The path to the virtual environment that is used by Python in code blocks."
-      >
-        <div className="text-sm gap-2">
-          <div className="mb-3">
-            <p className="text-xs text-zinc-500 dark:text-zinc-300">
-              Virtual environment path:
-            </p>
-            <p>
-              {projectSettings.code.pythonVenvPath.length === 0
-                ? 'Environment is not set'
-                : projectSettings.code.pythonVenvPath}
-            </p>
-          </div>
-          <MotionButton
-            className="text-center"
-            {...getDefaultButtonVariants()}
-            onPress={() => {
-              setDialogData({
-                isOpen: true,
-                isPending: false,
-                title: 'Change Python Virtual Environment',
-                dialogClassName: 'w-[min(40rem,90vw)]',
-                children: (errorText) => (
-                  <PythonVenvDialog errorText={errorText} />
-                ),
-                onSubmit: async (formData) => {
-                  return await submitPythonVenv({ formData });
-                },
-              });
-            }}
-          >
-            <FolderOpen />
-            Update Environment
-          </MotionButton>
-        </div>
-      </SettingsRow>
     </>
   );
 }

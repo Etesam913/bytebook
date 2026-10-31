@@ -2,7 +2,7 @@ import {
   useProjectSettingsQuery,
   useProjectSettingsSync,
 } from '@hooks/project-settings';
-import { lazy, type ReactNode, Suspense } from 'react';
+import { type ReactNode } from 'react';
 import { RouterProvider } from 'react-aria-components';
 import { NotFound } from '@/routes/not-found';
 import { useAtomValue, useSetAtom } from 'jotai/react';
@@ -18,7 +18,6 @@ import { useTagEvents } from '@hooks/tags';
 import { useThemeSetting } from '@hooks/theme';
 import { disableBackspaceNavigation } from '@utils/routing';
 import { routeUrls } from '@utils/routes';
-import { RouteFallback } from '@components/route-fallback';
 import { useZoom, useFullscreen } from '@hooks/resize';
 import {
   useHistoryNavigationEvents,
@@ -32,18 +31,8 @@ import { EditorWrapper } from '@components/editor-wrapper';
 import { RouteDebugView } from '@components/route-debug-view';
 import { isRegularMouseClick } from '@utils/mouse';
 import { isE2ETestEnvironment } from '@utils/e2e';
-import {
-  useKernelInstanceEvents,
-  useKernelInstancesQuery,
-} from '@hooks/code/kernels';
 import { useSavedSearchUpdates } from '@hooks/search';
 import { useAllPathsInvalidation } from '@hooks/all-paths';
-
-const KernelInfo = lazy(() =>
-  import('@/routes/kernel-info').then((module) => ({
-    default: module.KernelInfo,
-  }))
-);
 
 disableBackspaceNavigation();
 
@@ -68,8 +57,6 @@ function App() {
   useAllPathsInvalidation();
   useThemeSetting();
   useProjectSettingsSync();
-  useKernelInstancesQuery();
-  useKernelInstanceEvents();
   useZoom();
   useFullscreen();
   useHistoryNavigationEvents();
@@ -118,12 +105,6 @@ function App() {
 
             <Route path={routeUrls.patterns.NOT_FOUND_FALLBACK}>
               <NotFound />
-            </Route>
-
-            <Route path={routeUrls.patterns.KERNELS}>
-              <Suspense fallback={<RouteFallback />}>
-                <KernelInfo />
-              </Suspense>
             </Route>
 
             <Route path={routeUrls.patterns.CATCH_ALL}>
