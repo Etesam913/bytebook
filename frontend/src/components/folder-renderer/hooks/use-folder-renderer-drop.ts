@@ -7,7 +7,7 @@ import {
 } from 'react';
 import { useAtomValue } from 'jotai';
 import { draggedGhostElementAtom } from '@/atoms';
-import { FILE_TREE_GHOST_ID } from '@components/editor/utils/drag/context';
+import { FILE_TREE_GHOST_ID } from '@utils/drag-constants';
 import { useMoveTreeItemsMutation } from '@components/virtualized/virtualized-file-tree/hooks/tree-item-mutations';
 import { useCurrentWindowWailsEvent } from '@hooks/events';
 import { useAddDroppedFilesToFolderMutation } from '@hooks/tree-items';

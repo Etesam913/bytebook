@@ -26,14 +26,23 @@ test.describe('Navigation', () => {
   test('opens a note from its folder and restores note and folder history', async ({
     page,
   }) => {
+    const editorRequests: string[] = [];
+    page.on('request', (request) => {
+      if (/chunk-editor\./.test(request.url()))
+        editorRequests.push(request.url());
+    });
     await page.goto('/');
     const sidebar = page.getByTestId('file-sidebar');
     await sidebar.getByRole('treeitem', { name: 'Economics Notes' }).click();
     await expect(page).toHaveURL('/notes/Economics%20Notes');
+    if (process.env.PLAYWRIGHT_PRODUCTION === 'true')
+      expect(editorRequests).toHaveLength(0);
     await sidebar
       .getByRole('treeitem', { name: 'Supply and Demand.md', exact: true })
       .click();
     await expect(getEditor(page)).toContainText('Economics research');
+    if (process.env.PLAYWRIGHT_PRODUCTION === 'true')
+      expect(editorRequests.length).toBeGreaterThan(0);
     await page.getByTestId('go-back-button').click();
     await expect(page).toHaveURL('/notes/Economics%20Notes');
     await page.getByTestId('go-back-button').click();

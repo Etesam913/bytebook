@@ -30,7 +30,7 @@ import {
   type DragContext,
 } from '../utils/drag';
 import { setSelectionFromPointerInNoteEditor } from '../utils/note-commands';
-import { FILE_TREE_GHOST_ID } from '../utils/drag/context';
+import { FILE_TREE_GHOST_ID } from '@utils/drag-constants';
 import { installWailsDragHandlers } from '@utils/wails-drag';
 import { throttle } from '@utils/timing';
 

@@ -4,7 +4,7 @@ import { useAtomValue } from 'jotai/react';
 import { isDarkModeOnAtom } from '@/atoms';
 import CodeMirror, { type ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { EditorView, tooltips } from '@codemirror/view';
-import { Prec, type Extension } from '@codemirror/state';
+import { EditorSelection, Prec, type Extension } from '@codemirror/state';
 import { useDebouncedCallback } from '@hooks/debounce';
 import { getCodemirrorKeymap } from '@utils/codemirror';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
@@ -12,6 +12,7 @@ import type {
   CodeBlockDocumentProps,
   CodeBlockIdentityProps,
   CodeBlockShellProps,
+  CodeMirrorRef,
 } from './types';
 import { cn } from '@utils/string-formatting';
 import type { Languages } from '@/types';
@@ -65,7 +66,7 @@ export function CodeMirrorEditor({
     setCodeMirrorInstance,
     isExpanded,
     isCreatedNow,
-    restoreCodeMirrorViewState,
+    pendingCodeMirrorViewStateRef,
   } = shell;
   const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
 
@@ -121,6 +122,29 @@ export function CodeMirrorEditor({
       cancelled = true;
     };
   }, [codeBlockVimMode]);
+
+  function restoreCodeMirrorViewState(instance: CodeMirrorRef): boolean {
+    const pendingViewState = pendingCodeMirrorViewStateRef.current;
+    const view = instance?.view;
+    if (!pendingViewState || !view) return false;
+
+    const docLength = view.state.doc.length;
+    const clampPosition = (position: number) =>
+      Math.min(Math.max(position, 0), docLength);
+    const ranges = pendingViewState.ranges.map(({ anchor, head }) =>
+      EditorSelection.range(clampPosition(anchor), clampPosition(head))
+    );
+
+    view.dispatch({
+      selection: EditorSelection.create(
+        ranges,
+        Math.min(pendingViewState.mainIndex, ranges.length - 1)
+      ),
+    });
+
+    pendingCodeMirrorViewStateRef.current = null;
+    return true;
+  }
 
   function handleEditorRef(instance: ReactCodeMirrorRef | null) {
     setCodeMirrorInstance(instance);

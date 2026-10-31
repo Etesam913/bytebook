@@ -36,6 +36,9 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: '127.0.0.1',
+      // E2E does not edit source. Avoid refresh wrappers running before the
+      // preamble in shared bundled chunks; keep HMR for ordinary development.
+      hmr: mode === 'e2e' ? false : undefined,
     },
     optimizeDeps: {
       // The React Compiler injects this import after Vite's initial scan.
@@ -113,49 +116,6 @@ export default defineConfig(({ mode }) => {
           // This will help identify entry chunks vs lazy-loaded chunks
           entryFileNames: 'entry-[name].[hash].js',
           chunkFileNames: 'chunk-[name].[hash].js',
-          // Group third-party deps into named vendor chunks to deduplicate
-          // shared modules (motion, react-aria, etc.) that the auto-chunker
-          // was placing into multiple route chunks. CM language packs and
-          // vim mode return undefined so they keep their per-package lazy
-          // chunks created by Phase 2's dynamic imports.
-          manualChunks: (id) => {
-            if (!id.includes('node_modules')) return undefined;
-            if (
-              id.match(
-                /node_modules\/@codemirror\/lang-(python|go|java|javascript)\//
-              )
-            )
-              return undefined;
-            if (id.match(/node_modules\/@lezer\/(python|go|java|javascript)\//))
-              return undefined;
-            if (id.includes('node_modules/@replit/codemirror-vim/'))
-              return undefined;
-            if (id.match(/node_modules\/(react|react-dom|scheduler)\//))
-              return 'vendor-react';
-            if (id.match(/node_modules\/(lexical|@lexical)\//))
-              return 'vendor-lexical';
-            if (id.match(/node_modules\/(@codemirror|@lezer|@uiw)\//))
-              return 'vendor-cm';
-            if (
-              id.match(
-                /node_modules\/(@react-aria|@react-stately|react-aria-components|@floating-ui|tabbable)\//
-              )
-            )
-              return 'vendor-aria';
-            if (
-              id.match(
-                /node_modules\/(motion|framer-motion|motion-dom|motion-utils)\//
-              )
-            )
-              return 'vendor-motion';
-            if (
-              id.match(/node_modules\/(@tanstack|jotai|jotai-family|wouter)\//)
-            )
-              return 'vendor-state';
-            if (id.includes('node_modules/react-virtuoso/'))
-              return 'vendor-virtuoso';
-            return 'vendor';
-          },
         },
       },
     },

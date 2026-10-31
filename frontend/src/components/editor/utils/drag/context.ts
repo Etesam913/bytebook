@@ -11,12 +11,6 @@ import {
   type DragAndDropCaretMotionValues,
 } from './caret';
 
-/** Ghost element id used by drags that originate in the file tree. */
-export const FILE_TREE_GHOST_ID = 'file-tree-item';
-
-/** Ghost `id`s that the drag dispatchers will handle. */
-export const HANDLED_GHOST_IDS = new Set(['block-element', FILE_TREE_GHOST_ID]);
-
 /**
  * Per-effect context shared by every drag-source helper and dispatcher. Built
  * inside `useNodeDragEvents` and passed by reference.

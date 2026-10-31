@@ -2,10 +2,17 @@ import { motion, useAnimationControls } from 'motion/react';
 import { FileBan } from '@/icons/file-ban';
 import { IMAGE_FILE_EXTENSIONS, VIDEO_FILE_EXTENSIONS } from '@/types';
 import { FilePath } from '@utils/path';
-import { NotesEditor } from '@components/editor';
+import { lazy, Suspense } from 'react';
+import { RouteFallback } from '@components/route-fallback';
 import { ImageRenderer } from './image-renderer';
 import { VideoRenderer } from './video-renderer';
 import { NonMarkdownToolbar } from '@/routes/notes-sidebar/render-note/non-markdown-toolbar';
+
+const NotesEditor = lazy(() =>
+  import('@components/editor').then((module) => ({
+    default: module.NotesEditor,
+  }))
+);
 
 export function NoteRenderer({ filePath }: { filePath: FilePath }) {
   const { extension } = filePath;
@@ -69,10 +76,18 @@ export function NoteRenderer({ filePath }: { filePath: FilePath }) {
         className="w-full h-full min-w-0 flex-1"
         animate={animationControls}
       >
-        <NotesEditor
-          filePath={filePath}
-          animationControls={animationControls}
-        />
+        <Suspense
+          fallback={
+            <div className="flex h-full items-center justify-center">
+              <RouteFallback height="2.625rem" width="2.625rem" />
+            </div>
+          }
+        >
+          <NotesEditor
+            filePath={filePath}
+            animationControls={animationControls}
+          />
+        </Suspense>
       </motion.div>
     );
   }

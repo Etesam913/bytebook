@@ -18,7 +18,7 @@ import {
 import { type JSX, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAttachmentsMutation } from '@hooks/attachments';
-import { useCreateTableDialog } from '@hooks/dialogs';
+import { useCreateTableDialog } from '@hooks/table-dialog';
 import { GolangLogo } from '@/icons/golang-logo';
 import { JavaLogo } from '@/icons/java-logo';
 import { PythonLogo } from '@/icons/python-logo';

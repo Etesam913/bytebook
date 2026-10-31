@@ -1,6 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import type { CodeMirrorRef } from './types';
-import { EditorSelection } from '@codemirror/state';
+import type { CodeMirrorRef, CodeMirrorViewState } from './types';
 import { Loader } from '@/icons/loader';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
@@ -17,14 +16,6 @@ const CodeMirrorEditor = lazy(() =>
     default: module.CodeMirrorEditor,
   }))
 );
-
-type CodeMirrorViewState = {
-  ranges: Array<{ anchor: number; head: number }>;
-  mainIndex: number;
-  scrollTop: number;
-  scrollLeft: number;
-  shouldFocus: boolean;
-};
 
 export function Code({
   code,
@@ -80,29 +71,6 @@ export function Code({
     setIsExpanded(false);
   }
 
-  function restoreCodeMirrorViewState(instance: CodeMirrorRef): boolean {
-    const pendingViewState = pendingCodeMirrorViewStateRef.current;
-    const view = instance?.view;
-    if (!pendingViewState || !view) return false;
-
-    const docLength = view.state.doc.length;
-    const clampPosition = (position: number) =>
-      Math.min(Math.max(position, 0), docLength);
-    const ranges = pendingViewState.ranges.map(({ anchor, head }) =>
-      EditorSelection.range(clampPosition(anchor), clampPosition(head))
-    );
-
-    view.dispatch({
-      selection: EditorSelection.create(
-        ranges,
-        Math.min(pendingViewState.mainIndex, ranges.length - 1)
-      ),
-    });
-
-    pendingCodeMirrorViewStateRef.current = null;
-    return true;
-  }
-
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
@@ -122,7 +90,7 @@ export function Code({
     setIsExpanded,
     expandCodeBlock,
     collapseCodeBlock,
-    restoreCodeMirrorViewState,
+    pendingCodeMirrorViewStateRef,
     dialogRef,
     isCreatedNow,
   };

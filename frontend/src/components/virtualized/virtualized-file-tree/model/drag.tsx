@@ -3,7 +3,7 @@ import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { Folder } from '@/icons/folder';
 import { Note } from '@/icons/page';
-import { FILE_TREE_GHOST_ID } from '@components/editor/utils/drag/context';
+import { FILE_TREE_GHOST_ID } from '@utils/drag-constants';
 import { WAILS_URL } from '@utils/general';
 import {
   createFilePath,

@@ -1,5 +1,6 @@
 import { eventFiles } from '@lexical/rich-text';
-import { HANDLED_GHOST_IDS, type DragContext } from './context';
+import { HANDLED_GHOST_IDS } from '@utils/drag-constants';
+import type { DragContext } from './context';
 import { blockReorder } from './sources/block-reorder';
 import { externalFiles } from './sources/external-files';
 import { fileTreeInternal } from './sources/file-tree';

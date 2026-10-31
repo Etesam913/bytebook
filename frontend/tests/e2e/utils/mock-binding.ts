@@ -3,7 +3,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import type { BrowserContext, Page } from '@playwright/test';
+import { expect, type BrowserContext, type Page } from '@playwright/test';
 
 // Minimal Playwright-side shim that lets us fake any generated Wails binding
 // by intercepting the runtime RPC call and short-circuiting it with data.
@@ -147,6 +147,41 @@ function getMethodId({ file, method }: BindingIdentifier): number {
 async function ensureFetchIsPatched(context: BrowserContext) {
   if (patchedContexts.has(context)) return;
   patchedContexts.add(context);
+
+  if (process.env.PLAYWRIGHT_PRODUCTION !== 'true') {
+    const viteOrigin = new URL(
+      process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:5174'
+    ).origin;
+    // Bundled Vite can serve its temporary loading document on a later reload
+    // too, after discovering a lazy entry. Wait for actual application HTML,
+    // just as globalSetup does for the first page; preserve all UI assertions.
+    await context.route('**/*', async (route) => {
+      const request = route.request();
+      if (
+        new URL(request.url()).origin !== viteOrigin ||
+        request.resourceType() !== 'document' ||
+        request.frame().parentFrame()
+      ) {
+        return route.fallback();
+      }
+      let response = await route.fetch({ maxRetries: 2 });
+      await expect
+        .poll(
+          async () => {
+            const html = await response.text();
+            if (html.includes('id="root"')) return true;
+            response = await route.fetch({ maxRetries: 2 });
+            return (await response.text()).includes('id="root"');
+          },
+          {
+            timeout: 15000,
+            message: 'Wait for Vite application HTML on navigation',
+          }
+        )
+        .toBe(true);
+      await route.fulfill({ response });
+    });
+  }
 
   await context.addInitScript(() => {
     const globalWindow = window as typeof window & {

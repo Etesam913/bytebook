@@ -1,14 +1,19 @@
 import { useAnimationControls } from 'motion/react';
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { navigate } from 'wouter/use-browser-location';
 import { NoteRenderer } from '@components/note-renderer';
-import { FolderRenderer } from '@components/folder-renderer';
 import { useFilePathFromRoute, useFolderPathFromRoute } from '@hooks/routes';
 import { useNoteExists } from '@hooks/notes';
 import { useAllPaths } from '@hooks/all-paths';
 import { RouteFallback } from '@components/route-fallback';
 import { NotFound } from '@/routes/not-found';
 import { routeUrls } from '@utils/routes';
+
+const FolderRenderer = lazy(() =>
+  import('@components/folder-renderer').then((module) => ({
+    default: module.FolderRenderer,
+  }))
+);
 
 export function EditorWrapper() {
   const filePath = useFilePathFromRoute();
@@ -58,10 +63,12 @@ export function EditorWrapper() {
 
   if (folderPath) {
     return (
-      <FolderRenderer
-        folderPath={folderPath}
-        animationControls={animationControls}
-      />
+      <Suspense fallback={<RouteFallback height="2.625rem" width="2.625rem" />}>
+        <FolderRenderer
+          folderPath={folderPath}
+          animationControls={animationControls}
+        />
+      </Suspense>
     );
   }
 
