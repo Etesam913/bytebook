@@ -20,7 +20,7 @@ jobs:
     env:
       GOBIN: ${{ github.workspace }}/.cache/go-tools/bin
       GOTESTSUM_VERSION: v1.13.0
-      DEADCODE_VERSION: v0.38.0
+      DEADCODE_VERSION: v0.52.0
     steps:
       - name: Checkout code
         uses: actions/checkout@v5

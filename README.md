@@ -12,6 +12,10 @@ git clone https://github.com/etesam913/bytebook.git
 
 ### Install dependencies
 
+Use Go 1.26 or newer and Bun 1.4.4. The Go module replaces Wails with
+`../wails/v3`; check out Wails v3.1.0 there and build the `wails3` CLI from
+that checkout so it matches the frontend runtime.
+
 #### Install golang dependencies
 
 ```

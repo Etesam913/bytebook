@@ -295,7 +295,10 @@ export function updateToolbar({
     // Shows the text-format hover container
     const selectionText = selection.getTextContent().trim();
     if (selectionText.length > 0) {
-      const nativeSelection = window.getSelection()?.getRangeAt(0);
+      const selection = window.getSelection();
+      const nativeSelection = selection?.rangeCount
+        ? selection.getRangeAt(0)
+        : null;
       const domRect = nativeSelection?.getBoundingClientRect();
       if (domRect) {
         setFloatingData({

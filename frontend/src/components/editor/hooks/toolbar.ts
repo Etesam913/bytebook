@@ -23,7 +23,6 @@ import {
   type LexicalEditor,
   PASTE_COMMAND,
   REDO_COMMAND,
-  SELECTION_CHANGE_COMMAND,
   type TextFormatType,
   UNDO_COMMAND,
   SKIP_DOM_SELECTION_TAG,
@@ -179,9 +178,9 @@ export function useToolbarEvents({
         },
         COMMAND_PRIORITY_HIGH
       ),
-      editor.registerCommand(
-        SELECTION_CHANGE_COMMAND,
-        () => {
+      // Read DOM geometry after Lexical reconciles the current selection.
+      editor.registerUpdateListener(({ editorState }) => {
+        editorState.read(() => {
           updateToolbar({
             editor,
             setDisabled,
@@ -191,13 +190,7 @@ export function useToolbarEvents({
             setFloatingData,
             noteContainerRef,
           });
-          return false;
-        },
-        COMMAND_PRIORITY_LOW
-      ),
-      // Measure after the selection and DOM have committed, so the hint follows
-      // the current caret rather than the previous line.
-      editor.registerUpdateListener(() => {
+        });
         updatePlaceholderLineData({
           editor,
           noteContainerRef,
