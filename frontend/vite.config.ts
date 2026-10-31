@@ -1,6 +1,7 @@
 import react from '@vitejs/plugin-react';
 import reactCompiler from 'babel-plugin-react-compiler';
-import { defineConfig, loadEnv, type PluginOption } from 'vite';
+import { defineConfig, loadEnv, minify, type PluginOption } from 'vite';
+import { readFile, writeFile } from 'node:fs/promises';
 import tailwindcss from '@tailwindcss/vite';
 import { visualizer } from 'rollup-plugin-visualizer';
 import wailsTypedEvents from '@wailsio/runtime/plugins/vite';
@@ -26,6 +27,8 @@ export default defineConfig(({ mode }) => {
       ]
     : [];
 
+  let themeTarget: string | string[] | undefined;
+
   return {
     experimental: {
       // Reduce module requests across parallel browser pages only during E2E.
@@ -40,6 +43,16 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       alias: {
+        // The only server API used is renderToStaticMarkup. React's browser
+        // barrel also requires the unused streaming renderer through CJS.
+        ...(mode === 'production'
+          ? {
+              'react-dom/server': path.resolve(
+                import.meta.dirname,
+                'node_modules/react-dom/cjs/react-dom-server-legacy.browser.production.js'
+              ),
+            }
+          : {}),
         '@bindings': path.resolve(
           import.meta.dirname,
           './bindings/github.com/etesam913/bytebook/internal'
@@ -55,9 +68,33 @@ export default defineConfig(({ mode }) => {
         '@codemirror/view',
         '@codemirror/language',
         '@codemirror/autocomplete',
+        '@lezer/common',
       ],
     },
     plugins: [
+      {
+        name: 'minify-theme-bootstrap',
+        apply: 'build',
+        configResolved(config) {
+          themeTarget = config.build.target || undefined;
+        },
+        async writeBundle(options) {
+          // Public files bypass Vite's minifier. Keep the theme bootstrap a
+          // blocking classic script so it still runs before the first paint.
+          const file = path.resolve(options.dir!, 'theme-init.js');
+          const result = await minify(
+            'theme-init.js',
+            await readFile(file, 'utf8'),
+            {
+              compress: { target: themeTarget },
+              mangle: true,
+            }
+          );
+          if (result.errors.length)
+            throw new Error('Theme bootstrap minification failed');
+          await writeFile(file, result.code);
+        },
+      },
       react({
         babel: {
           plugins: [[reactCompiler, ReactCompilerConfig]],
@@ -72,6 +109,7 @@ export default defineConfig(({ mode }) => {
     build: {
       rolldownOptions: {
         output: {
+          topLevelVar: false,
           // This will help identify entry chunks vs lazy-loaded chunks
           entryFileNames: 'entry-[name].[hash].js',
           chunkFileNames: 'chunk-[name].[hash].js',

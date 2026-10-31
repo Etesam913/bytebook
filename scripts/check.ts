@@ -120,7 +120,7 @@ const allTasks: CheckTask[] = [
     id: "tooling:test",
     name: "Check Runner Tests",
     category: "tooling",
-    cmd: ["bun", "test", "./scripts/check.test.ts"],
+    cmd: ["bun", "test", "./scripts/check.test.ts", "./scripts/bundle-config.test.ts"],
   },
 ];
 

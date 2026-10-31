@@ -35,7 +35,7 @@ import {
 import { $getNearestNodeOfType } from '@lexical/utils';
 import { AppTextField } from '@components/input';
 import { $setSelection } from 'lexical';
-import { useFocusWithin } from 'react-aria';
+import { useFocusWithin } from 'react-aria/useFocusWithin';
 import { getFloatingPosition } from '../utils/toolbar';
 
 // Styles the persistent selection to match Bytebook's native text selection.

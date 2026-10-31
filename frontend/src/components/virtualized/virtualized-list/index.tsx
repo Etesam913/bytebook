@@ -7,7 +7,7 @@ import {
 } from 'react';
 import { Components, Virtuoso } from 'react-virtuoso';
 import { sidebarSelectionAtom } from '@/atoms';
-import { useInteractOutside } from 'react-aria';
+import { useInteractOutside } from 'react-aria/useInteractOutside';
 import { cn } from '@utils/string-formatting';
 import type { SetSelectionUpdater } from '@utils/selection';
 import { VirtualizedListItem } from './virtualized-list-item';

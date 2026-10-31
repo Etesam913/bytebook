@@ -8,7 +8,7 @@ import { useRef } from 'react';
 import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { AppMenu, AppMenuItem } from '@components/menu';
-import { useInteractOutside } from 'react-aria';
+import { useInteractOutside } from 'react-aria/useInteractOutside';
 import {
   createFilePath,
   createFolderPath,

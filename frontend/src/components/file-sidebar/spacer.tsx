@@ -5,7 +5,7 @@ import {
 import type { MotionValue } from 'motion/react';
 import { useAtomValue } from 'jotai';
 import { useEffect, useRef, useState } from 'react';
-import { useMove } from 'react-aria';
+import { useMove } from 'react-aria/useMove';
 import { noteContainerRefAtom } from '@components/editor/atoms';
 import { MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH } from '@utils/general';
 import { cn } from '@utils/string-formatting';

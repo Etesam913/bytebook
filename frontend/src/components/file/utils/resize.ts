@@ -1,6 +1,6 @@
 import type { MotionValue } from 'motion/react';
 import { useRef } from 'react';
-import { useMove } from 'react-aria';
+import { useMove } from 'react-aria/useMove';
 import type { FileDimensions } from '@components/editor/nodes/types';
 
 export const MIN_WIDTH = 64;

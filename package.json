@@ -8,7 +8,7 @@
     "check:fe": "bun scripts/check.ts --fe",
     "check:be": "bun scripts/check.ts --be && test -z \"$(gofmt -l internal *.go)\"",
     "check:ci": "bun scripts/check.ts --ci",
-    "test:scripts": "bun test ./scripts/check.test.ts",
+    "test:scripts": "bun test ./scripts/check.test.ts ./scripts/bundle-config.test.ts",
     "format": "bun --cwd frontend run format",
     "lint": "bun --cwd frontend run lint"
   }

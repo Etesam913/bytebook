@@ -8,7 +8,7 @@ import { NavigationControls } from './navigation-controls';
 import { AppIconButton } from '@components/buttons';
 import { AppTextField } from '@components/input';
 import { Tooltip } from '@components/tooltip';
-import { useInteractOutside } from 'react-aria';
+import { useInteractOutside } from 'react-aria/useInteractOutside';
 import { useFindPanelSearch } from './hooks/find-panel';
 import { clearAllHighlights } from './utils/highlight';
 

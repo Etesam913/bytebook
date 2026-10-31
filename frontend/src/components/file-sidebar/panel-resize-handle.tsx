@@ -1,6 +1,6 @@
 import { type RefObject, useRef, useState } from 'react';
 import { useAtomValue } from 'jotai';
-import { useMove } from 'react-aria';
+import { useMove } from 'react-aria/useMove';
 import {
   fileSidebarOpenStateAtom,
   MIN_FLEX_WEIGHT,

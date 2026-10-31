@@ -1,7 +1,9 @@
 import { SearchExcerpt } from '@components/search-excerpt';
 import { MenuOption } from '@lexical/react/LexicalTypeaheadMenuPlugin';
 import type { JSX } from 'react';
-import { mergeProps, useHover, usePress } from 'react-aria';
+import { mergeProps } from 'react-aria/mergeProps';
+import { useHover } from 'react-aria/useHover';
+import { usePress } from 'react-aria/usePress';
 import { cn } from '@utils/string-formatting';
 import type { FilePath } from '@utils/path';
 
