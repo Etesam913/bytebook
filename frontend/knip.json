@@ -11,8 +11,7 @@
     "tests/e2e/utils/mock-responses.ts",
     "tests/e2e/utils/service-files.ts",
     "tests/e2e/utils/wails-events.ts",
-    "src/test/setup.ts",
-    "src/components/editor/transformers/test-utils.ts"
+    "src/test/setup.ts"
   ],
   "ignoreExportsUsedInFile": true
 }

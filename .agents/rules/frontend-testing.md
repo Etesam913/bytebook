@@ -90,13 +90,12 @@ describe("safeDecodeURIComponent", () => {
 
 ### DOM setup
 
-- Bun does not provide a browser DOM. When a test reads `window` or `document`, or imports a module that does so, import `src/test/setup.ts` as the **first import**, using the correct relative path.
-- The source module can be statically imported after the setup import unless module mocks must be installed first.
+- Bun does not provide a browser DOM. `src/test/setup.ts` is preloaded by `bunfig.toml` for unit tests.
+- The source module can be statically imported unless module mocks must be installed first.
 - Clean up DOM state created by a test. Remove appended nodes, reset `document.body`, and restore modified globals so results do not depend on test order.
 - Prefer real DOM events and observable effects over calling private event helpers directly.
 
 ```ts
-import "../test/setup";
 import { afterEach, describe, expect, it, spyOn } from "bun:test";
 import { disableBackspaceNavigation } from "./routing";
 
@@ -130,7 +129,6 @@ describe("disableBackspaceNavigation", () => {
 - Assert meaningful arguments and effects. Avoid overspecifying incidental call order unless order is part of the contract.
 
 ```ts
-import "../../../test/setup";
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 
 const openUrl = mock<(url: string) => Promise<void>>(() => Promise.resolve());
@@ -140,19 +138,16 @@ void mock.module("@wailsio/runtime", () => ({
   // Include all other runtime namespaces required by transitive imports.
 }));
 
-const { handleATagClick } = await import("./link");
+const { openLinkInBrowser } = await import("./link");
 
-describe("handleATagClick", () => {
+describe("openLinkInBrowser", () => {
   beforeEach(() => {
     openUrl.mockReset();
     openUrl.mockImplementation(() => Promise.resolve());
   });
 
   it("opens an HTTPS link through the Wails browser API", () => {
-    const anchor = document.createElement("a");
-    anchor.href = "https://example.com/docs";
-
-    handleATagClick(anchor);
+    openLinkInBrowser("https://example.com/docs");
 
     expect(openUrl).toHaveBeenCalledWith("https://example.com/docs");
   });

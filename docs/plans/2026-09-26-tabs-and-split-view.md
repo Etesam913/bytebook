@@ -1,6 +1,6 @@
 # Tabs and editor groups
 
-Status: implemented 2026-09-26 in four commits (`nntnwxqk`, `lqznnnyx`, `zlyzkomo`, and the editor-groups commit), after being revised the same day from Chrome split view to VS Code editor groups. `bun check` passes. The full e2e suite has 124 passing and the same 29 failing tests as before the work (fixture gaps: missing `GetAllPaths`, attachment picker, link editing, markdown, tags). The native checks listed under each commit haven't been run.
+Status: historical proposal. This plan does not describe the current implementation; its proposed workspace and editor-scope APIs are not present in the current codebase.
 
 ## Read this first
 

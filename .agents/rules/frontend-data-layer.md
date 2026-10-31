@@ -12,4 +12,4 @@ paths:
 - Query keys are never inlined — always come from the `queryKeys` factory in `frontend/src/utils/query-keys.ts`: `as const` tuples, kebab-case root, `*All` suffix for prefix-invalidation keys.
 - On a failed `BackendResponse` (`success: false`), `throw new QueryError(res.message)`. The global `QueryCache`/`MutationCache` `onError` in `main.tsx` toasts it — do not call `toast.error` manually in query/mutation code. When toasting directly elsewhere, always pass `DEFAULT_SONNER_OPTIONS` from `utils/general.ts`.
 - Wails event names are never raw strings. Use the generated SCREAMING_SNAKE constants from `@bindings/util/event-names` (generated from `internal/util/events.go`) and subscribe with `useWailsEvent()` from `hooks/events.tsx`.
-- File tree updates flow through the @pierre/trees model (`model.add/remove/move`) driven by Wails events — not by writing to `fileTreeDataAtom` directly.
+- File tree updates flow through the @pierre/trees model (`model.add/remove/move`) driven by Wails events.

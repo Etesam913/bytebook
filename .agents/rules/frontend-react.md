@@ -42,6 +42,6 @@ paths:
 - Files and directories are kebab-case; a folder's main component lives in `index.tsx`.
 - Jotai atoms: `camelCaseAtom` naming, defined only in `frontend/src/atoms.ts` or `frontend/src/components/editor/atoms.ts`, each with a one-line `//` comment describing what it holds.
 - Styling is Tailwind v4 utilities with `dark:` variants. Conditional classes go through `cn()` from `@utils/string-formatting`. Reserve inline `style={{}}` for dynamic/measured values.
-- Paths: use `createFilePath()` / `createFolderPath()` from `@utils/path` (typed `FilePath` / `FolderPath`). `LocalFilePath` is legacy — don't use it in new code.
+- Paths: use `createFilePath()` / `createFolderPath()` from `@utils/path` (typed `FilePath` / `FolderPath`).
 - Comments: use plain `//` or `/* */` comments without JSDoc tags; TypeScript owns type information. Comments explain *why*, not what.
 - `switch` statements over unions must be exhaustive (`@typescript-eslint/switch-exhaustiveness-check` is an error).

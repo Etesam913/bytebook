@@ -50,28 +50,10 @@ or **⌥⌘I**. After changing the development build or launch tasks, stop and r
 
 ## 🧪 Tests
 
-### golang
-
-#### Run all Tests
-
-With caching:
+Run frontend and backend checks and tests from the repository root:
 
 ```bash
-gotestsum --format=pkgname --format-icons=hivis ./internal/...
+bun check
 ```
 
-No caching:
-
-```bash
-gotestsum --format=pkgname --format-icons=hivis -- -count=1  ./internal/...
-```
-
-#### Run tests that are being developed in watch mode
-
-```bash
-gotestsum --watch
-```
-
-### react
-
-tbd...
+Use `bun check:fe` or `bun check:be` to check one layer.
