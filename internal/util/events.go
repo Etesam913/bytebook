@@ -2,12 +2,8 @@ package util
 
 import "github.com/wailsapp/wails/v3/pkg/application"
 
-// Event name constants. Every custom Wails event used by the app is named here.
-// Events whose payload types live in this package are registered in init below;
-// events with payload types in other packages are registered there.
-// Each event must be registered exactly once — application.RegisterEvent panics
-// on duplicates — and registration gives emit-time payload validation plus
-// generated TypeScript typings for the frontend.
+// Custom event names are declared here. Payloads are registered in their owning
+// packages to avoid import cycles and generate typed frontend bindings.
 const (
 	// File events
 	EventFileCreate = "file:create"

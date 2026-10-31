@@ -11,59 +11,14 @@ import {
 const CODE_START_REGEX = /^```(\w{1,10})?(?:\s+(.+))?\s*$/;
 const CODE_END_REGEX = /```\s?$/;
 
-// Helper functions for parsing code block properties
-function isCharAtIndexEscaped(str: string, index: number): boolean {
-  let escapeCount = 0;
-  let i = index - 1;
-  while (i >= 0 && str[i] === '\\') {
-    escapeCount++;
-    i--;
-  }
-  return escapeCount % 2 === 1;
-}
-
 function parseOutCodeBlockId(propertiesString: string) {
   let codeBlockId: string | null = null;
-  for (let i = 0; i < propertiesString.length; i += 1) {
-    // If a quote is found without a known property value, then loop until the end of the property value
-    if (
-      propertiesString[i] === '"' &&
-      !isCharAtIndexEscaped(propertiesString, i)
-    ) {
-      i += 1;
-      // Continue updating i until either the end of the string is hit or
-      // A quote is found without being escaped
-      while (
-        i < propertiesString.length &&
-        (propertiesString[i] !== '"' ||
-          (propertiesString[i] === '"' &&
-            isCharAtIndexEscaped(propertiesString, i)))
-      ) {
-        i += 1;
-      }
-    }
-    // Look for the code block id.
-    // If found, then get the value in between the two quotes.
-    // Any quotes inside the two quotes should be escaped
-    const indexToEquals = i + 'id'.length;
-    const indexToQuote = indexToEquals + 1;
-    if (
-      propertiesString.slice(i, indexToEquals + 1) === 'id=' &&
-      propertiesString[indexToQuote] === '"'
-    ) {
-      let j = indexToQuote + 1;
-      // Getting to the end of the quote while skipping escaped quotes
-      while (
-        j < propertiesString.length &&
-        (propertiesString[j] !== '"' ||
-          (propertiesString[j] === '"' &&
-            isCharAtIndexEscaped(propertiesString, j)))
-      ) {
-        j += 1;
-      }
-      codeBlockId = unescapeQuotes(propertiesString.slice(indexToQuote + 1, j));
-      i = j;
-    }
+  // Consume quoted values as a whole so an id inside another value is ignored.
+  const tokens = propertiesString.matchAll(
+    /\\[\\"]|id="((?:\\.|[^"\\])*)(?:"|$)|"(?:\\.|[^"\\])*(?:"|$)/g
+  );
+  for (const token of tokens) {
+    if (token[1] !== undefined) codeBlockId = unescapeQuotes(token[1]);
   }
   return codeBlockId;
 }

@@ -109,6 +109,13 @@ describe('CODE_TRANSFORMER round trip', () => {
     expect(roundTrip(roundTrip(markdown))).toBe(markdown);
   });
 
+  it('ignores ids inside quoted properties and uses the last id', () => {
+    const markdown =
+      '```python title="id=\\"wrong\\"" id="first" id="last"\nprint(1)\n```';
+
+    expect(roundTrip(markdown)).toBe('```python id="last"\nprint(1)\n```');
+  });
+
   it('preserves intentional leading and trailing blank lines', () => {
     const markdown = '```python id="abc"\n\nprint(1)\n\n```';
 

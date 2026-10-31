@@ -93,27 +93,3 @@ func (batch watcherBatch) events() []*application.CustomEvent {
 	}
 	return events
 }
-
-func (fw *FileWatcher) queueCreate(isFolder bool, path string) {
-	if isFolder {
-		fw.batch.folderCreates = append(fw.batch.folderCreates, util.FolderCreateEventData{FolderPath: path})
-	} else {
-		fw.batch.fileCreates = append(fw.batch.fileCreates, util.FileCreateEventData{FilePath: path})
-	}
-}
-
-func (fw *FileWatcher) queueDelete(isFolder bool, path string) {
-	if isFolder {
-		fw.batch.folderDeletes = append(fw.batch.folderDeletes, util.FolderDeleteEventData{FolderPath: path})
-	} else {
-		fw.batch.fileDeletes = append(fw.batch.fileDeletes, util.FileDeleteEventData{FilePath: path})
-	}
-}
-
-func (fw *FileWatcher) queueRename(isFolder bool, oldPath, newPath string) {
-	if isFolder {
-		fw.batch.folderRenames = append(fw.batch.folderRenames, util.FolderRenameEventData{OldFolderPath: oldPath, NewFolderPath: newPath})
-	} else {
-		fw.batch.fileRenames = append(fw.batch.fileRenames, util.FileRenameEventData{OldFilePath: oldPath, NewFilePath: newPath})
-	}
-}

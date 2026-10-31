@@ -8,17 +8,17 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-func (fw *FileWatcher) addPendingRename(events []pendingWatcherEvent, event fsnotify.Event) []pendingWatcherEvent {
-	return addPendingWatcherEvent(events, pendingWatcherEvent{event: event, identity: fw.knownWatchedDirectories.fileInfo(event.Name)})
+func (fw *FileWatcher) addPendingRename(events []pendingPath, event fsnotify.Event) []pendingPath {
+	return addPendingWatcherEvent(events, pendingPath{path: event.Name, identity: fw.knownWatchedDirectories.fileInfo(event.Name)})
 }
 
 // Match only unique filesystem identities, never content, names, or event order.
 // An identity can have multiple paths (hard links), so both sides must be unique.
-func (fw *FileWatcher) matchRenameIdentities(renames, creates []pendingWatcherEvent) map[int]int {
+func (fw *FileWatcher) matchRenameIdentities(renames, creates []pendingPath) map[int]int {
 	newInfo := make([]os.FileInfo, len(creates))
 	for i, pending := range creates {
-		if util.ExactPathExists(pending.event.Name) {
-			newInfo[i], _ = os.Lstat(pending.event.Name)
+		if util.ExactPathExists(pending.path) {
+			newInfo[i], _ = os.Lstat(pending.path)
 		}
 	}
 	matches := make(map[int]int)
@@ -57,7 +57,7 @@ func (fw *FileWatcher) matchRenameIdentities(renames, creates []pendingWatcherEv
 			continue
 		}
 		for j, created := range creates {
-			if newInfo[j] != nil && pending.event.Name == created.event.Name && claimed[j] == 0 {
+			if newInfo[j] != nil && pending.path == created.path && claimed[j] == 0 {
 				matches[i] = j
 				claimed[j]++
 				break
@@ -85,11 +85,11 @@ func (fw *FileWatcher) resolveFileReplacements() {
 		fw.emitFileWriteEvent(path)
 	}
 	fw.batch.fileDeletes = deletes
-	creates := make([]pendingWatcherEvent, 0, len(fw.mostRecentFileCreatedEvents))
-	for _, event := range fw.mostRecentFileCreatedEvents {
-		if !replaced.Has(event.event.Name) {
+	creates := make([]pendingPath, 0, len(fw.files.creates))
+	for _, event := range fw.files.creates {
+		if !replaced.Has(event.path) {
 			creates = append(creates, event)
 		}
 	}
-	fw.mostRecentFileCreatedEvents = creates
+	fw.files.creates = creates
 }

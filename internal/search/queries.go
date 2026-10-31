@@ -309,64 +309,13 @@ func BuildBooleanQueryFromUserInput(input string) (query.Query, *SearchSortOptio
 		return bleve.NewMatchNoneQuery(), nil
 	}
 
-	// The sort tokens have to be filtered out as the sort value is used in a different location compared to the other properties
-	filteredTokens := make([]SearchToken, 0, len(tokens))
-	var sortOption *SearchSortOption
-	for _, token := range tokens {
-		if extractedSort, ok := extractSortPrefix(token.Text); ok {
-			sortCopy := extractedSort
-			sortOption = &sortCopy
-			continue
-		}
-		filteredTokens = append(filteredTokens, token)
-	}
+	filteredTokens, sortOption := separateSortTokens(tokens)
 
 	if len(filteredTokens) == 0 {
 		if sortOption != nil {
 			return bleve.NewMatchAllQuery(), sortOption
 		}
 		return bleve.NewMatchNoneQuery(), nil
-	}
-
-	// Helper to create a query for a token. The second return value is true when the token
-	// should be skipped (e.g. empty f: prefix) and must not be added to the combined query.
-	createTokenQuery := func(token SearchToken) (query.Query, bool) {
-		// Check for filename prefix (f: or file:) — skip when prefix is empty to avoid full index scan
-		if prefixTerm, ok := extractFilenamePrefix(token.Text); ok {
-			prefixTerm = strings.TrimSpace(prefixTerm)
-			if prefixTerm == "" {
-				return nil, true
-			}
-			return CreateFilenameQuery(prefixTerm, 1.0), false
-		}
-
-		// Check for type prefix (t: or type:)
-		if typeName, ok := extractTypePrefix(token.Text); ok {
-			return createTypeQuery(typeName), false
-		}
-
-		// Check for tag prefix (#)
-		if tagName, ok := extractTagPrefix(token.Text); ok {
-			return createTagQuery(tagName), false
-		}
-
-		// Check for link prefix (@)
-		if linkTarget, ok := extractLinkPrefix(token.Text); ok {
-			return createLinkQuery(linkTarget), false
-		}
-
-		// Check for lang prefix (l: or lang:)
-		if langName, ok := extractLangPrefix(token.Text); ok {
-			return createLangQuery(langName), false
-		}
-
-		// Handle exact matches (quoted tokens)
-		if token.IsExact {
-			return createExactContentQuery(token.Text), false
-		}
-
-		// Default: fuzzy content query
-		return createFuzzyContentQuery(token.Text), false
 	}
 
 	// Collect non-skip token queries and the operator after each (to combine with next token)
@@ -417,6 +366,61 @@ func BuildBooleanQueryFromUserInput(input string) (query.Query, *SearchSortOptio
 	}
 
 	return currentQuery, sortOption
+}
+
+// separateSortTokens removes sort directives from the query terms, retaining the last one.
+func separateSortTokens(tokens []SearchToken) ([]SearchToken, *SearchSortOption) {
+	filtered := make([]SearchToken, 0, len(tokens))
+	var sortOption *SearchSortOption
+	for _, token := range tokens {
+		if extracted, ok := extractSortPrefix(token.Text); ok {
+			sortCopy := extracted
+			sortOption = &sortCopy
+			continue
+		}
+		filtered = append(filtered, token)
+	}
+	return filtered, sortOption
+}
+
+// createTokenQuery returns true when a token should be skipped.
+func createTokenQuery(token SearchToken) (query.Query, bool) {
+	// Check for filename prefix (f: or file:) — skip when prefix is empty to avoid full index scan
+	if prefixTerm, ok := extractFilenamePrefix(token.Text); ok {
+		prefixTerm = strings.TrimSpace(prefixTerm)
+		if prefixTerm == "" {
+			return nil, true
+		}
+		return CreateFilenameQuery(prefixTerm, 1.0), false
+	}
+
+	// Check for type prefix (t: or type:)
+	if typeName, ok := extractTypePrefix(token.Text); ok {
+		return createTypeQuery(typeName), false
+	}
+
+	// Check for tag prefix (#)
+	if tagName, ok := extractTagPrefix(token.Text); ok {
+		return createTagQuery(tagName), false
+	}
+
+	// Check for link prefix (@)
+	if linkTarget, ok := extractLinkPrefix(token.Text); ok {
+		return createLinkQuery(linkTarget), false
+	}
+
+	// Check for lang prefix (l: or lang:)
+	if langName, ok := extractLangPrefix(token.Text); ok {
+		return createLangQuery(langName), false
+	}
+
+	// Handle exact matches (quoted tokens)
+	if token.IsExact {
+		return createExactContentQuery(token.Text), false
+	}
+
+	// Default: fuzzy content query
+	return createFuzzyContentQuery(token.Text), false
 }
 
 // ScopeSearchQuery limits result types before pagination and optionally boosts matching folders.

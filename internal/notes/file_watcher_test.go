@@ -190,17 +190,17 @@ func TestResolvePendingRenames(t *testing.T) {
 		fw.addFolderTreeToWatcher(notesDir)
 		require.NoError(t, os.Rename(oldPath, newPath))
 		fw.fileStateCache[oldPath] = fileState{modTime: time.Now(), size: 3}
-		fw.pendingFileRenameEvents = fw.addPendingRename(nil, fsnotify.Event{Name: oldPath, Op: fsnotify.Rename})
-		fw.mostRecentFileCreatedEvents = []pendingWatcherEvent{{event: fsnotify.Event{Name: newPath, Op: fsnotify.Create}}}
+		fw.files.renames = fw.addPendingRename(nil, fsnotify.Event{Name: oldPath, Op: fsnotify.Rename})
+		fw.files.creates = []pendingPath{{path: newPath}}
 
-		fw.resolvePendingRenames(false)
+		fw.resolveFileQueue()
 
 		assert.Equal(t, []util.FileRenameEventData{
 			{OldFilePath: "old.md", NewFilePath: "new.md"},
 		}, fw.batch.fileRenames)
 		assert.NotContains(t, fw.fileStateCache, oldPath)
 		assert.Contains(t, fw.fileStateCache, newPath)
-		assert.Empty(t, fw.mostRecentFileCreatedEvents)
+		assert.Empty(t, fw.files.creates)
 	})
 
 	t.Run("unmatched file rename becomes delete", func(t *testing.T) {
@@ -208,9 +208,9 @@ func TestResolvePendingRenames(t *testing.T) {
 		oldPath := filepath.Join(notesDir, "old.md")
 
 		fw := newTestFileWatcher(t, testDir)
-		fw.pendingFileRenameEvents = fw.addPendingRename(nil, fsnotify.Event{Name: oldPath, Op: fsnotify.Rename})
+		fw.files.renames = fw.addPendingRename(nil, fsnotify.Event{Name: oldPath, Op: fsnotify.Rename})
 
-		fw.resolvePendingRenames(false)
+		fw.resolveFileQueue()
 
 		assert.Equal(t, []util.FileDeleteEventData{
 			{FilePath: "old.md"},
@@ -222,9 +222,9 @@ func TestResolvePendingRenames(t *testing.T) {
 		newPath := testutil.WriteFile(t, notesDir, "new.md", []byte("new"))
 
 		fw := newTestFileWatcher(t, testDir)
-		fw.mostRecentFileCreatedEvents = []pendingWatcherEvent{{event: fsnotify.Event{Name: newPath, Op: fsnotify.Create}}}
+		fw.files.creates = []pendingPath{{path: newPath}}
 
-		fw.resolvePendingRenames(false)
+		fw.resolveFileQueue()
 
 		assert.Equal(t, []util.FileCreateEventData{
 			{FilePath: "new.md"},
@@ -238,13 +238,13 @@ func TestResolvePendingRenames(t *testing.T) {
 		newPathA := testutil.WriteFile(t, notesDir, "new-a.md", []byte("a"))
 
 		fw := newTestFileWatcher(t, testDir)
-		fw.pendingFileRenameEvents = fw.addPendingRename(nil, fsnotify.Event{Name: oldPath, Op: fsnotify.Rename})
-		fw.mostRecentFileCreatedEvents = []pendingWatcherEvent{
-			{event: fsnotify.Event{Name: newPathA, Op: fsnotify.Create}},
-			{event: fsnotify.Event{Name: newPathB, Op: fsnotify.Create}},
+		fw.files.renames = fw.addPendingRename(nil, fsnotify.Event{Name: oldPath, Op: fsnotify.Rename})
+		fw.files.creates = []pendingPath{
+			{path: newPathA},
+			{path: newPathB},
 		}
 
-		fw.resolvePendingRenames(false)
+		fw.resolveFileQueue()
 
 		assert.Equal(t, []util.FileDeleteEventData{
 			{FilePath: "old.md"},
@@ -262,10 +262,10 @@ func TestResolvePendingRenames(t *testing.T) {
 
 		fw := newTestFileWatcher(t, testDir)
 		fw.fileStateCache[path] = fileState{modTime: time.Unix(0, 0), size: 0}
-		fw.pendingFileRenameEvents = []pendingWatcherEvent{{event: fsnotify.Event{Name: path, Op: fsnotify.Rename}}}
-		fw.mostRecentFileCreatedEvents = []pendingWatcherEvent{{event: fsnotify.Event{Name: path, Op: fsnotify.Create}}}
+		fw.files.renames = []pendingPath{{path: path}}
+		fw.files.creates = []pendingPath{{path: path}}
 
-		fw.resolvePendingRenames(false)
+		fw.resolveFileQueue()
 
 		assert.Equal(t, []util.FileWriteEventData{
 			{FilePath: "same.md", Markdown: "# title"},
@@ -301,10 +301,10 @@ func TestResolvePendingRenames(t *testing.T) {
 		err = os.Rename(oldDir, newDir)
 		assert.NoError(t, err)
 
-		fw.pendingFolderRenameEvents = fw.addPendingRename(nil, fsnotify.Event{Name: oldDir, Op: fsnotify.Rename})
-		fw.mostRecentFolderCreatedEvents = []pendingWatcherEvent{{event: fsnotify.Event{Name: newDir, Op: fsnotify.Create}}}
+		fw.folders.renames = fw.addPendingRename(nil, fsnotify.Event{Name: oldDir, Op: fsnotify.Rename})
+		fw.folders.creates = []pendingPath{{path: newDir}}
 
-		fw.resolvePendingRenames(true)
+		fw.resolveFolderQueue()
 
 		assert.Equal(t, []util.FolderRenameEventData{
 			{OldFolderPath: "old-folder", NewFolderPath: "new-folder"},
@@ -331,10 +331,10 @@ func TestResolvePendingRenames(t *testing.T) {
 		assert.NoError(t, err)
 
 		fw.processEvent(fsnotify.Event{Name: oldDir, Op: fsnotify.Rename})
-		assert.Len(t, fw.pendingFolderRenameEvents, 1)
-		assert.Empty(t, fw.pendingFileRenameEvents)
+		assert.Len(t, fw.folders.renames, 1)
+		assert.Empty(t, fw.files.renames)
 
-		fw.resolvePendingRenames(true)
+		fw.resolveFolderQueue()
 
 		assert.Equal(t, []util.FolderDeleteEventData{
 			{FolderPath: "Third/Fourth"},
@@ -418,9 +418,9 @@ func TestSavedSearchDirectoryWatch(t *testing.T) {
 		fw.processEvent(fsnotify.Event{Name: filepath.Join(searchDir, "store"), Op: fsnotify.Remove})
 
 		assert.Empty(t, fw.batch.events())
-		assert.Empty(t, fw.mostRecentFileCreatedEvents)
-		assert.Empty(t, fw.mostRecentFolderCreatedEvents)
-		assert.Empty(t, fw.pendingFileRenameEvents)
+		assert.Empty(t, fw.files.creates)
+		assert.Empty(t, fw.folders.creates)
+		assert.Empty(t, fw.files.renames)
 		assert.Empty(t, fw.watcher.WatchList())
 	})
 }

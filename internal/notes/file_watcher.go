@@ -16,10 +16,7 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-// Constants for file types
-const (
-	debounceTimeout = 50 * time.Millisecond
-)
+const debounceTimeout = 50 * time.Millisecond
 
 func init() {
 	// These events are named in util but their payload types live here / in
@@ -27,9 +24,14 @@ func init() {
 	application.RegisterEvent[config.ProjectSettingsJson](util.EventSettingsUpdate)
 }
 
-type pendingWatcherEvent struct {
-	event    fsnotify.Event
+type pendingPath struct {
+	path     string
 	identity os.FileInfo
+}
+
+type pendingQueue struct {
+	renames []pendingPath
+	creates []pendingPath
 }
 
 // fileState is used to determine if a file has actually changed. Fsnotify events can be noisy
@@ -41,36 +43,27 @@ type fileState struct {
 
 // FileWatcher manages file system monitoring and event handling
 type FileWatcher struct {
-	app                           *application.App
-	projectPath                   string
-	watcher                       *fsnotify.Watcher
-	knownWatchedDirectories       *DirectoryWatchRegistry // Directory paths we have registered watches for, including old rename paths until cleanup runs
-	debounceTimer                 *time.Timer             // Timer that fires after inactivity to flush accumulated events
-	batch                         watcherBatch            // Events accumulated until debounce fires
-	mostRecentFolderCreatedEvents []pendingWatcherEvent   // Folder creates accumulated for the current debounce batch
-	mostRecentFileCreatedEvents   []pendingWatcherEvent   // File creates accumulated for the current debounce batch
-	pendingFolderRenameEvents     []pendingWatcherEvent   // Folder renames waiting to be paired with a create
-	pendingFileRenameEvents       []pendingWatcherEvent   // File renames waiting to be paired with a create
-	fileStateCache                map[string]fileState    // Cached modTime/size per path to dedupe changes
+	app                     *application.App
+	projectPath             string
+	watcher                 *fsnotify.Watcher
+	knownWatchedDirectories *DirectoryWatchRegistry
+	debounceTimer           *time.Timer
+	batch                   watcherBatch
+	files, folders          pendingQueue
+	fileStateCache          map[string]fileState
 }
 
-// newFileWatcher creates and initializes a new FileWatcher
 func newFileWatcher(app *application.App, projectPath string, watcher *fsnotify.Watcher, registry *DirectoryWatchRegistry) *FileWatcher {
 	return &FileWatcher{
-		app:                           app,
-		projectPath:                   projectPath,
-		watcher:                       watcher,
-		knownWatchedDirectories:       registry,
-		debounceTimer:                 time.NewTimer(0),
-		fileStateCache:                make(map[string]fileState),
-		mostRecentFolderCreatedEvents: []pendingWatcherEvent{},
-		mostRecentFileCreatedEvents:   []pendingWatcherEvent{},
+		app: app, projectPath: projectPath, watcher: watcher,
+		knownWatchedDirectories: registry, debounceTimer: time.NewTimer(0),
+		fileStateCache: make(map[string]fileState),
 	}
 }
 
-func addPendingWatcherEvent(events []pendingWatcherEvent, event pendingWatcherEvent) []pendingWatcherEvent {
+func addPendingWatcherEvent(events []pendingPath, event pendingPath) []pendingPath {
 	for _, pending := range events {
-		if pending.event.Name == event.event.Name {
+		if pending.path == event.path {
 			return events
 		}
 	}
@@ -95,15 +88,14 @@ func (fw *FileWatcher) handleDebounceReset() {
 // handleFolderEvents processes folder-related events (create, delete, rename)
 func (fw *FileWatcher) handleFolderEvents(event fsnotify.Event) {
 	if event.Has(fsnotify.Create) {
-		fw.mostRecentFolderCreatedEvents = addPendingWatcherEvent(fw.mostRecentFolderCreatedEvents, pendingWatcherEvent{event: event})
+		fw.folders.creates = addPendingWatcherEvent(fw.folders.creates, pendingPath{path: event.Name})
 	} else if event.Has(fsnotify.Rename) {
-		fw.pendingFolderRenameEvents = fw.addPendingRename(fw.pendingFolderRenameEvents, event)
+		fw.folders.renames = fw.addPendingRename(fw.folders.renames, event)
 	} else if event.Has(fsnotify.Remove) {
 		fw.removeFolderTreeWatches(event.Name)
-		fw.queueDelete(true, fw.pathFromNotes(event.Name))
+		fw.batch.folderDeletes = append(fw.batch.folderDeletes, util.FolderDeleteEventData{FolderPath: fw.pathFromNotes(event.Name)})
 	}
 
-	fw.handleDebounceReset()
 }
 
 // pathFromNotes returns the relative path from the notes root directory.
@@ -126,22 +118,19 @@ func (fw *FileWatcher) handleFileEvents(event fsnotify.Event) {
 	filePath := event.Name
 
 	if event.Has(fsnotify.Create) {
-		fw.mostRecentFileCreatedEvents = addPendingWatcherEvent(fw.mostRecentFileCreatedEvents, pendingWatcherEvent{event: event})
-		fw.handleDebounceReset()
+		fw.files.creates = addPendingWatcherEvent(fw.files.creates, pendingPath{path: event.Name})
 		return
 	}
 
 	if event.Has(fsnotify.Rename) {
-		fw.pendingFileRenameEvents = fw.addPendingRename(fw.pendingFileRenameEvents, event)
-		fw.handleDebounceReset()
+		fw.files.renames = fw.addPendingRename(fw.files.renames, event)
 		return
 	}
 
 	if event.Has(fsnotify.Remove) {
 		fw.clearFileState(filePath)
 		fw.knownWatchedDirectories.forgetFile(filePath)
-		fw.queueDelete(false, fw.pathFromNotes(filePath))
-		fw.handleDebounceReset()
+		fw.batch.fileDeletes = append(fw.batch.fileDeletes, util.FileDeleteEventData{FilePath: fw.pathFromNotes(filePath)})
 		return
 	}
 
@@ -149,7 +138,6 @@ func (fw *FileWatcher) handleFileEvents(event fsnotify.Event) {
 		fw.emitFileWriteEvent(filePath)
 	}
 
-	fw.handleDebounceReset()
 }
 
 // handleSettingsUpdate processes updates to settings files
@@ -356,108 +344,92 @@ func (fw *FileWatcher) processEvent(event fsnotify.Event) {
 		return
 	}
 
-	// Handle directory events
+	if !isDir && isProjectSettingsEvent {
+		fw.handleSettingsUpdate()
+		return
+	}
 	if isDir {
 		fw.handleFolderEvents(event)
 	} else {
-		// Handle file events
-		if isProjectSettingsEvent {
-			fw.handleSettingsUpdate()
-		} else {
-			fw.handleFileEvents(event)
-		}
+		fw.handleFileEvents(event)
 	}
-
+	fw.handleDebounceReset()
 }
 
-// resolvePendingRenames pairs pending renames with queued create events for either files or folders.
-func (fw *FileWatcher) resolvePendingRenames(isFolder bool) {
-	var pendingRenames, recentCreates []pendingWatcherEvent
-	if isFolder {
-		pendingRenames, recentCreates = fw.pendingFolderRenameEvents, fw.mostRecentFolderCreatedEvents
-		fw.pendingFolderRenameEvents, fw.mostRecentFolderCreatedEvents = nil, nil
-	} else {
-		fw.resolveFileReplacements()
-		pendingRenames, recentCreates = fw.pendingFileRenameEvents, fw.mostRecentFileCreatedEvents
-		fw.pendingFileRenameEvents, fw.mostRecentFileCreatedEvents = nil, nil
-	}
-
-	matches := fw.matchRenameIdentities(pendingRenames, recentCreates)
+// resolveFileQueue pairs file renames with creates and handles replacements.
+func (fw *FileWatcher) resolveFileQueue() {
+	fw.resolveFileReplacements()
+	queue := fw.files
+	fw.files = pendingQueue{}
+	matches := fw.matchRenameIdentities(queue.renames, queue.creates)
 	consumed := make(map[int]bool)
-
-	for i, pending := range pendingRenames {
+	for i, pending := range queue.renames {
 		matchedIndex, paired := matches[i]
 		if !paired {
-			fw.queueDelete(isFolder, fw.pathFromNotes(pending.event.Name))
-			if isFolder {
-				fw.removeFolderTreeWatches(pending.event.Name)
-			} else {
-				fw.clearFileState(pending.event.Name)
-				fw.knownWatchedDirectories.forgetFile(pending.event.Name)
-			}
+			fw.batch.fileDeletes = append(fw.batch.fileDeletes, util.FileDeleteEventData{FilePath: fw.pathFromNotes(pending.path)})
+			fw.clearFileState(pending.path)
+			fw.knownWatchedDirectories.forgetFile(pending.path)
 			continue
 		}
-		matched := recentCreates[matchedIndex]
+		matched := queue.creates[matchedIndex]
 		consumed[matchedIndex] = true
-		if !isFolder {
-			fw.knownWatchedDirectories.forgetFile(pending.event.Name)
-		}
-
-		oldPath := fw.pathFromNotes(pending.event.Name)
-		newPath := fw.pathFromNotes(matched.event.Name)
+		fw.knownWatchedDirectories.forgetFile(pending.path)
+		fw.renameFileState(pending.path, matched.path)
+		oldPath, newPath := fw.pathFromNotes(pending.path), fw.pathFromNotes(matched.path)
 		if oldPath == newPath {
-			if isFolder {
-				// Some editor/workflow sequences can surface as folder rename+create
-				// with the same relative path. Refresh the watches and avoid
-				// emitting any user-visible folder event for this no-op path change.
-				fw.removeFolderTreeWatches(pending.event.Name)
-				fw.addFolderTreeToWatcher(matched.event.Name)
-				continue
-			}
-			// Same-path file rename+create is effectively a replace-in-place save.
-			// Emitting file:write keeps the editor in sync without navigating the UI.
-			fw.renameFileState(pending.event.Name, matched.event.Name)
-			fw.emitFileWriteEvent(matched.event.Name)
+			fw.emitFileWriteEvent(matched.path)
 			continue
 		}
-
-		if isFolder {
-			// kqueue/fsnotify watches do not follow renamed directory trees. Re-add
-			// watches for the new subtree so descendant changes remain observable.
-			fw.removeFolderTreeWatches(pending.event.Name)
-			fw.addFolderTreeToWatcher(matched.event.Name)
-		} else {
-			fw.renameFileState(pending.event.Name, matched.event.Name)
-			fw.hasFileChanged(matched.event.Name)
-		}
-		fw.queueRename(isFolder, oldPath, newPath)
+		fw.hasFileChanged(matched.path)
+		fw.batch.fileRenames = append(fw.batch.fileRenames, util.FileRenameEventData{OldFilePath: oldPath, NewFilePath: newPath})
 	}
-
-	for i, pending := range recentCreates {
-		if consumed[i] {
+	for i, pending := range queue.creates {
+		if consumed[i] || !util.ExactPathExists(pending.path) {
 			continue
 		}
-		path := pending.event.Name
-		if !util.ExactPathExists(path) {
+		previous := fw.knownWatchedDirectories.fileInfo(pending.path)
+		current, err := os.Lstat(pending.path)
+		if previous != nil && err == nil && current.Mode().IsRegular() && !os.SameFile(previous, current) {
+			fw.clearFileState(pending.path)
+			fw.emitFileWriteEvent(pending.path)
 			continue
 		}
-		if !isFolder {
-			// Linux can report an atomic overwrite as Create without Remove.
-			// Compare identities because size and timestamp may be preserved.
-			previous := fw.knownWatchedDirectories.fileInfo(path)
-			current, err := os.Lstat(path)
-			if previous != nil && err == nil && current.Mode().IsRegular() && !os.SameFile(previous, current) {
-				fw.clearFileState(path)
-				fw.emitFileWriteEvent(path)
-				continue
-			}
-			fw.hasFileChanged(path)
-		}
-		fw.queueCreate(isFolder, fw.pathFromNotes(path))
+		fw.hasFileChanged(pending.path)
+		fw.batch.fileCreates = append(fw.batch.fileCreates, util.FileCreateEventData{FilePath: fw.pathFromNotes(pending.path)})
 	}
+	for _, pending := range queue.creates {
+		fw.knownWatchedDirectories.recordPath(pending.path)
+	}
+}
 
-	for _, pending := range recentCreates {
-		fw.knownWatchedDirectories.recordPath(pending.event.Name)
+// resolveFolderQueue pairs folder renames and refreshes subtree watches.
+func (fw *FileWatcher) resolveFolderQueue() {
+	queue := fw.folders
+	fw.folders = pendingQueue{}
+	matches := fw.matchRenameIdentities(queue.renames, queue.creates)
+	consumed := make(map[int]bool)
+	for i, pending := range queue.renames {
+		matchedIndex, paired := matches[i]
+		fw.removeFolderTreeWatches(pending.path)
+		if !paired {
+			fw.batch.folderDeletes = append(fw.batch.folderDeletes, util.FolderDeleteEventData{FolderPath: fw.pathFromNotes(pending.path)})
+			continue
+		}
+		matched := queue.creates[matchedIndex]
+		consumed[matchedIndex] = true
+		fw.addFolderTreeToWatcher(matched.path)
+		oldPath, newPath := fw.pathFromNotes(pending.path), fw.pathFromNotes(matched.path)
+		if oldPath != newPath {
+			fw.batch.folderRenames = append(fw.batch.folderRenames, util.FolderRenameEventData{OldFolderPath: oldPath, NewFolderPath: newPath})
+		}
+	}
+	for i, pending := range queue.creates {
+		if !consumed[i] && util.ExactPathExists(pending.path) {
+			fw.batch.folderCreates = append(fw.batch.folderCreates, util.FolderCreateEventData{FolderPath: fw.pathFromNotes(pending.path)})
+		}
+	}
+	for _, pending := range queue.creates {
+		fw.knownWatchedDirectories.recordPath(pending.path)
 	}
 }
 
@@ -465,8 +437,8 @@ func (fw *FileWatcher) resolvePendingRenames(isFolder bool) {
 func (fw *FileWatcher) emitDebouncedEvents() {
 	// Files and folders have separate pending queues; resolve both before emission.
 	// Resolve files before folder handling removes or rebuilds subtree watches.
-	fw.resolvePendingRenames(false) // File queue, including replacements.
-	fw.resolvePendingRenames(true)  // Folder queue and subtree watch updates.
+	fw.resolveFileQueue()   // File queue, including replacements.
+	fw.resolveFolderQueue() // Folder queue and subtree watch updates.
 	for _, event := range fw.batch.events() {
 		fw.app.Event.EmitEvent(event)
 	}

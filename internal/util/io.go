@@ -16,15 +16,7 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
-// WriteJsonToPath writes the provided data as a JSON file at the specified pathname.
-// Parameters:
-//
-//	pathname: The file path where the JSON data will be written.
-//	data: The data to be serialized to JSON and written to the file.
-//
-// Returns:
-//
-//	An error if any step of the process fails, otherwise nil.
+// WriteJsonToPath atomically writes data as JSON at pathname.
 func WriteJsonToPath(pathname string, data any) error {
 	jsonData, err := json.MarshalIndent(data, "", "    ")
 	if err != nil {
@@ -69,15 +61,7 @@ func WriteJsonToPath(pathname string, data any) error {
 	return nil
 }
 
-// ReadJsonFromPath reads JSON data from the specified pathname and unmarshals it into the provided data structure.
-// Parameters:
-//
-//	pathname: The file path from which the JSON data will be read.
-//	data: The data structure where the JSON data will be unmarshaled.
-//
-// Returns:
-//
-//	An error if any step of the process fails, otherwise nil.
+// ReadJsonFromPath reads JSON at pathname into data.
 func ReadJsonFromPath(pathname string, data any) error {
 	// Open the file at the given pathname.
 	file, err := os.Open(pathname)
@@ -102,17 +86,8 @@ func ReadJsonFromPath(pathname string, data any) error {
 	return nil
 }
 
-// ReadOrCreateJSON attempts to read a JSON file from the given path. If the file doesn't exist,
-// it creates the necessary directories and writes the default value as JSON. If the file exists
-// but contains invalid JSON, it returns an error.
-//
-// Parameters:
-//   - filePath: The path where the JSON file should be read from or created
-//   - defaultValue: The value to write if the file doesn't exist
-//
-// Returns:
-//   - The read value if successful, or the default value if the file was created
-//   - An error if the operation fails
+// ReadOrCreateJSON reads JSON from filePath, creating it with defaultValue if
+// absent. It returns an error if the existing file is invalid or an I/O step fails.
 func ReadOrCreateJSON[T any](filePath string, defaultValue T) (T, error) {
 	var value T
 

@@ -33,7 +33,7 @@ func TestWatcherRenameIdentity(t *testing.T) {
 		for _, name := range []string{"dest/b.png", "copy.md", "dest/a.md"} {
 			fw.processEvent(fsnotify.Event{Name: filepath.Join(root, name), Op: fsnotify.Create})
 		}
-		fw.resolvePendingRenames(false)
+		fw.resolveFileQueue()
 
 		assert.ElementsMatch(t, []util.FileRenameEventData{
 			{OldFilePath: "a.md", NewFilePath: "dest/a.md"},
@@ -55,7 +55,7 @@ func TestWatcherRenameIdentity(t *testing.T) {
 		require.NoError(t, os.WriteFile(newPath, []byte("same"), 0644))
 		fw.processEvent(fsnotify.Event{Name: oldPath, Op: fsnotify.Rename})
 		fw.processEvent(fsnotify.Event{Name: newPath, Op: fsnotify.Create})
-		fw.resolvePendingRenames(false)
+		fw.resolveFileQueue()
 
 		assert.Empty(t, fw.batch.fileRenames)
 		assert.Equal(t, []util.FileDeleteEventData{{FilePath: "old.md"}}, fw.batch.fileDeletes)
@@ -91,7 +91,7 @@ collect:
 			t.Fatal("timed out waiting for filesystem rename events")
 		}
 	}
-	fw.resolvePendingRenames(false)
+	fw.resolveFileQueue()
 
 	assert.ElementsMatch(t, []util.FileRenameEventData{
 		{OldFilePath: "a.md", NewFilePath: "dest/a.md"},
@@ -113,7 +113,7 @@ func TestWatcherAmbiguousIdentity(t *testing.T) {
 	for _, name := range []string{"first.md", "second.md"} {
 		fw.processEvent(fsnotify.Event{Name: filepath.Join(root, name), Op: fsnotify.Create})
 	}
-	fw.resolvePendingRenames(false)
+	fw.resolveFileQueue()
 
 	assert.Empty(t, fw.batch.fileRenames)
 	assert.Len(t, fw.batch.fileCreates, 2)
@@ -136,7 +136,7 @@ func TestWatcherFolderBatchIdentity(t *testing.T) {
 	for _, name := range []string{"b-new", "a-new"} {
 		fw.processEvent(fsnotify.Event{Name: filepath.Join(root, name), Op: fsnotify.Create})
 	}
-	fw.resolvePendingRenames(true)
+	fw.resolveFolderQueue()
 
 	assert.ElementsMatch(t, []util.FolderRenameEventData{
 		{OldFolderPath: "a", NewFolderPath: "a-new"},

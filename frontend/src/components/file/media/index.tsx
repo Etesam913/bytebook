@@ -1,5 +1,5 @@
 import { useAtomValue, useSetAtom } from 'jotai/react';
-import type { ReactNode, RefObject } from 'react';
+import type { MouseEvent, ReactNode, RefObject } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import {
   noteContainerRefAtom,
@@ -59,7 +59,6 @@ export function MediaContainer({
   resizeAriaLabel: string;
   children: (props: MediaRenderProps) => ReactNode;
 }) {
-  const [editor] = useLexicalComposerContext();
   const containerRef = useRef<HTMLDivElement>(null);
   const mediaRef = useRef<HTMLElement>(null);
   const resizeHandleRef = useRef<HTMLDivElement>(null);
@@ -71,11 +70,7 @@ export function MediaContainer({
   const isInViewport = noteSeenFileNodeKeys.has(nodeKey);
   const setDraggedGhostElement = useSetAtom(draggedGhostElementAtom);
   const noteContainerRef = useAtomValue(noteContainerRefAtom);
-  const setContextMenuData = useSetAtom(contextMenuDataAtom);
-  const { revealInFinder } = useContextMenuItems();
-
-  // External files start with http
-  const isALocalFile = src.startsWith('/notes/');
+  const onContextMenu = useMediaContextMenu({ src, nodeKey, containerRef });
 
   useShowWhenInViewport(loaderRef);
 
@@ -133,19 +128,6 @@ export function MediaContainer({
     );
   }
 
-  function getContextMenuTargetKeys() {
-    return editor.getEditorState().read(() => {
-      const selectedMediaKeys =
-        $getSelection()
-          ?.getNodes()
-          .filter($isFileNode)
-          .map((node) => node.getKey()) ?? [];
-      return selectedMediaKeys.includes(nodeKey)
-        ? selectedMediaKeys
-        : [nodeKey];
-    });
-  }
-
   return (
     <>
       {!isInViewport ? (
@@ -169,105 +151,7 @@ export function MediaContainer({
           <div
             ref={containerRef}
             className="inline-block relative cursor-auto mx-1 mr-2"
-            onContextMenu={(e) => {
-              e.preventDefault();
-              const targetKeys = getContextMenuTargetKeys();
-              const localFilePath = isALocalFile
-                ? createFilePath(src.replace(/^\/notes\//, ''))
-                : null;
-
-              setContextMenuData({
-                x: e.clientX,
-                y: e.clientY,
-                isShowing: true,
-                targetId: null,
-                items: [
-                  {
-                    value: 'full-width',
-                    label: (
-                      <MenuItemLabel
-                        icon={<Maximize height="1.0625rem" width="1.0625rem" />}
-                      >
-                        Full width
-                      </MenuItemLabel>
-                    ),
-                    onChange: () => {
-                      const root = editor.getRootElement();
-                      const container = containerRef.current;
-                      if (!root || !container) return;
-                      const style = getComputedStyle(container);
-                      const width = Math.floor(
-                        root.clientWidth -
-                          parseFloat(style.marginLeft) -
-                          parseFloat(style.marginRight)
-                      );
-                      if (width <= 0) return;
-
-                      editor.update(
-                        () => {
-                          for (const key of targetKeys) {
-                            const node = $getNodeByKey(key);
-                            if (!$isFileNode(node)) continue;
-                            const type = node.getElementType();
-                            if (type !== 'image' && type !== 'video') continue;
-                            const dimensions = node.getDimensions();
-                            node.setDimensions(
-                              {
-                                width,
-                                height:
-                                  dimensions.height === undefined
-                                    ? undefined
-                                    : Math.round(
-                                        (width * dimensions.height) /
-                                          dimensions.width
-                                      ),
-                              },
-                              editor
-                            );
-                          }
-                        },
-                        { tag: HISTORY_PUSH_TAG }
-                      );
-                    },
-                  },
-                  ...(localFilePath
-                    ? [revealInFinder({ path: localFilePath })]
-                    : []),
-                  {
-                    value: 'go-to-file',
-                    label: (
-                      <MenuItemLabel
-                        icon={<Link height="1.0625rem" width="1.0625rem" />}
-                      >
-                        Go to file
-                      </MenuItemLabel>
-                    ),
-                    onChange: () => {
-                      if (localFilePath) {
-                        navigate(localFilePath.encodedFileUrl);
-                      } else {
-                        void Browser.OpenURL(src);
-                      }
-                    },
-                  },
-                  {
-                    value: 'delete',
-                    label: (
-                      <MenuItemLabel
-                        icon={<Trash height="1.0625rem" width="1.0625rem" />}
-                      >
-                        Delete
-                      </MenuItemLabel>
-                    ),
-                    onChange: () => {
-                      editor.update(() => {
-                        removeDecoratorNode(nodeKey);
-                      });
-                    },
-                  },
-                ],
-              });
-            }}
+            onContextMenu={onContextMenu}
           >
             <AnimatePresence>
               {isSelected && !isLoading && (
@@ -312,4 +196,126 @@ export function MediaContainer({
       )}
     </>
   );
+}
+
+function useMediaContextMenu({
+  src,
+  nodeKey,
+  containerRef,
+}: {
+  src: string;
+  nodeKey: string;
+  containerRef: RefObject<HTMLDivElement | null>;
+}) {
+  const [editor] = useLexicalComposerContext();
+  const setContextMenuData = useSetAtom(contextMenuDataAtom);
+  const { revealInFinder } = useContextMenuItems();
+  const isALocalFile = src.startsWith('/notes/');
+  function getContextMenuTargetKeys() {
+    return editor.getEditorState().read(() => {
+      const selectedMediaKeys =
+        $getSelection()
+          ?.getNodes()
+          .filter($isFileNode)
+          .map((node) => node.getKey()) ?? [];
+      return selectedMediaKeys.includes(nodeKey)
+        ? selectedMediaKeys
+        : [nodeKey];
+    });
+  }
+
+  return (e: MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const targetKeys = getContextMenuTargetKeys();
+    const localFilePath = isALocalFile
+      ? createFilePath(src.replace(/^\/notes\//, ''))
+      : null;
+
+    setContextMenuData({
+      x: e.clientX,
+      y: e.clientY,
+      isShowing: true,
+      targetId: null,
+      items: [
+        {
+          value: 'full-width',
+          label: (
+            <MenuItemLabel
+              icon={<Maximize height="1.0625rem" width="1.0625rem" />}
+            >
+              Full width
+            </MenuItemLabel>
+          ),
+          onChange: () => {
+            const root = editor.getRootElement();
+            const container = containerRef.current;
+            if (!root || !container) return;
+            const style = getComputedStyle(container);
+            const width = Math.floor(
+              root.clientWidth -
+                parseFloat(style.marginLeft) -
+                parseFloat(style.marginRight)
+            );
+            if (width <= 0) return;
+
+            editor.update(
+              () => {
+                for (const key of targetKeys) {
+                  const node = $getNodeByKey(key);
+                  if (!$isFileNode(node)) continue;
+                  const type = node.getElementType();
+                  if (type !== 'image' && type !== 'video') continue;
+                  const dimensions = node.getDimensions();
+                  node.setDimensions(
+                    {
+                      width,
+                      height:
+                        dimensions.height === undefined
+                          ? undefined
+                          : Math.round(
+                              (width * dimensions.height) / dimensions.width
+                            ),
+                    },
+                    editor
+                  );
+                }
+              },
+              { tag: HISTORY_PUSH_TAG }
+            );
+          },
+        },
+        ...(localFilePath ? [revealInFinder({ path: localFilePath })] : []),
+        {
+          value: 'go-to-file',
+          label: (
+            <MenuItemLabel icon={<Link height="1.0625rem" width="1.0625rem" />}>
+              Go to file
+            </MenuItemLabel>
+          ),
+          onChange: () => {
+            if (localFilePath) {
+              navigate(localFilePath.encodedFileUrl);
+            } else {
+              void Browser.OpenURL(src);
+            }
+          },
+        },
+        {
+          value: 'delete',
+          label: (
+            <MenuItemLabel
+              icon={<Trash height="1.0625rem" width="1.0625rem" />}
+            >
+              Delete
+            </MenuItemLabel>
+          ),
+          onChange: () => {
+            editor.update(() => {
+              removeDecoratorNode(nodeKey);
+            });
+          },
+        },
+      ],
+    });
+  };
 }
