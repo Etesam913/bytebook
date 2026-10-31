@@ -15,6 +15,7 @@ import (
 type TagsService struct {
 	ProjectPath string
 	Index       *search.IndexHolder
+	searchLimit int
 }
 
 const TAGS_SEARCH_LIMIT = 1000
@@ -127,7 +128,10 @@ func (t *TagsService) DeleteTags(tagsToDelete []string) config.BackendResponseWi
 
 	// Search for all notes with any of the tags
 	searchRequest := bleve.NewSearchRequest(disjunctionQuery)
-	searchRequest.Size = TAGS_SEARCH_LIMIT
+	searchRequest.Size = t.searchLimit
+	if searchRequest.Size <= 0 {
+		searchRequest.Size = TAGS_SEARCH_LIMIT
+	}
 	searchRequest.Fields = []string{search.FieldFolder, search.FieldFileName}
 	searchRequest.SortBy([]string{"_id"})
 

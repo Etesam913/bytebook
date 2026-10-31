@@ -43,16 +43,24 @@ export async function mockNote(context: BrowserContext, markdown: string) {
 
 // Feed the actual autosave payload back through the mocked read boundary.
 // This verifies frontend save/load integration, not persistence in the Go backend.
-export async function reopenSavedNote(page: Page, expectedContent: string) {
+export async function reopenSavedNote(
+  page: Page,
+  expectedContent: string | string[]
+) {
+  const markers = Array.isArray(expectedContent)
+    ? expectedContent
+    : [expectedContent];
+  let markdown = '';
   await expect
-    .poll(
-      async () =>
-        (await getMockBindingCalls(page, SAVE_NOTE_BINDING)).at(-1)?.[2]
-    )
-    .toContain(expectedContent);
-  const saved = (await getMockBindingCalls(page, SAVE_NOTE_BINDING)).at(-1)!;
-  const markdown = saved[2];
-  if (typeof markdown !== 'string') throw new Error('Expected saved Markdown');
+    .poll(async () => {
+      const saved = (await getMockBindingCalls(page, SAVE_NOTE_BINDING)).at(
+        -1
+      )?.[2];
+      if (typeof saved !== 'string') return false;
+      markdown = saved;
+      return markers.every((marker) => markdown.includes(marker));
+    })
+    .toBe(true);
   await mockBinding(
     page.context(),
     {

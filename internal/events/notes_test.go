@@ -148,7 +148,8 @@ func TestUpdateNotesInIndex(t *testing.T) {
 
 func TestNoteWriteAndDeleteFlushFullBatches(t *testing.T) {
 	params := createTestParams(t)
-	noteCount := search.DefaultBatchSize + 10
+	params.batchSize = 3
+	noteCount := params.batchSize + 2
 	writes := make([]util.FileWriteEventData, 0, noteCount)
 	deletes := make([]util.FileDeleteEventData, 0, noteCount)
 	for i := range noteCount {

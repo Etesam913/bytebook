@@ -102,10 +102,10 @@ func TestDeleteTags(t *testing.T) {
 	t.Run("Deletes any matching tag across search pages while preserving other tags and content", func(t *testing.T) {
 		project := t.TempDir()
 		index := createTestSearchIndex(t)
-		service := TagsService{ProjectPath: project, Index: search.NewIndexHolder(index)}
+		service := TagsService{ProjectPath: project, Index: search.NewIndexHolder(index), searchLimit: 3}
 		// Cross two full pages so a single-page implementation cannot pass.
-		paths := make([]string, 0, 2001)
-		for i := 0; i < 2001; i++ {
+		paths := make([]string, 0, 7)
+		for i := 0; i < 7; i++ {
 			path := fmt.Sprintf("nested/note-%04d.md", i)
 			tag := "remove-a"
 			if i%2 == 1 {

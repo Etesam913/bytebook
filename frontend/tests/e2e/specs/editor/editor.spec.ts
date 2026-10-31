@@ -45,6 +45,12 @@ test('authors a formatted note with a linked note and reopens its saved content'
   await page.keyboard.type('Project plan');
   await page.keyboard.press('Enter');
   await page.keyboard.type('Implementation notes');
+  await editor.press('Enter');
+  await page.keyboard.type('@inflation');
+  await page.getByRole('option').filter({ hasText: 'Inflation.md' }).click();
+  await expect(
+    editor.getByRole('link', { name: 'Inflation.md' })
+  ).toBeVisible();
   await editor
     .getByText('Implementation notes', { exact: true })
     .click({ clickCount: 3 });
@@ -53,18 +59,12 @@ test('authors a formatted note with a linked note and reopens its saved content'
     .getByRole('button', { name: 'Bold (⌘B)', exact: true })
     .click();
   await expect(editor.locator('strong')).toContainText('Implementation notes');
-  // Return from the toolbar to a caret before continuing the note.
-  await editor.locator('strong').click();
-  await editor.press('End');
-  await editor.press('Enter');
-  await page.keyboard.type('@inflation');
-  await page.getByRole('option').filter({ hasText: 'Inflation.md' }).click();
-  await expect(
-    editor.getByRole('link', { name: 'Inflation.md' })
-  ).toBeVisible();
-  await expect(editor.locator('strong')).toContainText('Implementation notes');
 
-  const markdown = await reopenSavedNote(page, 'Inflation.md');
+  const markdown = await reopenSavedNote(page, [
+    '# Project plan',
+    '**Implementation notes**',
+    'Inflation.md',
+  ]);
 
   expect(markdown).toContain('# Project plan');
   expect(markdown).toContain('**Implementation notes**');

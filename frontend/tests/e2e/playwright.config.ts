@@ -13,7 +13,7 @@ export default defineConfig({
   workers: '75%',
   use: {
     baseURL,
-    trace: 'retain-on-failure',
+    trace: process.env.CI ? 'on-first-retry' : 'off',
   },
   webServer: {
     cwd: `${import.meta.dirname}/../..`,

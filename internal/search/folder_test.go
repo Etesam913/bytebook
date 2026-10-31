@@ -62,17 +62,18 @@ func TestIndexDiscoveredFolders(t *testing.T) {
 	t.Run("Indexes folders across batch boundaries while excluding hidden folders", func(t *testing.T) {
 		env := setupTestEnv(t)
 
+		const batchSize = 3
 		directories := []string{env.NotesDir, filepath.Join(env.NotesDir, ".hidden")}
-		for i := range DefaultBatchSize + 1 {
+		for i := range batchSize + 1 {
 			directories = append(directories, filepath.Join(env.NotesDir, fmt.Sprintf("folder-%d", i)))
 		}
 
-		require.NoError(t, IndexDiscoveredFolders(env.TmpDir, directories, env.Index))
+		require.NoError(t, indexDiscoveredFolders(env.TmpDir, directories, env.Index, batchSize))
 
 		count, err := env.Index.DocCount()
 		require.NoError(t, err)
-		assert.Equal(t, uint64(DefaultBatchSize+1), count)
-		last, err := env.Index.Document(fmt.Sprintf("folder-%d/", DefaultBatchSize))
+		assert.Equal(t, uint64(batchSize+1), count)
+		last, err := env.Index.Document(fmt.Sprintf("folder-%d/", batchSize))
 		require.NoError(t, err)
 		assert.NotNil(t, last)
 	})

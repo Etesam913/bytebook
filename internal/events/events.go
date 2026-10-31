@@ -14,6 +14,7 @@ type EventParams struct {
 	App         *application.App
 	ProjectPath string
 	Index       *search.IndexHolder
+	batchSize   int
 	// Required: folder-create events are always handed to the import coordinator.
 	ImportCoordinator *ingest.BulkImportCoordinator
 }
@@ -63,13 +64,20 @@ func (params EventParams) withBatch(fn func(idx bleve.Index, batch *bleve.Batch)
 	}
 }
 
-// flushBatchIfFull commits and resets batch once it reaches search.DefaultBatchSize,
+// flushBatchIfFull commits and resets batch once it reaches the batch size,
 // so a large burst of events doesn't accumulate in memory.
-func flushBatchIfFull(idx bleve.Index, batch *bleve.Batch) error {
-	if batch.Size() < search.DefaultBatchSize {
+func flushBatchIfFull(idx bleve.Index, batch *bleve.Batch, batchSize int) error {
+	if batch.Size() < batchSize {
 		return nil
 	}
 	err := idx.Batch(batch)
 	batch.Reset()
 	return err
+}
+
+func (params EventParams) effectiveBatchSize() int {
+	if params.batchSize > 0 {
+		return params.batchSize
+	}
+	return search.DefaultBatchSize
 }

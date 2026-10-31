@@ -54,14 +54,6 @@ func write(sidecarPath string, data Data) error {
 	return util.WriteJsonToPath(sidecarPath, data)
 }
 
-// removeIfExists deletes path if it exists; missing files are not an error.
-func removeIfExists(path string) error {
-	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
-		return nil
-	}
-	return os.Remove(path)
-}
-
 // Ensure creates an empty sidecar for the file if one does not already exist.
 func Ensure(projectPath, folder, fileName string) error {
 	sidecarPath := PathForFile(projectPath, folder, fileName)

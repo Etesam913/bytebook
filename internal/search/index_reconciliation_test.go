@@ -51,7 +51,7 @@ func TestReconcileFiles(t *testing.T) {
 		index := createTempIndex(t, project)
 
 		batch := index.NewBatch()
-		for i := range DefaultBatchSize + 1 {
+		for i := range 4 {
 			name := fmt.Sprintf("missing-%04d.md", i)
 			require.NoError(t, batch.Index(name, CreateNoteBleveDocument("stale", "", name)))
 		}
@@ -64,7 +64,7 @@ func TestReconcileFiles(t *testing.T) {
 		require.NoError(t, os.Mkdir(filepath.Join(root, "replaced.md"), 0755))
 
 		// Act
-		err := ReconcileDocuments(project, nil, []string{filepath.Join(root, "discovered.md")}, index)
+		err := reconcileDocuments(project, nil, []string{filepath.Join(root, "discovered.md")}, index, 3)
 
 		// Assert
 		require.NoError(t, err)

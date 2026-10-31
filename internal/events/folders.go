@@ -73,9 +73,9 @@ func createFolderAndDescendantsQuery(folderPath string) query.Query {
 // deleteFolderDocumentsFromIndex queues deletes for every document in folderPath and its
 // subfolders. Full batches are flushed as they fill; the caller flushes the remainder.
 // Returns search or batch errors without continuing past a failed batch.
-func deleteFolderDocumentsFromIndex(idx bleve.Index, batch *bleve.Batch, folderPath string) error {
+func deleteFolderDocumentsFromIndex(idx bleve.Index, batch *bleve.Batch, folderPath string, batchSize int) error {
 	searchRequest := bleve.NewSearchRequest(createFolderAndDescendantsQuery(folderPath))
-	searchRequest.Size = search.DefaultBatchSize
+	searchRequest.Size = batchSize
 	searchRequest.SortBy([]string{"_id"})
 	for {
 		searchResult, err := idx.Search(searchRequest)
@@ -87,7 +87,7 @@ func deleteFolderDocumentsFromIndex(idx bleve.Index, batch *bleve.Batch, folderP
 		}
 		for _, hit := range searchResult.Hits {
 			batch.Delete(hit.ID)
-			if err := flushBatchIfFull(idx, batch); err != nil {
+			if err := flushBatchIfFull(idx, batch, batchSize); err != nil {
 				return fmt.Errorf("flushing folder deletes: %w", err)
 			}
 		}
@@ -104,7 +104,7 @@ func deleteFoldersFromIndex(params EventParams, data []util.FolderDeleteEventDat
 				continue
 			}
 
-			if err := deleteFolderDocumentsFromIndex(idx, batch, folderPath); err != nil {
+			if err := deleteFolderDocumentsFromIndex(idx, batch, folderPath, params.effectiveBatchSize()); err != nil {
 				log.Printf("Error deleting documents for folder %s: %v", folderPath, err)
 			}
 		}
@@ -168,7 +168,7 @@ func renameFoldersInIndex(params EventParams, data []util.FolderRenameEventData)
 func deleteRenameFolderFromIndexLocked(idx bleve.Index, oldFolderPath string) {
 	batch := idx.NewBatch()
 
-	if err := deleteFolderDocumentsFromIndex(idx, batch, oldFolderPath); err != nil {
+	if err := deleteFolderDocumentsFromIndex(idx, batch, oldFolderPath, search.DefaultBatchSize); err != nil {
 		log.Printf("Error deleting documents for folder %s: %v", oldFolderPath, err)
 	}
 

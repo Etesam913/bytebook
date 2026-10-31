@@ -63,7 +63,7 @@ func TestDeleteFolderDocumentsFromIndex(t *testing.T) {
 
 		idx := rawIndex(params)
 		batch := idx.NewBatch()
-		require.NoError(t, deleteFolderDocumentsFromIndex(idx, batch, "folder"))
+		require.NoError(t, deleteFolderDocumentsFromIndex(idx, batch, "folder", 3))
 		require.NoError(t, idx.Batch(batch))
 
 		for _, gone := range []string{"folder/", "folder/child/", filepath.Join("folder", "one.md"), filepath.Join("folder", "child", "two.md")} {
@@ -99,7 +99,8 @@ func TestDeleteFolderDocumentsFromIndex(t *testing.T) {
 
 	t.Run("flushes full batches and leaves the remainder for the caller", func(t *testing.T) {
 		params := createTestParams(t)
-		noteCount := search.DefaultBatchSize + 10
+		const batchSize = 3
+		noteCount := batchSize + 1
 		for i := range noteCount {
 			createNoteInFolder(t, params.ProjectPath, "big", fmt.Sprintf("note-%d.md", i), "# note")
 		}
@@ -109,12 +110,12 @@ func TestDeleteFolderDocumentsFromIndex(t *testing.T) {
 		require.NoError(t, err)
 
 		batch := idx.NewBatch()
-		require.NoError(t, deleteFolderDocumentsFromIndex(idx, batch, "big"))
+		require.NoError(t, deleteFolderDocumentsFromIndex(idx, batch, "big", batchSize))
 
-		assert.EqualValues(t, 11, batch.Size(), "a full batch should be flushed and reset")
+		assert.EqualValues(t, 2, batch.Size(), "a full batch should be flushed and reset")
 		countAfterFlush, err := idx.DocCount()
 		require.NoError(t, err)
-		assert.Equal(t, countBefore-uint64(search.DefaultBatchSize), countAfterFlush)
+		assert.Equal(t, countBefore-uint64(batchSize), countAfterFlush)
 
 		require.NoError(t, idx.Batch(batch))
 		countAfter, err := idx.DocCount()
@@ -128,7 +129,7 @@ func TestDeleteFolderDocumentsFromIndex(t *testing.T) {
 		batch := idx.NewBatch()
 		require.NoError(t, idx.Close())
 
-		assert.Error(t, deleteFolderDocumentsFromIndex(idx, batch, "folder"))
+		assert.Error(t, deleteFolderDocumentsFromIndex(idx, batch, "folder", 3))
 	})
 }
 

@@ -283,14 +283,15 @@ func TestIndexDiscoveredFilesPipeline(t *testing.T) {
 		projectDir, notesDir := setupTempNotesDir(t)
 		index := createTempIndex(t, projectDir)
 
-		paths := make([]string, 0, DefaultBatchSize+1)
-		for i := 0; i <= DefaultBatchSize; i++ {
+		const batchSize = 3
+		paths := make([]string, 0, batchSize+1)
+		for i := 0; i <= batchSize; i++ {
 			path := filepath.Join(notesDir, fmt.Sprintf("attachment-%d.png", i))
 			require.NoError(t, os.WriteFile(path, []byte("attachment"), 0644))
 			paths = append(paths, path)
 		}
 
-		err := IndexDiscoveredFiles(projectDir, paths, index, 0)
+		err := indexDiscoveredFiles(projectDir, paths, index, 0, batchSize)
 
 		require.NoError(t, err)
 		count, err := index.DocCount()
@@ -355,7 +356,7 @@ func TestIndexingPipelineFailure(t *testing.T) {
 			}
 		}
 
-		err := indexFiles(projectDir, failingIndex, 2, discover)
+		err := indexFiles(projectDir, failingIndex, 2, 3, discover)
 
 		assert.ErrorIs(t, err, batchErr)
 		select {
@@ -372,7 +373,7 @@ func TestIndexingPipelineFailure(t *testing.T) {
 		discoveryErr := errors.New("directory disappeared")
 		discover := func(context.Context, chan<- DocumentJob) error { return discoveryErr }
 
-		err := indexFiles(projectDir, index, 2, discover)
+		err := indexFiles(projectDir, index, 2, DefaultBatchSize, discover)
 
 		assert.ErrorIs(t, err, discoveryErr)
 	})
@@ -414,14 +415,15 @@ func TestIndexFolderTreeSubtree(t *testing.T) {
 	t.Run("commits the remainder after a full batch", func(t *testing.T) {
 		env := setupTestEnv(t)
 		folder := env.createTestFolder("large")
-		for i := 0; i < DefaultBatchSize+1; i++ {
+		const batchSize = 3
+		for i := 0; i < batchSize+1; i++ {
 			env.createFile(folder, fmt.Sprintf("attachment-%04d.bin", i), "data")
 		}
 
-		require.NoError(t, IndexFolderTree(env.TmpDir, "large", env.Index))
+		require.NoError(t, indexFolderTree(env.TmpDir, "large", env.Index, batchSize))
 
 		count, err := env.Index.DocCount()
 		require.NoError(t, err)
-		assert.EqualValues(t, DefaultBatchSize+2, count)
+		assert.EqualValues(t, batchSize+2, count)
 	})
 }

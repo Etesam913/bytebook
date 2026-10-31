@@ -15,6 +15,10 @@ import (
 // Rechecking disk preserves entries created after discovery. Callers must not use this for partial or failed scans.
 // Returns an error without deleting entries whose filesystem state cannot be determined.
 func ReconcileDocuments(projectPath string, directories, filePaths []string, index bleve.Index) error {
+	return reconcileDocuments(projectPath, directories, filePaths, index, DefaultBatchSize)
+}
+
+func reconcileDocuments(projectPath string, directories, filePaths []string, index bleve.Index, batchSize int) error {
 	seen := make(map[string]bool, len(directories)+len(filePaths))
 	for _, directory := range directories {
 		relative, err := filepath.Rel(filepath.Join(projectPath, "notes"), directory)
@@ -33,7 +37,7 @@ func ReconcileDocuments(projectPath string, directories, filePaths []string, ind
 	request := bleve.NewSearchRequest(bleve.NewDisjunctionQuery(
 		createTypeQuery(NOTE_TYPE), createTypeQuery(ATTACHMENT_TYPE), createTypeQuery(FOLDER_TYPE),
 	))
-	request.Size = DefaultBatchSize
+	request.Size = batchSize
 	request.SortBy([]string{"_id"})
 	for {
 		result, err := index.Search(request)

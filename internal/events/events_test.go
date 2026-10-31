@@ -21,11 +21,11 @@ func TestFlushBatchIfFull(t *testing.T) {
 	t.Run("leaves a batch below the threshold uncommitted", func(t *testing.T) {
 		idx := createTestIndex(t)
 		batch := idx.NewBatch()
-		addBatchDocs(t, batch, 3)
+		addBatchDocs(t, batch, 2)
 
-		require.NoError(t, flushBatchIfFull(idx, batch))
+		require.NoError(t, flushBatchIfFull(idx, batch, 3))
 
-		assert.EqualValues(t, 3, batch.Size())
+		assert.EqualValues(t, 2, batch.Size())
 		count, err := idx.DocCount()
 		require.NoError(t, err)
 		assert.Zero(t, count)
@@ -34,24 +34,24 @@ func TestFlushBatchIfFull(t *testing.T) {
 	t.Run("commits and resets a batch at the threshold", func(t *testing.T) {
 		idx := createTestIndex(t)
 		batch := idx.NewBatch()
-		addBatchDocs(t, batch, search.DefaultBatchSize)
+		addBatchDocs(t, batch, 3)
 
-		require.NoError(t, flushBatchIfFull(idx, batch))
+		require.NoError(t, flushBatchIfFull(idx, batch, 3))
 
 		assert.Zero(t, batch.Size())
 		count, err := idx.DocCount()
 		require.NoError(t, err)
-		assert.EqualValues(t, search.DefaultBatchSize, count)
+		assert.EqualValues(t, 3, count)
 	})
 
 	t.Run("resets the batch and returns the error when the commit fails", func(t *testing.T) {
 		idx, err := search.OpenOrCreateIndex(t.TempDir())
 		require.NoError(t, err)
 		batch := idx.NewBatch()
-		addBatchDocs(t, batch, search.DefaultBatchSize)
+		addBatchDocs(t, batch, 3)
 		require.NoError(t, idx.Close())
 
-		assert.Error(t, flushBatchIfFull(idx, batch))
+		assert.Error(t, flushBatchIfFull(idx, batch, 3))
 		assert.Zero(t, batch.Size())
 	})
 }

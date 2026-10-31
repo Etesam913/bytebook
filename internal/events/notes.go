@@ -76,7 +76,7 @@ func renameFilesInIndex(params EventParams, data []util.FileRenameEventData) {
 				log.Println("Error adding renamed file to batch", err)
 			}
 
-			if err := flushBatchIfFull(idx, batch); err != nil {
+			if err := flushBatchIfFull(idx, batch, params.effectiveBatchSize()); err != nil {
 				log.Println("Error flushing rename batch", err)
 			}
 		}
@@ -122,7 +122,7 @@ func updateNotesInIndex(params EventParams, data []util.FileWriteEventData) {
 				log.Printf("Error indexing file %s: %v", note.FilePath, err)
 			}
 
-			if err := flushBatchIfFull(idx, batch); err != nil {
+			if err := flushBatchIfFull(idx, batch, params.effectiveBatchSize()); err != nil {
 				log.Printf("Error flushing write batch: %v", err)
 			}
 		}
