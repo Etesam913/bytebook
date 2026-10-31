@@ -267,11 +267,7 @@ textarea,
   }
 
   .PlaygroundEditorTheme__listItemChecked {
-    @apply line-through decoration-(--accent-color);
-
-    * {
-      text-decoration-thickness: 0.125rem;
-    }
+    @apply line-through decoration-(--accent-color) decoration-[0.15rem];
   }
 
   .PlaygroundEditorTheme__listItemUnchecked:focus:before,

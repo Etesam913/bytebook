@@ -10,6 +10,7 @@ import { CodeActions } from './code-actions';
 import { languageDisplayConfig } from './language-config';
 import { useNodeInNodeSelection } from '@hooks/lexical';
 import { SelectionHighlight } from '@components/selection-highlight';
+import { Tooltip } from '@components/tooltip';
 
 const CodeMirrorEditor = lazy(() =>
   import('./codemirror-editor').then((module) => ({
@@ -107,14 +108,18 @@ export function Code({
   const languageDisplay = languageDisplayConfig[language];
 
   const languageIcon = (
-    <span
-      className="w-fit"
-      data-code-language-icon
-      aria-label={languageDisplay.label}
-      title={languageDisplay.label}
+    <Tooltip
+      content={languageDisplay.label}
+      root={isExpanded ? dialogRef : null}
     >
-      {languageDisplay.icon}
-    </span>
+      <span
+        className="w-fit"
+        data-code-language-icon
+        aria-label={languageDisplay.label}
+      >
+        {languageDisplay.icon}
+      </span>
+    </Tooltip>
   );
 
   const codeEditor = (
