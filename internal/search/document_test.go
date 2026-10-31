@@ -9,6 +9,8 @@ import (
 )
 
 func TestBuildDocument(t *testing.T) {
+	t.Parallel()
+
 	t.Run("supplied Markdown takes precedence over disk", func(t *testing.T) {
 		projectPath, notesPath := setupTempNotesDir(t)
 		writeFilesRelative(t, notesPath, map[string]string{"note.md": "disk content"})

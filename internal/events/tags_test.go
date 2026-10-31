@@ -8,6 +8,8 @@ import (
 )
 
 func TestReIndexNotesWithUpdatedTags(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should re-index notes with updated tags", func(t *testing.T) {
 		params := createTestParams(t)
 		notesDir := setupNotesDir(t, params.ProjectPath)

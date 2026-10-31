@@ -7,6 +7,8 @@ import (
 )
 
 func TestAppendToken(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name      string
 		tokens    []SearchToken
@@ -70,6 +72,8 @@ func TestAppendToken(t *testing.T) {
 }
 
 func TestParseTokens(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		input    string

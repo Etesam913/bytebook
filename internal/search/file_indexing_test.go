@@ -62,6 +62,8 @@ func filterFileJobs(jobs []DocumentJob) []DocumentJob {
 }
 
 func TestPopulateJobs(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should populate jobs for all files across multiple folders", func(t *testing.T) {
 		_, notesDir := setupTempNotesDir(t)
 
@@ -154,6 +156,8 @@ func TestPopulateJobs(t *testing.T) {
 }
 
 func TestStartWorker(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should process markdown and attachment files correctly", func(t *testing.T) {
 		projectDir, notesDir := setupTempNotesDir(t)
 
@@ -206,6 +210,8 @@ func TestStartWorker(t *testing.T) {
 }
 
 func TestIndexFolderTree(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should return error for non-existent notes directory", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		index := createTempIndex(t, tmpDir)
@@ -241,6 +247,8 @@ func TestIndexFolderTree(t *testing.T) {
 }
 
 func TestIndexDiscoveredFilesSkipsHiddenSidecars(t *testing.T) {
+	t.Parallel()
+
 	projectDir, notesDir := setupTempNotesDir(t)
 	index := createTempIndex(t, projectDir)
 
@@ -279,6 +287,8 @@ func (index *failingBatchIndex) Batch(_ *bleve.Batch) error {
 }
 
 func TestIndexDiscoveredFilesPipeline(t *testing.T) {
+	t.Parallel()
+
 	t.Run("indexes full and final batches with a nonpositive worker count", func(t *testing.T) {
 		projectDir, notesDir := setupTempNotesDir(t)
 		index := createTempIndex(t, projectDir)
@@ -335,6 +345,8 @@ func TestIndexDiscoveredFilesPipeline(t *testing.T) {
 }
 
 func TestIndexingPipelineFailure(t *testing.T) {
+	t.Parallel()
+
 	t.Run("cancels and joins discovery after an intermediate batch fails", func(t *testing.T) {
 		projectDir, notesDir := setupTempNotesDir(t)
 		index := createTempIndex(t, projectDir)
@@ -380,6 +392,8 @@ func TestIndexingPipelineFailure(t *testing.T) {
 }
 
 func TestIndexFolderTreeSubtree(t *testing.T) {
+	t.Parallel()
+
 	t.Run("indexes only the visible subtree with path based IDs", func(t *testing.T) {
 		env := setupTestEnv(t)
 		writeFilesRelative(t, env.NotesDir, map[string]string{

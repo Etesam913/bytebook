@@ -12,6 +12,8 @@ import (
 )
 
 func TestNoteServiceSidecar(t *testing.T) {
+	t.Parallel()
+
 	t.Run("saves and reads markdown", func(t *testing.T) {
 		projectPath := t.TempDir()
 		writeTestNote(t, projectPath, "folder/note.md", "# Note")
@@ -44,6 +46,8 @@ func TestNoteServiceSidecar(t *testing.T) {
 }
 
 func TestFileTreeServiceMovesSidecar(t *testing.T) {
+	t.Parallel()
+
 	projectPath := t.TempDir()
 	oldNotePath := writeTestNoteWithSidecar(t, projectPath, "from/note.md")
 	require.NoError(t, os.MkdirAll(filepath.Join(projectPath, "notes", "to"), 0755))
@@ -60,6 +64,8 @@ func TestFileTreeServiceMovesSidecar(t *testing.T) {
 }
 
 func TestMoveRejectsDestinationSidecarCollision(t *testing.T) {
+	t.Parallel()
+
 	t.Run("leaves the source note and both sidecars untouched", func(t *testing.T) {
 		projectPath := t.TempDir()
 		source := writeTestNoteWithSidecar(t, projectPath, "from/note.md")
@@ -88,6 +94,8 @@ func TestMoveRejectsDestinationSidecarCollision(t *testing.T) {
 }
 
 func TestRenameFileWithSidecarRecovery(t *testing.T) {
+	t.Parallel()
+
 	t.Run("rolls back the note when the sidecar rename fails", func(t *testing.T) {
 		projectPath := t.TempDir()
 		source := writeTestNoteWithSidecar(t, projectPath, "from/note.md")
@@ -195,6 +203,8 @@ func TestRenameFileWithSidecarRecovery(t *testing.T) {
 }
 
 func TestPairedFileMoves(t *testing.T) {
+	t.Parallel()
+
 	t.Run("moves uppercase Markdown metadata to the unique destination name", func(t *testing.T) {
 		projectPath := t.TempDir()
 		source := writeTestNoteWithSidecar(t, projectPath, "from/note.MD")
@@ -250,6 +260,8 @@ func TestPairedFileMoves(t *testing.T) {
 }
 
 func TestPairedMovesPreserveOtherMoveBehavior(t *testing.T) {
+	t.Parallel()
+
 	t.Run("moves files without sidecars to a unique name without overwriting bytes", func(t *testing.T) {
 		projectPath := t.TempDir()
 		source := writeTestNote(t, projectPath, "from/note.txt", "# Note")

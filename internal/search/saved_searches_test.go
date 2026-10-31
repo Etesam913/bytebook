@@ -20,6 +20,8 @@ func setupTempSearchDir(t *testing.T) (projectDir, searchDir, savedSearchesPath 
 }
 
 func TestGetAllSavedSearches(t *testing.T) {
+	t.Parallel()
+
 	projectDir, _, savedSearchesPath := setupTempSearchDir(t)
 
 	t.Run("should return an error for invalid JSON", func(t *testing.T) {
@@ -74,6 +76,8 @@ func TestGetAllSavedSearches(t *testing.T) {
 }
 
 func TestAddSavedSearch(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should create a missing saved searches file", func(t *testing.T) {
 		projectDir, _, _ := setupTempSearchDir(t)
 
@@ -173,6 +177,8 @@ func TestAddSavedSearch(t *testing.T) {
 }
 
 func TestRemoveSavedSearch(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should return error when trying to remove non-existent search", func(t *testing.T) {
 		projectDir, _, savedSearchesPath := setupTempSearchDir(t)
 

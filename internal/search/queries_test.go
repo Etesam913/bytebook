@@ -10,6 +10,8 @@ import (
 )
 
 func TestFilenameQueryCaseInsensitiveMatches(t *testing.T) {
+	t.Parallel()
+
 	index, err := OpenOrCreateIndex(t.TempDir())
 	require.NoError(t, err)
 	t.Cleanup(func() { assert.NoError(t, index.Close()) })
@@ -46,6 +48,8 @@ func TestFilenameQueryCaseInsensitiveMatches(t *testing.T) {
 }
 
 func TestCreateExactQuery(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should create match phrase query", func(t *testing.T) {
 		q := createExactQuery("test_field", "exact phrase", 1.0)
 
@@ -62,6 +66,8 @@ func TestCreateExactQuery(t *testing.T) {
 }
 
 func TestCreateFilenameQuery(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		input    string
@@ -169,6 +175,8 @@ func TestCreateFilenameQuery(t *testing.T) {
 }
 
 func TestBuildBooleanQueryFromUserInput(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		input    string
@@ -312,6 +320,8 @@ func TestBuildBooleanQueryFromUserInput(t *testing.T) {
 }
 
 func TestExtractTagPrefix(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name      string
 		input     string
@@ -334,6 +344,8 @@ func TestExtractTagPrefix(t *testing.T) {
 }
 
 func TestCreateTagQuery(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		input       string
@@ -364,6 +376,8 @@ func TestCreateTagQuery(t *testing.T) {
 }
 
 func TestExtractLinkPrefix(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name      string
 		input     string
@@ -386,6 +400,8 @@ func TestExtractLinkPrefix(t *testing.T) {
 }
 
 func TestCreateLinkQuery(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		input       string
@@ -410,6 +426,8 @@ func TestCreateLinkQuery(t *testing.T) {
 }
 
 func TestExtractLangPrefix(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name      string
 		input     string
@@ -433,6 +451,8 @@ func TestExtractLangPrefix(t *testing.T) {
 }
 
 func TestCreateLangQuery(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name      string
 		lang      string
@@ -466,6 +486,8 @@ func TestCreateLangQuery(t *testing.T) {
 }
 
 func TestBuildBooleanQueryWithLang(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		input    string
@@ -497,6 +519,8 @@ func TestBuildBooleanQueryWithLang(t *testing.T) {
 }
 
 func TestExtractSortPrefix(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name      string
 		input     string
@@ -545,6 +569,8 @@ func TestExtractSortPrefix(t *testing.T) {
 }
 
 func TestBuildBooleanQueryWithSort(t *testing.T) {
+	t.Parallel()
+
 	t.Run("extracts sort and keeps content query", func(t *testing.T) {
 		q, sortOption := BuildBooleanQueryFromUserInput("sort:updated auth")
 		assert.NotNil(t, sortOption)

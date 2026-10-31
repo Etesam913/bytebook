@@ -11,6 +11,8 @@ import (
 )
 
 func TestAddFolderToBatch(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Indexes a normalized folder with searchable and stored names", func(t *testing.T) {
 		env := setupTestEnv(t)
 
@@ -59,6 +61,8 @@ func TestAddFolderToBatch(t *testing.T) {
 }
 
 func TestIndexDiscoveredFolders(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Indexes folders across batch boundaries while excluding hidden folders", func(t *testing.T) {
 		env := setupTestEnv(t)
 

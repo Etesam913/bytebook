@@ -7,6 +7,8 @@ import (
 )
 
 func TestCreateNoteBleveDocument(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should create document with basic markdown", func(t *testing.T) {
 		doc := CreateNoteBleveDocument(basicMarkdown, "test-folder", "test.md")
 

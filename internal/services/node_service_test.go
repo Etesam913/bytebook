@@ -11,6 +11,8 @@ import (
 )
 
 func TestNodeServiceAddAttachmentsFromPaths(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Copies files into a nested notes folder and returns frontend paths", func(t *testing.T) {
 		projectPath := t.TempDir()
 		sourcePath := t.TempDir()
@@ -181,6 +183,8 @@ func TestNodeServiceAddAttachmentsFromPaths(t *testing.T) {
 }
 
 func TestNodeServiceImportFolders(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Copies nested folders, empty folders, and sidecars without overwriting", func(t *testing.T) {
 		project := t.TempDir()
 		source := t.TempDir()

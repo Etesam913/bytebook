@@ -11,6 +11,8 @@ import (
 )
 
 func TestReconcileDocuments(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Removes missing folders but preserves discovered and newly created folders and files", func(t *testing.T) {
 		// Arrange
 		env := setupTestEnv(t)
@@ -45,6 +47,8 @@ func TestReconcileDocuments(t *testing.T) {
 }
 
 func TestReconcileFiles(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Preserves discovered and newly created files and prunes missing files across pages", func(t *testing.T) {
 		// Arrange
 		project, root := setupTempNotesDir(t)

@@ -16,6 +16,8 @@ import (
 )
 
 func TestHandleFolderCreateEvent(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should index files from created folders in the background", func(t *testing.T) {
 		params := createTestParams(t)
 		createNoteInFolder(t, params.ProjectPath, "folder1", "one.md", "# one")
@@ -54,6 +56,8 @@ func TestHandleFolderCreateEvent(t *testing.T) {
 }
 
 func TestDeleteFolderDocumentsFromIndex(t *testing.T) {
+	t.Parallel()
+
 	t.Run("deletes the folder and its descendants but not siblings with a shared prefix", func(t *testing.T) {
 		params := createTestParams(t)
 		createNoteInFolder(t, params.ProjectPath, "folder", "one.md", "# one")
@@ -134,6 +138,8 @@ func TestDeleteFolderDocumentsFromIndex(t *testing.T) {
 }
 
 func TestDeleteFoldersFromIndex(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should skip invalid entries and keep other folders intact", func(t *testing.T) {
 		params := createTestParams(t)
 		createNoteInFolder(t, params.ProjectPath, "folder1", "one.md", "# one")
@@ -159,6 +165,8 @@ func TestDeleteFoldersFromIndex(t *testing.T) {
 }
 
 func TestUpdateMarkdownFilesForFolderRename(t *testing.T) {
+	t.Parallel()
+
 	t.Run("rewrites links and images in notes at every depth", func(t *testing.T) {
 		projectPath := t.TempDir()
 		original := "[note](/notes/old/sub/note.md)\n![image](/notes/old/image.png)"
@@ -187,6 +195,8 @@ func TestUpdateMarkdownFilesForFolderRename(t *testing.T) {
 }
 
 func TestUpdateFolderNameInMarkdown(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name          string
 		markdown      string
@@ -327,6 +337,8 @@ func TestUpdateFolderNameInMarkdown(t *testing.T) {
 }
 
 func TestFolderRenamePreservesIndexedTags(t *testing.T) {
+	t.Parallel()
+
 	checkRename := func(t *testing.T, oldFolder, newFolder string) {
 		params := createTestParams(t)
 		idx := rawIndex(params)

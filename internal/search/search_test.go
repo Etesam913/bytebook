@@ -9,6 +9,7 @@ import (
 )
 
 func TestProcessDocumentSearchResults(t *testing.T) {
+	t.Parallel()
 
 	t.Run("should return empty slice for nil search result", func(t *testing.T) {
 		results := ProcessDocumentSearchResults(nil)
@@ -220,6 +221,8 @@ func TestProcessDocumentSearchResults(t *testing.T) {
 }
 
 func TestHasHighlightContent(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name     string
 		fragment string
@@ -256,6 +259,8 @@ func TestHasHighlightContent(t *testing.T) {
 }
 
 func TestExtractHighlightedText(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name     string
 		fragment string
@@ -297,6 +302,8 @@ func TestExtractHighlightedText(t *testing.T) {
 }
 
 func TestCreateSearchRequestSort(t *testing.T) {
+	t.Parallel()
+
 	t.Run("defaults with no sort option", func(t *testing.T) {
 		req := CreateSearchRequest(bleve.NewMatchAllQuery(), 25, nil, nil)
 		assert.Equal(t, 25, req.Size)

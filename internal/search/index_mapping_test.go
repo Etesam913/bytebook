@@ -55,6 +55,8 @@ More text content.
 // Tests for index mapping functions
 
 func TestIndexOperations(t *testing.T) {
+	t.Parallel()
+
 	env := setupTestEnv(t)
 
 	t.Run("should create and open index successfully", func(t *testing.T) {
@@ -74,6 +76,8 @@ func TestIndexOperations(t *testing.T) {
 }
 
 func TestIndexFileMarkdown(t *testing.T) {
+	t.Parallel()
+
 	env := setupTestEnv(t)
 
 	t.Run("should add new note to batch", func(t *testing.T) {
@@ -108,6 +112,8 @@ func TestIndexFileMarkdown(t *testing.T) {
 }
 
 func TestIndexFileAttachment(t *testing.T) {
+	t.Parallel()
+
 	env := setupTestEnv(t)
 
 	t.Run("should add new attachment to batch", func(t *testing.T) {
@@ -153,6 +159,8 @@ func TestIndexFileAttachment(t *testing.T) {
 }
 
 func TestRegenerateSearchIndex(t *testing.T) {
+	t.Parallel()
+
 	verifyCommitFailure := func(t *testing.T, configure func(*indexRebuildOperations)) (*IndexHolder, string) {
 		t.Helper()
 		projectPath := t.TempDir()

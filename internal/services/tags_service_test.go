@@ -13,6 +13,8 @@ import (
 )
 
 func TestSetTagsOnNotes(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Adds and removes tags on multiple notes and attachments", func(t *testing.T) {
 		project := t.TempDir()
 		paths := []string{"root.md", "nested/note.md", "nested/image.png"}
@@ -56,6 +58,8 @@ func TestSetTagsOnNotes(t *testing.T) {
 }
 
 func TestGetTagsForNotes(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Returns tags keyed by path including untagged notes and attachments", func(t *testing.T) {
 		project := t.TempDir()
 		writeTestNote(t, project, "root.md", "---\ntags:\n  - root\n---\n# Root")
@@ -99,6 +103,8 @@ func TestGetTagsForNotes(t *testing.T) {
 }
 
 func TestDeleteTags(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Deletes any matching tag across search pages while preserving other tags and content", func(t *testing.T) {
 		project := t.TempDir()
 		index := createTestSearchIndex(t)

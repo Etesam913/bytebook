@@ -10,6 +10,8 @@ import (
 )
 
 func TestSettingsServicePersistsSidebarOrder(t *testing.T) {
+	t.Parallel()
+
 	projectPath := t.TempDir()
 	service := SettingsService{ProjectPath: projectPath}
 	initial := service.GetProjectSettings()
@@ -28,6 +30,8 @@ func TestSettingsServicePersistsSidebarOrder(t *testing.T) {
 }
 
 func TestSettingsServiceNormalizesUpdates(t *testing.T) {
+	t.Parallel()
+
 	projectPath := t.TempDir()
 	service := SettingsService{ProjectPath: projectPath}
 	initial := service.GetProjectSettings()
@@ -58,6 +62,8 @@ func TestSettingsServiceNormalizesUpdates(t *testing.T) {
 }
 
 func TestSettingsServicePersistsSidebarWidth(t *testing.T) {
+	t.Parallel()
+
 	projectPath := t.TempDir()
 	service := SettingsService{ProjectPath: projectPath}
 	initial := service.GetProjectSettings()

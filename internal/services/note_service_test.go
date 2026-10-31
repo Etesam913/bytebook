@@ -12,6 +12,8 @@ import (
 )
 
 func TestAddNoteToFolder(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Creates an empty note in an existing folder", func(t *testing.T) {
 		project := t.TempDir()
 		require.NoError(t, os.MkdirAll(filepath.Join(project, "notes", "nested", "folder"), 0755))
@@ -84,6 +86,8 @@ func TestAddNoteToFolder(t *testing.T) {
 }
 
 func TestDoesNoteExist(t *testing.T) {
+	t.Parallel()
+
 	project := t.TempDir()
 	writeTestNote(t, project, "folder/note.md", "note")
 	require.NoError(t, os.WriteFile(filepath.Join(project, "outside.md"), []byte("outside"), 0644))
@@ -152,6 +156,8 @@ func TestMoveToTrashPreservesSuccessfulItemsOnPartialFailure(t *testing.T) {
 }
 
 func TestRestoreFromTrashConflictMessage(t *testing.T) {
+	t.Parallel()
+
 	if runtime.GOOS != "darwin" {
 		t.Skip("Trash restore is only supported on macOS")
 	}

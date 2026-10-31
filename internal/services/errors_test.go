@@ -15,6 +15,8 @@ import (
 )
 
 func TestResponseMessage(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Preserves a wrapped user message without exposing the cause", func(t *testing.T) {
 		cause := errors.New("rename /private/project/notes/note.md: permission denied")
 		userErr := &apperr.UserError{Msg: "Choose another name", Err: cause}
@@ -43,6 +45,8 @@ func TestResponseMessage(t *testing.T) {
 }
 
 func TestSavedSearchErrorMessages(t *testing.T) {
+	t.Parallel()
+
 	project := t.TempDir()
 	require.NoError(t, os.Mkdir(filepath.Join(project, "search"), 0755))
 	service := SearchService{ProjectPath: project}

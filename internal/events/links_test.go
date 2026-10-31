@@ -11,6 +11,8 @@ import (
 )
 
 func TestReplaceFilePathInMarkdown(t *testing.T) {
+	t.Parallel()
+
 	t.Run("replaces link URL exactly", func(t *testing.T) {
 		markdown := `Check out [my note](/notes/folder1/old.md) for details.`
 		result, changed := replaceFilePathInMarkdown(markdown, "/notes/folder1/old.md", "/notes/folder1/new.md")
@@ -48,6 +50,8 @@ func TestReplaceFilePathInMarkdown(t *testing.T) {
 }
 
 func TestReplaceLocalLinksInNotes(t *testing.T) {
+	t.Parallel()
+
 	t.Run("updates links in notes that reference a renamed file", func(t *testing.T) {
 		params := createTestParams(t)
 		notesDir := filepath.Join(params.ProjectPath, "notes")
@@ -138,6 +142,8 @@ func TestReplaceLocalLinksInNotes(t *testing.T) {
 }
 
 func TestFindNotesWithLink(t *testing.T) {
+	t.Parallel()
+
 	t.Run("matches encoded internal note links and respects page size", func(t *testing.T) {
 		params := createTestParams(t)
 

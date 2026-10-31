@@ -12,6 +12,8 @@ import (
 )
 
 func TestBuildEncodedNoteURLPath(t *testing.T) {
+	t.Parallel()
+
 	assert.Equal(t, "/notes/root.md", buildEncodedNoteURLPath("root.md"))
 	assert.Equal(t, "/notes/team/specs/doc.md", buildEncodedNoteURLPath("team/specs/doc.md"))
 	assert.Equal(t, "/notes/My%20Folder/doc%20%281%29.md", buildEncodedNoteURLPath("My Folder/doc (1).md"))
@@ -19,6 +21,8 @@ func TestBuildEncodedNoteURLPath(t *testing.T) {
 }
 
 func TestSplitNotePath(t *testing.T) {
+	t.Parallel()
+
 	folder, note, ok := splitNotePath("root.md")
 	assert.True(t, ok)
 	assert.Equal(t, "", folder)
@@ -34,6 +38,8 @@ func TestSplitNotePath(t *testing.T) {
 }
 
 func TestGetPathsFromSearchQuery(t *testing.T) {
+	t.Parallel()
+
 	newService := func(t *testing.T) (SearchService, string, bleve.Index) {
 		projectPath := t.TempDir()
 		index := createTestSearchIndex(t)
@@ -190,6 +196,8 @@ func TestGetPathsFromSearchQuery(t *testing.T) {
 }
 
 func TestGetLinkedMentions(t *testing.T) {
+	t.Parallel()
+
 	t.Run("finds mentions for nested note paths", func(t *testing.T) {
 		projectPath := t.TempDir()
 		index := createTestSearchIndex(t)
@@ -240,6 +248,8 @@ func TestGetLinkedMentions(t *testing.T) {
 }
 
 func TestFullTextSearch(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Reports an unavailable index as a failure", func(t *testing.T) {
 		idx, err := bleve.New(filepath.Join(t.TempDir(), "index"), bleve.NewIndexMapping())
 		require.NoError(t, err)
@@ -258,6 +268,8 @@ func TestFullTextSearch(t *testing.T) {
 }
 
 func TestFullTextSearchPages(t *testing.T) {
+	t.Parallel()
+
 	idx, err := search.OpenOrCreateIndex(t.TempDir())
 	require.NoError(t, err)
 	t.Cleanup(func() { require.NoError(t, idx.Close()) })
@@ -296,6 +308,8 @@ func TestFullTextSearchPages(t *testing.T) {
 }
 
 func TestFullTextSearchSyntax(t *testing.T) {
+	t.Parallel()
+
 	project := t.TempDir()
 	idx := createTestSearchIndex(t)
 	writeTestNote(t, project, "work/redis.md", "---\ntags:\n  - work\n---\n# Redis\ncache invalidation\n\n```python\nprint('cache')\n```\nAdditional Redis notes.\n")

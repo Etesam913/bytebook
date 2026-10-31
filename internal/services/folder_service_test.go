@@ -10,6 +10,8 @@ import (
 )
 
 func TestAddFolder(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Creates nested folders", func(t *testing.T) {
 		project := t.TempDir()
 		service := FolderService{ProjectPath: project}
@@ -61,6 +63,8 @@ func TestAddFolder(t *testing.T) {
 }
 
 func TestRenameFolder(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Moves nested contents", func(t *testing.T) {
 		project := t.TempDir()
 		writeTestNote(t, project, "old/nested/note.md", "keep me")

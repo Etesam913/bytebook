@@ -18,6 +18,8 @@ func addBatchDocs(t *testing.T, batch *bleve.Batch, n int) {
 }
 
 func TestFlushBatchIfFull(t *testing.T) {
+	t.Parallel()
+
 	t.Run("leaves a batch below the threshold uncommitted", func(t *testing.T) {
 		idx := createTestIndex(t)
 		batch := idx.NewBatch()

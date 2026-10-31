@@ -9,6 +9,8 @@ import (
 )
 
 func TestCreateAttachmentBleveDocument(t *testing.T) {
+	t.Parallel()
+
 	env := setupTestEnv(t)
 
 	t.Run("should include tags from sidecar", func(t *testing.T) {

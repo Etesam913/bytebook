@@ -15,6 +15,8 @@ import (
 )
 
 func TestAddCreatedNotesToIndex(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should add notes to the index", func(t *testing.T) {
 		params := createTestParams(t)
 		notesDir := setupNotesDir(t, params.ProjectPath)
@@ -40,6 +42,8 @@ func TestAddCreatedNotesToIndex(t *testing.T) {
 }
 
 func TestRenameFilesInIndex(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should rename notes in the index", func(t *testing.T) {
 		params := createTestParams(t)
 		notesDir := setupNotesDir(t, params.ProjectPath)
@@ -72,6 +76,8 @@ func TestRenameFilesInIndex(t *testing.T) {
 }
 
 func TestDeleteNotesFromIndex(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should delete notes from the index", func(t *testing.T) {
 		params := createTestParams(t)
 		notesDir := setupNotesDir(t, params.ProjectPath)
@@ -100,6 +106,8 @@ func TestDeleteNotesFromIndex(t *testing.T) {
 }
 
 func TestUpdateNotesInIndex(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should update notes in the index", func(t *testing.T) {
 		params := createTestParams(t)
 		notesDir := setupNotesDir(t, params.ProjectPath)
@@ -147,6 +155,8 @@ func TestUpdateNotesInIndex(t *testing.T) {
 }
 
 func TestNoteWriteAndDeleteFlushFullBatches(t *testing.T) {
+	t.Parallel()
+
 	params := createTestParams(t)
 	params.batchSize = 3
 	noteCount := params.batchSize + 2
@@ -170,6 +180,8 @@ func TestNoteWriteAndDeleteFlushFullBatches(t *testing.T) {
 }
 
 func TestWatcherDeletePreservesSidecarForPutBack(t *testing.T) {
+	t.Parallel()
+
 	// Index a note with metadata stored in its separate hidden sidecar.
 	params := createTestParams(t)
 	root := setupNotesDir(t, params.ProjectPath)

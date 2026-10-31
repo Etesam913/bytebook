@@ -30,6 +30,8 @@ func assertIndexedPaths(t *testing.T, params EventParams, expected map[string]st
 }
 
 func TestFileEventsCanonicalPaths(t *testing.T) {
+	t.Parallel()
+
 	t.Run("create indexes root notes and attachments with an empty folder", func(t *testing.T) {
 		params := createTestParams(t)
 		notesDir := setupNotesDir(t, params.ProjectPath)
@@ -111,6 +113,8 @@ func TestFileEventsCanonicalPaths(t *testing.T) {
 }
 
 func TestBatchRenamePreservesMetadataPinsAndLinks(t *testing.T) {
+	t.Parallel()
+
 	// Start with a note and attachment that have sidecars, pins, and incoming links.
 	params := createTestParams(t)
 	root := setupNotesDir(t, params.ProjectPath)
