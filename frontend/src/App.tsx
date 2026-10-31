@@ -4,7 +4,7 @@ import {
 } from '@hooks/project-settings';
 import { type ReactNode } from 'react';
 import { RouterProvider } from 'react-aria-components';
-import { NotFound } from '@/routes/not-found';
+import { NotFound } from '@components/not-found';
 import { useAtomValue, useSetAtom } from 'jotai/react';
 import { Toaster } from 'sonner';
 import { Route, Switch, useLocation } from 'wouter';
@@ -104,11 +104,11 @@ function App() {
             </Route>
 
             <Route path={routeUrls.patterns.NOT_FOUND_FALLBACK}>
-              <NotFound />
+              <NotFound kind="note" />
             </Route>
 
             <Route path={routeUrls.patterns.CATCH_ALL}>
-              <NotFound />
+              <NotFound kind="note" />
             </Route>
           </Switch>
         </div>

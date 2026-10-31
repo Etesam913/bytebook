@@ -38,7 +38,7 @@ func createMatchQuery(field, term string, boost float64) query.Query {
 	return q
 }
 
-// CreateFilenameQuery handles filename prefix queries (tokens starting with "f:" or "file:")
+// createFilenameQuery handles filename prefix queries (tokens starting with "f:" or "file:")
 // Returns a query that searches for folder and/or file names based on the prefix term.
 //
 // FieldFolder and FieldFileName both use a single-token analyzer, so each is stored as
@@ -47,7 +47,7 @@ func createMatchQuery(field, term string, boost float64) query.Query {
 // field alone. When the term contains a "/", split on the last slash and require the
 // folder portion to match FieldFolder AND the filename portion to match FieldFileName.
 // Otherwise, fall back to a disjunction across the two fields.
-func CreateFilenameQuery(prefixTerm string, boost float64) query.Query {
+func createFilenameQuery(prefixTerm string, boost float64) query.Query {
 	normalized := strings.ToLower(strings.TrimSpace(prefixTerm))
 
 	// fieldMatch returns a disjunction that matches the field on either a substring
@@ -132,7 +132,7 @@ func createFuzzyContentQuery(text string) query.Query {
 	contentQuery.AddShould(nGramQuery)
 
 	// Also search file names
-	filenameQuery := CreateFilenameQuery(text, 1)
+	filenameQuery := createFilenameQuery(text, 1)
 	contentQuery.AddShould(filenameQuery)
 
 	return contentQuery
@@ -320,7 +320,7 @@ func BuildBooleanQueryFromUserInput(input string) (query.Query, *SearchSortOptio
 
 	// Collect non-skip token queries and the operator after each (to combine with next token)
 	var queries []query.Query
-	var operators []Operator
+	var operators []operator
 	for i, token := range filteredTokens {
 		q, skip := createTokenQuery(token)
 		if skip {
@@ -334,9 +334,9 @@ func BuildBooleanQueryFromUserInput(input string) (query.Query, *SearchSortOptio
 			q = negatedBool
 		}
 		queries = append(queries, q)
-		// Operator that connects this token to the next (only needed when there is a next)
+		// operator that connects this token to the next (only needed when there is a next)
 		if i+1 < len(filteredTokens) {
-			operators = append(operators, token.Operator)
+			operators = append(operators, token.operator)
 		}
 	}
 
@@ -369,8 +369,8 @@ func BuildBooleanQueryFromUserInput(input string) (query.Query, *SearchSortOptio
 }
 
 // separateSortTokens removes sort directives from the query terms, retaining the last one.
-func separateSortTokens(tokens []SearchToken) ([]SearchToken, *SearchSortOption) {
-	filtered := make([]SearchToken, 0, len(tokens))
+func separateSortTokens(tokens []searchToken) ([]searchToken, *SearchSortOption) {
+	filtered := make([]searchToken, 0, len(tokens))
 	var sortOption *SearchSortOption
 	for _, token := range tokens {
 		if extracted, ok := extractSortPrefix(token.Text); ok {
@@ -384,14 +384,14 @@ func separateSortTokens(tokens []SearchToken) ([]SearchToken, *SearchSortOption)
 }
 
 // createTokenQuery returns true when a token should be skipped.
-func createTokenQuery(token SearchToken) (query.Query, bool) {
+func createTokenQuery(token searchToken) (query.Query, bool) {
 	// Check for filename prefix (f: or file:) — skip when prefix is empty to avoid full index scan
 	if prefixTerm, ok := extractFilenamePrefix(token.Text); ok {
 		prefixTerm = strings.TrimSpace(prefixTerm)
 		if prefixTerm == "" {
 			return nil, true
 		}
-		return CreateFilenameQuery(prefixTerm, 1.0), false
+		return createFilenameQuery(prefixTerm, 1.0), false
 	}
 
 	// Check for type prefix (t: or type:)

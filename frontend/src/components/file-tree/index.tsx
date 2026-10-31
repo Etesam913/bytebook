@@ -1,0 +1,440 @@
+import { prepareFileTreeInput } from '@pierre/trees';
+import { FileTree as PierreFileTree, useFileTree } from '@pierre/trees/react';
+import { FILE_TREE_ICONS } from './components/icons';
+import { useEffect, useRef, useState } from 'react';
+import { useAtomValue } from 'jotai';
+import { isDarkModeOnAtom } from '@/atoms';
+import {
+  createFolderPath,
+  remapPathThroughRename,
+  splitPathSegments,
+  stripTrailingSlash,
+} from '@utils/path';
+import {
+  useTreeAddFilesToFolderMutation,
+  useTreeRenameItemMutation,
+} from './hooks/use-tree-item-mutations';
+import { useAllPaths } from '@hooks/all-paths';
+import { useAddTreeItemMutation } from '@hooks/tree-items';
+import { toast } from 'sonner';
+import { DEFAULT_SONNER_OPTIONS } from '@utils/general';
+import { cn } from '@utils/string-formatting';
+import {
+  applyTreeCreate,
+  getPlaceholderPath,
+  type TreeItemType,
+} from './model/create';
+import { FilteredFileTree } from './components/filtered-file-tree';
+import { useTreeRouteFocus } from './hooks/use-tree-route-focus';
+import { useTreeEvents } from './hooks/use-tree-events';
+import { useTreeDrop } from './hooks/use-tree-drop';
+import { useTreeRowHeight } from './hooks/use-tree-row-height';
+import { useTreeDragHandlers, useTreeDragSession } from './hooks/use-tree-drag';
+import { useTreeRouteTargetPath } from './hooks/use-tree-route-target-path';
+import { useTreeSyncAllPaths } from './hooks/use-tree-sync-all-paths';
+import { useTreeFilter } from './hooks/use-tree-filter';
+import {
+  getRenameInput,
+  getTreeHost,
+  navigateToTreePath,
+} from './model/model-utils';
+import { applyTreeRename } from './model/rename';
+import { FILE_TREE_HOST_STYLE, FILE_TREE_UNSAFE_CSS } from './styles';
+import {
+  TreeBackgroundContextMenu,
+  TreeContextMenu,
+} from './components/tree-context-menu';
+import { TreeFilterSummary } from './components/tree-filter-summary';
+import { TreeHeader } from './components/tree-header';
+import { TreeSearchInput } from './components/tree-search-input';
+import { TreeNameTooltip } from './components/tree-name-tooltip';
+import { Loader } from '@/icons/loader';
+
+// Later path updates sync directly into the model, so prepare only once.
+function useTreePreparedInput(paths: readonly string[]) {
+  const preparedInputRef = useRef<ReturnType<
+    typeof prepareFileTreeInput
+  > | null>(null);
+  preparedInputRef.current ??= prepareFileTreeInput(paths);
+  return preparedInputRef.current;
+}
+
+// Expand the folder hierarchy above the initial route target.
+function getInitialExpandedPaths(routeTargetPath: string | null) {
+  if (!routeTargetPath) return [];
+  const segments = splitPathSegments(routeTargetPath);
+  return segments
+    .slice(0, -1)
+    .map((_, index) => `${segments.slice(0, index + 1).join('/')}/`);
+}
+
+export function FileTree() {
+  const allPathsQuery = useAllPaths();
+
+  if (allPathsQuery.isPending) {
+    return (
+      <div
+        role="status"
+        aria-label="Loading files"
+        className="flex flex-1 items-center justify-center text-zinc-500 dark:text-zinc-400"
+      >
+        <Loader width="1.25rem" height="1.25rem" />
+      </div>
+    );
+  }
+
+  if (!allPathsQuery.data) {
+    return null;
+  }
+
+  return <FileTreeView initialPaths={allPathsQuery.data} />;
+}
+
+function FileTreeView({ initialPaths }: { initialPaths: readonly string[] }) {
+  // ── Navigation state ─────────────────────────────────────────────────
+  const routeTargetPath = useTreeRouteTargetPath();
+
+  // Prevent route-selection sync from causing navigation loops.
+  const lastNavigatedRef = useRef<string | null>(routeTargetPath);
+
+  useEffect(() => {
+    lastNavigatedRef.current = routeTargetPath;
+  }, [routeTargetPath]);
+
+  // ── Backend mutations ────────────────────────────────────────────────
+  const { mutateAsync: renameTreeItem } = useTreeRenameItemMutation();
+  const { mutate: addFilesToFolder } = useTreeAddFilesToFolderMutation();
+  const { mutateAsync: addTreeItem } = useAddTreeItemMutation();
+
+  // Distinguishes inline creation from a normal rename. `unsubscribe` releases
+  // the placeholder-removal listener; every exit from the create flow must call
+  // it, since only the cancel path removes the placeholder.
+  const pendingCreateRef = useRef<{
+    placeholderPath: string;
+    parentFolderPath: string;
+    unsubscribe: () => void;
+  } | null>(null);
+  const pendingCreatePathsRef = useRef(new Set<string>());
+
+  // ── Tree model ───────────────────────────────────────────────────────
+  const dragSession = useTreeDragSession();
+  const preparedInput = useTreePreparedInput(initialPaths);
+
+  const { model } = useFileTree({
+    preparedInput,
+    initialExpansion: 'closed',
+    initialExpandedPaths: getInitialExpandedPaths(routeTargetPath),
+    initialSelectedPaths: routeTargetPath ? [routeTargetPath] : [],
+    // Keep every folder as its own row instead of merging single-child chains.
+    flattenEmptyDirectories: false,
+    stickyFolders: true,
+    icons: FILE_TREE_ICONS,
+    unsafeCSS: FILE_TREE_UNSAFE_CSS,
+    composition: {
+      contextMenu: {
+        triggerMode: 'both',
+      },
+    },
+    onSelectionChange: (selectedPaths) => {
+      if (dragSession.draggedPathsRef.current) return;
+      if (selectedPaths.length !== 1) return;
+      const path = selectedPaths[0];
+
+      // startRenaming() bumps the selection version and emits, so beginning an
+      // inline create reports the placeholder as selected. Never route to it —
+      // the path does not exist on disk until the name is committed.
+      if (path === pendingCreateRef.current?.placeholderPath) return;
+
+      if (lastNavigatedRef.current === path) return;
+      lastNavigatedRef.current = path;
+      navigateToTreePath(path);
+    },
+    dragAndDrop: dragSession.dragAndDrop,
+    renaming: {
+      onRename: (event) => {
+        const pending = pendingCreateRef.current;
+        if (
+          pending &&
+          stripTrailingSlash(event.sourcePath) ===
+            stripTrailingSlash(pending.placeholderPath)
+        ) {
+          // A committed placeholder is moved, not removed, so the removal
+          // listener would never fire — release it here.
+          pending.unsubscribe();
+          pendingCreatePathsRef.current.delete(pending.placeholderPath);
+          pendingCreateRef.current = null;
+          // Pierre selects the committed placeholder before it exists on disk.
+          // Let the create mutation populate the path cache and navigate on success.
+          lastNavigatedRef.current = event.isFolder
+            ? (createFolderPath(event.destinationPath)?.fullPath ?? null)
+            : event.destinationPath;
+          // Pierre moves the placeholder after this callback returns.
+          queueMicrotask(() => {
+            void applyTreeCreate({
+              model,
+              event,
+              parentFolderPath: pending.parentFolderPath,
+              addTreeItem,
+              pendingPaths: pendingCreatePathsRef.current,
+              onCanonicalPath: (path) => {
+                lastNavigatedRef.current = path;
+              },
+            });
+          });
+          return;
+        }
+        // Pierre applies the rename to its model right after this callback,
+        // which remaps the selection and would fire onSelectionChange with the
+        // new path — before the backend has renamed anything on disk. Navigation
+        // on renames is owned by useSyncRouteWithRenames (driven by the watcher
+        // event), so pre-remap lastNavigatedRef to swallow that early emission
+        // when the current route is the renamed item or lives inside it.
+        const remapped = remapPathThroughRename({
+          path: lastNavigatedRef.current ?? '',
+          oldPath: event.sourcePath,
+          newPath: event.destinationPath,
+          isFolder: event.isFolder,
+        });
+        if (remapped) lastNavigatedRef.current = remapped;
+        applyTreeRename({ model, event, renameTreeItem });
+      },
+      onError: (error) => {
+        // Remove failed create placeholders from the model.
+        const pending = pendingCreateRef.current;
+        if (pending) {
+          pending.unsubscribe();
+          pendingCreatePathsRef.current.delete(pending.placeholderPath);
+        }
+        if (pending && model.getItem(pending.placeholderPath)) {
+          model.remove(
+            pending.placeholderPath,
+            pending.placeholderPath.endsWith('/')
+              ? { recursive: true }
+              : undefined
+          );
+        }
+        pendingCreateRef.current = null;
+        toast.error(error, DEFAULT_SONNER_OPTIONS);
+      },
+    },
+  });
+
+  const {
+    searchValue,
+    onSearchChange,
+    isFilterMode,
+    filteredPaths,
+    isSorted,
+    isFilterLoading,
+  } = useTreeFilter();
+
+  const { isMovePending, dragHandlers } = useTreeDragHandlers({
+    model,
+    session: dragSession,
+    routeTargetPath,
+  });
+
+  useTreeSyncAllPaths({
+    model,
+    preparedInput,
+    isMovePending,
+    getPendingCreatePaths: () => [...pendingCreatePathsRef.current],
+  });
+  useTreeEvents(model);
+  useTreeRouteFocus(model, isFilterMode);
+  useTreeDrop(model);
+  useTreeRowHeight(model);
+
+  function handleStartRename(path: string) {
+    if (!model.startRenaming(path)) return;
+    // Select the name while preserving the file extension.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const input = getRenameInput(model);
+        if (!input) return;
+        const dotIndex = input.value.lastIndexOf('.');
+        if (dotIndex > 0) input.setSelectionRange(0, dotIndex);
+      });
+    });
+  }
+
+  function handleStartCreate({
+    folderPath,
+    itemType,
+  }: {
+    folderPath: string;
+    itemType: TreeItemType;
+  }) {
+    const placeholderPath = getPlaceholderPath({
+      parentPath: folderPath,
+      itemType,
+      hasItem: (path) => model.getItem(path) !== null,
+    });
+    // Clear pending state when creation is canceled.
+    const unsubscribe = model.onMutation('remove', (event) => {
+      if (
+        event.path !== placeholderPath &&
+        !(event.path.endsWith('/') && placeholderPath.startsWith(event.path))
+      )
+        return;
+      pendingCreatePathsRef.current.delete(placeholderPath);
+      if (pendingCreateRef.current?.placeholderPath === placeholderPath) {
+        pendingCreateRef.current = null;
+      }
+      unsubscribe();
+    });
+    // Set before startRenaming: it re-selects the placeholder and emits, which
+    // onSelectionChange must recognize as a create rather than a navigation.
+    pendingCreateRef.current = {
+      placeholderPath,
+      parentFolderPath: folderPath,
+      unsubscribe,
+    };
+    pendingCreatePathsRef.current.add(placeholderPath);
+    model.add(placeholderPath);
+    if (!model.startRenaming(placeholderPath, { removeIfCanceled: true })) {
+      unsubscribe();
+      pendingCreateRef.current = null;
+      pendingCreatePathsRef.current.delete(placeholderPath);
+      model.remove(
+        placeholderPath,
+        placeholderPath.endsWith('/') ? { recursive: true } : undefined
+      );
+      return;
+    }
+    // Typing can begin before the deferred seed-name reset. Never erase input
+    // the user has already supplied while the new row is appearing.
+    const host = getTreeHost(model);
+    let hasTyped = false;
+    const onInput = () => {
+      hasTyped = true;
+    };
+    host?.addEventListener('input', onInput, { capture: true, once: true });
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        host?.removeEventListener('input', onInput, true);
+        if (
+          hasTyped ||
+          pendingCreateRef.current?.placeholderPath !== placeholderPath
+        )
+          return;
+        const input = getRenameInput(model);
+        if (!input) return;
+        // Start empty because unchanged seed names do not trigger onRename.
+        // Notify the controlled input after clearing the DOM value.
+        input.value = '';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.select();
+      });
+    });
+  }
+
+  const isDarkModeOn = useAtomValue(isDarkModeOnAtom);
+
+  // ── Keyboard handling ────────────────────────────────────────────────
+  // Pierre handles F2 but not Enter for renaming focused rows.
+  function handleKeyDown(event: React.KeyboardEvent) {
+    if (event.key !== 'Enter') return;
+    if (event.target !== getTreeHost(model)) return;
+    if (getRenameInput(model)) return;
+    const focusedPath = model.getFocusedPath();
+    if (!focusedPath) return;
+    event.preventDefault();
+    handleStartRename(focusedPath);
+  }
+
+  // ── Background context menu ──────────────────────────────────────────
+  const [backgroundMenuPoint, setBackgroundMenuPoint] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+
+  // Pierre's row handler prevents default, so an unhandled event landed on
+  // empty space. The DOM check skips React-bubbled events from portaled menus.
+  function handleBackgroundContextMenu(event: React.MouseEvent) {
+    if (event.defaultPrevented) return;
+    if (!event.currentTarget.contains(event.target as Node)) return;
+    event.preventDefault();
+    setBackgroundMenuPoint({ x: event.clientX, y: event.clientY });
+  }
+
+  // ── Render ───────────────────────────────────────────────────────────
+  // Override the tree's OS-based color scheme with the app theme.
+  const hostStyle: React.CSSProperties = {
+    ...FILE_TREE_HOST_STYLE,
+    colorScheme: isDarkModeOn ? 'dark' : 'light',
+  };
+
+  return (
+    <div
+      id="file-tree"
+      data-file-drop-target
+      className="relative flex flex-1 flex-col min-h-0 overflow-hidden text-sm"
+      onKeyDown={handleKeyDown}
+      {...dragHandlers}
+    >
+      <TreeHeader
+        onCreateFolder={() => {
+          onSearchChange('');
+          // Let the canonical tree become visible before inserting a draft when
+          // creation starts from filtered results.
+          requestAnimationFrame(() =>
+            handleStartCreate({ folderPath: '', itemType: 'folder' })
+          );
+        }}
+      >
+        <TreeSearchInput value={searchValue} onChange={onSearchChange} />
+      </TreeHeader>
+      <TreeFilterSummary
+        query={searchValue}
+        resultCount={filteredPaths?.length ?? 0}
+        isLoading={isFilterLoading}
+      />
+      {/* Keep tree state and sync active while filtered results are shown. */}
+      <div
+        className={cn('contents', isFilterMode && 'hidden')}
+        onContextMenu={handleBackgroundContextMenu}
+      >
+        <PierreFileTree
+          model={model}
+          renderContextMenu={(item, context) => (
+            <TreeContextMenu
+              item={item}
+              context={context}
+              selectedPaths={model.getSelectedPaths()}
+              editing={{
+                onAddFiles: addFilesToFolder,
+                onStartRename: handleStartRename,
+                onStartCreate: handleStartCreate,
+              }}
+            />
+          )}
+          style={hostStyle}
+        />
+      </div>
+      {backgroundMenuPoint && (
+        <TreeBackgroundContextMenu
+          anchorRect={{
+            top: backgroundMenuPoint.y,
+            left: backgroundMenuPoint.x,
+            width: 0,
+            height: 0,
+          }}
+          onClose={() => setBackgroundMenuPoint(null)}
+          onStartCreate={handleStartCreate}
+          onAddFiles={addFilesToFolder}
+        />
+      )}
+      {isFilterMode && (
+        <FilteredFileTree
+          paths={filteredPaths}
+          isSorted={isSorted}
+          isLoading={isFilterLoading}
+          hostStyle={hostStyle}
+          routeTargetPath={routeTargetPath}
+        />
+      )}
+      {!isFilterMode && <TreeNameTooltip model={model} />}
+    </div>
+  );
+}

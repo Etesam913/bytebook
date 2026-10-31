@@ -8,14 +8,14 @@ import {
 } from 'react-virtuoso';
 import { Loader } from '@/icons/loader';
 import { FolderOpen } from '@/icons/folder-open';
-import { useToggleSidebarEvent } from '@/routes/notes-sidebar/render-note/hooks';
+import { useToggleSidebarEvent } from '@hooks/file-maximize';
 import {
   type FolderPath,
   createFilePath,
   createFolderPath,
   stripTrailingSlash,
 } from '@utils/path';
-import { NotFound } from '@/routes/not-found';
+import { NotFound } from '@components/not-found';
 import {
   AnimatePresence,
   motion,
@@ -23,7 +23,6 @@ import {
 } from 'motion/react';
 import { cn } from '@utils/string-formatting';
 import { useAllPaths } from '@hooks/all-paths';
-import { FILE_TYPE, FOLDER_TYPE } from '@utils/tree-item-types';
 import {
   FolderRendererCard,
   type FolderRendererItem,
@@ -31,7 +30,7 @@ import {
 import { FolderRendererCreateItemCard } from './folder-renderer-create-item-card';
 import { FolderRendererHeader } from './folder-renderer-header';
 import { useFolderRendererDrop } from './hooks/use-folder-renderer-drop';
-import { usePreventBoundaryOverscrollFlicker } from '@components/virtualized/virtualized-list/hooks';
+import { usePreventBoundaryOverscrollFlicker } from '@hooks/scroll';
 
 const folderGridComponents = {
   Footer: () => <div className="h-6" />,
@@ -80,7 +79,7 @@ function getFolderItems(
       return [
         {
           id: path,
-          type: FOLDER_TYPE,
+          type: 'folder',
           name: entryFolderPath.folder,
           path: entryFolderPath,
         },
@@ -91,7 +90,7 @@ function getFolderItems(
     return [
       {
         id: path,
-        type: FILE_TYPE,
+        type: 'file',
         name: entryFilePath.note,
         path: entryFilePath,
       },
@@ -124,7 +123,7 @@ export function FolderRenderer({
   });
 
   if (allPaths && !allPaths.includes(folderPath.fullPath)) {
-    return <NotFound />;
+    return <NotFound kind="folder" />;
   }
 
   const items = getFolderItems(allPaths ?? [], folderPath);

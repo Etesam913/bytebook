@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"slices"
@@ -374,21 +373,4 @@ func CopyFile(src, dst string, shouldOverride bool) error {
 
 	// Ensure that any writes to the destination file are committed to stable storage.
 	return destinationFile.Sync()
-}
-
-// Powers the reveal in finder option in the context menu
-func RevealInFinder(fileOrDir string) error {
-	// Check if the directory exists
-	if _, err := exec.LookPath("open"); err != nil {
-		return fmt.Errorf("failed to open directory %s: %w", fileOrDir, err)
-	}
-
-	// Run the open command with or without -R based on if fileOrDir is a directory
-	args := []string{"-R", fileOrDir}
-
-	cmd := exec.Command("open", args...)
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to open directory %s: %w", fileOrDir, err)
-	}
-	return nil
 }

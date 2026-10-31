@@ -1,0 +1,310 @@
+import {
+  prepareFileTreeInput,
+  type FileTree as PierreFileTree,
+  type FileTreeDirectoryHandle,
+  type FileTreeItemHandle,
+  type FileTreeMutationEvent,
+  type FileTreeMutationSemanticEvent,
+} from '@pierre/trees';
+import {
+  createFilePath,
+  createFolderPath,
+  splitPathSegments,
+} from '@utils/path';
+import { navigateToPath } from '@utils/routes';
+
+export function navigateToTreePath(path: string) {
+  const targetPath = path.endsWith('/')
+    ? createFolderPath(path)
+    : createFilePath(path);
+  if (!targetPath) return;
+  navigateToPath(targetPath);
+}
+
+/**
+ * Narrows a `FileTreeItemHandle` to its directory variant. The union is
+ * discriminated by `isDirectory()`'s literal return type, which TypeScript
+ * only applies through a user-defined type guard like this one.
+ */
+export function isDirectoryHandle(
+  item: FileTreeItemHandle
+): item is FileTreeDirectoryHandle {
+  return item.isDirectory();
+}
+
+/**
+ * The tree's row order, as sorted by `prepareFileTreeInput`. Kept here so the
+ * scroll helper can translate a path into a visible row index without access
+ * to the package's internal controller (which exposes no public reveal API).
+ * Keyed by model so the order can never leak between instances and is
+ * collected along with the model itself.
+ */
+const sortedPathsByModel = new WeakMap<PierreFileTree, readonly string[]>();
+
+export function setSortedTreePaths(
+  model: PierreFileTree,
+  paths: readonly string[]
+) {
+  sortedPathsByModel.set(model, paths);
+}
+
+export function getSortedTreePaths(
+  model: PierreFileTree
+): readonly string[] | undefined {
+  return sortedPathsByModel.get(model);
+}
+
+// Seeds the row order at model construction. No-op when an entry already
+// exists — a later tree effect must not clobber a fresher list with the
+// stale construction-time one.
+export function initializeSortedTreePaths(
+  model: PierreFileTree,
+  paths: readonly string[]
+) {
+  if (!sortedPathsByModel.has(model)) {
+    sortedPathsByModel.set(model, paths);
+  }
+}
+
+/**
+ * Folds a model mutation (watcher batch, drag move, inline rename) into the
+ * stored row order so scroll-into-view stays accurate between `allPaths`
+ * refetches. Idempotent against paths the refetch sync already applied.
+ */
+export function applySortedTreePathMutation(
+  model: PierreFileTree,
+  event: FileTreeMutationEvent
+): void {
+  const current = sortedPathsByModel.get(model);
+  if (!current) return;
+  const events = event.operation === 'batch' ? event.events : [event];
+  // resetPaths already receives its prepared row order from useTreeSyncAllPaths.
+  if (events.every((mutation) => mutation.operation === 'reset')) return;
+
+  // Fold the whole batch before sorting: preparing after each imported file
+  // repeatedly rebuilds the full tree and blocks the UI during large drops.
+  const paths = new Set(current);
+  for (const mutation of events) {
+    applyTreePathMutation(paths, mutation);
+  }
+  sortedPathsByModel.set(model, prepareFileTreeInput([...paths]).paths);
+}
+
+function applyTreePathMutation(
+  paths: Set<string>,
+  event: FileTreeMutationSemanticEvent
+): void {
+  switch (event.operation) {
+    case 'add': {
+      paths.add(event.path);
+      return;
+    }
+    case 'remove': {
+      paths.delete(event.path);
+      if (event.recursive) {
+        for (const path of paths) {
+          if (path.startsWith(event.path)) paths.delete(path);
+        }
+      }
+      return;
+    }
+    case 'move': {
+      const { from, to } = event;
+      const moved = new Map<string, string>();
+      for (const path of paths) {
+        if (path === from) moved.set(path, to);
+        else if (from.endsWith('/') && path.startsWith(from)) {
+          moved.set(path, to + path.slice(from.length));
+        }
+      }
+      for (const path of moved.keys()) paths.delete(path);
+      for (const path of moved.values()) paths.add(path);
+      return;
+    }
+    case 'reset': {
+      return;
+    }
+  }
+}
+
+export function getShadowRoot(model: PierreFileTree | null): ShadowRoot | null {
+  if (!model) return null;
+  const container = model.getFileTreeContainer();
+  if (!container) return null;
+  const root = container.getRootNode();
+  return container.shadowRoot ?? (root instanceof ShadowRoot ? root : null);
+}
+
+/**
+ * The tree's host element: the shadow root's host when the tree renders into
+ * one, otherwise the container itself. Events from inside the shadow root are
+ * retargeted to this element by the time they reach React's handlers.
+ */
+export function getTreeHost(model: PierreFileTree): Element | null {
+  const container = model.getFileTreeContainer();
+  if (!container) return null;
+  const root = container.getRootNode();
+  return root instanceof ShadowRoot ? root.host : container;
+}
+
+// Two frames: an unhidden tree only re-measures its viewport in the next
+// frame's ResizeObserver, and an earlier request scrolls with a stale height.
+export function scrollTreePathIntoView(
+  model: PierreFileTree,
+  targetPath: string
+): void {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (!model.getItem(targetPath)) return;
+      model.scrollToPath(targetPath, { focus: false, offset: 'nearest' });
+    });
+  });
+}
+
+/**
+ * Returns the inline rename input if the tree is currently in renaming mode.
+ * @pierre/trees exposes no public "is renaming" getter, but the rename editor
+ * renders inside the tree's shadow root with a stable data attribute.
+ */
+export function getRenameInput(
+  model: PierreFileTree | null
+): HTMLInputElement | null {
+  return (
+    getShadowRoot(model)?.querySelector<HTMLInputElement>(
+      '[data-item-rename-input]'
+    ) ?? null
+  );
+}
+
+/**
+ * Makes the row for `targetPath` the tree's highlighted row: expands collapsed
+ * ancestors (focus/selection alone never do), moves selection and focus to it,
+ * and scrolls it into view. No-op if the path is not in the model.
+ */
+export function revealTreePath(
+  model: PierreFileTree,
+  targetPath: string
+): void {
+  const item = model.getItem(targetPath);
+  if (!item) return;
+
+  const segments = splitPathSegments(targetPath);
+  for (let i = 1; i < segments.length; i++) {
+    const ancestor = `${segments.slice(0, i).join('/')}/`;
+    const ancestorItem = model.getItem(ancestor);
+    if (
+      ancestorItem !== null &&
+      isDirectoryHandle(ancestorItem) &&
+      !ancestorItem.isExpanded()
+    ) {
+      ancestorItem.expand();
+    }
+  }
+
+  for (const selectedPath of model.getSelectedPaths()) {
+    if (selectedPath !== targetPath) {
+      model.getItem(selectedPath)?.deselect();
+    }
+  }
+  item.select();
+  if (model.getFocusedPath() !== targetPath) {
+    model.focusPath(targetPath);
+  }
+  scrollTreePathIntoView(model, targetPath);
+}
+
+/**
+ * Resolves the destination folder path from viewport coordinates (x, y)
+ * by querying inside the Pierre tree's shadow root.
+ */
+export function resolveDropTargetFolder({
+  model,
+  x,
+  y,
+}: {
+  model: PierreFileTree | null;
+  x: number;
+  y: number;
+}): string {
+  const shadowRoot = getShadowRoot(model);
+  if (!shadowRoot) return '';
+
+  const hitElement = shadowRoot.elementFromPoint(x, y);
+  const row = hitElement?.closest<HTMLElement>('[data-type="item"]');
+  if (!row) return '';
+
+  const itemType = row.getAttribute('data-item-type');
+  const itemPath = row.getAttribute('data-item-path') ?? '';
+
+  if (itemType === 'folder') {
+    return itemPath;
+  }
+
+  const parentPath = row.getAttribute('data-item-parent-path');
+  if (parentPath) return parentPath;
+
+  const segments = itemPath.split('/');
+  return segments.length > 1 ? `${segments.slice(0, -1).join('/')}/` : '';
+}
+
+/**
+ * Removes the external drop target highlight attribute from any active row in the Pierre tree.
+ */
+export function clearDropTargetHighlight(model: PierreFileTree | null): void {
+  const shadowRoot = getShadowRoot(model);
+  if (shadowRoot) {
+    for (const el of shadowRoot.querySelectorAll(
+      '[data-external-drop-target], [data-item-drag-target]'
+    )) {
+      el.removeAttribute('data-external-drop-target');
+      el.removeAttribute('data-item-drag-target');
+    }
+  }
+
+  for (const host of document.querySelectorAll('file-tree-container')) {
+    const sr = host.shadowRoot;
+    if (sr) {
+      for (const el of sr.querySelectorAll(
+        '[data-external-drop-target], [data-item-drag-target]'
+      )) {
+        el.removeAttribute('data-external-drop-target');
+        el.removeAttribute('data-item-drag-target');
+      }
+    }
+  }
+}
+
+/**
+ * Updates the external drop target highlight to the row underneath viewport coordinates (x, y).
+ * Clears highlights if the coordinates hit blank space or leave the items.
+ */
+export function updateDropTargetHighlight({
+  model,
+  x,
+  y,
+}: {
+  model: PierreFileTree | null;
+  x: number;
+  y: number;
+}): HTMLElement | null {
+  const shadowRoot = getShadowRoot(model);
+  if (!shadowRoot) return null;
+
+  const hitElement = shadowRoot.elementFromPoint(x, y);
+  const row = hitElement?.closest<HTMLElement>('[data-type="item"]') ?? null;
+  const isFolder = row?.getAttribute('data-item-type') === 'folder';
+  const folderRow = isFolder ? row : null;
+
+  const current = shadowRoot.querySelector<HTMLElement>(
+    '[data-external-drop-target]'
+  );
+  if (current === folderRow) return folderRow;
+
+  if (current) {
+    current.removeAttribute('data-external-drop-target');
+  }
+  if (folderRow) {
+    folderRow.setAttribute('data-external-drop-target', 'true');
+  }
+  return folderRow;
+}

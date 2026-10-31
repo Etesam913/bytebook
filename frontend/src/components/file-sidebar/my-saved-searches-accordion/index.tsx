@@ -1,7 +1,7 @@
 import { motion } from 'motion/react';
 import { useAtom } from 'jotai';
 import type { RefObject } from 'react';
-import { VirtualizedListAccordion } from '@components/virtualized/virtualized-list/accordion';
+import { SidebarListAccordion } from '@components/file-sidebar/sidebar-list/accordion';
 import type { SidebarReorderOptions } from '@/types';
 import { useSavedSearchesQuery } from '@hooks/search';
 
@@ -69,7 +69,7 @@ export function MySavedSearchesAccordion({
         ),
       }}
     >
-      <VirtualizedListAccordion<SavedSearch>
+      <SidebarListAccordion<SavedSearch>
         isError={isError}
         errorElement={
           <ErrorText

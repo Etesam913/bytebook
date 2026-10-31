@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -312,8 +313,8 @@ func DeleteTagsFromNote(projectPath string, folderAndNoteName string, tagsToDele
 	// Create a map of tags to delete for efficient lookup
 	deleteMap := util.SliceToSet(tagsToDelete)
 
-	finalTags := util.Filter(existingTags, func(tag string) bool {
-		return !deleteMap.Has(tag)
+	finalTags := slices.DeleteFunc(existingTags, func(tag string) bool {
+		return deleteMap.Has(tag)
 	})
 
 	updatedMarkdown := updateFrontmatterWithTags(markdown, finalTags)

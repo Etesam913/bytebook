@@ -1,7 +1,6 @@
 import { PaletteBody } from './palette-body';
 import { CreateNote } from './create-note';
 import { useAddTreeItemMutation } from '@hooks/tree-items';
-import { FILE_TYPE } from '@utils/tree-item-types';
 import { useEffect, useRef, useState } from 'react';
 import { useAtom, useAtomValue, useStore } from 'jotai';
 import { Dialog as AriaDialog } from 'react-aria-components/Dialog';
@@ -133,7 +132,7 @@ export function CommandPalette() {
                   try {
                     await createNote.mutateAsync({
                       parentFolderPath: parent,
-                      addType: FILE_TYPE,
+                      addType: 'file',
                       newName: title,
                     });
                     setCreating(false);

@@ -11,54 +11,54 @@ func TestAppendToken(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		tokens    []SearchToken
+		tokens    []searchToken
 		text      string
 		isExact   bool
 		isNegated bool
-		expected  []SearchToken
+		expected  []searchToken
 	}{
 		{
 			name:   "empty text",
-			tokens: []SearchToken{{Text: "existing", IsExact: false, Operator: OpAND}},
+			tokens: []searchToken{{Text: "existing", IsExact: false, operator: OpAND}},
 			text:   "",
-			expected: []SearchToken{
-				{Text: "existing", IsExact: false, Operator: OpAND},
+			expected: []searchToken{
+				{Text: "existing", IsExact: false, operator: OpAND},
 			},
 		},
 		{
 			name:   "operators",
-			tokens: []SearchToken{{Text: "term1", IsExact: false, Operator: OpAND}},
+			tokens: []searchToken{{Text: "term1", IsExact: false, operator: OpAND}},
 			text:   "OR",
-			expected: []SearchToken{
-				{Text: "term1", IsExact: false, Operator: OpOR},
+			expected: []searchToken{
+				{Text: "term1", IsExact: false, operator: OpOR},
 			},
 		},
 		{
 			name:    "quoted operators are literals",
-			tokens:  []SearchToken{{Text: "term1", IsExact: false, Operator: OpAND}},
+			tokens:  []searchToken{{Text: "term1", IsExact: false, operator: OpAND}},
 			text:    "OR",
 			isExact: true,
-			expected: []SearchToken{
-				{Text: "term1", IsExact: false, Operator: OpAND},
-				{Text: "OR", IsExact: true, Operator: OpAND},
+			expected: []searchToken{
+				{Text: "term1", IsExact: false, operator: OpAND},
+				{Text: "OR", IsExact: true, operator: OpAND},
 			},
 		},
 		{
 			name:   "normal tokens",
-			tokens: []SearchToken{{Text: "term1", IsExact: false, Operator: OpAND}},
+			tokens: []searchToken{{Text: "term1", IsExact: false, operator: OpAND}},
 			text:   "term2",
-			expected: []SearchToken{
-				{Text: "term1", IsExact: false, Operator: OpAND},
-				{Text: "term2", IsExact: false, Operator: OpAND},
+			expected: []searchToken{
+				{Text: "term1", IsExact: false, operator: OpAND},
+				{Text: "term2", IsExact: false, operator: OpAND},
 			},
 		},
 		{
 			name:      "negated token",
-			tokens:    []SearchToken{},
+			tokens:    []searchToken{},
 			text:      "term1",
 			isNegated: true,
-			expected: []SearchToken{
-				{Text: "term1", IsNegated: true, Operator: OpAND},
+			expected: []searchToken{
+				{Text: "term1", IsNegated: true, operator: OpAND},
 			},
 		},
 	}
@@ -77,101 +77,101 @@ func TestParseTokens(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string
-		expected []SearchToken
+		expected []searchToken
 	}{
 		{
 			name:     "empty input",
 			input:    "",
-			expected: []SearchToken{},
+			expected: []searchToken{},
 		},
 		{
 			name:  "unquoted words",
 			input: "hello world",
-			expected: []SearchToken{
-				{Text: "hello", IsExact: false, Operator: OpAND},
-				{Text: "world", IsExact: false, Operator: OpAND},
+			expected: []searchToken{
+				{Text: "hello", IsExact: false, operator: OpAND},
+				{Text: "world", IsExact: false, operator: OpAND},
 			},
 		},
 		{
 			name:  "quoted text",
 			input: `"hello world"`,
-			expected: []SearchToken{
-				{Text: "hello world", IsExact: true, Operator: OpAND},
+			expected: []searchToken{
+				{Text: "hello world", IsExact: true, operator: OpAND},
 			},
 		},
 		{
 			name:  "mixed quotes and operators",
 			input: `term1 OR "AND" AND term2`,
-			expected: []SearchToken{
-				{Text: "term1", IsExact: false, Operator: OpOR},
-				{Text: "AND", IsExact: true, Operator: OpAND},
-				{Text: "term2", IsExact: false, Operator: OpAND},
+			expected: []searchToken{
+				{Text: "term1", IsExact: false, operator: OpOR},
+				{Text: "AND", IsExact: true, operator: OpAND},
+				{Text: "term2", IsExact: false, operator: OpAND},
 			},
 		},
 		{
 			name:  "special cases",
 			input: `f:readme "exact phrase" "" "unclosed quote`,
-			expected: []SearchToken{
-				{Text: "f:readme", IsExact: false, Operator: OpAND},
-				{Text: "exact phrase", IsExact: true, Operator: OpAND},
-				{Text: "", IsExact: true, Operator: OpAND},
+			expected: []searchToken{
+				{Text: "f:readme", IsExact: false, operator: OpAND},
+				{Text: "exact phrase", IsExact: true, operator: OpAND},
+				{Text: "", IsExact: true, operator: OpAND},
 			},
 		},
 		{
 			name:  "negated unquoted term",
 			input: `-hello world`,
-			expected: []SearchToken{
-				{Text: "hello", IsNegated: true, Operator: OpAND},
-				{Text: "world", Operator: OpAND},
+			expected: []searchToken{
+				{Text: "hello", IsNegated: true, operator: OpAND},
+				{Text: "world", operator: OpAND},
 			},
 		},
 		{
 			name:  "negated quoted phrase",
 			input: `-"exact phrase"`,
-			expected: []SearchToken{
-				{Text: "exact phrase", IsExact: true, IsNegated: true, Operator: OpAND},
+			expected: []searchToken{
+				{Text: "exact phrase", IsExact: true, IsNegated: true, operator: OpAND},
 			},
 		},
 		{
 			name:  "negated filename prefix",
 			input: `-f:readme`,
-			expected: []SearchToken{
-				{Text: "f:readme", IsNegated: true, Operator: OpAND},
+			expected: []searchToken{
+				{Text: "f:readme", IsNegated: true, operator: OpAND},
 			},
 		},
 		{
 			name:  "negated tag prefix",
 			input: `-#todo`,
-			expected: []SearchToken{
-				{Text: "#todo", IsNegated: true, Operator: OpAND},
+			expected: []searchToken{
+				{Text: "#todo", IsNegated: true, operator: OpAND},
 			},
 		},
 		{
 			name:  "negated link prefix",
 			input: `-@notes.md`,
-			expected: []SearchToken{
-				{Text: "@notes.md", IsNegated: true, Operator: OpAND},
+			expected: []searchToken{
+				{Text: "@notes.md", IsNegated: true, operator: OpAND},
 			},
 		},
 		{
 			name:  "negated type prefix",
 			input: `-t:note`,
-			expected: []SearchToken{
-				{Text: "t:note", IsNegated: true, Operator: OpAND},
+			expected: []searchToken{
+				{Text: "t:note", IsNegated: true, operator: OpAND},
 			},
 		},
 		{
 			name:  "negated lang prefix",
 			input: `-l:go`,
-			expected: []SearchToken{
-				{Text: "l:go", IsNegated: true, Operator: OpAND},
+			expected: []searchToken{
+				{Text: "l:go", IsNegated: true, operator: OpAND},
 			},
 		},
 		{
 			name:  "bare dash is ignored",
 			input: `- hello`,
-			expected: []SearchToken{
-				{Text: "hello", Operator: OpAND},
+			expected: []searchToken{
+				{Text: "hello", operator: OpAND},
 			},
 		},
 	}

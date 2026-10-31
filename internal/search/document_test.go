@@ -19,7 +19,7 @@ func TestBuildDocument(t *testing.T) {
 		document, err := buildDocument(projectPath, "", "note.md", &markdown)
 
 		require.NoError(t, err)
-		assert.Equal(t, CreateNoteBleveDocument(markdown, "", "note.md"), document)
+		assert.Equal(t, createNoteBleveDocument(markdown, "", "note.md"), document)
 	})
 
 	t.Run("explicit empty Markdown does not require a file", func(t *testing.T) {
@@ -28,7 +28,7 @@ func TestBuildDocument(t *testing.T) {
 		document, err := buildDocument(t.TempDir(), "", "note.md", &markdown)
 
 		require.NoError(t, err)
-		assert.Equal(t, CreateNoteBleveDocument("", "", "note.md"), document)
+		assert.Equal(t, createNoteBleveDocument("", "", "note.md"), document)
 	})
 
 	t.Run("missing attachment returns stat error without queuing a phantom", func(t *testing.T) {

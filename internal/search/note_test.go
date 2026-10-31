@@ -10,7 +10,7 @@ func TestCreateNoteBleveDocument(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should create document with basic markdown", func(t *testing.T) {
-		doc := CreateNoteBleveDocument(basicMarkdown, "test-folder", "test.md")
+		doc := createNoteBleveDocument(basicMarkdown, "test-folder", "test.md")
 
 		assert.Equal(t, "test-folder", doc.Folder)
 		assert.Equal(t, "test.md", doc.FileName)
@@ -21,7 +21,7 @@ func TestCreateNoteBleveDocument(t *testing.T) {
 	})
 
 	t.Run("should handle complex markdown with all features", func(t *testing.T) {
-		doc := CreateNoteBleveDocument(complexMarkdown, "examples", "multi.md")
+		doc := createNoteBleveDocument(complexMarkdown, "examples", "multi.md")
 
 		assert.True(t, doc.HasCode)
 		assert.True(t, doc.HasGoCode)

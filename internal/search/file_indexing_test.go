@@ -9,13 +9,12 @@ import (
 	"testing"
 
 	"github.com/blevesearch/bleve/v2"
-	"github.com/etesam913/bytebook/internal/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func collectPopulateJobs(t *testing.T, notesDir string) []DocumentJob {
-	jobs := make(chan DocumentJob, util.MAX_JOBS)
+func collectPopulateJobs(t *testing.T, notesDir string) []documentJob {
+	jobs := make(chan documentJob, MAX_JOBS)
 	done := make(chan error, 1)
 
 	go func() {
@@ -23,7 +22,7 @@ func collectPopulateJobs(t *testing.T, notesDir string) []DocumentJob {
 		done <- populateJobs(context.Background(), filepath.Dir(notesDir), notesDir, jobs)
 	}()
 
-	var receivedJobs []DocumentJob
+	var receivedJobs []documentJob
 	for job := range jobs {
 		receivedJobs = append(receivedJobs, job)
 	}
@@ -32,9 +31,9 @@ func collectPopulateJobs(t *testing.T, notesDir string) []DocumentJob {
 	return receivedJobs
 }
 
-func runWorkerJobs(projectPath string, jobsToRun []DocumentJob) []DocumentResult {
-	jobs := make(chan DocumentJob, len(jobsToRun))
-	results := make(chan DocumentResult, len(jobsToRun))
+func runWorkerJobs(projectPath string, jobsToRun []documentJob) []documentResult {
+	jobs := make(chan documentJob, len(jobsToRun))
+	results := make(chan documentResult, len(jobsToRun))
 
 	for _, job := range jobsToRun {
 		jobs <- job
@@ -43,7 +42,7 @@ func runWorkerJobs(projectPath string, jobsToRun []DocumentJob) []DocumentResult
 	startWorker(context.Background(), projectPath, jobs, results)
 	close(results)
 
-	var receivedResults []DocumentResult
+	var receivedResults []documentResult
 	for result := range results {
 		receivedResults = append(receivedResults, result)
 	}
@@ -51,8 +50,8 @@ func runWorkerJobs(projectPath string, jobsToRun []DocumentJob) []DocumentResult
 }
 
 // filterFileJobs excludes folder jobs, including files without extensions.
-func filterFileJobs(jobs []DocumentJob) []DocumentJob {
-	var fileJobs []DocumentJob
+func filterFileJobs(jobs []documentJob) []documentJob {
+	var fileJobs []documentJob
 	for _, job := range jobs {
 		if !job.isFolder {
 			fileJobs = append(fileJobs, job)
@@ -110,7 +109,7 @@ func TestPopulateJobs(t *testing.T) {
 
 		assert.Len(t, fileJobs, 3)
 
-		jobsByFileID := make(map[string]DocumentJob)
+		jobsByFileID := make(map[string]documentJob)
 		for _, job := range fileJobs {
 			jobsByFileID[job.entryId] = job
 		}
@@ -167,7 +166,7 @@ func TestStartWorker(t *testing.T) {
 			"image.png": "binary content",
 		})
 
-		receivedResults := runWorkerJobs(projectDir, []DocumentJob{
+		receivedResults := runWorkerJobs(projectDir, []documentJob{
 			{folder: "test-folder", entryName: "note1.md"},
 			{folder: "test-folder", entryName: "note2.md"},
 			{folder: "test-folder", entryName: "image.png"},
@@ -182,7 +181,7 @@ func TestStartWorker(t *testing.T) {
 			if doc, ok := result.document.(NoteBleveDocument); ok {
 				markdownCount++
 				assert.Equal(t, "test-folder", doc.Folder)
-			} else if doc, ok := result.document.(AttachmentBleveDocument); ok {
+			} else if doc, ok := result.document.(attachmentBleveDocument); ok {
 				attachmentCount++
 				assert.Equal(t, "test-folder", doc.Folder)
 				assert.Equal(t, "image.png", doc.FileName)
@@ -195,14 +194,14 @@ func TestStartWorker(t *testing.T) {
 	})
 
 	t.Run("should return error result for non-existent file", func(t *testing.T) {
-		receivedResults := runWorkerJobs(t.TempDir(), []DocumentJob{{folder: "test-folder", entryName: "file.md"}})
+		receivedResults := runWorkerJobs(t.TempDir(), []documentJob{{folder: "test-folder", entryName: "file.md"}})
 
 		assert.Len(t, receivedResults, 1)
 		assert.ErrorIs(t, receivedResults[0].err, os.ErrNotExist)
 		assert.Nil(t, receivedResults[0].document)
 	})
 	t.Run("worker rejects missing attachments", func(t *testing.T) {
-		results := runWorkerJobs(t.TempDir(), []DocumentJob{{entryId: "missing.png", entryName: "missing.png"}})
+		results := runWorkerJobs(t.TempDir(), []documentJob{{entryId: "missing.png", entryName: "missing.png"}})
 
 		require.Len(t, results, 1)
 		assert.ErrorIs(t, results[0].err, os.ErrNotExist)
@@ -315,7 +314,7 @@ func TestIndexDiscoveredFilesPipeline(t *testing.T) {
 
 		path := filepath.Join(notesDir, "note.md")
 		require.NoError(t, os.WriteFile(path, []byte("New content"), 0644))
-		original := CreateNoteBleveDocument("Original content", "", "note.md")
+		original := createNoteBleveDocument("Original content", "", "note.md")
 		require.NoError(t, index.Index("note.md", original))
 
 		err := IndexDiscoveredFiles(projectDir, []string{path, filepath.Join(notesDir, "missing.md")}, index, 2)
@@ -354,14 +353,14 @@ func TestIndexingPipelineFailure(t *testing.T) {
 		batchErr := errors.New("batch failed")
 		failingIndex := &failingBatchIndex{testBatchIndex: index, err: batchErr}
 		discoveryStopped := make(chan struct{})
-		discover := func(ctx context.Context, jobs chan<- DocumentJob) error {
+		discover := func(ctx context.Context, jobs chan<- documentJob) error {
 			defer close(discoveryStopped)
 			for i := 0; ; i++ {
 				name := fmt.Sprintf("attachment-%d.png", i)
 				if err := os.WriteFile(filepath.Join(notesDir, name), []byte("attachment"), 0600); err != nil {
 					return err
 				}
-				job := DocumentJob{entryId: name, entryName: name}
+				job := documentJob{entryId: name, entryName: name}
 				if err := enqueueDocumentJob(ctx, jobs, job); err != nil {
 					return err
 				}
@@ -383,7 +382,7 @@ func TestIndexingPipelineFailure(t *testing.T) {
 		index := createTempIndex(t, projectDir)
 
 		discoveryErr := errors.New("directory disappeared")
-		discover := func(context.Context, chan<- DocumentJob) error { return discoveryErr }
+		discover := func(context.Context, chan<- documentJob) error { return discoveryErr }
 
 		err := indexFiles(projectDir, index, 2, DEFAULT_BATCH_SIZE, discover)
 

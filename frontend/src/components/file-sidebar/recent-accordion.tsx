@@ -7,7 +7,7 @@ import type { SidebarReorderOptions } from '@/types';
 import { motion } from 'motion/react';
 import { SidebarAccordionPanel } from './sidebar-accordion-panel';
 import { Folder as FolderIcon } from '@/icons/folder';
-import { usePreventBoundaryOverscrollFlicker } from '@components/virtualized/virtualized-list/hooks';
+import { usePreventBoundaryOverscrollFlicker } from '@hooks/scroll';
 import type { SidebarFlexWeights } from '@/atoms';
 import type { FlexWeightMVs } from './index';
 

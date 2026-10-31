@@ -6,7 +6,7 @@ import { lazy, Suspense } from 'react';
 import { RouteFallback } from '@components/route-fallback';
 import { ImageRenderer } from './image-renderer';
 import { VideoRenderer } from './video-renderer';
-import { NonMarkdownToolbar } from '@/routes/notes-sidebar/render-note/non-markdown-toolbar';
+import { NonMarkdownToolbar } from '@components/note-renderer/non-markdown-toolbar';
 
 const NotesEditor = lazy(() =>
   import('@components/editor').then((module) => ({

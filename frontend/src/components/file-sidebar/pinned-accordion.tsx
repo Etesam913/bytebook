@@ -8,7 +8,7 @@ import { Folder as FolderIcon } from '@/icons/folder';
 import { RenderNoteIcon } from '@/icons/render-note-icon';
 import type { SidebarReorderOptions } from '@/types';
 import { AccordionItem } from '@components/accordion/accordion-item';
-import { VirtualizedListAccordion } from '@components/virtualized/virtualized-list/accordion';
+import { SidebarListAccordion } from '@components/file-sidebar/sidebar-list/accordion';
 import {
   createFilePath,
   createFolderPath,
@@ -92,7 +92,7 @@ export function PinnedAccordion({
         title: `Pinned (${pinnedItems.length})`,
       }}
     >
-      <VirtualizedListAccordion<FileOrFolderPath>
+      <SidebarListAccordion<FileOrFolderPath>
         contentType="pinned-note"
         data={pinnedItems}
         dataItemToKey={(pinnedItem) => pinnedItem.fullPath}

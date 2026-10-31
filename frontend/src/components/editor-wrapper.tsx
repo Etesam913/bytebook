@@ -6,7 +6,7 @@ import { useFilePathFromRoute, useFolderPathFromRoute } from '@hooks/routes';
 import { useNoteExists } from '@hooks/notes';
 import { useAllPaths } from '@hooks/all-paths';
 import { RouteFallback } from '@components/route-fallback';
-import { NotFound } from '@/routes/not-found';
+import { NotFound } from '@components/not-found';
 import { routeUrls } from '@utils/routes';
 
 const FolderRenderer = lazy(() =>
@@ -72,5 +72,5 @@ export function EditorWrapper() {
     );
   }
 
-  return <NotFound />;
+  return <NotFound kind="note" />;
 }

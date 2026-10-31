@@ -25,7 +25,7 @@ func TestAddFolderToBatch(t *testing.T) {
 		request.Fields = []string{FieldType, FieldFolder, FieldFileName}
 
 		require.NoError(t, AddFolderToBatch(batch, "Projects/Old/../Research/"))
-		require.NoError(t, FlushBatch(env.Index, batch))
+		require.NoError(t, flushBatch(env.Index, batch))
 		result, err := env.Index.Search(request)
 
 		require.NoError(t, err)

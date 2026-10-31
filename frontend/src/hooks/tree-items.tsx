@@ -13,9 +13,8 @@ import { queryKeys } from '@utils/query-keys';
 import { navigateToPath } from '@utils/routes';
 import { NAME_CHARS } from '@utils/string-formatting';
 import { importFilesToFolder } from '@utils/import-files';
-import { FILE_TYPE, FOLDER_TYPE } from '@utils/tree-item-types';
 
-type TreeItemType = typeof FOLDER_TYPE | typeof FILE_TYPE;
+type TreeItemType = 'folder' | 'file';
 
 export type AddTreeItemVariables = {
   parentFolderPath: string | null;
@@ -45,7 +44,7 @@ export function useAddTreeItemMutation() {
         );
       }
       const newItemPath =
-        addType === FOLDER_TYPE
+        addType === 'folder'
           ? createFolderPath(joinPath(parentFolderPath, trimmedName))
           : createFilePath(joinPath(parentFolderPath, `${trimmedName}.md`));
       if (!newItemPath) {
@@ -53,7 +52,7 @@ export function useAddTreeItemMutation() {
       }
 
       await getBackendResponseData(
-        newItemPath.type === FOLDER_TYPE
+        newItemPath.type === 'folder'
           ? AddFolder(stripTrailingSlash(newItemPath.fullPath))
           : AddNoteToFolder(
               stripTrailingSlash(parentFolderPath ?? ''),

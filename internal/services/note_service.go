@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/etesam913/bytebook/internal/config"
@@ -215,7 +216,7 @@ func (n *NoteService) RevealFolderOrFileInFinder(
 		}
 		path = safePath
 	}
-	err := util.RevealInFinder(path)
+	err := exec.Command("open", "-R", path).Run()
 	if err != nil {
 		log.Printf("Could not reveal %s in finder: %v", path, err)
 		fileInfo, statErr := os.Stat(path)

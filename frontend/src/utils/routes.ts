@@ -8,7 +8,6 @@ import {
   type FilePath,
   type FolderPath,
 } from './path';
-import { FOLDER_TYPE } from './tree-item-types';
 
 /** Navigates to the route for a typed file or folder path. */
 export function navigateToPath(
@@ -16,9 +15,7 @@ export function navigateToPath(
   options?: { replace?: boolean }
 ) {
   navigate(
-    target.type === FOLDER_TYPE
-      ? target.encodedFolderUrl
-      : target.encodedFileUrl,
+    target.type === 'folder' ? target.encodedFolderUrl : target.encodedFileUrl,
     options
   );
 }

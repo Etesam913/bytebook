@@ -15,8 +15,8 @@ func TestFilenameQueryCaseInsensitiveMatches(t *testing.T) {
 	index, err := OpenOrCreateIndex(t.TempDir())
 	require.NoError(t, err)
 	t.Cleanup(func() { assert.NoError(t, index.Close()) })
-	require.NoError(t, index.Index("target", CreateNoteBleveDocument("unrelated content", "Projects/Docs", "MyReadme")))
-	require.NoError(t, index.Index("other", CreateNoteBleveDocument("unrelated content", "Archive", "Checklist")))
+	require.NoError(t, index.Index("target", createNoteBleveDocument("unrelated content", "Projects/Docs", "MyReadme")))
+	require.NoError(t, index.Index("other", createNoteBleveDocument("unrelated content", "Archive", "Checklist")))
 
 	assertMatches := func(t *testing.T, q query.Query, expected string) {
 		t.Helper()
@@ -29,7 +29,7 @@ func TestFilenameQueryCaseInsensitiveMatches(t *testing.T) {
 	}
 
 	t.Run("direct path query normalizes whitespace and mixed case", func(t *testing.T) {
-		assertMatches(t, CreateFilenameQuery("  PROJECTS/Docs/MyReAd  ", 1), "target")
+		assertMatches(t, createFilenameQuery("  PROJECTS/Docs/MyReAd  ", 1), "target")
 	})
 	t.Run("uppercase plain term matches and negation excludes filename", func(t *testing.T) {
 		q, _ := BuildBooleanQueryFromUserInput("README")
@@ -132,7 +132,7 @@ func TestCreateFilenameQuery(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			q := CreateFilenameQuery(tt.input, 1.0)
+			q := createFilenameQuery(tt.input, 1.0)
 			assert.IsType(t, tt.wantType, q)
 
 			switch v := q.(type) {
@@ -145,7 +145,7 @@ func TestCreateFilenameQuery(t *testing.T) {
 	}
 
 	t.Run("splits path on last slash so folder + filename match the same doc", func(t *testing.T) {
-		q := CreateFilenameQuery("temp/joe/get", 1.0)
+		q := createFilenameQuery("temp/joe/get", 1.0)
 
 		conj, ok := q.(*query.ConjunctionQuery)
 		assert.True(t, ok, "expected ConjunctionQuery for slash-bearing input")

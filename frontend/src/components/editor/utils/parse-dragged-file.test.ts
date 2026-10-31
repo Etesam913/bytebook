@@ -1,6 +1,6 @@
 import '@/test/setup';
 import { describe, expect, it } from 'bun:test';
-import { buildFileTreeDragPayload } from '@components/virtualized/virtualized-file-tree/model/drag';
+import { buildFileTreeDragPayload } from '@components/file-tree/model/drag';
 import { parseDraggedFile } from './parse-dragged-file';
 
 describe('parseDraggedFile', () => {

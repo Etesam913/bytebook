@@ -6,9 +6,8 @@ import { MotionIconButton, MotionButton } from '@components/buttons';
 import { getDefaultButtonVariants } from '@/animations';
 import { useAllPaths } from '@hooks/all-paths';
 import { useRecentItemFromRoute } from '@hooks/routes';
-import { getPlaceholderPath } from '@components/virtualized/virtualized-file-tree/model/create';
+import { getPlaceholderPath } from '@components/file-tree/model/create';
 import { splitPathSegments, stripTrailingSlash } from '@utils/path';
-import { FILE_TYPE } from '@utils/tree-item-types';
 import { CircleArrowLeft } from '@/icons/circle-arrow-left';
 import { Folder } from '@/icons/folder';
 import { Loader } from '@/icons/loader';
@@ -79,7 +78,7 @@ export function CreateNote({
             const existing = new Set(paths);
             const placeholder = getPlaceholderPath({
               parentPath: `${parent}/`,
-              itemType: FILE_TYPE,
+              itemType: 'file',
               hasItem: (path) => existing.has(path),
             });
             const title = splitPathSegments(placeholder).at(-1)!;

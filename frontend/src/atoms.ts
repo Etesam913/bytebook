@@ -1,8 +1,5 @@
 import { type SidebarPanelKey } from '@utils/sidebar-panels';
-export {
-  SIDEBAR_PANEL_KEYS,
-  type SidebarPanelKey,
-} from '@utils/sidebar-panels';
+export { type SidebarPanelKey } from '@utils/sidebar-panels';
 import { atom } from 'jotai';
 import {
   type BackendQueryDataType,

@@ -27,7 +27,7 @@ import {
   FOLDER_RENAME,
   TAGS_INDEX_UPDATE,
 } from '@bindings/util/event-names';
-import { useDebouncedValue } from '@hooks/general';
+import { useDebouncedValue } from '@hooks/debounce';
 import {
   createFilePath,
   createFolderPath,

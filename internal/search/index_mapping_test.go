@@ -64,7 +64,7 @@ func TestIndexOperations(t *testing.T) {
 		assert.NotNil(t, env.Index)
 
 		// Verify we can index a document
-		doc := CreateNoteBleveDocument(basicMarkdown, "test", "file")
+		doc := createNoteBleveDocument(basicMarkdown, "test", "file")
 		err := env.Index.Index("test-id", doc)
 		assert.NoError(t, err)
 
@@ -94,7 +94,7 @@ func TestIndexFileMarkdown(t *testing.T) {
 	t.Run("should replace existing indexed content", func(t *testing.T) {
 		env := setupTestEnv(t)
 		folder := env.createTestFolder("folder")
-		require.NoError(t, env.Index.Index("folder/note.md", CreateNoteBleveDocument("original", "folder", "note.md")))
+		require.NoError(t, env.Index.Index("folder/note.md", createNoteBleveDocument("original", "folder", "note.md")))
 		env.createFile(folder, "note.md", "replacement")
 		batch := env.Index.NewBatch()
 
@@ -183,7 +183,7 @@ func TestRegenerateSearchIndex(t *testing.T) {
 			document, err := recovered.Document("note.md")
 			require.NoError(t, err)
 			assert.NotNil(t, document)
-			return recovered.Index("after-failure.md", CreateNoteBleveDocument("updated content", "", "after-failure.md"))
+			return recovered.Index("after-failure.md", createNoteBleveDocument("updated content", "", "after-failure.md"))
 		}))
 		return holder, projectPath
 	}
@@ -267,7 +267,7 @@ func TestRegenerateSearchIndex(t *testing.T) {
 		// Close and remove the existing index
 		require.NoError(t, env.Index.Close())
 		env.Index = nil
-		pathToIndex := GetPathToIndex(env.TmpDir)
+		pathToIndex := getPathToIndex(env.TmpDir)
 		err := os.RemoveAll(pathToIndex)
 		require.NoError(t, err)
 

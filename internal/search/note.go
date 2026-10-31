@@ -28,10 +28,10 @@ type NoteBleveDocument struct {
 	Size              int64    `json:"size"`
 }
 
-// CreateNoteBleveDocument constructs a NoteBleveDocument from markdown content.
+// createNoteBleveDocument constructs a NoteBleveDocument from markdown content.
 // It extracts all relevant information using the markdown processing functions and populates
 // the document structure for search indexing.
-func CreateNoteBleveDocument(markdown, folder, fileName string) NoteBleveDocument {
+func createNoteBleveDocument(markdown, folder, fileName string) NoteBleveDocument {
 	metadata := notes.ParseMarkdownMetadata(markdown)
 	links := notes.GetInternalLinksFromBody(markdown)
 	textContent := notes.GetTextContent(markdown)
@@ -70,7 +70,7 @@ func createNoteDocumentMapping() *mapping.DocumentMapping {
 	textFieldMapping.IncludeTermVectors = true
 
 	textNgramFieldMapping := bleve.NewTextFieldMapping()
-	textNgramFieldMapping.Analyzer = NGramAnalyzer
+	textNgramFieldMapping.Analyzer = nGramAnalyzer
 	textNgramFieldMapping.Store = true
 	textNgramFieldMapping.Index = true
 	textNgramFieldMapping.IncludeTermVectors = true
@@ -83,13 +83,13 @@ func createNoteDocumentMapping() *mapping.DocumentMapping {
 	storedKeywordTextFieldMapping.Store = true
 
 	folderLowerFieldMapping := bleve.NewTextFieldMapping()
-	folderLowerFieldMapping.Analyzer = FilenameAnalyzer // Use custom analyzer that doesn't split on apostrophes
+	folderLowerFieldMapping.Analyzer = filenameAnalyzer // Use custom analyzer that doesn't split on apostrophes
 	folderLowerFieldMapping.Store = true
 
 	// Use the new analyzer for filename field to handle apostrophes correctly
 	// This will store lowercase but enable proper searching
 	fileNameFieldMapping := bleve.NewTextFieldMapping()
-	fileNameFieldMapping.Analyzer = FilenameAnalyzer // Use custom analyzer that doesn't split on apostrophes
+	fileNameFieldMapping.Analyzer = filenameAnalyzer // Use custom analyzer that doesn't split on apostrophes
 	fileNameFieldMapping.Store = true
 
 	// Set store = true for last_updated

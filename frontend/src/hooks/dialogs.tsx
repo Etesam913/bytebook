@@ -8,7 +8,7 @@ import { DialogErrorText } from '@components/dialog';
 import { AppTextField } from '@components/input';
 import { useSaveSearchMutation } from './search';
 import { useEditTagsFormMutation } from './tags';
-import { EditTagDialogChildren } from '@/routes/notes-sidebar/edit-tag-dialog-children';
+import { EditTagDialogChildren } from '@components/edit-tags-dialog';
 import { BookBookmark } from '@/icons/book-bookmark';
 
 const SettingsDialog = lazy(() =>

@@ -25,5 +25,5 @@ const (
 // Fields that should be highlighted in search results
 var HIGHLIGHT_FIELDS = []string{FieldCodeContent, FieldTextContentNgram, FieldTextContent}
 
-var NGramAnalyzer = "custom_ngram"
-var NGramTokenFilter = "n-gram"
+var nGramAnalyzer = "custom_ngram"
+var nGramTokenFilter = "n-gram"

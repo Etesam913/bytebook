@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { createDebounced, type Debounced } from '@utils/timing';
 
 /**
@@ -14,4 +14,15 @@ export function useDebouncedCallback<TArgs extends unknown[]>(
     debounced.setFn(fn);
   }, [debounced, fn]);
   return debounced;
+}
+
+export function useDebouncedValue<T>(value: T, delayMs: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedValue(value), delayMs);
+    return () => clearTimeout(timeout);
+  }, [value, delayMs]);
+
+  return debouncedValue;
 }

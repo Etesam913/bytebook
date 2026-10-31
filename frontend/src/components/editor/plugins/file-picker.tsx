@@ -16,10 +16,10 @@ import { createPortal } from 'react-dom';
 import { mostRecentItemsAtom } from '@/atoms';
 import { WAILS_URL } from '@utils/general';
 import {
-  DropdownPickerOption,
+  TypeaheadOption,
   FilePickerMenuItem,
   type FilePickerMenuItemData,
-} from '@components/dropdown/dropdown-picker';
+} from '@components/editor/plugins/typeahead-option';
 import { $createLinkNode } from '@lexical/link';
 import { INSERT_FILES_COMMAND } from './file';
 import { RenderNoteIcon } from '@/icons/render-note-icon';
@@ -34,7 +34,7 @@ import { useFilePathFromRoute } from '@hooks/routes';
 type FilePickerOption = {
   item: Extract<FilePickerMenuItemData, { kind: 'file' }>;
   searchResult: FileSearchResult | null;
-  dropdownOption: DropdownPickerOption;
+  dropdownOption: TypeaheadOption;
 };
 
 /**
@@ -103,7 +103,7 @@ export function FilePickerMenuPlugin() {
         });
 
   const onSelectOption = (
-    selectedOption: DropdownPickerOption,
+    selectedOption: TypeaheadOption,
     nodeToRemove: TextNode | null,
     closeMenu: () => void,
     matchingString: string
@@ -208,7 +208,7 @@ function buildFilePickerOption({
   return {
     item,
     searchResult,
-    dropdownOption: new DropdownPickerOption(label, {
+    dropdownOption: new TypeaheadOption(label, {
       icon: <RenderNoteIcon filePath={item.filePath} size="sm" />,
       onSelect: () => {
         const fullPath = item.filePath.fullPath;

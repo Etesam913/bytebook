@@ -23,8 +23,8 @@ func TestReconcileDocuments(t *testing.T) {
 		for _, folder := range []string{"discovered", "created-after-discovery", "missing", "replaced-by-file"} {
 			require.NoError(t, AddFolderToBatch(batch, folder))
 		}
-		require.NoError(t, batch.Index("note.md", CreateNoteBleveDocument("content", "", "note.md")))
-		require.NoError(t, FlushBatch(env.Index, batch))
+		require.NoError(t, batch.Index("note.md", createNoteBleveDocument("content", "", "note.md")))
+		require.NoError(t, flushBatch(env.Index, batch))
 		require.NoError(t, os.WriteFile(filepath.Join(env.NotesDir, "replaced-by-file"), []byte("attachment"), 0o644))
 
 		// Act
@@ -57,12 +57,12 @@ func TestReconcileFiles(t *testing.T) {
 		batch := index.NewBatch()
 		for i := range 4 {
 			name := fmt.Sprintf("missing-%04d.md", i)
-			require.NoError(t, batch.Index(name, CreateNoteBleveDocument("stale", "", name)))
+			require.NoError(t, batch.Index(name, createNoteBleveDocument("stale", "", name)))
 		}
 		for _, name := range []string{"discovered.md", "later.md", "replaced.md", "parent/child.md"} {
-			require.NoError(t, batch.Index(name, CreateNoteBleveDocument("content", "", name)))
+			require.NoError(t, batch.Index(name, createNoteBleveDocument("content", "", name)))
 		}
-		require.NoError(t, batch.Index("later.png", AttachmentBleveDocument{Type: ATTACHMENT_TYPE, FileName: "later.png"}))
+		require.NoError(t, batch.Index("later.png", attachmentBleveDocument{Type: ATTACHMENT_TYPE, FileName: "later.png"}))
 		require.NoError(t, index.Batch(batch))
 		writeFilesRelative(t, root, map[string]string{"later.md": "new note", "later.png": "new attachment", "parent": "replaces directory"})
 		require.NoError(t, os.Mkdir(filepath.Join(root, "replaced.md"), 0755))
@@ -88,7 +88,7 @@ func TestReconcileFiles(t *testing.T) {
 		project, root := setupTempNotesDir(t)
 		index := createTempIndex(t, project)
 
-		require.NoError(t, index.Index("loop.md", CreateNoteBleveDocument("content", "", "loop.md")))
+		require.NoError(t, index.Index("loop.md", createNoteBleveDocument("content", "", "loop.md")))
 		require.NoError(t, os.Symlink("loop.md", filepath.Join(root, "loop.md")))
 
 		// Act

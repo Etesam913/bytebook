@@ -23,10 +23,10 @@ import {
   isFileMaximizedAtom,
   isFullscreenAtom,
   MIN_FLEX_WEIGHT,
-  SIDEBAR_PANEL_KEYS,
   type SidebarFlexWeights,
   type SidebarPanelKey,
 } from '@/atoms';
+import { SIDEBAR_PANEL_KEYS } from '@utils/sidebar-panels';
 import { MotionIconButton } from '@components/buttons/index';
 import { BottomItems } from './bottom-items';
 import { MyFilesAccordion } from './my-files-accordion/index';

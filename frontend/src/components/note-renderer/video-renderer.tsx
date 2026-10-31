@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FilePath } from '@utils/path';
 import { RouteFallback } from '@components/route-fallback';
-import { ErrorLoading } from '@/routes/notes-sidebar/render-note/error-loading';
+import { ErrorLoading } from '@components/note-renderer/error-loading';
 
 export function VideoRenderer({ filePath }: { filePath: FilePath }) {
   const [isLoading, setIsLoading] = useState(true);

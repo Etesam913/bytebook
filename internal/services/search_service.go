@@ -73,7 +73,7 @@ func splitNotePath(pathToNote string) (folder string, note string, ok bool) {
 }
 
 func (s *SearchService) FullTextSearch(searchQuery string, searchAfter []string, pageSize *int, includeFolders bool) config.BackendResponseWithData[search.FullTextSearchPage] {
-	effectivePageSize := search.FullTextSearchPageSize
+	effectivePageSize := search.FULL_TEXT_SEARCH_PAGE_SIZE
 	if pageSize != nil && *pageSize > 0 {
 		effectivePageSize = *pageSize
 	}

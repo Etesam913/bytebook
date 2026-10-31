@@ -11,7 +11,7 @@ import (
 
 const FOLDER_TYPE = "folder"
 
-type FolderBleveDocument struct {
+type folderBleveDocument struct {
 	Type     string `json:"type"`
 	Folder   string `json:"folder"`
 	FileName string `json:"file_name"`
@@ -29,7 +29,7 @@ func createFolderDocumentMapping() *mapping.DocumentMapping {
 
 	for _, field := range []string{FieldFolder, FieldFileName} {
 		nameFieldMapping := bleve.NewTextFieldMapping()
-		nameFieldMapping.Analyzer = FilenameAnalyzer
+		nameFieldMapping.Analyzer = filenameAnalyzer
 		nameFieldMapping.Store = true
 		documentMapping.AddFieldMappingsAt(field, nameFieldMapping)
 	}
@@ -52,7 +52,7 @@ func AddFolderToBatch(batch *bleve.Batch, folderPath string) error {
 		}
 	}
 	parent, name := filepath.Split(normalized)
-	return batch.Index(normalized+"/", FolderBleveDocument{
+	return batch.Index(normalized+"/", folderBleveDocument{
 		Type: FOLDER_TYPE, Folder: strings.TrimSuffix(parent, "/"), FileName: name,
 	})
 }
@@ -77,5 +77,5 @@ func indexDiscoveredFolders(projectPath string, directories []string, index blev
 			return err
 		}
 	}
-	return FlushBatch(index, batch)
+	return flushBatch(index, batch)
 }

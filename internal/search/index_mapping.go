@@ -21,16 +21,16 @@ import (
 
 const INDEX_NAME = ".index.bleve"
 
-var FilenameAnalyzer = "filename_analyzer"
+var filenameAnalyzer = "filename_analyzer"
 
 var DEFAULT_BATCH_SIZE = 750
 
-// MaxDeleteSearchResults is the upper bound on documents returned when
+// MAX_BULK_LOOKUP_RESULTS is the upper bound on documents returned when
 // querying for folder contents to delete. Bleve defaults to 10 if unset.
-const MaxDeleteSearchResults = 100000
+const MAX_BULK_LOOKUP_RESULTS = 100000
 
-// FlushBatch commits a non-empty batch without resetting it.
-func FlushBatch(index bleve.Index, batch *bleve.Batch) error {
+// flushBatch commits a non-empty batch without resetting it.
+func flushBatch(index bleve.Index, batch *bleve.Batch) error {
 	if batch == nil || batch.Size() == 0 {
 		return nil
 	}
@@ -47,16 +47,16 @@ func FlushBatchIfFull(index bleve.Index, batch *bleve.Batch, batchSize int) erro
 	return err
 }
 
-// GetPathToIndex returns the full path to the search index file for a given project.
+// getPathToIndex returns the full path to the search index file for a given project.
 // It combines the project path with the search directory and the index filename.
-func GetPathToIndex(projectPath string) string {
+func getPathToIndex(projectPath string) string {
 	return filepath.Join(projectPath, "search", INDEX_NAME)
 }
 
 // doesIndexExist checks whether a search index file exists for the given project path.
 // It returns true if the index file exists, false otherwise.
 func doesIndexExist(projectPath string) bool {
-	exists, _ := util.FileOrFolderExists(GetPathToIndex(projectPath))
+	exists, _ := util.FileOrFolderExists(getPathToIndex(projectPath))
 	return exists
 }
 
@@ -65,7 +65,7 @@ func doesIndexExist(projectPath string) bool {
 func createIndex(pathToIndex string) (bleve.Index, error) {
 	indexMapping := bleve.NewIndexMapping()
 	err := indexMapping.AddCustomTokenFilter(
-		NGramTokenFilter,
+		nGramTokenFilter,
 		map[string]interface{}{
 			"type": edgengram.Name,
 			"min":  float64(3),
@@ -77,13 +77,13 @@ func createIndex(pathToIndex string) (bleve.Index, error) {
 		return nil, err
 	}
 
-	err = indexMapping.AddCustomAnalyzer(NGramAnalyzer,
+	err = indexMapping.AddCustomAnalyzer(nGramAnalyzer,
 		map[string]interface{}{
 			"type":      "custom",
 			"tokenizer": "unicode",
 			"token_filters": []interface{}{
 				lowercase.Name,
-				NGramTokenFilter,
+				nGramTokenFilter,
 			},
 		},
 	)
@@ -93,7 +93,7 @@ func createIndex(pathToIndex string) (bleve.Index, error) {
 	}
 
 	// Create a custom analyzer for filenames that lowercases but doesn't tokenize on apostrophes
-	err = indexMapping.AddCustomAnalyzer(FilenameAnalyzer,
+	err = indexMapping.AddCustomAnalyzer(filenameAnalyzer,
 		map[string]interface{}{
 			"type":      "custom",
 			"tokenizer": "single", // single tokenizer treats the entire input as one token
@@ -127,14 +127,14 @@ func createIndex(pathToIndex string) (bleve.Index, error) {
 func OpenOrCreateIndex(projectPath string) (bleve.Index, error) {
 	indexExists := doesIndexExist(projectPath)
 	if indexExists {
-		openedIndex, err := bleve.Open(GetPathToIndex(projectPath))
+		openedIndex, err := bleve.Open(getPathToIndex(projectPath))
 		if err != nil {
 			return nil, err
 		}
 		return openedIndex, nil
 	}
 
-	index, err := createIndex(GetPathToIndex(projectPath))
+	index, err := createIndex(getPathToIndex(projectPath))
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +155,7 @@ func buildDocument(projectPath, folder, fileName string, markdown *string) (any,
 		text := string(content)
 		markdown = &text
 	}
-	return CreateNoteBleveDocument(*markdown, folder, fileName), nil
+	return createNoteBleveDocument(*markdown, folder, fileName), nil
 }
 
 // IndexFile upserts a note or attachment in batch. A nil Markdown payload reads notes from disk.
@@ -191,7 +191,7 @@ type indexRebuildOperations struct {
 }
 
 func regenerateSearchIndex(projectPath string, index bleve.Index, operations indexRebuildOperations) (bleve.Index, error) {
-	finalPath := GetPathToIndex(projectPath)
+	finalPath := getPathToIndex(projectPath)
 	if err := os.MkdirAll(filepath.Dir(finalPath), 0o700); err != nil {
 		return nil, fmt.Errorf("create search directory: %w", err)
 	}

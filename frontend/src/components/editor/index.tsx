@@ -54,7 +54,7 @@ import { FilePath } from '@utils/path';
 import type { PlaceholderLineData } from './types';
 import { TableHoverActionsPlugin } from './plugins/table/table-hover-actions';
 import { TableActionMenuPlugin } from './plugins/table/table-actions-menu';
-import { usePreventBoundaryOverscrollFlicker } from '@components/virtualized/virtualized-list/hooks';
+import { usePreventBoundaryOverscrollFlicker } from '@hooks/scroll';
 // import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 // import { TreeView } from '@lexical/react/LexicalTreeView';
 

@@ -65,7 +65,7 @@ func replaceLocalLinksInNotes(params EventParams, data []util.FileRenameEventDat
 
 	idx := params.Index.RLock()
 	for _, repl := range replacements {
-		matchingPaths := FindNotesWithLink(idx, repl.oldURLPath, search.MaxDeleteSearchResults)
+		matchingPaths := FindNotesWithLink(idx, repl.oldURLPath, search.MAX_BULK_LOOKUP_RESULTS)
 		for _, relPath := range matchingPaths {
 			noteReplacements[relPath] = append(noteReplacements[relPath], repl)
 		}
@@ -136,7 +136,7 @@ func FindNotesWithLink(index bleve.Index, urlPath string, pageSize int) []string
 	if pageSize > 0 {
 		searchRequest.Size = pageSize
 	} else {
-		searchRequest.Size = search.MaxDeleteSearchResults
+		searchRequest.Size = search.MAX_BULK_LOOKUP_RESULTS
 	}
 	searchRequest.Fields = []string{}
 

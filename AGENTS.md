@@ -119,9 +119,9 @@ Layout note: `FileSidebar` visibility is toggled in `frontend/src/App.tsx` when 
 
 - `frontend/src/components/editor-wrapper.tsx` (`EditorWrapper`): interprets the wildcard notes route and dispatches to the note editor, folder grid, loading state, or not-found page.
 - `frontend/src/components/editor/index.tsx` (`NotesEditor`): composes the Lexical editor, toolbar, title, tags, linked mentions, and plugins for Markdown shortcuts, files, code blocks, links, tables, drag/drop, and persistence. `OnChangePlugin` debounces the `SAVE_MARKDOWN_CONTENT` command; `SavePlugin` serializes Markdown/frontmatter through `NoteService`.
-- `frontend/src/components/virtualized/virtualized-file-tree/index.tsx` (`VirtualizedFileTree`): despite the legacy component name, the sidebar tree is built with `@pierre/trees`, not `react-virtuoso`. `useAllPaths()` supplies the canonical filesystem snapshot, while a long-lived Pierre model owns expansion, selection, rename, create, and drag/drop interaction state. Watcher events and completed path refetches reconcile that model.
-- `frontend/src/components/virtualized/virtualized-file-tree/filtered-file-tree.tsx` (`FilteredFileTree`): creates a separate ephemeral, navigation-only Pierre model for advanced/Bleve filter results. The canonical tree stays mounted and hidden so its state and synchronization remain active.
-- `frontend/src/components/folder-renderer/` and `frontend/src/components/virtualized/virtualized-list/`: folder contents and reusable sidebar lists still use `react-virtuoso`; do not infer that implementation for the Pierre file tree.
+- `frontend/src/components/file-tree/index.tsx` (`FileTree`): the sidebar tree is built with `@pierre/trees`. `useAllPaths()` supplies the canonical filesystem snapshot, while a long-lived Pierre model owns expansion, selection, rename, create, and drag/drop interaction state. Watcher events and completed path refetches reconcile that model.
+- `frontend/src/components/file-tree/components/filtered-file-tree.tsx` (`FilteredFileTree`): creates a separate ephemeral, navigation-only Pierre model for advanced/Bleve filter results. The canonical tree stays mounted and hidden so its state and synchronization remain active.
+- `frontend/src/components/folder-renderer/` and `frontend/src/components/file-sidebar/sidebar-list/`: folder contents and reusable sidebar lists still use `react-virtuoso`; do not infer that implementation for the Pierre file tree.
 
 ## Mermaid diagram (high level)
 

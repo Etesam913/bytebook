@@ -16,8 +16,8 @@ type SavedSearch struct {
 	Query string `json:"query"`
 }
 
-// SavedSearches represents the collection of all saved searches
-type SavedSearches struct {
+// savedSearches represents the collection of all saved searches
+type savedSearches struct {
 	Searches []SavedSearch `json:"searches"`
 }
 
@@ -30,7 +30,7 @@ func getSavedSearchesPath(projectPath string) string {
 func GetAllSavedSearches(projectPath string) ([]SavedSearch, error) {
 	path := getSavedSearchesPath(projectPath)
 
-	var savedSearches SavedSearches
+	var savedSearches savedSearches
 	err := util.ReadJsonFromPath(path, &savedSearches)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -64,7 +64,7 @@ func AddSavedSearch(projectPath, name, query string) error {
 
 	// Add new search
 	newSearch := SavedSearch{Name: name, Query: query}
-	savedSearches := SavedSearches{Searches: append(searches, newSearch)}
+	savedSearches := savedSearches{Searches: append(searches, newSearch)}
 
 	// Write back to file
 	return util.WriteJsonToPath(path, savedSearches)
@@ -75,7 +75,7 @@ func RemoveSavedSearch(projectPath, name string) error {
 	path := getSavedSearchesPath(projectPath)
 
 	// Read existing searches
-	var savedSearches SavedSearches
+	var savedSearches savedSearches
 	err := util.ReadJsonFromPath(path, &savedSearches)
 	if err != nil {
 		return fmt.Errorf("failed to read saved searches: %w", err)

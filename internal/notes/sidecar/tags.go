@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"github.com/etesam913/bytebook/internal/util"
 )
@@ -72,8 +73,8 @@ func DeleteTags(projectPath, folderAndFileName string, tagsToDelete []string) ([
 		return nil, err
 	}
 	deleteSet := util.SliceToSet(tagsToDelete)
-	finalTags := sanitizeTags(util.Filter(existing, func(tag string) bool {
-		return !deleteSet.Has(tag)
+	finalTags := sanitizeTags(slices.DeleteFunc(existing, func(tag string) bool {
+		return deleteSet.Has(tag)
 	}))
 	if err := WriteTags(projectPath, folder, fileName, finalTags); err != nil {
 		return nil, err

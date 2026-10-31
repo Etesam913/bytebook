@@ -10,7 +10,7 @@ import (
 	"github.com/etesam913/bytebook/internal/util"
 )
 
-const FullTextSearchPageSize = 100
+const FULL_TEXT_SEARCH_PAGE_SIZE = 100
 
 // CreateSearchRequest creates a search request with common options
 // used by the application (fields, size, and highlighting for text_content and code_content).

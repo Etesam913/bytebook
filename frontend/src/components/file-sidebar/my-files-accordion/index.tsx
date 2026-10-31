@@ -1,7 +1,7 @@
 import { useAtom } from 'jotai';
 import type { RefObject } from 'react';
 import { fileSidebarOpenStateAtom } from '@/atoms';
-import { VirtualizedFileTree } from '@components/virtualized/virtualized-file-tree';
+import { FileTree } from '@components/file-tree';
 import { Note } from '@/icons/page';
 import type { SidebarReorderOptions } from '@/types';
 import { SidebarAccordionPanel } from '../sidebar-accordion-panel';
@@ -47,7 +47,7 @@ export function MyFilesAccordion({
       }}
     >
       <div className="flex flex-1 flex-col min-h-0 overflow-hidden [scrollbar-width:none]">
-        <VirtualizedFileTree />
+        <FileTree />
       </div>
     </SidebarAccordionPanel>
   );

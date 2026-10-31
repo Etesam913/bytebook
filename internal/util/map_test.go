@@ -1,6 +1,8 @@
 package util
 
 import (
+	"maps"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,22 +14,22 @@ func TestSet_Add(t *testing.T) {
 	t.Run("int set - add new and existing", func(t *testing.T) {
 		s := make(Set[int])
 		assert.False(t, s.Has(1), "Set should not have 1 initially")
-		assert.Len(t, MapKeys(s), 0, "Set should be empty initially")
+		assert.Len(t, slices.Sorted(maps.Keys(s)), 0, "Set should be empty initially")
 
 		s.Add(1)
 		assert.True(t, s.Has(1), "Set should have 1 after adding")
-		assert.Len(t, MapKeys(s), 1, "Set should have 1 element")
-		assert.ElementsMatch(t, []int{1}, MapKeys(s))
+		assert.Len(t, slices.Sorted(maps.Keys(s)), 1, "Set should have 1 element")
+		assert.ElementsMatch(t, []int{1}, slices.Sorted(maps.Keys(s)))
 
 		s.Add(2)
 		assert.True(t, s.Has(2), "Set should have 2 after adding")
-		assert.Len(t, MapKeys(s), 2, "Set should have 2 elements")
-		assert.ElementsMatch(t, []int{1, 2}, MapKeys(s))
+		assert.Len(t, slices.Sorted(maps.Keys(s)), 2, "Set should have 2 elements")
+		assert.ElementsMatch(t, []int{1, 2}, slices.Sorted(maps.Keys(s)))
 
 		s.Add(1) // Add existing element
 		assert.True(t, s.Has(1), "Set should still have 1")
-		assert.Len(t, MapKeys(s), 2, "Set size should not change when adding existing element")
-		assert.ElementsMatch(t, []int{1, 2}, MapKeys(s))
+		assert.Len(t, slices.Sorted(maps.Keys(s)), 2, "Set size should not change when adding existing element")
+		assert.ElementsMatch(t, []int{1, 2}, slices.Sorted(maps.Keys(s)))
 	})
 
 	t.Run("string set - add new and existing", func(t *testing.T) {
@@ -36,12 +38,12 @@ func TestSet_Add(t *testing.T) {
 		assert.True(t, s.Has("hello"))
 		s.Add("world")
 		assert.True(t, s.Has("world"))
-		assert.Len(t, MapKeys(s), 2)
-		assert.ElementsMatch(t, []string{"hello", "world"}, MapKeys(s))
+		assert.Len(t, slices.Sorted(maps.Keys(s)), 2)
+		assert.ElementsMatch(t, []string{"hello", "world"}, slices.Sorted(maps.Keys(s)))
 
 		s.Add("hello")
-		assert.Len(t, MapKeys(s), 2)
-		assert.ElementsMatch(t, []string{"hello", "world"}, MapKeys(s))
+		assert.Len(t, slices.Sorted(maps.Keys(s)), 2)
+		assert.ElementsMatch(t, []string{"hello", "world"}, slices.Sorted(maps.Keys(s)))
 	})
 }
 
@@ -111,7 +113,7 @@ func TestSliceToSet(t *testing.T) {
 	for _, tc := range intTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultSet := SliceToSet(tc.slice)
-			actualElements := MapKeys(resultSet)
+			actualElements := slices.Sorted(maps.Keys(resultSet))
 			assert.ElementsMatch(t, tc.expectedSetElements, actualElements)
 			assert.Len(t, actualElements, len(tc.expectedSetElements), "Set size should match expected unique elements count")
 		})
@@ -143,76 +145,11 @@ func TestSliceToSet(t *testing.T) {
 	for _, tc := range stringTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resultSet := SliceToSet(tc.slice)
-			actualElements := MapKeys(resultSet)
+			actualElements := slices.Sorted(maps.Keys(resultSet))
 			assert.ElementsMatch(t, tc.expectedSetElements, actualElements)
 			assert.Len(t, actualElements, len(tc.expectedSetElements))
 		})
 	}
-}
-
-// --- Tests for MapKeys ---
-
-func TestMapKeys(t *testing.T) {
-	t.Run("empty map", func(t *testing.T) {
-		m := make(map[int]string)
-		keys := MapKeys(m)
-		assert.Empty(t, keys, "Keys of an empty map should be an empty slice")
-		assert.NotNil(t, keys, "Keys should return non-nil empty slice for empty map")
-	})
-
-	t.Run("nil map", func(t *testing.T) {
-		var m map[string]bool // m is nil
-		keys := MapKeys(m)    // len(nil map) is 0, so this is safe
-		assert.Empty(t, keys, "Keys of a nil map should be an empty slice")
-		assert.NotNil(t, keys, "Keys should return non-nil empty slice for nil map")
-	})
-
-	t.Run("map int to string", func(t *testing.T) {
-		m := map[int]string{
-			1: "one",
-			2: "two",
-			3: "three",
-		}
-		expectedKeys := []int{1, 2, 3}
-		actualKeys := MapKeys(m)
-		assert.ElementsMatch(t, expectedKeys, actualKeys)
-		assert.Len(t, actualKeys, len(expectedKeys))
-	})
-
-	t.Run("map string to bool", func(t *testing.T) {
-		m := map[string]bool{
-			"active":   true,
-			"inactive": false,
-			"pending":  true,
-			"archived": false,
-		}
-		expectedKeys := []string{"active", "inactive", "pending", "archived"}
-		actualKeys := MapKeys(m)
-		assert.ElementsMatch(t, expectedKeys, actualKeys)
-		assert.Len(t, actualKeys, len(expectedKeys))
-	})
-
-	t.Run("map with one element", func(t *testing.T) {
-		m := map[string]int{"onlyKey": 42}
-		expectedKeys := []string{"onlyKey"}
-		actualKeys := MapKeys(m)
-		assert.ElementsMatch(t, expectedKeys, actualKeys)
-		assert.Len(t, actualKeys, 1)
-	})
-
-	type customStruct struct {
-		ID int
-	}
-	t.Run("map with struct keys", func(t *testing.T) {
-		m := map[customStruct]string{
-			{ID: 1}: "first",
-			{ID: 2}: "second",
-		}
-		expectedKeys := []customStruct{{ID: 1}, {ID: 2}}
-		actualKeys := MapKeys(m)
-		assert.ElementsMatch(t, expectedKeys, actualKeys)
-		assert.Len(t, actualKeys, len(expectedKeys))
-	})
 }
 
 func TestUniqueTrimmed(t *testing.T) {

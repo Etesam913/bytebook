@@ -30,7 +30,7 @@ export function getDefaultButtonVariants(params?: {
 }
 
 // Named cubic-bezier easing curves (ease-in, ease-out, ease-in-out variants) for use with Motion animations.
-export const easingFunctions: Record<string, Easing> = {
+export const easingFunctions = {
   'ease-in-quad': [0.55, 0.085, 0.68, 0.53],
   'ease-in-cubic': [0.55, 0.055, 0.675, 0.19],
   'ease-in-quart': [0.895, 0.03, 0.685, 0.22],
@@ -51,4 +51,4 @@ export const easingFunctions: Record<string, Easing> = {
   'ease-in-out-quint': [0.86, 0, 0.07, 1],
   'ease-in-out-expo': [1, 0, 0, 1],
   'ease-in-out-circ': [0.785, 0.135, 0.15, 0.86],
-};
+} as const satisfies Record<string, Easing>;

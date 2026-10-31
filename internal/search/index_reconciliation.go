@@ -60,7 +60,7 @@ func reconcileDocuments(projectPath string, directories, filePaths []string, ind
 				batch.Delete(hit.ID)
 			}
 		}
-		if err := FlushBatch(index, batch); err != nil {
+		if err := flushBatch(index, batch); err != nil {
 			return err
 		}
 		request.SetSearchAfter(result.Hits[len(result.Hits)-1].Sort)

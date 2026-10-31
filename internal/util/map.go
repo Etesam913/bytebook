@@ -29,16 +29,6 @@ func SliceToSet[T comparable](slice []T) Set[T] {
 	return set
 }
 
-// MapKeys returns a slice of all keys in the map m,
-// in unspecified order.
-func MapKeys[K comparable, V any](m map[K]V) []K {
-	keys := make([]K, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	return keys
-}
-
 // UniqueTrimmed trims strings and removes empty values and duplicates.
 // Returns values in first-occurrence order without modifying the input.
 func UniqueTrimmed(values []string) []string {

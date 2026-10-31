@@ -13,7 +13,7 @@ import (
 
 const ATTACHMENT_TYPE = "attachment"
 
-type AttachmentBleveDocument struct {
+type attachmentBleveDocument struct {
 	Type          string   `json:"type"`
 	Folder        string   `json:"folder"`
 	FileName      string   `json:"file_name"`
@@ -23,9 +23,9 @@ type AttachmentBleveDocument struct {
 	Size          int64    `json:"size"`
 }
 
-// createAttachmentBleveDocument constructs an AttachmentBleveDocument from file information.
+// createAttachmentBleveDocument constructs an attachmentBleveDocument from file information.
 // It extracts the filename, file extension, and attachment tags for search indexing.
-func createAttachmentBleveDocument(projectPath, folder, fileName, fileExtension string) (AttachmentBleveDocument, error) {
+func createAttachmentBleveDocument(projectPath, folder, fileName, fileExtension string) (attachmentBleveDocument, error) {
 	tags, err := sidecar.ReadTags(projectPath, folder, fileName)
 	if err != nil {
 		tags = []string{}
@@ -34,10 +34,10 @@ func createAttachmentBleveDocument(projectPath, folder, fileName, fileExtension 
 	attachmentPath := filepath.Join(projectPath, "notes", folder, fileName)
 	fileInfo, err := os.Stat(attachmentPath)
 	if err != nil {
-		return AttachmentBleveDocument{}, fmt.Errorf("stat attachment %s: %w", attachmentPath, err)
+		return attachmentBleveDocument{}, fmt.Errorf("stat attachment %s: %w", attachmentPath, err)
 	}
 
-	return AttachmentBleveDocument{
+	return attachmentBleveDocument{
 		Type:          ATTACHMENT_TYPE,
 		Folder:        folder,
 		FileName:      fileName,
@@ -49,7 +49,7 @@ func createAttachmentBleveDocument(projectPath, folder, fileName, fileExtension 
 }
 
 // createAttachmentDocumentMapping creates a Bleve document mapping for attachments.
-// It defines field mappings for all the fields in AttachmentBleveDocument to enable
+// It defines field mappings for all the fields in attachmentBleveDocument to enable
 // proper indexing and searching of attachment metadata.
 func createAttachmentDocumentMapping() *mapping.DocumentMapping {
 	keywordTextFieldMapping := bleve.NewTextFieldMapping()
@@ -64,11 +64,11 @@ func createAttachmentDocumentMapping() *mapping.DocumentMapping {
 
 	// Use filename analyzer for attachments too
 	attachmentFileNameFieldMapping := bleve.NewTextFieldMapping()
-	attachmentFileNameFieldMapping.Analyzer = FilenameAnalyzer
+	attachmentFileNameFieldMapping.Analyzer = filenameAnalyzer
 	attachmentFileNameFieldMapping.Store = true
 
 	attachmentFolderFieldMapping := bleve.NewTextFieldMapping()
-	attachmentFolderFieldMapping.Analyzer = FilenameAnalyzer
+	attachmentFolderFieldMapping.Analyzer = filenameAnalyzer
 	attachmentFolderFieldMapping.Store = true
 
 	documentMapping.AddFieldMappingsAt(FieldFolder, attachmentFolderFieldMapping)

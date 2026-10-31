@@ -36,7 +36,7 @@ import {
 import { SettingsDropdown } from './settings-dropdown';
 import type { PlaceholderLineData } from '../types';
 import { NoteFindPanel } from './note-find-panel/index';
-import { useToggleSidebarEvent } from '@/routes/notes-sidebar/render-note/hooks';
+import { useToggleSidebarEvent } from '@hooks/file-maximize';
 import { routeUrls } from '@utils/routes';
 import { navigate } from 'wouter/use-browser-location';
 

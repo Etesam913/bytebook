@@ -1,10 +1,11 @@
 import type { LegacyAnimationControls } from 'motion/react';
-import { useAtom } from 'jotai';
+import { useAtomValue, useStore } from 'jotai';
 import { MotionIconButton } from '@components/buttons';
-import { easingFunctions, getDefaultButtonVariants } from '@/animations';
+import { getDefaultButtonVariants } from '@/animations';
 import { isFileMaximizedAtom } from '@/atoms';
 import { SidebarRightCollapse } from '@/icons/sidebar-right-collapse';
 import { Tooltip } from '@components/tooltip';
+import { toggleFileMaximized } from '@hooks/file-maximize';
 
 export function MaximizeNoteButton({
   animationControls,
@@ -13,7 +14,8 @@ export function MaximizeNoteButton({
   animationControls: LegacyAnimationControls;
   disabled?: boolean;
 }) {
-  const [isFileMaximized, setIsFileMaximized] = useAtom(isFileMaximizedAtom);
+  const isFileMaximized = useAtomValue(isFileMaximizedAtom);
+  const store = useStore();
 
   return (
     <Tooltip
@@ -23,13 +25,7 @@ export function MaximizeNoteButton({
     >
       <MotionIconButton
         aria-label={isFileMaximized ? 'Minimize note' : 'Maximize note'}
-        onPress={() => {
-          setIsFileMaximized((prev) => !prev);
-          void animationControls.start({
-            x: isFileMaximized ? [-40, 0] : [50, 0],
-            transition: { ease: easingFunctions['ease-out-quint'] },
-          });
-        }}
+        onPress={() => toggleFileMaximized(store, animationControls)}
         {...getDefaultButtonVariants({ disabled })}
         isDisabled={disabled}
         type="button"

@@ -14,14 +14,16 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type DocumentJob struct {
+const MAX_JOBS = 100
+
+type documentJob struct {
 	entryId   string
 	folder    string
 	entryName string
 	isFolder  bool
 }
 
-type DocumentResult struct {
+type documentResult struct {
 	err      error
 	entryId  string
 	document any
@@ -35,7 +37,7 @@ func IndexFolderTree(projectPath, folder string, bleveIndex bleve.Index) error {
 }
 
 func indexFolderTree(projectPath, folder string, bleveIndex bleve.Index, batchSize int) error {
-	return indexFiles(projectPath, bleveIndex, util.WORKER_COUNT, batchSize, func(ctx context.Context, jobs chan<- DocumentJob) error {
+	return indexFiles(projectPath, bleveIndex, util.WORKER_COUNT, batchSize, func(ctx context.Context, jobs chan<- documentJob) error {
 		return populateJobs(ctx, projectPath, filepath.Join(projectPath, "notes", folder), jobs)
 	})
 }
@@ -49,7 +51,7 @@ func indexDiscoveredFiles(projectPath string, filePaths []string, bleveIndex ble
 	if len(filePaths) == 0 {
 		return nil
 	}
-	return indexFiles(projectPath, bleveIndex, workerCount, batchSize, func(ctx context.Context, jobs chan<- DocumentJob) error {
+	return indexFiles(projectPath, bleveIndex, workerCount, batchSize, func(ctx context.Context, jobs chan<- documentJob) error {
 		for _, filePath := range filePaths {
 			if err := ctx.Err(); err != nil {
 				return err
@@ -71,13 +73,13 @@ func indexDiscoveredFiles(projectPath string, filePaths []string, bleveIndex ble
 
 // indexFiles owns the bounded pipeline. A discovery or batch error cancels
 // channel operations, and every goroutine exits before the caller gets the error.
-func indexFiles(projectPath string, bleveIndex bleve.Index, workerCount, batchSize int, discover func(context.Context, chan<- DocumentJob) error) error {
+func indexFiles(projectPath string, bleveIndex bleve.Index, workerCount, batchSize int, discover func(context.Context, chan<- documentJob) error) error {
 	if workerCount <= 0 {
 		workerCount = 1
 	}
 	group, ctx := errgroup.WithContext(context.Background())
-	jobs := make(chan DocumentJob, util.MAX_JOBS)
-	results := make(chan DocumentResult, util.MAX_JOBS)
+	jobs := make(chan documentJob, MAX_JOBS)
+	results := make(chan documentResult, MAX_JOBS)
 	var workers sync.WaitGroup
 
 	group.Go(func() error {
@@ -119,7 +121,7 @@ func indexFiles(projectPath string, bleveIndex bleve.Index, workerCount, batchSi
 	return group.Wait()
 }
 
-func enqueueDocumentJob(ctx context.Context, jobs chan<- DocumentJob, job DocumentJob) error {
+func enqueueDocumentJob(ctx context.Context, jobs chan<- documentJob, job documentJob) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
@@ -131,10 +133,10 @@ func enqueueDocumentJob(ctx context.Context, jobs chan<- DocumentJob, job Docume
 	}
 }
 
-func addResultsToIndex(ctx context.Context, bleveIndex bleve.Index, bleveBatch *bleve.Batch, results <-chan DocumentResult, batchSize int) (*bleve.Batch, error) {
+func addResultsToIndex(ctx context.Context, bleveIndex bleve.Index, bleveBatch *bleve.Batch, results <-chan documentResult, batchSize int) (*bleve.Batch, error) {
 	indexCount := 0
 	for {
-		var docResult DocumentResult
+		var docResult documentResult
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
@@ -161,7 +163,7 @@ func addResultsToIndex(ctx context.Context, bleveIndex bleve.Index, bleveBatch *
 }
 
 // populateJobs walks a subtree once, skipping hidden entries and the notes root.
-func populateJobs(ctx context.Context, projectPath, root string, jobs chan<- DocumentJob) error {
+func populateJobs(ctx context.Context, projectPath, root string, jobs chan<- documentJob) error {
 	return filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
 		if ctxErr := ctx.Err(); ctxErr != nil {
 			return ctxErr
@@ -208,12 +210,12 @@ func shouldSkipIndexedPath(projectPath, filePath string) bool {
 }
 
 // startWorker processes folders and files until discovery ends or the pipeline is cancelled.
-func startWorker(ctx context.Context, projectPath string, jobs <-chan DocumentJob, results chan<- DocumentResult) {
+func startWorker(ctx context.Context, projectPath string, jobs <-chan documentJob, results chan<- documentResult) {
 	for {
 		if ctx.Err() != nil {
 			return
 		}
-		var job DocumentJob
+		var job documentJob
 		select {
 		case <-ctx.Done():
 			return
@@ -223,9 +225,9 @@ func startWorker(ctx context.Context, projectPath string, jobs <-chan DocumentJo
 			}
 			job = next
 		}
-		result := DocumentResult{entryId: job.entryId}
+		result := documentResult{entryId: job.entryId}
 		if job.isFolder {
-			result.document = FolderBleveDocument{Type: FOLDER_TYPE, Folder: job.folder, FileName: job.entryName}
+			result.document = folderBleveDocument{Type: FOLDER_TYPE, Folder: job.folder, FileName: job.entryName}
 		} else {
 			result.document, result.err = buildDocument(projectPath, job.folder, job.entryName, nil)
 		}
@@ -240,17 +242,17 @@ func startWorker(ctx context.Context, projectPath string, jobs <-chan DocumentJo
 
 // buildDocumentJob converts an absolute file path under notes/ into the metadata
 // needed by the existing worker/indexing pipeline.
-func buildDocumentJob(projectPath, filePath string) (DocumentJob, error) {
+func buildDocumentJob(projectPath, filePath string) (documentJob, error) {
 	notesPath := filepath.Join(projectPath, "notes")
 	fileID, err := filepath.Rel(notesPath, filePath)
 	if err != nil {
-		return DocumentJob{}, err
+		return documentJob{}, err
 	}
 
 	folderPath, fileName := filepath.Split(fileID)
 	folderPath = strings.TrimSuffix(folderPath, string(filepath.Separator))
 
-	return DocumentJob{
+	return documentJob{
 		entryId:   fileID,
 		folder:    folderPath,
 		entryName: fileName,

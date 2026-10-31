@@ -4,7 +4,7 @@ import type { RefObject } from 'react';
 import { useTagsQuery } from '@hooks/tags';
 import { TagIcon } from '@/icons/tag';
 import { Loader } from '@/icons/loader';
-import { VirtualizedListAccordion } from '@components/virtualized/virtualized-list/accordion';
+import { SidebarListAccordion } from '@components/file-sidebar/sidebar-list/accordion';
 import type { SidebarReorderOptions } from '@/types';
 import { TagAccordionButton } from './tag-accordion-button';
 import { fileSidebarOpenStateAtom } from '@/atoms';
@@ -60,7 +60,7 @@ export function MyTagsAccordion({
         ),
       }}
     >
-      <VirtualizedListAccordion<string>
+      <SidebarListAccordion<string>
         isError={isError}
         errorElement={
           <ErrorText

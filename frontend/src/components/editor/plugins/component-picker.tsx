@@ -25,8 +25,8 @@ import { PythonLogo } from '@/icons/python-logo';
 import { Text } from '@/icons/text';
 import {
   ComponentPickerMenuItem,
-  DropdownPickerOption,
-} from '@components/dropdown/dropdown-picker';
+  TypeaheadOption,
+} from '@components/editor/plugins/typeahead-option';
 import {
   attachmentCommandData,
   changeSelectedBlocksType,
@@ -97,7 +97,7 @@ function getBaseOptions({
   defaultCodeBlockLanguage: Languages;
 }) {
   return [
-    new DropdownPickerOption('Paragraph', {
+    new TypeaheadOption('Paragraph', {
       keywords: ['normal', 'paragraph', 'p', 'text'],
       icon: <Text width="1.25rem" />,
       onSelect: () =>
@@ -108,7 +108,7 @@ function getBaseOptions({
           }
         }),
     }),
-    new DropdownPickerOption('Quote', {
+    new TypeaheadOption('Quote', {
       keywords: ['quote', 'blockquote', 'quotation', 'citation'],
       icon: <QuoteIcon width="1.25rem" height="1.25rem" />,
       onSelect: () =>
@@ -121,7 +121,7 @@ function getBaseOptions({
     }),
     ...headingOptions.map(
       ({ tag, Icon }) =>
-        new DropdownPickerOption(`Heading ${tag.slice(1)}`, {
+        new TypeaheadOption(`Heading ${tag.slice(1)}`, {
           icon: <Icon />,
           keywords: ['heading', 'header', tag],
           onSelect: () =>
@@ -133,7 +133,7 @@ function getBaseOptions({
         })
     ),
     ...listCommandData.map(({ block, icon, command, title, keywords }) => {
-      return new DropdownPickerOption(title, {
+      return new TypeaheadOption(title, {
         icon,
         keywords: [...keywords, 'list', block, title],
         onSelect: () => {
@@ -143,7 +143,7 @@ function getBaseOptions({
         },
       });
     }),
-    new DropdownPickerOption('Table', {
+    new TypeaheadOption('Table', {
       icon: <Table />,
       keywords: ['table', 'grid', 'data'],
       onSelect: () => {
@@ -153,7 +153,7 @@ function getBaseOptions({
         }
       },
     }),
-    new DropdownPickerOption('Line Break', {
+    new TypeaheadOption('Line Break', {
       icon: <DividerYDotted />,
       keywords: ['break', 'line', 'divider', 'horizontal'],
       onSelect: () => {
@@ -162,7 +162,7 @@ function getBaseOptions({
         });
       },
     }),
-    new DropdownPickerOption('Attachments', {
+    new TypeaheadOption('Attachments', {
       icon: attachmentCommandData.icon,
       keywords: [
         'image',
@@ -177,7 +177,7 @@ function getBaseOptions({
         insertAttachmentsMutation.mutate();
       },
     }),
-    new DropdownPickerOption('Code Block', {
+    new TypeaheadOption('Code Block', {
       icon: <SquareCode />,
       keywords: ['code', 'codeblock', 'block', 'snippet', 'syntax'],
       onSelect: () => {
@@ -193,7 +193,7 @@ function getBaseOptions({
     }),
     ...languageCommandData.map(
       ({ languageName, keywords, icon, name }) =>
-        new DropdownPickerOption(name, {
+        new TypeaheadOption(name, {
           icon,
           keywords: [...keywords, 'code', 'syntax', 'programming', 'language'],
           onSelect: () => {
@@ -262,7 +262,7 @@ export function ComponentPickerMenuPlugin({
   const options = getOptions();
 
   const onSelectOption = (
-    selectedOption: DropdownPickerOption,
+    selectedOption: TypeaheadOption,
     nodeToRemove: TextNode | null,
     closeMenu: () => void,
     matchingString: string
@@ -275,7 +275,7 @@ export function ComponentPickerMenuPlugin({
   };
 
   return (
-    <LexicalTypeaheadMenuPlugin<DropdownPickerOption>
+    <LexicalTypeaheadMenuPlugin<TypeaheadOption>
       onQueryChange={setQueryString}
       commandPriority={COMMAND_PRIORITY_NORMAL}
       onSelectOption={onSelectOption}

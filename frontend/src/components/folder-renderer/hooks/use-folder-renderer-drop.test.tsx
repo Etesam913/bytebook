@@ -19,10 +19,9 @@ void mock.module('../../../hooks/tree-items', () => ({
     mutate: addDroppedFilesToFolder,
   }),
 }));
-void mock.module(
-  '../../virtualized/virtualized-file-tree/hooks/tree-item-mutations',
-  () => ({ useMoveTreeItemsMutation: () => ({ mutate: moveItems }) })
-);
+void mock.module('../../file-tree/hooks/use-tree-item-mutations', () => ({
+  useTreeMoveItemsMutation: () => ({ mutate: moveItems }),
+}));
 void mock.module('../../../hooks/events', () => ({
   useWailsEvent: (name: string, callback: (event: unknown) => void) => {
     wailsEventCallbacks.set(name, callback);

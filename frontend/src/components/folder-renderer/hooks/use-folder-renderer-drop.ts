@@ -8,7 +8,7 @@ import {
 import { useAtomValue } from 'jotai';
 import { draggedGhostElementAtom } from '@/atoms';
 import { FILE_TREE_GHOST_ID } from '@utils/drag-constants';
-import { useMoveTreeItemsMutation } from '@components/virtualized/virtualized-file-tree/hooks/tree-item-mutations';
+import { useTreeMoveItemsMutation } from '@components/file-tree/hooks/use-tree-item-mutations';
 import { useCurrentWindowWailsEvent } from '@hooks/events';
 import { useAddDroppedFilesToFolderMutation } from '@hooks/tree-items';
 import { installWailsDragHandlers } from '@utils/wails-drag';
@@ -30,7 +30,7 @@ export function useFolderRendererDrop({
 }) {
   const { mutate: addDroppedFilesToFolder } =
     useAddDroppedFilesToFolderMutation();
-  const { mutate: moveItems } = useMoveTreeItemsMutation();
+  const { mutate: moveItems } = useTreeMoveItemsMutation();
   const draggedGhostElement = useAtomValue(draggedGhostElementAtom);
   const isFileTreeDrag = draggedGhostElement?.id === FILE_TREE_GHOST_ID;
   const [isDropActive, setIsDropActive] = useState(false);

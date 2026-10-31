@@ -24,7 +24,7 @@ import { queryKeys } from '@utils/query-keys';
  *
  * This list is the single source of truth for both the sidebar tree and the
  * folder grid: `useAllPathsInvalidation` (mounted in App) invalidates it on
- * every file-watcher event, and `useSyncAllPaths` folds refetches into the
+ * every file-watcher event, and `useTreeSyncAllPaths` folds refetches into the
  * tree model. A window-focus refetch would only duplicate that work.
  */
 export function useAllPaths() {

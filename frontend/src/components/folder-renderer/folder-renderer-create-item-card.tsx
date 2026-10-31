@@ -6,7 +6,6 @@ import { AppTextField } from '@components/input';
 import { Blog } from '@/icons/blog';
 import { Folder as FolderIcon } from '@/icons/folder';
 import { useCreateTreeItemForm } from '@hooks/tree-items';
-import { FILE_TYPE, FOLDER_TYPE } from '@utils/tree-item-types';
 import type { FolderPath } from '@utils/path';
 
 export function FolderRendererCreateItemCard({
@@ -24,7 +23,7 @@ export function FolderRendererCreateItemCard({
     cancelCreating,
     submit,
   } = useCreateTreeItemForm({ parentFolderPath: folderPath.fullPath });
-  const isCreatingFolder = creatingItemType === FOLDER_TYPE;
+  const isCreatingFolder = creatingItemType === 'folder';
   const previewName =
     name.trim() || (isCreatingFolder ? 'New folder' : 'New note');
   const previewPath = isCreatingFolder
@@ -38,7 +37,7 @@ export function FolderRendererCreateItemCard({
           {...getDefaultButtonVariants({ disabled: isPending })}
           aria-label="Create folder"
           className="shrink-0 flex items-center gap-2 px-3 text-sm"
-          onPress={() => startCreating(FOLDER_TYPE)}
+          onPress={() => startCreating('folder')}
         >
           <FolderIcon width="1rem" height="1rem" />
           Create folder
@@ -47,7 +46,7 @@ export function FolderRendererCreateItemCard({
           {...getDefaultButtonVariants({ disabled: isPending })}
           aria-label="Create note"
           className="shrink-0 flex items-center gap-2 px-3 text-sm"
-          onPress={() => startCreating(FILE_TYPE)}
+          onPress={() => startCreating('file')}
         >
           <Blog width="1rem" height="1rem" />
           Create note
