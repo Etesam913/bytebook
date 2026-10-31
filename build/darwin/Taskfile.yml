@@ -17,7 +17,7 @@ tasks:
       # name is emitted (see application.RegisterEvent); no-op in production.
       # The local Wails fork requires private_mac_apis to open Web Inspector
       # from the app menu. Enable it only for development builds.
-      BUILD_FLAGS: '{{if eq .PRODUCTION "true"}}-tags production -trimpath -ldflags="-w -s"{{else}}-tags strictevents,private_mac_apis -gcflags=all="-l"{{end}}'
+      BUILD_FLAGS: '{{if eq .PRODUCTION "true"}}-tags production{{if .EXTRA_TAGS}},{{.EXTRA_TAGS}}{{end}} -trimpath -ldflags="-w -s"{{else}}-tags strictevents,private_mac_apis{{if .EXTRA_TAGS}},{{.EXTRA_TAGS}}{{end}} -gcflags=all="-l"{{end}}'
       DEFAULT_OUTPUT: "{{.BIN_DIR}}/{{.APP_NAME}}"
       OUTPUT: "{{ .OUTPUT | default .DEFAULT_OUTPUT }}"
     env:

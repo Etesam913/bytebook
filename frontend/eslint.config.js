@@ -9,9 +9,7 @@ export default defineConfig([
   globalIgnores([
     'node_modules/',
     'bindings/',
-    'frontend/',
     'dist/',
-    'build/',
     'src/assets/',
     'test-results/',
     'playwright-report/',
@@ -47,6 +45,18 @@ export default defineConfig([
       // Disable the rule that requires React to be in scope for JSX
       'react/react-in-jsx-scope': 'off',
       '@typescript-eslint/switch-exhaustiveness-check': 'error',
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'react',
+              importNames: ['useMemo', 'useCallback', 'memo'],
+              message: 'React Compiler handles memoization.',
+            },
+          ],
+        },
+      ],
     },
   },
   {

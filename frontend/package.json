@@ -8,12 +8,9 @@
     "dev:clear-port": "lsof -tiTCP:5173 -sTCP:LISTEN | while read -r pid; do kill \"$pid\"; done",
     "dev:internal": "vite",
     "e2e:prepare": "cd .. && wails3 generate bindings ./internal/... && go run ./scripts/generate-events",
-    "build": "vite build --minify false --mode development",
-    "build:prod": "vite build --mode production",
+    "build": "vite build --mode production",
     "build:analyze": "VITE_ANALYZE=true vite build --mode production",
-    "build:ci": "vite build --mode production",
     "test:unit": "bun test",
-    "test:unit:ui": "bun test --watch",
     "test:e2e": "playwright test -c tests/e2e/playwright.config.ts",
     "test:e2e:ci": "bun run e2e:prepare && playwright test -c tests/e2e/playwright.config.ts",
     "test:e2e:ui": "playwright test --ui -c tests/e2e/playwright.config.ts",
@@ -22,7 +19,6 @@
     "lint": "eslint --fix --cache --cache-strategy content --cache-location node_modules/.cache/eslint/ .",
     "lint:check": "bun run eslint --cache --cache-strategy content --cache-location node_modules/.cache/eslint/ .",
     "tsgo": "tsgo",
-    "format:lint:tsgo": "bun run format:check && bun run lint:check && bun run tsgo",
     "check": "cd .. && bun scripts/check.ts",
     "size": "size-limit",
     "knip": "bunx knip --production",
@@ -70,7 +66,6 @@
   "devDependencies": {
     "@eslint/js": "^9.39.3",
     "@playwright/test": "^1.58.2",
-    "@size-limit/preset-app": "^12.0.0",
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/jest-dom": "^6.9.1",
     "@types/bun": "^1.3.9",
@@ -81,7 +76,6 @@
     "@vitejs/plugin-react": "^5.2.0",
     "@wailsio/runtime": "^3.0.0-beta.9",
     "babel-plugin-react-compiler": "1.0.0",
-    "bun-types": "latest",
     "clsx": "^2.1.1",
     "eslint": "^9.39.3",
     "eslint-plugin-react": "^7.37.5",
@@ -98,7 +92,9 @@
     "tailwindcss": "^4.2.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.56.0",
-    "vite": "^8.2.2"
+    "vite": "^8.2.2",
+    "@size-limit/file": "^12.0.0",
+    "@types/jsdom": "^27.0.0"
   },
   "patchedDependencies": {
     "@pierre/trees@1.0.0-beta.6": "patches/@pierre%2Ftrees@1.0.0-beta.6.patch"

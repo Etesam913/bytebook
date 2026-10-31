@@ -10,6 +10,7 @@
     "check:ci": "bun scripts/check.ts --ci",
     "test:scripts": "bun test ./scripts/check.test.ts ./scripts/bundle-config.test.ts",
     "format": "bun --cwd frontend run format",
-    "lint": "bun --cwd frontend run lint"
+    "lint": "bun --cwd frontend run lint",
+    "test:unit": "cd frontend && bun run test:unit"
   }
 }

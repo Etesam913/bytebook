@@ -8,7 +8,6 @@ import wailsTypedEvents from '@wailsio/runtime/plugins/vite';
 import path from 'node:path';
 
 const ReactCompilerConfig = {
-  // Your react-compiler options here
   target: '19',
 };
 
@@ -45,6 +44,7 @@ export default defineConfig(({ mode }) => {
       include: ['react/compiler-runtime'],
     },
     resolve: {
+      tsconfigPaths: true,
       alias: {
         // The only server API used is renderToStaticMarkup. React's browser
         // barrel also requires the unused streaming renderer through CJS.
@@ -56,14 +56,6 @@ export default defineConfig(({ mode }) => {
               ),
             }
           : {}),
-        '@bindings': path.resolve(
-          import.meta.dirname,
-          './bindings/github.com/etesam913/bytebook/internal'
-        ),
-        '@components': path.resolve(import.meta.dirname, './src/components'),
-        '@hooks': path.resolve(import.meta.dirname, './src/hooks'),
-        '@utils': path.resolve(import.meta.dirname, './src/utils'),
-        '@': path.resolve(import.meta.dirname, './src'),
       },
       // Ensure all wrappers/plugins share one CodeMirror module instance.
       dedupe: [
@@ -110,6 +102,7 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
     ],
     build: {
+      manifest: true,
       rolldownOptions: {
         output: {
           topLevelVar: false,

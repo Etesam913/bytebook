@@ -2,6 +2,7 @@ version: "3"
 
 tasks:
   go:mod:tidy:
+    run: once
     summary: Runs `go mod tidy`
     internal: true
     generates:
@@ -12,6 +13,7 @@ tasks:
       - go mod tidy
 
   install:frontend:deps:
+    run: once
     summary: Install frontend dependencies
     dir: frontend
     sources:
@@ -26,6 +28,7 @@ tasks:
       - bun install
 
   build:frontend:
+    run: once
     summary: Prepare frontend assets for the application build
     deps:
       - task: install:frontend:deps
@@ -60,9 +63,12 @@ tasks:
     generates:
       - dist/*
     cmds:
-      - bun run build:prod
+      - bun run build
 
   generate:bindings:
+    run: once
+    deps:
+      - task: go:mod:tidy
     summary: Generates bindings for the frontend
     sources:
       - "**/*.go"
@@ -75,15 +81,15 @@ tasks:
       - go run ./scripts/generate-events
 
   generate:icons:
+    run: once
     summary: Generates the Mac `.icns` file from an image
-    dir: build
     sources:
-      - "appicon.png"
+      - "build/appicon.png"
     generates:
-      - "darwin/icons.icns"
+      - "build/darwin/icons.icns"
     cmds:
       # An empty value disables the CLI default Windows output.
-      - wails3 generate icons -input appicon.png -macfilename darwin/icons.icns -windowsfilename ""
+      - wails3 generate icons -input build/appicon.png -macfilename build/darwin/icons.icns -windowsfilename ""
 
   dev:frontend:
     summary: Runs the frontend in development mode
