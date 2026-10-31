@@ -6,6 +6,8 @@ import {
 import type { Dispatch, SetStateAction } from 'react';
 import { createGhostElementFromHtmlElement } from '@utils/draggable';
 import { constructGhostElementForNode } from '../ghost-elements';
+import { $isCodeNode } from '../../nodes/code';
+import { createCodeGhost } from './code-ghost';
 import { DRAGGABLE_BLOCK_MENU_CLASSNAME, DRAG_DATA_FORMAT } from './constants';
 
 /**
@@ -32,19 +34,32 @@ export function handleDragStart({
   }
 
   let nodeKey = '';
-  const ghostContent = createGhostElementFromHtmlElement({
-    element: draggableBlockElement,
-    classNames: [],
-  });
+  let isCompactPreview = false;
   const ghostElement = document.createElement('div');
   ghostElement.id = 'block-element';
   ghostElement.className = 'editor-content editor-drag-ghost';
   ghostElement.setAttribute('aria-hidden', 'true');
-  ghostElement.appendChild(ghostContent);
 
   editor.read(() => {
     const node = $getNearestNodeFromDOMNode(draggableBlockElement);
     if (!node) return;
+    nodeKey = node.getKey();
+    if ($isCodeNode(node)) {
+      isCompactPreview = true;
+      ghostElement.appendChild(
+        createCodeGhost({
+          language: node.getLanguage(),
+          source: draggableBlockElement,
+        })
+      );
+      return;
+    }
+
+    const ghostContent = createGhostElementFromHtmlElement({
+      element: draggableBlockElement,
+      classNames: [],
+    });
+    ghostElement.appendChild(ghostContent);
     if ((node as ElementNode).getChildren) {
       const elementNode = node as ElementNode;
       elementNode.getChildren().forEach((child) => {
@@ -53,12 +68,15 @@ export function handleDragStart({
     } else {
       constructGhostElementForNode(node, ghostContent);
     }
-    nodeKey = node.getKey();
   });
+
+  if (!nodeKey) return;
 
   const sourceWidth = draggableBlockElement.getBoundingClientRect().width;
   const sourceStyle = getComputedStyle(draggableBlockElement);
-  ghostElement.style.width = `${Math.min(sourceWidth, noteContainer.clientWidth)}px`;
+  ghostElement.style.width = isCompactPreview
+    ? 'fit-content'
+    : `${Math.min(sourceWidth, noteContainer.clientWidth)}px`;
   ghostElement.style.fontFamily = sourceStyle.fontFamily;
   ghostElement.style.whiteSpace = sourceStyle.whiteSpace;
   ghostElement.style.color = sourceStyle.color;

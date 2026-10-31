@@ -141,6 +141,7 @@ export function Code({
   const languageIcon = (
     <span
       className="w-fit"
+      data-code-language-icon
       aria-label={languageDisplay.label}
       title={languageDisplay.label}
     >
