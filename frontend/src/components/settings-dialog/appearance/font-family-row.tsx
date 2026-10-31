@@ -124,6 +124,13 @@ export function FontFamilyRow({
         >
           <div className="bg-zinc-150 dark:bg-zinc-700 flex items-center rounded-md border-2 border-zinc-300 dark:border-zinc-600 h-8 focus-within:border-(--accent-color)">
             <Input
+              style={{
+                // Generic CSS families must remain unquoted; named fonts may contain spaces.
+                fontFamily:
+                  fontFamilyInputValue === copy.defaultValue
+                    ? copy.defaultValue || 'inherit'
+                    : JSON.stringify(fontFamilyInputValue),
+              }}
               className="min-w-0 flex-1 bg-transparent py-1 pl-2 text-sm outline-hidden"
               placeholder={isPending ? 'Loading fonts…' : 'Search fonts…'}
             />
@@ -131,7 +138,7 @@ export function FontFamilyRow({
               <ChevronDown className="transition-transform duration-150 group-data-[open]/font-combobox:rotate-180" />
             </Button>
           </div>
-          <AppMenuPopover className="w-(--trigger-width)" skipAnimation>
+          <AppMenuPopover className="w-(--trigger-width)">
             <ListBox<{
               id: string;
               name: string;
