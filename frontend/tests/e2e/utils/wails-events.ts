@@ -1,4 +1,5 @@
 import type { BrowserContext, Page } from '@playwright/test';
+import type { Events as WailsEvents } from '@wailsio/runtime';
 
 /**
  * Tracks which contexts have already been set up for event handling.
@@ -30,10 +31,10 @@ export async function setupWailsEvents(context: BrowserContext): Promise<void> {
 }
 
 // Dispatch through the same Wails runtime used by the application listeners.
-export async function emitWailsEvent(
+export async function emitWailsEvent<E extends WailsEvents.WailsEventName>(
   page: Page,
-  eventName: string,
-  data: unknown,
+  eventName: E,
+  data: WailsEvents.WailsEventData<E>,
   sender = 'test'
 ): Promise<void> {
   await page.evaluate(
@@ -47,6 +48,9 @@ export async function emitWailsEvent(
           }) => void;
         };
       };
+      if (!globalWindow._wails?.dispatchWailsEvent) {
+        throw new Error('Wails event dispatch is unavailable');
+      }
       globalWindow._wails.dispatchWailsEvent({ name: eventName, data, sender });
     },
     { eventName, data, sender }

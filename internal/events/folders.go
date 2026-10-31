@@ -87,7 +87,7 @@ func deleteFolderDocumentsFromIndex(idx bleve.Index, batch *bleve.Batch, folderP
 		}
 		for _, hit := range searchResult.Hits {
 			batch.Delete(hit.ID)
-			if err := flushBatchIfFull(idx, batch, batchSize); err != nil {
+			if err := search.FlushBatchIfFull(idx, batch, batchSize); err != nil {
 				return fmt.Errorf("flushing folder deletes: %w", err)
 			}
 		}
@@ -168,7 +168,7 @@ func renameFoldersInIndex(params EventParams, data []util.FolderRenameEventData)
 func deleteRenameFolderFromIndexLocked(idx bleve.Index, oldFolderPath string) {
 	batch := idx.NewBatch()
 
-	if err := deleteFolderDocumentsFromIndex(idx, batch, oldFolderPath, search.DefaultBatchSize); err != nil {
+	if err := deleteFolderDocumentsFromIndex(idx, batch, oldFolderPath, search.DEFAULT_BATCH_SIZE); err != nil {
 		log.Printf("Error deleting documents for folder %s: %v", oldFolderPath, err)
 	}
 

@@ -37,6 +37,7 @@ type BulkImportCoordinator struct {
 	index       *search.IndexHolder
 	watcher     *fsnotify.Watcher
 	registry    *notes.DirectoryWatchRegistry
+	settleDelay time.Duration
 
 	mu       sync.Mutex
 	pending  util.Set[string]
@@ -63,6 +64,7 @@ func NewBulkImportCoordinator(
 		index:       index,
 		watcher:     watcher,
 		registry:    registry,
+		settleDelay: bulkImportSettleDelay,
 		pending:     make(util.Set[string]),
 		inFlight:    make(util.Set[string]),
 		jobs:        make(chan importRequest, bulkImportQueueSize),
@@ -85,7 +87,7 @@ func (c *BulkImportCoordinator) EnqueueInitialScan() {
 func (c *BulkImportCoordinator) EnqueueFolderImport(relativeFolderPath string) {
 	c.enqueue(importRequest{
 		relativeFolderPath: relativeFolderPath,
-		settleDelay:        bulkImportSettleDelay,
+		settleDelay:        c.settleDelay,
 	})
 }
 

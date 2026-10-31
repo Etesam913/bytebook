@@ -60,7 +60,7 @@ func AddFolderToBatch(batch *bleve.Batch, folderPath string) error {
 // IndexDiscoveredFolders indexes directories from the existing discovery pass in bounded batches.
 // Returns an error if path conversion or indexing fails.
 func IndexDiscoveredFolders(projectPath string, directories []string, index bleve.Index) error {
-	return indexDiscoveredFolders(projectPath, directories, index, DefaultBatchSize)
+	return indexDiscoveredFolders(projectPath, directories, index, DEFAULT_BATCH_SIZE)
 }
 
 func indexDiscoveredFolders(projectPath string, directories []string, index bleve.Index, batchSize int) error {
@@ -73,11 +73,8 @@ func indexDiscoveredFolders(projectPath string, directories []string, index blev
 		if err := AddFolderToBatch(batch, relative); err != nil {
 			return err
 		}
-		if batch.Size() >= batchSize {
-			if err := FlushBatch(index, batch); err != nil {
-				return err
-			}
-			batch.Reset()
+		if err := FlushBatchIfFull(index, batch, batchSize); err != nil {
+			return err
 		}
 	}
 	return FlushBatch(index, batch)

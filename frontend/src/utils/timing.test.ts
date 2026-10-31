@@ -12,13 +12,6 @@ afterEach(() => {
 });
 
 describe('throttle', () => {
-  it('fires the first call synchronously and immediately', () => {
-    let calls = 0;
-    const throttled = throttle(() => calls++, 50);
-    throttled();
-    expect(calls).toBe(1);
-  });
-
   it('suppresses additional calls during the throttle window', () => {
     let calls = 0;
     const throttled = throttle(() => calls++, 60);

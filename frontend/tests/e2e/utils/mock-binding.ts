@@ -5,6 +5,18 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { expect, type BrowserContext, type Page } from '@playwright/test';
 
+declare global {
+  interface Window {
+    __BYTEBOOK_REGISTER_WAILS_MOCK__?: (
+      methodId: number,
+      payload: unknown
+    ) => void;
+    __BYTEBOOK_WAILS_MOCKS__?: Map<number, unknown>;
+    __BYTEBOOK_WAILS_CALLS__?: Map<number, unknown[][]>;
+    __BYTEBOOK_E2E__?: boolean;
+  }
+}
+
 // Minimal Playwright-side shim that lets us fake any generated Wails binding
 // by intercepting the runtime RPC call and short-circuiting it with data.
 
@@ -38,14 +50,7 @@ export async function mockBinding(
   // Register the mock payload on the window before any app code runs.
   await context.addInitScript(
     ({ methodId, response }) => {
-      (
-        window as typeof window & {
-          __BYTEBOOK_REGISTER_WAILS_MOCK__?: (
-            methodId: number,
-            payload: unknown
-          ) => void;
-        }
-      ).__BYTEBOOK_REGISTER_WAILS_MOCK__?.(methodId, response);
+      window.__BYTEBOOK_REGISTER_WAILS_MOCK__?.(methodId, response);
     },
     { methodId, response }
   );
@@ -65,14 +70,23 @@ export async function updateMockBindingResponse(
 
   await page.evaluate(
     ({ methodId, response }) => {
-      (
-        window as typeof window & {
-          __BYTEBOOK_REGISTER_WAILS_MOCK__?: (
-            methodId: number,
-            payload: unknown
-          ) => void;
-        }
-      ).__BYTEBOOK_REGISTER_WAILS_MOCK__?.(methodId, response);
+      window.__BYTEBOOK_REGISTER_WAILS_MOCK__?.(methodId, response);
+    },
+    { methodId, response }
+  );
+}
+
+// Update the current page and register the response for subsequent reloads.
+export async function setMockResponse(
+  page: Page,
+  identifier: BindingIdentifier,
+  response: unknown
+) {
+  await updateMockBindingResponse(page, identifier, response);
+  const methodId = getMethodId(identifier);
+  await page.addInitScript(
+    ({ methodId, response }) => {
+      window.__BYTEBOOK_REGISTER_WAILS_MOCK__?.(methodId, response);
     },
     { methodId, response }
   );
@@ -85,11 +99,7 @@ export async function getMockBindingCalls(
   const methodId = getMethodId(identifier);
 
   return await page.evaluate((methodId) => {
-    const calls = (
-      window as typeof window & {
-        __BYTEBOOK_WAILS_CALLS__?: Map<number, unknown[][]>;
-      }
-    ).__BYTEBOOK_WAILS_CALLS__;
+    const calls = window.__BYTEBOOK_WAILS_CALLS__;
 
     return calls?.get(methodId) ?? [];
   }, methodId);
@@ -103,14 +113,13 @@ export async function getMockBindingCalls(
  * Returns the numeric method ID used for Wails RPC calls.
  */
 function getMethodId({ file, method }: BindingIdentifier): number {
-  const normalizedFile = file.endsWith('.js') ? file : `${file}.js`;
-  const cacheKey = `${normalizedFile}::${method}`;
+  const cacheKey = `${file}::${method}`;
 
   if (methodIdCache.has(cacheKey)) {
     return methodIdCache.get(cacheKey)!;
   }
 
-  const filePath = path.resolve(bindingsRoot, normalizedFile);
+  const filePath = path.resolve(bindingsRoot, file);
   if (!fs.existsSync(filePath)) {
     throw new Error(`Binding file not found: ${filePath}`);
   }
@@ -125,9 +134,7 @@ function getMethodId({ file, method }: BindingIdentifier): number {
   const match = contents.match(regex);
 
   if (!match?.[1]) {
-    throw new Error(
-      `Unable to find method id for ${method} in ${normalizedFile}`
-    );
+    throw new Error(`Unable to find method id for ${method} in ${file}`);
   }
 
   const methodId = Number(match[1]);
@@ -184,15 +191,7 @@ async function ensureFetchIsPatched(context: BrowserContext) {
   }
 
   await context.addInitScript(() => {
-    const globalWindow = window as typeof window & {
-      __BYTEBOOK_REGISTER_WAILS_MOCK__?: (
-        methodId: number,
-        payload: unknown
-      ) => void;
-      __BYTEBOOK_WAILS_MOCKS__?: Map<number, unknown>;
-      __BYTEBOOK_WAILS_CALLS__?: Map<number, unknown[][]>;
-      __BYTEBOOK_E2E__?: boolean;
-    };
+    const globalWindow = window;
 
     globalWindow.__BYTEBOOK_E2E__ = true;
 
@@ -232,7 +231,11 @@ async function ensureFetchIsPatched(context: BrowserContext) {
               typeof init.body === 'string'
                 ? init.body
                 : new TextDecoder().decode(init.body as ArrayBuffer)
-            );
+            ) as {
+              object?: number;
+              method?: number;
+              args?: { methodID: number; args?: unknown[] };
+            };
 
             // Call binding: object=0 (Call), method=0 (CallBinding)
             if (body.object === 0 && body.method === 0 && body.args) {

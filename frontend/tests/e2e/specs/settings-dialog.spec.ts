@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from '../utils/fixtures';
 import {
   getEditor,
   mockNote,
@@ -16,7 +16,7 @@ import {
   MOCK_PROJECT_SETTINGS_RESPONSE,
   MOCK_SUCCESS_RESPONSE,
 } from '../utils/mock-responses';
-import { SERVICE_FILES } from '../utils/service-files';
+import { BINDINGS, SERVICE_FILES } from '../utils/service-files';
 
 const getSettings = {
   file: SERVICE_FILES.SETTINGS_SERVICE,
@@ -31,11 +31,7 @@ test('changes editor settings, writes a note, and restores both after reopening'
   page,
   context,
 }) => {
-  await mockBinding(
-    context,
-    { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetAllPaths' },
-    MOCK_ALL_PATHS_RESPONSE
-  );
+  await mockBinding(context, BINDINGS.ALL_PATHS, MOCK_ALL_PATHS_RESPONSE);
   await mockBinding(context, getSettings, MOCK_PROJECT_SETTINGS_RESPONSE);
   await mockBinding(context, updateSettings, MOCK_SUCCESS_RESPONSE);
   await mockBinding(context, SAVE_NOTE_BINDING, MOCK_SUCCESS_RESPONSE);

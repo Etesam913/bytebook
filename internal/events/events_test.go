@@ -25,7 +25,7 @@ func TestFlushBatchIfFull(t *testing.T) {
 		batch := idx.NewBatch()
 		addBatchDocs(t, batch, 2)
 
-		require.NoError(t, flushBatchIfFull(idx, batch, 3))
+		require.NoError(t, search.FlushBatchIfFull(idx, batch, 3))
 
 		assert.EqualValues(t, 2, batch.Size())
 		count, err := idx.DocCount()
@@ -38,7 +38,7 @@ func TestFlushBatchIfFull(t *testing.T) {
 		batch := idx.NewBatch()
 		addBatchDocs(t, batch, 3)
 
-		require.NoError(t, flushBatchIfFull(idx, batch, 3))
+		require.NoError(t, search.FlushBatchIfFull(idx, batch, 3))
 
 		assert.Zero(t, batch.Size())
 		count, err := idx.DocCount()
@@ -53,7 +53,7 @@ func TestFlushBatchIfFull(t *testing.T) {
 		addBatchDocs(t, batch, 3)
 		require.NoError(t, idx.Close())
 
-		assert.Error(t, flushBatchIfFull(idx, batch, 3))
+		assert.Error(t, search.FlushBatchIfFull(idx, batch, 3))
 		assert.Zero(t, batch.Size())
 	})
 }

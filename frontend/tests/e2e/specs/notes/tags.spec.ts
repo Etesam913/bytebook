@@ -1,4 +1,5 @@
-import { expect, test } from '@playwright/test';
+import * as EVENTS from '@bindings/util/event-names';
+import { expect, test } from '../../utils/fixtures';
 import {
   getEditor,
   mockNote,
@@ -9,7 +10,7 @@ import {
 import {
   getMockBindingCalls,
   mockBinding,
-  updateMockBindingResponse,
+  setMockResponse,
 } from '../../utils/mock-binding';
 import {
   MOCK_ALL_PATHS_RESPONSE,
@@ -17,7 +18,7 @@ import {
   MOCK_SUCCESS_RESPONSE,
   MOCK_TAGS_RESPONSE,
 } from '../../utils/mock-responses';
-import { SERVICE_FILES } from '../../utils/service-files';
+import { BINDINGS, SERVICE_FILES } from '../../utils/service-files';
 import { emitWailsEvent, setupWailsEvents } from '../../utils/wails-events';
 
 const notePath = 'Economics Notes/Supply and Demand.md';
@@ -29,11 +30,7 @@ test('tags a note, saves an edit, then removes the tag and reopens the updated n
   context,
 }) => {
   await setupWailsEvents(context);
-  await mockBinding(
-    context,
-    { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetAllPaths' },
-    MOCK_ALL_PATHS_RESPONSE
-  );
+  await mockBinding(context, BINDINGS.ALL_PATHS, MOCK_ALL_PATHS_RESPONSE);
   await mockBinding(
     context,
     { file: SERVICE_FILES.SETTINGS_SERVICE, method: 'GetProjectSettings' },
@@ -60,13 +57,12 @@ test('tags a note, saves an edit, then removes the tag and reopens the updated n
   const dialog = page.getByRole('dialog', { name: 'Edit Tags', exact: true });
   await dialog.getByRole('option', { name: /dev tag/ }).click();
   const tagged = { success: true, message: '', data: { [notePath]: ['dev'] } };
-  await updateMockBindingResponse(page, getTags, tagged);
-  await mockBinding(context, getTags, tagged);
+  await setMockResponse(page, getTags, tagged);
   await dialog.getByRole('button', { name: 'Save', exact: true }).click();
   await expect
     .poll(() => getMockBindingCalls(page, setTags))
     .toEqual([[[notePath], ['dev'], []]]);
-  await emitWailsEvent(page, 'tags:index_update', {});
+  await emitWailsEvent(page, EVENTS.TAGS_INDEX_UPDATE, undefined);
   await expect(
     tags.getByRole('button', { name: 'Tags (1)', exact: true })
   ).toBeVisible();
@@ -78,11 +74,10 @@ test('tags a note, saves an edit, then removes the tag and reopens the updated n
   ).toBeVisible();
 
   const toggle = tags.getByRole('button', { name: 'Tags (1)', exact: true });
-  if ((await toggle.getAttribute('aria-expanded')) !== 'true')
-    await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await toggle.click();
   const untagged = { success: true, message: '', data: { [notePath]: [] } };
-  await updateMockBindingResponse(page, getTags, untagged);
-  await mockBinding(context, getTags, untagged);
+  await setMockResponse(page, getTags, untagged);
   await tags.getByRole('button', { name: 'Remove tag dev' }).click();
   await expect(
     tags.getByRole('button', { name: 'Tags (0)', exact: true })

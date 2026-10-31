@@ -64,6 +64,13 @@ const allTasks: CheckTask[] = [
     cwd: "frontend",
   },
   {
+    id: "fe:e2e-typecheck",
+    name: "E2E typecheck (TSGO)",
+    category: "frontend",
+    cmd: ["bun", "run", "tsgo", "-p", "tests/e2e"],
+    cwd: "frontend",
+  },
+  {
     id: "fe:typecheck",
     name: "Typecheck (TSGO)",
     category: "frontend",

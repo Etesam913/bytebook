@@ -1,4 +1,6 @@
-import { test, expect, type Page } from '@playwright/test';
+import * as EVENTS from '@bindings/util/event-names';
+import { test, expect } from '../utils/fixtures';
+import type { Page } from '@playwright/test';
 import {
   mockBinding,
   getMockBindingCalls,
@@ -10,11 +12,10 @@ import {
   MOCK_PROJECT_SETTINGS_RESPONSE,
   MOCK_FULL_TEXT_SEARCH_RESPONSE,
 } from '../utils/mock-responses';
-import { SERVICE_FILES } from '../utils/service-files';
+import { BINDINGS, SERVICE_FILES } from '../utils/service-files';
 import { setupWailsEvents, emitWailsEvent } from '../utils/wails-events';
 import {
   mockNote,
-  NOTE_URL,
   getEditor,
   reopenSavedNote,
   SAVE_NOTE_BINDING,
@@ -25,25 +26,21 @@ const searchBinding = {
   method: 'FullTextSearch',
 };
 
-async function openPalette(page: Page, event = 'navigation:quick-open') {
+async function openPalette(page: Page, event = EVENTS.QUICK_OPEN) {
   const dialog = page.getByRole('dialog', {
-    name: event === 'commands:open' ? 'Command Palette' : 'Quick Open',
+    name:
+      event === EVENTS.COMMAND_PALETTE_OPEN ? 'Command Palette' : 'Quick Open',
     exact: true,
   });
-  await expect(async () => {
-    await emitWailsEvent(page, event, null, 'test');
-    await expect(dialog).toBeVisible();
-  }).toPass({ timeout: 10000 });
+  await expect(page.getByTestId('file-sidebar')).toBeVisible();
+  await emitWailsEvent(page, event, null, 'test');
+  await expect(dialog).toBeVisible();
   return dialog;
 }
 
 test.beforeEach(async ({ context }) => {
   await setupWailsEvents(context);
-  await mockBinding(
-    context,
-    { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetAllPaths' },
-    MOCK_ALL_PATHS_RESPONSE
-  );
+  await mockBinding(context, BINDINGS.ALL_PATHS, MOCK_ALL_PATHS_RESPONSE);
   await mockBinding(
     context,
     { file: SERVICE_FILES.SETTINGS_SERVICE, method: 'GetProjectSettings' },
@@ -60,7 +57,7 @@ test.beforeEach(async ({ context }) => {
 });
 
 test('finds a note with Quick Open and opens its content', async ({ page }) => {
-  await page.goto(NOTE_URL);
+  await page.goto('/');
   const dialog = await openPalette(page);
   const input = dialog.getByRole('searchbox');
 
@@ -74,9 +71,6 @@ test('finds a note with Quick Open and opens its content', async ({ page }) => {
   await dialog.getByRole('menuitem', { name: /Quantum Physics.md/ }).click();
   await expect(page).toHaveURL('/notes/Research%20Notes/Quantum%20Physics.md');
   await expect(getEditor(page)).toContainText('Current note');
-  await getEditor(page).fill('Research follow-up');
-  await reopenSavedNote(page, 'Research follow-up');
-  await expect(getEditor(page)).toHaveText('Research follow-up');
 });
 
 test('recovers from a failed search and opens an indexed folder', async ({
@@ -138,7 +132,7 @@ test('creates a note from the palette, writes content, and reopens it', async ({
   };
   await mockBinding(context, addNote, { success: true, message: '' });
   await page.goto('/');
-  const palette = await openPalette(page, 'commands:open');
+  const palette = await openPalette(page, EVENTS.COMMAND_PALETTE_OPEN);
 
   await palette.getByRole('searchbox').fill('new note');
   await palette

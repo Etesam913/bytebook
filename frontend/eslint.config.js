@@ -13,7 +13,6 @@ export default defineConfig([
     'dist/',
     'build/',
     'src/assets/',
-    'tests/',
     'test-results/',
     'playwright-report/',
   ]),

@@ -385,7 +385,7 @@ func TestIndexingPipelineFailure(t *testing.T) {
 		discoveryErr := errors.New("directory disappeared")
 		discover := func(context.Context, chan<- DocumentJob) error { return discoveryErr }
 
-		err := indexFiles(projectDir, index, 2, DefaultBatchSize, discover)
+		err := indexFiles(projectDir, index, 2, DEFAULT_BATCH_SIZE, discover)
 
 		assert.ErrorIs(t, err, discoveryErr)
 	})

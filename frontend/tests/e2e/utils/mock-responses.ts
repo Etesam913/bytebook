@@ -73,14 +73,6 @@ export const MOCK_PROJECT_SETTINGS_RESPONSE = {
   },
 };
 
-export const MOCK_NOTE_EXISTS_RESPONSE = true;
-
-export const MOCK_NOTE_MARKDOWN_RESPONSE = {
-  success: true,
-  message: '',
-  data: '# Sample Note\n\nThis is sample markdown content.',
-};
-
 /** Generic success response for operations returning BackendResponseWithoutData */
 export const MOCK_SUCCESS_RESPONSE = {
   success: true,
@@ -138,3 +130,18 @@ export const MOCK_FULL_TEXT_SEARCH_RESPONSE = {
     total: 3,
   },
 };
+
+export function ok<T>(data: T) {
+  return { success: true, message: '', data };
+}
+
+export function fail(message: string) {
+  return { success: false, message };
+}
+
+export function allPaths(paths: string[]) {
+  return ok(paths);
+}
+
+export const SAMPLE_NOTE_MARKDOWN =
+  '# Sample Note\n\nThis is sample markdown content.';

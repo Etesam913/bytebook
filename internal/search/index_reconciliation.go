@@ -15,7 +15,7 @@ import (
 // Rechecking disk preserves entries created after discovery. Callers must not use this for partial or failed scans.
 // Returns an error without deleting entries whose filesystem state cannot be determined.
 func ReconcileDocuments(projectPath string, directories, filePaths []string, index bleve.Index) error {
-	return reconcileDocuments(projectPath, directories, filePaths, index, DefaultBatchSize)
+	return reconcileDocuments(projectPath, directories, filePaths, index, DEFAULT_BATCH_SIZE)
 }
 
 func reconcileDocuments(projectPath string, directories, filePaths []string, index bleve.Index, batchSize int) error {

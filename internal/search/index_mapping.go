@@ -23,7 +23,7 @@ const INDEX_NAME = ".index.bleve"
 
 var FilenameAnalyzer = "filename_analyzer"
 
-const DefaultBatchSize = 750
+var DEFAULT_BATCH_SIZE = 750
 
 // MaxDeleteSearchResults is the upper bound on documents returned when
 // querying for folder contents to delete. Bleve defaults to 10 if unset.
@@ -35,6 +35,16 @@ func FlushBatch(index bleve.Index, batch *bleve.Batch) error {
 		return nil
 	}
 	return index.Batch(batch)
+}
+
+// FlushBatchIfFull commits and resets a batch when it reaches the limit.
+func FlushBatchIfFull(index bleve.Index, batch *bleve.Batch, batchSize int) error {
+	if batch.Size() < batchSize {
+		return nil
+	}
+	err := index.Batch(batch)
+	batch.Reset()
+	return err
 }
 
 // GetPathToIndex returns the full path to the search index file for a given project.

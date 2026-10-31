@@ -5,6 +5,8 @@
     "tests/e2e/wait-for-app.ts",
     "src/components/editor/transformers/test-utils.ts",
     "tests/e2e/utils/editor.ts",
+    "tests/e2e/utils/fixtures.ts",
+    "tests/e2e/utils/watcher.ts",
     "tests/e2e/utils/mock-binding.ts",
     "tests/e2e/utils/mock-responses.ts",
     "tests/e2e/utils/service-files.ts",

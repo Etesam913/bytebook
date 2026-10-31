@@ -1,6 +1,5 @@
 import { expect, type BrowserContext, type Page } from '@playwright/test';
 import { getMockBindingCalls, mockBinding } from './mock-binding';
-import { MOCK_NOTE_EXISTS_RESPONSE } from './mock-responses';
 import { SERVICE_FILES } from './service-files';
 
 export const NOTE_URL = '/notes/Economics%20Notes/Supply%20and%20Demand.md';
@@ -36,7 +35,7 @@ export async function mockNote(context: BrowserContext, markdown: string) {
   await mockBinding(
     context,
     { file: SERVICE_FILES.NOTE_SERVICE, method: 'DoesNoteExist' },
-    MOCK_NOTE_EXISTS_RESPONSE
+    true
   );
   await mockNoteMarkdown(context, markdown);
 }
@@ -50,17 +49,8 @@ export async function reopenSavedNote(
   const markers = Array.isArray(expectedContent)
     ? expectedContent
     : [expectedContent];
-  let markdown = '';
-  await expect
-    .poll(async () => {
-      const saved = (await getMockBindingCalls(page, SAVE_NOTE_BINDING)).at(
-        -1
-      )?.[2];
-      if (typeof saved !== 'string') return false;
-      markdown = saved;
-      return markers.every((marker) => markdown.includes(marker));
-    })
-    .toBe(true);
+  const [, , markdown] = await lastCallMatching(page, markers);
+  if (typeof markdown !== 'string') throw new Error('Missing saved markdown');
   await mockBinding(
     page.context(),
     {
@@ -72,4 +62,16 @@ export async function reopenSavedNote(
   await page.reload();
   await expect(getEditor(page)).toBeVisible();
   return markdown;
+}
+
+async function lastCallMatching(page: Page, markers: string[]) {
+  let call: unknown[] = [];
+  await expect(async () => {
+    call = (await getMockBindingCalls(page, SAVE_NOTE_BINDING)).at(-1) ?? [];
+    const [, , markdown] = call;
+    expect(typeof markdown).toBe('string');
+    for (const marker of markers)
+      expect(markdown).toEqual(expect.stringContaining(marker));
+  }).toPass();
+  return call;
 }

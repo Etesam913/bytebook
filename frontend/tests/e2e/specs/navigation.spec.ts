@@ -1,20 +1,16 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../utils/fixtures';
 import { getEditor, mockNote, NOTE_URL } from '../utils/editor';
 import { mockBinding } from '../utils/mock-binding';
 import {
   MOCK_ALL_PATHS_RESPONSE,
   MOCK_PROJECT_SETTINGS_RESPONSE,
 } from '../utils/mock-responses';
-import { SERVICE_FILES } from '../utils/service-files';
+import { BINDINGS, SERVICE_FILES } from '../utils/service-files';
 
 test.describe('Navigation', () => {
   test.beforeEach(async ({ context }) => {
     await mockNote(context, '# Economics research');
-    await mockBinding(
-      context,
-      { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetAllPaths' },
-      MOCK_ALL_PATHS_RESPONSE
-    );
+    await mockBinding(context, BINDINGS.ALL_PATHS, MOCK_ALL_PATHS_RESPONSE);
 
     await mockBinding(
       context,

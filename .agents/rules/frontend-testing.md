@@ -203,11 +203,11 @@ test("finds a note in a folder and reads its content", async ({ page }) => {
 
 ### Arrange backend behavior before navigation
 
-- Register every Wails binding needed during startup in `test.beforeEach`, before the first `page.goto(...)`.
-- Use `SERVICE_FILES` from `tests/e2e/utils/service-files.ts`; do not repeat generated binding paths in specs.
+- Import `test` and `expect` from the shared `tests/e2e/utils/fixtures.ts` app-shell fixture. It supplies empty startup responses and default project settings; register scenario-specific responses before the first `page.goto(...)`.
+- Use `BINDINGS` and `SERVICE_FILES` from `tests/e2e/utils/service-files.ts`; do not repeat generated binding paths in specs.
 - Reuse response builders or constants from `tests/e2e/utils/mock-responses.ts`. Responses must match the `BackendResponse` shape expected by the frontend.
 - `mockBinding(context, binding, response)` installs an initial response for future pages in that browser context.
-- `updateMockBindingResponse(page, binding, response)` changes a response after the page loads, such as after a mutation or user action.
+- `updateMockBindingResponse(page, binding, response)` changes the live page. Use `setMockResponse(page, binding, response)` when the change must also survive reloads.
 - Use `getMockBindingCalls(page, binding)` to assert RPC arguments. Since UI effects may be debounced or asynchronous, read calls inside `expect.poll(...)`.
 
 For a complete example, see `frontend/tests/e2e/specs/settings-dialog.spec.ts`: it changes settings, edits a note, and reopens both through the mocked read boundary. Do not create separate browser tests for each settings field.
@@ -216,7 +216,7 @@ For a complete example, see `frontend/tests/e2e/specs/settings-dialog.spec.ts`: 
 
 - Call `setupWailsEvents(context)` in `beforeEach` before navigation when a flow consumes or emits Wails events.
 - Use `emitWailsEvent(page, name, data)` to simulate a backend event after the app registers its listeners.
-- Use exact event names from `internal/util/events.go`; it remains the source of truth.
+- Import generated event-name constants from `@bindings/util/event-names`; `internal/util/events.go` remains the source of truth.
 - When a mutation normally causes a backend event, model both halves explicitly: update the relevant binding response during Arrange, perform the user action, emit the event as part of Act, then assert the refreshed UI.
 
 See the move, rename, and import workflows in `frontend/tests/e2e/specs/folder-sidebar.spec.ts` for complete examples. Do not add a standalone E2E solely to verify that an event refreshes one component.

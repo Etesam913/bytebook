@@ -31,7 +31,7 @@ type DocumentResult struct {
 // An empty folder indexes the entire notes directory.
 // Completed batches remain committed if a later discovery or indexing operation fails.
 func IndexFolderTree(projectPath, folder string, bleveIndex bleve.Index) error {
-	return indexFolderTree(projectPath, folder, bleveIndex, DefaultBatchSize)
+	return indexFolderTree(projectPath, folder, bleveIndex, DEFAULT_BATCH_SIZE)
 }
 
 func indexFolderTree(projectPath, folder string, bleveIndex bleve.Index, batchSize int) error {
@@ -42,7 +42,7 @@ func indexFolderTree(projectPath, folder string, bleveIndex bleve.Index, batchSi
 
 // IndexDiscoveredFiles upserts already-discovered files using bounded worker concurrency.
 func IndexDiscoveredFiles(projectPath string, filePaths []string, bleveIndex bleve.Index, workerCount int) error {
-	return indexDiscoveredFiles(projectPath, filePaths, bleveIndex, workerCount, DefaultBatchSize)
+	return indexDiscoveredFiles(projectPath, filePaths, bleveIndex, workerCount, DEFAULT_BATCH_SIZE)
 }
 
 func indexDiscoveredFiles(projectPath string, filePaths []string, bleveIndex bleve.Index, workerCount, batchSize int) error {
@@ -154,11 +154,8 @@ func addResultsToIndex(ctx context.Context, bleveIndex bleve.Index, bleveBatch *
 
 		indexCount += 1
 
-		if bleveBatch.Size() >= batchSize {
-			if err := bleveIndex.Batch(bleveBatch); err != nil {
-				return nil, fmt.Errorf("flush indexing batch: %w", err)
-			}
-			bleveBatch = bleveIndex.NewBatch()
+		if err := FlushBatchIfFull(bleveIndex, bleveBatch, batchSize); err != nil {
+			return nil, fmt.Errorf("flush indexing batch: %w", err)
 		}
 	}
 }

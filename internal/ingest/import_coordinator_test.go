@@ -154,10 +154,11 @@ func TestPathCovers(t *testing.T) {
 // Leave the worker stopped so queue coalescing can be tested without timing races.
 func newQueuedImportCoordinator() *BulkImportCoordinator {
 	return &BulkImportCoordinator{
-		pending:  make(util.Set[string]),
-		inFlight: make(util.Set[string]),
-		jobs:     make(chan importRequest, bulkImportQueueSize),
-		close:    make(chan struct{}),
+		settleDelay: bulkImportSettleDelay,
+		pending:     make(util.Set[string]),
+		inFlight:    make(util.Set[string]),
+		jobs:        make(chan importRequest, bulkImportQueueSize),
+		close:       make(chan struct{}),
 	}
 }
 

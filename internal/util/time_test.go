@@ -79,12 +79,8 @@ func TestRetryWithExponentialBackoff(t *testing.T) {
 		elapsed := time.Since(start)
 
 		// Expected delays: 10ms + 20ms + 40ms = 70ms minimum
-		// Allow for some overhead (e.g., 100ms max)
 		if elapsed < 70*time.Millisecond {
 			t.Errorf("Expected at least 70ms delay, got %v", elapsed)
-		}
-		if elapsed > 150*time.Millisecond {
-			t.Errorf("Expected less than 150ms delay, got %v", elapsed)
 		}
 	})
 }

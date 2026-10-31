@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from '../../utils/fixtures';
 import {
   getEditor,
   mockNote,
@@ -13,17 +13,13 @@ import {
   MOCK_PROJECT_SETTINGS_RESPONSE,
   MOCK_SUCCESS_RESPONSE,
 } from '../../utils/mock-responses';
-import { SERVICE_FILES } from '../../utils/service-files';
+import { BINDINGS, SERVICE_FILES } from '../../utils/service-files';
 
 test('authors a formatted note with a linked note and reopens its saved content', async ({
   page,
   context,
 }) => {
-  await mockBinding(
-    context,
-    { file: SERVICE_FILES.FILE_TREE_SERVICE, method: 'GetAllPaths' },
-    MOCK_ALL_PATHS_RESPONSE
-  );
+  await mockBinding(context, BINDINGS.ALL_PATHS, MOCK_ALL_PATHS_RESPONSE);
   await mockBinding(
     context,
     { file: SERVICE_FILES.SETTINGS_SERVICE, method: 'GetProjectSettings' },
