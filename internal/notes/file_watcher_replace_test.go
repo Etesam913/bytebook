@@ -24,7 +24,7 @@ func TestWatcherFileReplacement(t *testing.T) {
 		require.NoError(t, os.Rename(replacement, path))
 		fw.processEvent(fsnotify.Event{Name: path, Op: fsnotify.Remove})
 		fw.processEvent(fsnotify.Event{Name: path, Op: fsnotify.Create})
-		fw.resolveFileQueue()
+		fw.resolveFileQueue(make(exactPathCache))
 
 		// Only a content update should reach consumers, preserving pins and the open route.
 		assert.Empty(t, fw.batch.fileDeletes)
@@ -48,7 +48,7 @@ func TestWatcherReplacementEventOrder(t *testing.T) {
 		require.NoError(t, os.Rename(replacement, path))
 		// Linux directory watches report an incoming rename as Create alone.
 		fw.processEvent(fsnotify.Event{Name: path, Op: fsnotify.Create})
-		fw.resolveFileQueue()
+		fw.resolveFileQueue(make(exactPathCache))
 
 		events := fw.batch.events()
 		require.Len(t, events, 1)
@@ -69,7 +69,7 @@ func TestWatcherReplacementEventOrder(t *testing.T) {
 		require.NoError(t, os.WriteFile(path, nil, 0644))
 		fw.processEvent(fsnotify.Event{Name: path, Op: fsnotify.Create})
 		fw.processEvent(fsnotify.Event{Name: path, Op: fsnotify.Remove})
-		fw.resolveFileQueue()
+		fw.resolveFileQueue(make(exactPathCache))
 
 		events := fw.batch.events()
 		require.Len(t, events, 1)
@@ -84,7 +84,7 @@ func TestWatcherReplacementEventOrder(t *testing.T) {
 		// A missing path and a different existing path are independent operations.
 		fw.processEvent(fsnotify.Event{Name: filepath.Join(root, "deleted.md"), Op: fsnotify.Remove})
 		fw.processEvent(fsnotify.Event{Name: path, Op: fsnotify.Create})
-		fw.resolveFileQueue()
+		fw.resolveFileQueue(make(exactPathCache))
 
 		assert.Equal(t, []util.FileDeleteEventData{{FilePath: "deleted.md"}}, fw.batch.fileDeletes)
 		assert.Equal(t, []util.FileCreateEventData{{FilePath: "copy.md"}}, fw.batch.fileCreates)
@@ -121,7 +121,7 @@ collect:
 			t.Fatal("timed out waiting for replacement events")
 		}
 	}
-	fw.resolveFileQueue()
+	fw.resolveFileQueue(make(exactPathCache))
 
 	events := fw.batch.events()
 	require.Len(t, events, 1)

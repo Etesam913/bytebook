@@ -32,6 +32,8 @@ type pendingPath struct {
 type pendingQueue struct {
 	renames []pendingPath
 	creates []pendingPath
+	// Avoid scanning the growing slices for every event when many files arrive at once.
+	renamePaths, createPaths util.Set[string]
 }
 
 // fileState is used to determine if a file has actually changed. Fsnotify events can be noisy
@@ -61,13 +63,15 @@ func newFileWatcher(app *application.App, projectPath string, watcher *fsnotify.
 	}
 }
 
-func addPendingWatcherEvent(events []pendingPath, event pendingPath) []pendingPath {
-	for _, pending := range events {
-		if pending.path == event.path {
-			return events
-		}
+func addPendingWatcherEvent(events *[]pendingPath, paths *util.Set[string], event pendingPath) {
+	if *paths == nil {
+		*paths = make(util.Set[string])
 	}
-	return append(events, event)
+	if (*paths).Has(event.path) {
+		return
+	}
+	(*paths).Add(event.path)
+	*events = append(*events, event)
 }
 
 // handleDebounceReset stops the given debounce timer, drains its channel if necessary, and resets it.
@@ -88,9 +92,9 @@ func (fw *FileWatcher) handleDebounceReset() {
 // handleFolderEvents processes folder-related events (create, delete, rename)
 func (fw *FileWatcher) handleFolderEvents(event fsnotify.Event) {
 	if event.Has(fsnotify.Create) {
-		fw.folders.creates = addPendingWatcherEvent(fw.folders.creates, pendingPath{path: event.Name})
+		addPendingWatcherEvent(&fw.folders.creates, &fw.folders.createPaths, pendingPath{path: event.Name})
 	} else if event.Has(fsnotify.Rename) {
-		fw.folders.renames = fw.addPendingRename(fw.folders.renames, event)
+		fw.addPendingRename(&fw.folders, event)
 	} else if event.Has(fsnotify.Remove) {
 		fw.removeFolderTreeWatches(event.Name)
 		fw.batch.folderDeletes = append(fw.batch.folderDeletes, util.FolderDeleteEventData{FolderPath: fw.pathFromNotes(event.Name)})
@@ -118,12 +122,12 @@ func (fw *FileWatcher) handleFileEvents(event fsnotify.Event) {
 	filePath := event.Name
 
 	if event.Has(fsnotify.Create) {
-		fw.files.creates = addPendingWatcherEvent(fw.files.creates, pendingPath{path: event.Name})
+		addPendingWatcherEvent(&fw.files.creates, &fw.files.createPaths, pendingPath{path: event.Name})
 		return
 	}
 
 	if event.Has(fsnotify.Rename) {
-		fw.files.renames = fw.addPendingRename(fw.files.renames, event)
+		fw.addPendingRename(&fw.files, event)
 		return
 	}
 
@@ -357,11 +361,11 @@ func (fw *FileWatcher) processEvent(event fsnotify.Event) {
 }
 
 // resolveFileQueue pairs file renames with creates and handles replacements.
-func (fw *FileWatcher) resolveFileQueue() {
-	fw.resolveFileReplacements()
+func (fw *FileWatcher) resolveFileQueue(paths exactPathCache) {
+	fw.resolveFileReplacements(paths)
 	queue := fw.files
 	fw.files = pendingQueue{}
-	matches := fw.matchRenameIdentities(queue.renames, queue.creates)
+	matches := fw.matchRenameIdentities(queue.renames, queue.creates, paths)
 	consumed := make(map[int]bool)
 	for i, pending := range queue.renames {
 		matchedIndex, paired := matches[i]
@@ -384,7 +388,7 @@ func (fw *FileWatcher) resolveFileQueue() {
 		fw.batch.fileRenames = append(fw.batch.fileRenames, util.FileRenameEventData{OldFilePath: oldPath, NewFilePath: newPath})
 	}
 	for i, pending := range queue.creates {
-		if consumed[i] || !util.ExactPathExists(pending.path) {
+		if consumed[i] || !paths.exists(pending.path) {
 			continue
 		}
 		previous := fw.knownWatchedDirectories.fileInfo(pending.path)
@@ -403,10 +407,10 @@ func (fw *FileWatcher) resolveFileQueue() {
 }
 
 // resolveFolderQueue pairs folder renames and refreshes subtree watches.
-func (fw *FileWatcher) resolveFolderQueue() {
+func (fw *FileWatcher) resolveFolderQueue(paths exactPathCache) {
 	queue := fw.folders
 	fw.folders = pendingQueue{}
-	matches := fw.matchRenameIdentities(queue.renames, queue.creates)
+	matches := fw.matchRenameIdentities(queue.renames, queue.creates, paths)
 	consumed := make(map[int]bool)
 	for i, pending := range queue.renames {
 		matchedIndex, paired := matches[i]
@@ -424,7 +428,7 @@ func (fw *FileWatcher) resolveFolderQueue() {
 		}
 	}
 	for i, pending := range queue.creates {
-		if !consumed[i] && util.ExactPathExists(pending.path) {
+		if !consumed[i] && paths.exists(pending.path) {
 			fw.batch.folderCreates = append(fw.batch.folderCreates, util.FolderCreateEventData{FolderPath: fw.pathFromNotes(pending.path)})
 		}
 	}
@@ -437,8 +441,9 @@ func (fw *FileWatcher) resolveFolderQueue() {
 func (fw *FileWatcher) emitDebouncedEvents() {
 	// Files and folders have separate pending queues; resolve both before emission.
 	// Resolve files before folder handling removes or rebuilds subtree watches.
-	fw.resolveFileQueue()   // File queue, including replacements.
-	fw.resolveFolderQueue() // Folder queue and subtree watch updates.
+	paths := make(exactPathCache)
+	fw.resolveFileQueue(paths)   // File queue, including replacements.
+	fw.resolveFolderQueue(paths) // Folder queue and subtree watch updates.
 	for _, event := range fw.batch.events() {
 		fw.app.Event.EmitEvent(event)
 	}

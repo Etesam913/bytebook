@@ -8,16 +8,45 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-func (fw *FileWatcher) addPendingRename(events []pendingPath, event fsnotify.Event) []pendingPath {
-	return addPendingWatcherEvent(events, pendingPath{path: event.Name, identity: fw.knownWatchedDirectories.fileInfo(event.Name)})
+// exactPathCache is scoped to one flush so case-sensitive names cannot go stale
+// across batches. A failed directory read is cached as an empty set for the flush.
+type exactPathCache map[string]util.Set[string]
+
+func (cache exactPathCache) exists(path string) bool {
+	if _, err := os.Lstat(path); err != nil {
+		return false
+	}
+	dir, base := filepath.Dir(path), filepath.Base(path)
+	if dir == path || base == "." || base == "/" {
+		return true
+	}
+	names, ok := cache[dir]
+	if !ok {
+		names = make(util.Set[string])
+		entries, err := os.ReadDir(dir)
+		if err == nil {
+			for _, entry := range entries {
+				names.Add(entry.Name())
+			}
+		}
+		cache[dir] = names
+	}
+	return names.Has(base)
+}
+
+func (fw *FileWatcher) addPendingRename(queue *pendingQueue, event fsnotify.Event) {
+	addPendingWatcherEvent(&queue.renames, &queue.renamePaths, pendingPath{path: event.Name, identity: fw.knownWatchedDirectories.fileInfo(event.Name)})
 }
 
 // Match only unique filesystem identities, never content, names, or event order.
 // An identity can have multiple paths (hard links), so both sides must be unique.
-func (fw *FileWatcher) matchRenameIdentities(renames, creates []pendingPath) map[int]int {
+func (fw *FileWatcher) matchRenameIdentities(renames, creates []pendingPath, paths exactPathCache) map[int]int {
+	if len(renames) == 0 {
+		return nil
+	}
 	newInfo := make([]os.FileInfo, len(creates))
 	for i, pending := range creates {
-		if util.ExactPathExists(pending.path) {
+		if paths.exists(pending.path) {
 			newInfo[i], _ = os.Lstat(pending.path)
 		}
 	}
@@ -70,13 +99,13 @@ func (fw *FileWatcher) matchRenameIdentities(renames, creates []pendingPath) map
 // A removed pathname that already exists again was replaced, not deleted.
 // Reconcile at flush time so Remove/Create order and preserved timestamps do
 // not make the editor navigate away or retain the previous contents.
-func (fw *FileWatcher) resolveFileReplacements() {
+func (fw *FileWatcher) resolveFileReplacements(paths exactPathCache) {
 	replaced := util.Set[string]{}
 	deletes := make([]util.FileDeleteEventData, 0, len(fw.batch.fileDeletes))
 	for _, event := range fw.batch.fileDeletes {
 		path := filepath.Join(fw.projectPath, "notes", event.FilePath)
 		info, err := os.Lstat(path)
-		if err != nil || !info.Mode().IsRegular() || !util.ExactPathExists(path) {
+		if err != nil || !info.Mode().IsRegular() || !paths.exists(path) {
 			deletes = append(deletes, event)
 			continue
 		}

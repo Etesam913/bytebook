@@ -33,7 +33,7 @@ func TestWatcherRenameIdentity(t *testing.T) {
 		for _, name := range []string{"dest/b.png", "copy.md", "dest/a.md"} {
 			fw.processEvent(fsnotify.Event{Name: filepath.Join(root, name), Op: fsnotify.Create})
 		}
-		fw.resolveFileQueue()
+		fw.resolveFileQueue(make(exactPathCache))
 
 		assert.ElementsMatch(t, []util.FileRenameEventData{
 			{OldFilePath: "a.md", NewFilePath: "dest/a.md"},
@@ -55,7 +55,7 @@ func TestWatcherRenameIdentity(t *testing.T) {
 		require.NoError(t, os.WriteFile(newPath, []byte("same"), 0644))
 		fw.processEvent(fsnotify.Event{Name: oldPath, Op: fsnotify.Rename})
 		fw.processEvent(fsnotify.Event{Name: newPath, Op: fsnotify.Create})
-		fw.resolveFileQueue()
+		fw.resolveFileQueue(make(exactPathCache))
 
 		assert.Empty(t, fw.batch.fileRenames)
 		assert.Equal(t, []util.FileDeleteEventData{{FilePath: "old.md"}}, fw.batch.fileDeletes)
@@ -91,7 +91,7 @@ collect:
 			t.Fatal("timed out waiting for filesystem rename events")
 		}
 	}
-	fw.resolveFileQueue()
+	fw.resolveFileQueue(make(exactPathCache))
 
 	assert.ElementsMatch(t, []util.FileRenameEventData{
 		{OldFilePath: "a.md", NewFilePath: "dest/a.md"},
@@ -113,7 +113,7 @@ func TestWatcherAmbiguousIdentity(t *testing.T) {
 	for _, name := range []string{"first.md", "second.md"} {
 		fw.processEvent(fsnotify.Event{Name: filepath.Join(root, name), Op: fsnotify.Create})
 	}
-	fw.resolveFileQueue()
+	fw.resolveFileQueue(make(exactPathCache))
 
 	assert.Empty(t, fw.batch.fileRenames)
 	assert.Len(t, fw.batch.fileCreates, 2)
@@ -136,7 +136,7 @@ func TestWatcherFolderBatchIdentity(t *testing.T) {
 	for _, name := range []string{"b-new", "a-new"} {
 		fw.processEvent(fsnotify.Event{Name: filepath.Join(root, name), Op: fsnotify.Create})
 	}
-	fw.resolveFolderQueue()
+	fw.resolveFolderQueue(make(exactPathCache))
 
 	assert.ElementsMatch(t, []util.FolderRenameEventData{
 		{OldFolderPath: "a", NewFolderPath: "a-new"},
@@ -146,4 +146,56 @@ func TestWatcherFolderBatchIdentity(t *testing.T) {
 	// Descendants must remain watched after their ancestor folders move.
 	assert.Contains(t, fw.watcher.WatchList(), filepath.Join(root, "a-new", "child"))
 	assert.Contains(t, fw.watcher.WatchList(), filepath.Join(root, "b-new", "child"))
+}
+
+func TestWatcherCreateThenCaseOnlyRename(t *testing.T) {
+	project, _, root, _, _ := setupProjectFolders(t)
+	oldPath := testutil.WriteFile(t, root, "note.md", []byte("content"))
+	newPath := filepath.Join(root, "Note.md")
+	fw := newTestFileWatcher(t, project)
+	fw.addFolderTreeToWatcher(root)
+
+	// The initial create remains queued after the name changes on disk.
+	fw.processEvent(fsnotify.Event{Name: oldPath, Op: fsnotify.Create})
+	require.NoError(t, os.Rename(oldPath, newPath))
+	fw.processEvent(fsnotify.Event{Name: oldPath, Op: fsnotify.Rename})
+	fw.processEvent(fsnotify.Event{Name: newPath, Op: fsnotify.Create})
+	fw.resolveFileQueue(make(exactPathCache))
+
+	assert.Equal(t, []util.FileRenameEventData{{OldFilePath: "note.md", NewFilePath: "Note.md"}}, fw.batch.fileRenames)
+	assert.Empty(t, fw.batch.fileCreates)
+	assert.Empty(t, fw.batch.fileDeletes)
+}
+
+func TestWatcherCreateQueueResetsBetweenFlushes(t *testing.T) {
+	project, _, root, _, _ := setupProjectFolders(t)
+	fw := newTestFileWatcher(t, project)
+	first := testutil.WriteFile(t, root, "first.png", nil)
+	second := filepath.Join(root, "second.png")
+
+	fw.processEvent(fsnotify.Event{Name: first, Op: fsnotify.Create})
+	fw.processEvent(fsnotify.Event{Name: first, Op: fsnotify.Create})
+	assert.Len(t, fw.files.creates, 1)
+	fw.resolveFileQueue(make(exactPathCache))
+	assert.Equal(t, []util.FileCreateEventData{{FilePath: "first.png"}}, fw.batch.fileCreates)
+
+	// The second flush must see a new directory entry and accept a repeated path.
+	fw.batch = watcherBatch{}
+	require.NoError(t, os.WriteFile(second, nil, 0644))
+	fw.processEvent(fsnotify.Event{Name: first, Op: fsnotify.Create})
+	fw.processEvent(fsnotify.Event{Name: second, Op: fsnotify.Create})
+	fw.resolveFileQueue(make(exactPathCache))
+	assert.Equal(t, []util.FileCreateEventData{{FilePath: "first.png"}, {FilePath: "second.png"}}, fw.batch.fileCreates)
+}
+
+func TestExactPathCacheIsScopedToOneFlush(t *testing.T) {
+	root := t.TempDir()
+	first := testutil.WriteFile(t, root, "first", nil)
+	second := filepath.Join(root, "second")
+	paths := make(exactPathCache)
+
+	require.True(t, paths.exists(first))
+	require.NoError(t, os.WriteFile(second, nil, 0644))
+	assert.False(t, paths.exists(second))
+	assert.True(t, make(exactPathCache).exists(second))
 }
