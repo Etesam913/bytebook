@@ -132,51 +132,22 @@ func handleFolderRenameEvent(params EventParams, data []util.FolderRenameEventDa
 		}
 
 		updateMarkdownFilesForFolderRename(params.ProjectPath, oldFolderPath, newFolderPath)
+		renameFolderInIndex(params, oldFolderPath, newFolderPath)
 	}
-
-	renameFoldersInIndex(params, data)
 }
 
-func renameFoldersInIndex(params EventParams, data []util.FolderRenameEventData) {
-	params.withBatch(func(idx bleve.Index, _ *bleve.Batch) {
-		// Each subtree uses its own bounded indexing batches.
-		for _, eventData := range data {
-			oldFolderPath := eventData.OldFolderPath
-			newFolderPath := eventData.NewFolderPath
-
-			if oldFolderPath == "" {
-				log.Println("Folder rename event data missing oldFolderPath")
-				continue
-			}
-			if newFolderPath == "" {
-				log.Println("Folder rename event data missing newFolderPath")
-				continue
-			}
-
-			// Step 1: Delete all entries with the old folder name
-			deleteRenameFolderFromIndexLocked(idx, oldFolderPath)
-
-			if err := search.IndexFolderTree(params.ProjectPath, newFolderPath, idx); err != nil {
-				log.Printf("Error re-indexing folder %s: %v", newFolderPath, err)
-			}
+func renameFolderInIndex(params EventParams, oldFolderPath, newFolderPath string) {
+	params.withBatch(func(idx bleve.Index, batch *bleve.Batch) {
+		if err := deleteFolderDocumentsFromIndex(idx, batch, oldFolderPath, params.effectiveBatchSize()); err != nil {
+			batch.Reset()
+			log.Printf("Error deleting documents for folder %s: %v", oldFolderPath, err)
+			return
+		}
+		if err := search.IndexFolderTreeToBatch(params.ProjectPath, newFolderPath, idx, batch, params.effectiveBatchSize()); err != nil {
+			batch.Reset()
+			log.Printf("Error re-indexing folder %s: %v", newFolderPath, err)
 		}
 	})
-}
-
-// deleteRenameFolderFromIndexLocked deletes all documents associated with the old
-// folder name during a rename operation. Caller must hold the index read lock.
-func deleteRenameFolderFromIndexLocked(idx bleve.Index, oldFolderPath string) {
-	batch := idx.NewBatch()
-
-	if err := deleteFolderDocumentsFromIndex(idx, batch, oldFolderPath, search.DEFAULT_BATCH_SIZE); err != nil {
-		log.Printf("Error deleting documents for folder %s: %v", oldFolderPath, err)
-	}
-
-	if batch.Size() > 0 {
-		if err := idx.Batch(batch); err != nil {
-			log.Printf("Error batching delete operations for folder %s: %v", oldFolderPath, err)
-		}
-	}
 }
 
 // updateMarkdownFilesForFolderRename rewrites internal markdown URLs in notes within

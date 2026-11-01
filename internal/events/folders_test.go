@@ -354,7 +354,7 @@ func TestFolderRenamePreservesIndexedTags(t *testing.T) {
 		require.ElementsMatch(t, []string{"markdown-tag", "sidecar-tag"}, tags)
 
 		require.NoError(t, os.Rename(filepath.Join(params.ProjectPath, "notes", oldFolder), filepath.Join(params.ProjectPath, "notes", newFolder)))
-		renameFoldersInIndex(params, []util.FolderRenameEventData{{OldFolderPath: oldFolder, NewFolderPath: newFolder}})
+		handleFolderRenameEvent(params, []util.FolderRenameEventData{{OldFolderPath: oldFolder, NewFolderPath: newFolder}})
 		for _, subfolder := range []string{"", "child"} {
 			oldDoc, err := rawIndex(params).Document(filepath.Join(oldFolder, subfolder) + "/")
 			require.NoError(t, err)
@@ -388,4 +388,38 @@ func TestFolderRenamePreservesIndexedTags(t *testing.T) {
 	}
 	t.Run("top level folder and descendants", func(t *testing.T) { checkRename(t, "old", "renamed") })
 	t.Run("nested folder and descendants", func(t *testing.T) { checkRename(t, "parent/old", "parent/renamed") })
+}
+
+func TestFolderRenameIndexFailurePreservesPendingDeletes(t *testing.T) {
+	t.Parallel()
+	for _, tc := range []struct {
+		name      string
+		batchSize int
+		preserved bool
+	}{
+		{"pending deletes are discarded", 10, true},
+		{"full batches remain committed", 1, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			params := createTestParams(t)
+			params.batchSize = tc.batchSize
+			createNoteInFolder(t, params.ProjectPath, "old", "note.md", "# Note")
+			idx := rawIndex(params)
+			require.NoError(t, search.IndexFolderTree(params.ProjectPath, "", idx))
+
+			handleFolderRenameEvent(params, []util.FolderRenameEventData{
+				{OldFolderPath: "old", NewFolderPath: "missing"},
+			})
+
+			for _, id := range []string{"old/", "old/note.md"} {
+				doc, err := idx.Document(id)
+				require.NoError(t, err)
+				if tc.preserved {
+					assert.NotNil(t, doc, id)
+				} else {
+					assert.Nil(t, doc, id)
+				}
+			}
+		})
+	}
 }

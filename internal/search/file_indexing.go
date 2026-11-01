@@ -37,7 +37,20 @@ func IndexFolderTree(projectPath, folder string, bleveIndex bleve.Index) error {
 }
 
 func indexFolderTree(projectPath, folder string, bleveIndex bleve.Index, batchSize int) error {
-	return indexFiles(projectPath, bleveIndex, util.WORKER_COUNT, batchSize, func(ctx context.Context, jobs chan<- documentJob) error {
+	batch := bleveIndex.NewBatch()
+	if err := IndexFolderTreeToBatch(projectPath, folder, bleveIndex, batch, batchSize); err != nil {
+		return err
+	}
+	if err := flushBatch(bleveIndex, batch); err != nil {
+		return fmt.Errorf("flush final indexing batch: %w", err)
+	}
+	return nil
+}
+
+// IndexFolderTreeToBatch queues a subtree in batch, flushing full batches as needed.
+// The caller owns the remaining batch, including when indexing fails.
+func IndexFolderTreeToBatch(projectPath, folder string, bleveIndex bleve.Index, batch *bleve.Batch, batchSize int) error {
+	return indexFilesToBatch(projectPath, bleveIndex, batch, util.WORKER_COUNT, batchSize, func(ctx context.Context, jobs chan<- documentJob) error {
 		return populateJobs(ctx, projectPath, filepath.Join(projectPath, "notes", folder), jobs)
 	})
 }
@@ -74,6 +87,17 @@ func indexDiscoveredFiles(projectPath string, filePaths []string, bleveIndex ble
 // indexFiles owns the bounded pipeline. A discovery or batch error cancels
 // channel operations, and every goroutine exits before the caller gets the error.
 func indexFiles(projectPath string, bleveIndex bleve.Index, workerCount, batchSize int, discover func(context.Context, chan<- documentJob) error) error {
+	batch := bleveIndex.NewBatch()
+	if err := indexFilesToBatch(projectPath, bleveIndex, batch, workerCount, batchSize, discover); err != nil {
+		return err
+	}
+	if err := flushBatch(bleveIndex, batch); err != nil {
+		return fmt.Errorf("flush final indexing batch: %w", err)
+	}
+	return nil
+}
+
+func indexFilesToBatch(projectPath string, bleveIndex bleve.Index, batch *bleve.Batch, workerCount, batchSize int, discover func(context.Context, chan<- documentJob) error) error {
 	if workerCount <= 0 {
 		workerCount = 1
 	}
@@ -104,17 +128,12 @@ func indexFiles(projectPath string, bleveIndex bleve.Index, workerCount, batchSi
 		return nil
 	})
 	group.Go(func() error {
-		batch, err := addResultsToIndex(ctx, bleveIndex, bleveIndex.NewBatch(), results, batchSize)
+		_, err := addResultsToIndex(ctx, bleveIndex, batch, results, batchSize)
 		if err != nil {
 			return err
 		}
 		if err := ctx.Err(); err != nil {
 			return err
-		}
-		if batch.Size() > 0 {
-			if err := bleveIndex.Batch(batch); err != nil {
-				return fmt.Errorf("flush final indexing batch: %w", err)
-			}
 		}
 		return nil
 	})

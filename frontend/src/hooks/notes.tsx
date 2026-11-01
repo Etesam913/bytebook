@@ -1,5 +1,10 @@
 import { useProjectSettingsQuery } from '@hooks/project-settings';
-import { queryOptions, useMutation, useQuery } from '@tanstack/react-query';
+import {
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { navigate } from 'wouter/use-browser-location';
 import {
@@ -208,8 +213,18 @@ export function useRenameFileMutation() {
  * Returns query result indicating if the note exists
  */
 export function useNoteExists(filePath: FilePath | null) {
+  const queryClient = useQueryClient();
+
   return useQuery({
     ...noteQueries.doesNoteExist(filePath),
     enabled: filePath !== null,
+    initialData: () => {
+      if (!filePath) return undefined;
+
+      const allPaths = queryClient.getQueryData<string[]>(queryKeys.allPaths());
+      if (allPaths?.includes(filePath.fullPath)) return true;
+
+      return undefined;
+    },
   });
 }
